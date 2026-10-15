@@ -1,0 +1,8 @@
+.venv/
+node_modules/
+__pycache__/
+.superpowers/
+.worktrees/
+.env
+.env.*
+.dev.vars*
