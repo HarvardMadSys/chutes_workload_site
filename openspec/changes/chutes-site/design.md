@@ -22,7 +22,7 @@ session buckets, the figure modules and chart kinds the Insights no longer
 draw (`cdf`, `ranges`, `histogram`, `ranked`, `knee_lines`), the session
 queries and their tests. What stays is the shell: `style.css`, the theme
 and colour tokens, the layout and header, the hero, stats, donuts, cite
-and team modules, the trends (stacked bars), the table and its filter,
+and team modules, the trends (stacked bars), the filter and URL-key pattern,
 the topic tabs, the answers reader, the format helpers, the test
 infrastructure (node tests, pytest, snapshots) and the deploy tooling.
 
@@ -62,11 +62,8 @@ figure that should become interactive is its own later change).
 
 `python -m site_data --artifact <dir> --out site/data` registers the
 artifact's small caches as DuckDB tables, each under the cache file's
-name (`model_requests_vs_users`, `model_median_input_output`,
-`iat_per_model`, `monthly_requests_tokens_by_model`,
-`function_name_daily_requests`, `daily_requests`, `daily_tokens`,
-`daily_unique_users_models`, `model_request_rank`, `highlight_models`,
-`trace_totals`), the model names (`data/paper/chute_models.csv`) as
+name (`monthly_requests_tokens_by_model`, `function_name_daily_requests`,
+`model_request_rank`, `trace_totals`, `daily_rollup`), the model names (`data/paper/chute_models.csv`) as
 `chute_models`, and runs one `.sql` file per answer under
 `site/queries/explore/`, writing `site/data/all/explore/<query>.json`
 and the queries' hashes, as the agentic site does. The queries filter,
@@ -82,33 +79,47 @@ There are no selection tables: the site answers one selection, the whole
 trace. `selected_weeks` and `selected_harnesses` and the `benchmark`
 handling are deleted with the agentic site's buckets.
 
-### D4. The Model Explorer
+### D4. The Traffic Explorer
 
-One row per model of the trace (9,174, from `model_requests_vs_users`),
-joined to its name (`chute_models`, 3,922 named in the trace; the rest
-shown by the first eight characters of their id with a PRIVATE chip,
-following the dataset card's words), its median input and output tokens
-(`model_median_input_output`, present for 6,928 models and shown as an
-em dash elsewhere) and its median inter-arrival time (`iat_per_model`).
-Columns: Model, Requests, Users, Median input, Median output, Median
-gap; default sort requests descending; 20 rows a page; controls: a
-search box, a drop-down "All models / Named models", a minimum of
-requests; URL keys `search`, `named`, `min_requests`, `sort`,
-`direction`, `page`. The whole table is one answer (`explore/models`,
-about 1 MB) and the page draws it without a first-page answer: there is
-no slower list behind it. A row takes no click.
+One section, one wide card: a controls row (a model drop-down of the
+twenty most requested named models and Other, an endpoint drop-down of
+the endpoint groups, and period buttons All, Q2 '25, Q3 '25, Q4 '25,
+Q1 '26), a chart of requests per day as stacked bars (by model, or by
+endpoint group once a model is chosen) with a legend that toggles, and
+four tiles that follow the choice: requests, average input tokens,
+average output tokens and average TTFT with the share of requests that
+record it. The choice lives in the URL as `model`, `endpoint` and
+`period`; the default writes no key. The chart and tiles are drawn from
+one answer, `explore/daily_rollup`: one row per day, model (the twenty
+and Other) and endpoint group, with the request count, the token sums
+and counts, and the TTFT sum and count, filtered and summed in the
+browser. That is at most about 40,000 rows, under 1 MB. The answer is a
+plain reshaping of the artifact's `daily_rollup` cache, which the
+artifact computes once from the trace (D5). Averages divide by the
+count of requests that have the value.
 
-### D5. The trace totals are counted in the artifact, not typed
+What is left out, on purpose: hourly grain (hour of day is a paper
+figure), a database in the browser, brushing, animation, anomalies,
+export, and model families, which are not in the trace. The explorer
+reuses the stacked-bars kind, the legend, the URL-key pattern and the
+tiles the site already has; it is one module and one query.
+
+### D5. The totals and the daily rollup are counted in the artifact, not typed
 
 The stats strip shows the paper's Table 2: the span, requests, input
 tokens, output tokens, users, models and serving instances. Requests and
 models can be counted from existing caches; users (people, not
 `(user_id, rehash_round)` keys), instances and the token split cannot.
-The artifact gains `trace_totals.parquet`, one row, written by a query in
+The Traffic Explorer needs a day × model × endpoint rollup that no cache
+holds either. The artifact gains two caches written by queries in
 `paper/01_workload_overview/reproduce.py` in that script's caching
-pattern and committed under `data/paper/cache/`, and the site reads it.
-The query runs once against the trace on this machine (minutes). The
-site's `make data` stops, naming the file, when the cache is absent.
+pattern and committed under `data/paper/cache/`: `trace_totals.parquet`
+(one row) and `daily_rollup.parquet` (one row per day, `chute_id` of
+the twenty most requested named models or null for the rest, and
+endpoint group: requests, input and output token sums with their
+counts, TTFT sum and count; about 40,000 rows, under 1 MB). Both run
+once against the trace on this machine (minutes). The site's `make
+data` stops, naming the file, when either is absent.
 
 *Alternative rejected:* typing Table 2's numbers into the site. They
 would be right today and wrong after any re-export, with no test to say
@@ -164,14 +175,14 @@ in one module, data whole and current, every listed figure image
 present), the node tests of every module, the word-count test over the
 cards' copy, the palette contrast test, and the snapshot test over six
 states (the page with each topic shown), each state's units the texts of
-the cards, the donuts, the trends, the table's first page and the
-images' sources and sizes.
+the cards, the donuts, the trends, the Traffic Explorer's chart and
+tiles, and the images' sources and sizes.
 
 ### D10. Deployment
 
 `wrangler.jsonc` names the Worker `chutes-trace-site`, `workers_dev`
 until a hostname is chosen, and the deploy workflow checks `/`, the
-models answer and one figure image after each deploy. When the hostname
+daily rollup answer and one figure image after each deploy. When the hostname
 is set it is listed in `wrangler.jsonc`, since an unlisted custom domain
 is detached on deploy.
 

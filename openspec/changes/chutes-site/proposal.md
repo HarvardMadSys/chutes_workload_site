@@ -17,9 +17,10 @@ tooling of the FreeInference agentic trace site, filled with the Chutes
 trace:
 
 - **One page**, in the agentic site's order: a hero with the stats strip,
-  the Overview (two donuts, three monthly trends), a **Model Explorer**
-  (the table that stands where the agentic site's Session Explorer stands,
-  one row per model), the **Insights** (the paper's 48 figures as the
+  the Overview (two donuts, three monthly trends), a **Traffic
+  Explorer** (where the agentic site's Session Explorer stands: requests
+  per day for a chosen model, endpoint and period, with four numbers
+  that follow the choice), the **Insights** (the paper's 48 figures as the
   paper drew them, in six topic tabs following the paper's sections), Cite
   and Team.
 - **The paper's figures are the paper's images.** Each card shows a PNG
@@ -41,13 +42,14 @@ trace:
   per-pair inter-arrival table, the 420 MB per-request latency table and
   the rest are the paper's reproducibility caches and stay where they are.
 - The stats strip needs the trace's totals (requests, users, models,
-  instances, input and output tokens, the span). No cache holds them
-  all, so the artifact gains one one-row query cache, `trace_totals`,
-  computed once from the trace and committed there (see design.md D5).
-  Until it exists, the site cannot count its headline numbers.
+  instances, input and output tokens, the span), and the Traffic Explorer
+  a daily rollup (day × model × endpoint group). No cache holds either,
+  so the artifact gains two query caches, `trace_totals` and
+  `daily_rollup`, computed once from the trace and committed there (see
+  design.md D4 and D5). Until they exist, the site cannot build.
 - A Session Explorer has no analog: the release holds request metadata
   with no session identifiers, and the artifact reconstructs sessions for
-  two models only. The Model Explorer takes its place.
+  two models only. The Traffic Explorer takes its place.
 
 ## Pushback and open points
 
@@ -60,12 +62,12 @@ trace:
    desktop and smaller on a phone, where the visitor zooms. Every card
    links its full-size image. This is the requested trade; it is stated
    here so it is a decision and not a surprise.
-2. **The Model Explorer is a proposal.** A table of the 9,174 models
-   (name, requests, users, median input and output tokens, median
-   inter-arrival time) with search, a named-only filter, a minimum of
-   requests, sorting and paging in the URL, and no detail page. It is the
-   one interactive section and makes the trace browsable; dropping it
-   leaves the page without an explorer at all.
+2. **The Traffic Explorer is deliberately small.** It takes from the
+   "A Year of LLM Traffic, in a Browser Tab" dashboard the one thing the
+   paper's figures cannot do, choosing a model, an endpoint and a period
+   and seeing the traffic, and leaves the rest (a database in the
+   browser, live reads of the trace, brushing, animation, anomalies,
+   export, model families derived from names).
 3. **The copy is seeded from the paper and is yours to edit.** Each
    card's insight is the paper's italic lead-in for that figure
    ("Requests are often prompt-heavy."), its caption the paper's figure
@@ -76,15 +78,15 @@ trace:
    Trace" with "Production Trace" in the accent, after the Hugging Face
    card's "A Year in LLM Serving — Chutes Production Trace". The hostname
    is undecided; the Worker answers at `workers.dev` until it is set.
-5. **One artifact change.** The `trace_totals` cache (point D5) is a
-   query added to the artifact's `01_workload_overview/reproduce.py` in
-   its own caching pattern and committed under `data/paper/cache/`; it
-   needs the trace once, which this machine has.
+5. **One artifact change.** The `trace_totals` and `daily_rollup`
+   caches (D4, D5) are two queries added to the artifact's
+   `01_workload_overview/reproduce.py` in its own caching pattern and
+   committed under `data/paper/cache/`; they need the trace once, which
+   this machine has.
 
 ## Not in this change
 
-- No per-model page, no per-session view, no link from a model to
-  Hugging Face.
+- No table of models, no per-model page, no per-session view.
 - No redrawn figures: a figure that should become interactive later is
   its own change, one figure at a time, with its own small answer.
 - The Open Data page's "Explore the trace" link to this site is added

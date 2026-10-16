@@ -4,7 +4,7 @@ Every task ends with `make test` green and one commit. Tasks 1 to 8 are in
 this repository; task 0 is in the artifact repository and comes first,
 because task 3 reads what it writes.
 
-## 0. The artifact's trace totals cache (artifact repository)
+## 0. The artifact's two caches (artifact repository)
 
 - [ ] 0.1 Add to `paper/01_workload_overview/reproduce.py` one cached query,
       `trace_totals.parquet`: one row with `first_started_at`,
@@ -16,6 +16,13 @@ because task 3 reads what it writes.
       section README's cache table.
       *Verify:* the row's requests, users, models and instances equal
       Table 2's; `make paper-check` still passes.
+- [ ] 0.2 Add, the same way, `daily_rollup.parquet`: one row per day,
+      `chute_id` (the twenty most requested named models, null for the
+      rest) and endpoint group, with `requests`, `input_tokens`,
+      `input_counted`, `output_tokens`, `output_counted`, `ttft_sum`,
+      `ttft_counted`; run it once; commit it with its README row.
+      *Verify:* its requests sum to Table 2's; its per-day totals equal
+      `daily_requests`.
 
 ## 1. The repository seed
 
@@ -41,7 +48,7 @@ because task 3 reads what it writes.
       *Verify:* month 1970-01 → `2025-04`, 1971-01 → `2026-04`.
 - [ ] 2.3 `site/queries/explore/*.sql`: `trace_totals`, `model_mix`,
       `endpoint_mix`, `requests_by_month_model`, `tokens_by_month_model`,
-      `requests_by_month_endpoint`, `models` (the explorer's rows);
+      `requests_by_month_endpoint`, `daily_rollup` (the explorer's rows);
       `site_data/answers.py` writes each answer and `queries.json`.
       *Verify:* every query runs over the fixture and returns its
       documented columns; every answer equals the live query; the hash
@@ -61,7 +68,7 @@ because task 3 reads what it writes.
 ## 3. The landing page's numbers and Overview
 
 - [ ] 3.1 The hero: title, lede (the span in months read from
-      `trace_totals`, in digits), the buttons (Model Explorer, Insights,
+      `trace_totals`, in digits), the buttons (Traffic Explorer, Insights,
       Dataset, Paper, Code), the lab line; the stats strip from
       `trace_totals`.
       *Verify:* node test over the hero's text; the strip's numbers
@@ -70,13 +77,14 @@ because task 3 reads what it writes.
       answers, with the calendar month ticks.
       *Verify:* node tests over the series and legends; snapshot.
 
-## 4. The Model Explorer
+## 4. The Traffic Explorer
 
-- [ ] 4.1 `explore/models_table.js`, `models_filter.js`,
-      `models_table_state.js`: the table, controls, URL keys and paging
-      of D4, from the `models` answer; the guide line under the heading.
-      *Verify:* node tests over filtering, sorting, paging and the URL;
-      a 360 px snapshot does not scroll sideways.
+- [ ] 4.1 `explore/traffic.js` and `traffic_filter.js`: the controls,
+      the URL keys, the filtered daily chart and the four tiles of D4,
+      from the `daily_rollup` answer; the guide line under the heading.
+      *Verify:* node tests over the filter, the sums, the averages'
+      counted denominators and the URL; a 360 px snapshot does not
+      scroll sideways.
 
 ## 5. The Insights
 

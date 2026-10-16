@@ -6,8 +6,8 @@
 The page SHALL open with a hero: the title "Chutes Production Trace" with
 "Production Trace" in the accent colour and no eyebrow above it; a lede
 of the user's words whose month count is read from the `trace_totals`
-answer and written in digits; five buttons: "Model Explorer" to the
-Model Explorer section, "Insights" to the Insights section, "Dataset"
+answer and written in digits; five buttons: "Traffic Explorer" to the
+Traffic Explorer section, "Insights" to the Insights section, "Dataset"
 (the Hugging Face dataset), the paper and the code; and under them the
 lab's name "Harvard SEAS · MadSys Lab" linking to the lab. Beside it a
 stats strip SHALL show, computed from the `trace_totals` answer and never
@@ -17,14 +17,14 @@ instances, and a line naming the span's first and last day.
 
 #### Scenario: Opening the page
 - **WHEN** a visitor opens the page
-- **THEN** the hero and the stats strip SHALL be visible before any figure, and the strip's model count SHALL equal the Model Explorer's row count
+- **THEN** the hero and the stats strip SHALL be visible before any figure, and the strip's request count SHALL equal the Traffic Explorer's requests tile with nothing chosen
 
 #### Scenario: A stat is counted, not typed
 - **WHEN** the artifact's `trace_totals` cache changes and `make data` reruns
 - **THEN** the stats strip SHALL show the new numbers without an edit to the page
 
 #### Scenario: The site buttons
-- **WHEN** the visitor presses "Model Explorer" or "Insights"
+- **WHEN** the visitor presses "Traffic Explorer" or "Insights"
 - **THEN** the page SHALL scroll to that section
 
 ### Requirement: Overview donuts
@@ -64,51 +64,50 @@ no click.
 - **WHEN** the requests-per-month card draws
 - **THEN** it SHALL show 13 bars labelled from the answer's calendar months, `2025-04` first and `2026-04` last, the last bar holding two days
 
-### Requirement: Model Explorer
-Directly after the Overview, a Model Explorer section (that heading, no
-eyebrow, anchor `#models`, and under the heading one guide line of the
-user's words) SHALL list every model of the trace, sorted by requests
-descending by default, 20 rows a page, with the columns Model (the name,
-or the first eight characters of the id with a PRIVATE chip whose
-tooltip says the model is private or short-lived and unnamed in the
-release), Requests, Users, Median input, Median output and Median gap
-(seconds), a median shown as an em dash where the answer has none. Above
-it, one row of plain form controls: a search box over the name and id, a
-drop-down "All models" / "Named models", and a minimum number of
-requests; no pills and no buttons but the sort buttons in the column
-headers. The visitor SHALL be able to sort by any column from the
-keyboard as well as the mouse, each header a button that announces its
-sort state. The table SHALL NOT scroll inside its card: the page scrolls,
-and its header row SHALL stay in view under the site header. It SHALL
-keep the filters, sort and page in the URL query string as `search`,
-`named`, `min_requests`, `sort`, `direction` and `page`, the default
-writing no key, and read them when the page opens; no other key SHALL be
-read or rewritten. A row SHALL take no click. The table SHALL draw from
-the `explore/models` answer alone.
+### Requirement: Traffic Explorer
+Directly after the Overview, a Traffic Explorer section (that heading,
+no eyebrow, anchor `#traffic`, and under the heading one guide line of
+the user's words) SHALL hold one row of plain form controls and one wide
+card. The controls: a model drop-down ("All models", the twenty most
+requested named models, "Other"), an endpoint drop-down ("All
+endpoints" and one entry per endpoint group) and period buttons All,
+Q2 '25, Q3 '25, Q4 '25 and Q1 '26 (the calendar quarters the trace
+spans, by the trace months' labels). The card: requests per day as
+stacked bars over the chosen period, by model while no model is chosen
+and by endpoint group once one is, with a legend that toggles, and
+four tiles above the chart that follow the choice: requests, average
+input tokens, average output tokens, and average TTFT with the share
+of the chosen requests that record it; an average SHALL divide by the
+requests that have the value. The choice SHALL live in the URL query
+string as `model`, `endpoint` and `period`, the default writing no key,
+and SHALL be read when the page opens; no other key SHALL be read or
+rewritten. The section SHALL draw from the `explore/daily_rollup`
+answer alone, filtering and summing in the browser. A bar SHALL take no
+click.
 
-#### Scenario: Searching for a model
-- **WHEN** the visitor types "DeepSeek"
-- **THEN** the table SHALL list the models whose name holds it, with the count shown as matching over total ("41 of 9,174 models"); with no filter the count SHALL read the total alone ("9,174 models")
+#### Scenario: Choosing a model
+- **WHEN** the visitor chooses "deepseek-ai/DeepSeek-V3-0324-TEE"
+- **THEN** the bars SHALL show that model's requests per day split by endpoint group, the tiles its requests, averages and TTFT share, and the URL SHALL read `?model=<its id>`
 
-#### Scenario: Named models only
-- **WHEN** the visitor chooses "Named models"
-- **THEN** only models with a name SHALL be listed, and the URL SHALL read `?named=1`
+#### Scenario: Choosing a period
+- **WHEN** the visitor presses "Q3 '25"
+- **THEN** the chart SHALL show the days of July to September 2025 only, the tiles SHALL sum those days, and the URL SHALL carry `period=2025-q3`
 
-#### Scenario: A private model
-- **WHEN** a listed model has no name
-- **THEN** its Model cell SHALL show its id's first eight characters and a PRIVATE chip
-
-#### Scenario: Sorting from the keyboard
-- **WHEN** the visitor tabs to the Users header and presses Enter
-- **THEN** the table SHALL sort by users and the header SHALL announce the direction
+#### Scenario: An average with missing values
+- **WHEN** the chosen requests number 1,000 and 490 of them record a TTFT
+- **THEN** the TTFT tile SHALL average those 490 and say 49% record it
 
 #### Scenario: Sharing a view
-- **WHEN** a visitor opens `index.html?search=qwen&sort=users&direction=desc&page=2`
-- **THEN** the table SHALL show the second page of the Qwen models by users descending, and every figure SHALL be as without the keys
+- **WHEN** a visitor opens `index.html?endpoint=chat_stream&period=2026-q1`
+- **THEN** the chart SHALL show the streaming chat requests of January to March 2026 by model, and every figure SHALL be as without the keys
+
+#### Scenario: A phone
+- **WHEN** the page is opened 360 pixels wide
+- **THEN** the controls SHALL wrap, the tiles SHALL stack, and the page SHALL not scroll sideways
 
 ### Requirement: The page appears before the data
-The page SHALL draw its layout first, then every number, card, the table
-and the shown topic's cards from the answers and the images' index, each
+The page SHALL draw its layout first, then every number, card, the
+Traffic Explorer and the shown topic's cards from the answers and the images' index, each
 part showing a loading state until its answer arrives and its error in
 its own place if the answer fails, without stopping the others. The page
 SHALL run no query and load no database.
@@ -118,7 +117,7 @@ SHALL run no query and load no database.
 - **THEN** the page SHALL already show its layout, with a loading state in that answer's place and the other parts drawn
 
 ### Requirement: Insights
-After the Model Explorer, an Insights section (that heading, no eyebrow,
+After the Traffic Explorer, an Insights section (that heading, no eyebrow,
 anchor `#insights`) SHALL hold the paper's figures in six numbered topics
 shown one at a time behind a row of tabs under the heading: each topic
 with its heading, a takeaway sentence of at most twenty words under it,
@@ -223,4 +222,4 @@ text.
 
 #### Scenario: A link off the site
 - **WHEN** the visitor looks at the hero's Paper button or the footer's Dataset link
-- **THEN** each SHALL end in an arrow, and the Model Explorer link SHALL not
+- **THEN** each SHALL end in an arrow, and the Traffic Explorer link SHALL not

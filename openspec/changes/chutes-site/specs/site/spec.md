@@ -43,7 +43,7 @@ site/             exactly the files that are deployed
   js/theme/       the site's colours as the style tokens give them
   js/pages/       the page's module
   js/landing/     the hero, the stats strip, the donuts, the cite and team sections
-  js/explore/     the page's start and its sections: the trends, the models table, the figure cards, the topic tabs
+  js/explore/     the page's start and its sections: the trends, the traffic explorer, the figure cards, the topic tabs
   queries/        one .sql file per answer, under explore/
   data/           built by make data and tracked: the answers and the queries' hashes
   figures/        built by make data and tracked: one PNG per figure of the paper and their index
@@ -84,7 +84,7 @@ time, a trace month), and SHALL NOT read the trace.
 ### Requirement: Navigation
 The site SHALL have one page, `index.html`, with one sticky header: the
 brand "Chutes Production Trace" linking to the top, the in-page links
-Overview, Model Explorer, Insights and Cite, and no link off the site. On
+Overview, Traffic Explorer, Insights and Cite, and no link off the site. On
 a phone the header SHALL be two rows, the brand on the first and the four
 links on the second, wrapping as they need; nothing in the header SHALL
 scroll sideways or be cut off. The header SHALL NOT name the lab nor link
@@ -132,8 +132,8 @@ libraries or fonts cannot load.
 figures, to the Cloudflare Worker that `wrangler.jsonc` names, which
 serves `site/` as static assets. A push to `main` SHALL deploy the same
 way through the repository's deploy workflow, which SHALL then ask the
-published site for the page (`/`), the models answer and one figure
-image, and fail on any answer but 200. Every hostname the site answers
+published site for the page (`/`), the daily rollup answer and one
+figure image, and fail on any answer but 200. Every hostname the site answers
 on SHALL be listed in `wrangler.jsonc`.
 
 #### Scenario: A page missing after a deploy
@@ -220,11 +220,9 @@ the same checkout SHALL write identical files.
 The data step SHALL hold each cache it reads as a DuckDB table under the
 cache file's name, and `chute_models.csv` as `chute_models`, and the
 queries SHALL read from those tables and from nothing else. The caches
-read SHALL be `trace_totals`, `model_requests_vs_users`,
-`model_median_input_output`, `iat_per_model`, `model_request_rank`,
-`monthly_requests_tokens_by_model`, `function_name_daily_requests`,
-`daily_requests`, `daily_tokens`, `daily_unique_users_models` and
-`highlight_models`, and no other.
+read SHALL be `trace_totals`, `daily_rollup`, `model_request_rank`,
+`monthly_requests_tokens_by_model` and `function_name_daily_requests`,
+and no other.
 
 #### Scenario: A query over the trace
 - **WHEN** a query names a table that is not one of the caches
@@ -259,9 +257,10 @@ eight most requested named and the rest as Other), `endpoint_mix`
 (requests per endpoint group), `requests_by_month_model`,
 `tokens_by_month_model` (per calendar month, the model mix's eight and
 Other), `requests_by_month_endpoint` (per calendar month and endpoint
-group) and `models` (one row per model: id, name or null, requests,
-users, median input tokens, median output tokens, median inter-arrival
-seconds, each median null where the cache has none). Every query SHALL
+group) and `daily_rollup` (one row per day, model and endpoint group
+as the artifact's cache has them, the model's name or "Other", with
+the request count, the input and output token sums and counts, and the
+TTFT sum and count). Every query SHALL
 be read by the page. The page SHALL draw from the answers alone and run
 no query.
 
@@ -273,9 +272,9 @@ no query.
 - **WHEN** the page asks for an answer file that does not exist
 - **THEN** the page SHALL show that query's error in its own place
 
-#### Scenario: The models answer
-- **WHEN** `explore/models` is written
-- **THEN** it SHALL hold one row per model of `model_requests_vs_users`, 9,174 for the released trace, with its name where `chute_models` has one
+#### Scenario: The daily rollup answer
+- **WHEN** `explore/daily_rollup` is written
+- **THEN** its request counts summed over every row SHALL equal `trace_totals`' requests
 
 ### Requirement: Figure images
 `make data` SHALL render every PDF that the artifact's `config/figures.json`
