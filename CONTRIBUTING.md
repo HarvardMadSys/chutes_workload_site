@@ -346,20 +346,25 @@ table and the card's words.
 Overview's and the Traffic Explorer's `stacked_bars` and `donut`, and the
 figures' `lines` (a CDF among them), `bands`, `cells`, `raster`, `scatter`,
 `boxes` and `bars`, the stacked bars drawing the two monthly shares too.
-Each exports one draw function of one interface,
+These nine chart modules are not quite a card's nine kinds: `CHART_KINDS`
+of `insights/figure_card.js` names `cdf`, drawn by `lines`, and no
+`donut`, which only the Overview draws. Each module exports one draw
+function of one interface,
 `draw<Kind>(rows, body, colours, parameters, hidden)`: the rows of its
 answer, the place to draw into, `colours.series` (the Map of its series'
 colours in the legend's order), its named parameters (a card's `chart`,
 with its kind's and a panel's) and the Set of series its legend hides; it
-replaces the place's content with one Plot chart. Its module's header says
+replaces the place's content with one Plot chart, but the donut, which is
+plain SVG of its own drawing. Its module's header says
 what rows it takes and its draw function's JSDoc what each parameter
 decides; its pure functions (the rows drawn, the tooltip's text, a scale's
 options) are exported and tested in `tests/charts_<kind>.test.js`. A kind
 imports only from `shared/`, `axes/` and `theme/`. A kind takes only
 parameters two or more charts use, or a frame or axis setting (the bars'
-`margins`, `inset` and `xTickRotate`, the lines' `gap`). Every kind but
-the raster has a tooltip, written by the kind's `…TipText` function, its x
-after the x axis's title (`axisValueText` of `axes/ticks.js`).
+`margins`, `inset` and `xTickRotate`, the lines' `gap`). Every Plot kind
+but the raster has a tooltip, written by the kind's `…TipText` function,
+its x after the x axis's title (`axisValueText` of `axes/ticks.js`); the
+donut's slices carry their tooltip as an SVG `<title>` each.
 
 ## JavaScript style
 

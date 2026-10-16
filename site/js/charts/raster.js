@@ -9,7 +9,7 @@
  */
 
 import { sequentialColour, titledFrame } from "../shared/charts.js";
-import { axisMark, axisTicks, colourLegendTicks } from "../axes/ticks.js";
+import { axisMark, axisTicks, colourLegendTicks, extent } from "../axes/ticks.js";
 
 const DEFAULT_SCHEME = "Blues"; // a raster's colour scheme when the card names none: few requests light, many dark
 
@@ -19,7 +19,8 @@ const DEFAULT_SCHEME = "Blues"; // a raster's colour scheme when the card names 
  * - `x`, `y`: the card's axis options `{ label, ticks, tickFormat }`; the x axis's `tickFormat` writes a column, an
  *   hour of the window, as a day, and `y.label` names what a row is, "User".
  * - `scheme`: the colour scheme, "Blues" when not given; `schemeStart`: the point of it, from 0 to 1, the lowest
- *   value takes, its first colour when not given; `colourLog`: true for a log colour scale.
+ *   value takes, its first colour when not given; `colourLog`: true for a log colour scale; `colourDomain`:
+ *   the values at the scale's two ends, the rows' own (`rasterColourDomain`) when not given.
  * - `valueLabel`: what a value is, the colour legend's title. `margins`: Plot margins in place of the frame's.
  * Required: `valueLabel`.
  */
@@ -34,12 +35,14 @@ export async function drawRaster(rows, body, colours, parameters) {
   const pooled = pooledGrid({ width, height, values }, plotWidth, plotHeight);
   const xTicks = axisTicks(xAxis, [0, width]);
   const yTicks = axisTicks(yAxis, [0, height]);
-  const legendTicks = colourLegendTicks(parameters, rows.map((row) => row.value));
+  // The colour scale spans the cells' own values, whatever pooling keeps of them.
+  const colourParameters = { ...parameters, colourDomain: rasterColourDomain(parameters, rows) };
+  const legendTicks = colourLegendTicks(colourParameters, rows.map((row) => row.value));
   const chart = Plot.plot({
     ...frame,
     x: { domain: [0, width] },
     y: { domain: [0, height] },
-    color: sequentialColour(parameters, DEFAULT_SCHEME, legendTicks),
+    color: sequentialColour(colourParameters, DEFAULT_SCHEME, legendTicks),
     marks: [
       // Row 0 is drawn at the bottom: y rises with the row index, as the paper's rasters draw a rank. A pooled grid
       // may reach past the last column or row by part of a pool, which the frame's edge cuts off.
@@ -79,6 +82,14 @@ export function rasterGrid(rows) {
     values[row.y * width + row.x] = row.value;
   }
   return { width, height, values };
+}
+
+/**
+ * The values a raster's colour scale spans: the card's `colourDomain` where given, else the smallest and the largest
+ * of its rows' values, the cells' own rather than the pooled grid's.
+ */
+export function rasterColourDomain({ colourDomain }, rows) {
+  return colourDomain ?? extent(rows.map((row) => row.value));
 }
 
 /**

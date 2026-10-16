@@ -7,7 +7,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { brokenAtGaps, drawnPoints, lineTipText } from "../site/js/charts/lines.js";
-import { rasterGrid } from "../site/js/charts/raster.js";
+import { pooledGrid, rasterColourDomain, rasterGrid } from "../site/js/charts/raster.js";
 import { axisTicks } from "../site/js/axes/ticks.js";
 import { drawWithLegend } from "../site/js/explore/legend.js";
 import {
@@ -57,7 +57,7 @@ test("the input-tokens card's x axis is logarithmic from 1 to 400,000 tokens, ti
   assert.deepEqual(axisTicks(xAxis, []).map(xAxis.tickFormat), ["1", "100", "10k"]);
 });
 
-test("the Qwen3-Next-80B raster has one cell per user row and hour, shaded by requests, its x axis in days", () => {
+test("the Qwen3-Next-80B raster shades each user row's hours by requests, days on x, pooled past its pixels", () => {
   const card = cardOf("fig_model_raster_qwen3_next_80b");
   const rows = shippedAnswer(card.figure);
   const grid = rasterGrid(rows);
@@ -67,6 +67,12 @@ test("the Qwen3-Next-80B raster has one cell per user row and hour, shaded by re
   assert.equal(card.chart.valueLabel, "Requests per hour");
   assert.equal(card.chart.x.label, "Day of the window");
   assert.deepEqual(card.chart.x.ticks.map(card.chart.x.tickFormat), ["0", "6", "12", "18", "24", "30"]);
+  // At a desktop card's 424 pixels, two hours share a pixel, and every hour with requests stays shaded.
+  const pooled = pooledGrid(grid, 424, 160);
+  assert.equal(pooled.columnStep, 2);
+  const shaded = (values) => values.filter((value) => !Number.isNaN(value));
+  assert.equal(Math.max(...shaded(pooled.values)), Math.max(...shaded(grid.values)));
+  assert.deepEqual(rasterColourDomain(card.chart, rows), [1, 13851]);
 });
 
 test("hiding DeepSeek R1 in the input-tokens card's legend leaves the other lines as drawn", async (context) => {

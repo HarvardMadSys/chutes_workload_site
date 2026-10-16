@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { pooledGrid, rasterGrid } from "../site/js/charts/raster.js";
+import { pooledGrid, rasterColourDomain, rasterGrid } from "../site/js/charts/raster.js";
 
 test("a raster is as wide as its largest column plus one and as tall as its largest row plus one", () => {
   const rows = [{ x: 0, y: 0, value: 26 }, { x: 743, y: 0, value: 3 }, { x: 5, y: 219, value: 1 }];
@@ -43,4 +43,10 @@ test("a window of 744 hours in a plot 424 pixels wide is drawn two hours to a co
   const pooled = pooledGrid(rasterGrid(rows), 424, 160);
   assert.deepEqual([pooled.width, pooled.columnStep, pooled.height, pooled.rowStep], [372, 2, 135, 4]);
   assert.equal([...pooled.values].filter((value) => !Number.isNaN(value)).length, rows.length);
+});
+
+test("a raster's colour scale spans its rows' own values, or the card's colourDomain where given", () => {
+  const rows = [{ x: 0, y: 0, value: 3 }, { x: 1, y: 0, value: 1 }, { x: 1, y: 1, value: 40 }];
+  assert.deepEqual(rasterColourDomain({}, rows), [1, 40]);
+  assert.deepEqual(rasterColourDomain({ colourDomain: [36, 80] }, rows), [36, 80]);
 });

@@ -145,9 +145,10 @@ axes' ticks and titles, with its legend's series in a unit of their own,
 instead of the image's source and size; each state also fails when the
 page requested another topic's answers. The spec's scenarios of a card's
 chart (a tooltip, a log axis, a raster, a series hidden in a CDF card) are
-node tests over the shipped answers. The repository test checks `all/figures.json` against the
-tracked answers and, when `ARTIFACT` is set, every answer against a
-rebuild. The deploy workflow fetches one figure answer instead of a PNG.
+node tests over the shipped answers. The built-data test
+(`test_built_data.py`) checks `all/figures.json` against the tracked
+answers and, when `ARTIFACT` is set, every answer against a rebuild. The
+deploy workflow fetches one figure answer instead of a PNG.
 
 ## Measurements to record when the data is first built
 
