@@ -1,9 +1,10 @@
 name: Deploy
 
 # Deploys site/ to Cloudflare as the Worker's static assets on every push to main, with wrangler and an API token,
-# so no Cloudflare dashboard role beyond Workers Platform Admin is needed. The two secrets live under the
-# repository's Settings > Secrets and variables > Actions: CLOUDFLARE_API_TOKEN (a token with Workers Scripts: Edit,
-# from the dashboard's "Edit Cloudflare Workers" template) and CLOUDFLARE_ACCOUNT_ID.
+# so no Cloudflare dashboard role beyond Workers Platform Admin is needed. The repository's owner adds the two secrets
+# under the repository's Settings > Secrets and variables > Actions: CLOUDFLARE_API_TOKEN (a token with Workers
+# Scripts: Edit, from the dashboard's "Edit Cloudflare Workers" template) and CLOUDFLARE_ACCOUNT_ID. The repository
+# variable CLOUDFLARE_ACCOUNT_SUBDOMAIN, set there too, turns on the check of the published site.
 
 on:
   push:
@@ -55,15 +56,30 @@ jobs:
         shell: bash
         run: |
           # The Worker answers at its workers.dev address until a custom domain is set in wrangler.jsonc. The check is
-          # that the landing page is served.
+          # that the page, the daily rollup answer and one figure image are served, each with its content type.
           host="chutes-trace-site.${CLOUDFLARE_ACCOUNT_SUBDOMAIN:-}.workers.dev"
           if [ -z "${CLOUDFLARE_ACCOUNT_SUBDOMAIN:-}" ]; then
             echo "Set the CLOUDFLARE_ACCOUNT_SUBDOMAIN repository variable to check the deployed site; skipping."
             exit 0
           fi
-          for path in "/"; do
-            status=$(curl -s -o /dev/null -w '%{http_code}' -L "https://$host$path")
-            [ "$status" = "200" ] || { echo "::error::$path on $host answered $status"; exit 1; }
-          done
+          # Fails the job unless the path answers 200 with a content type that starts with the expected one.
+          # curl prints 000 and no type when it cannot connect, which fails the check like any other answer.
+          check_answer() {
+            local path="$1" expected_type="$2" answer status content_type
+            answer=$(curl -s -o /dev/null -L -w '%{http_code} %{content_type}' "https://$host$path") || true
+            status="${answer%% *}"
+            content_type="${answer#* }"
+            if [ "$status" != "200" ]; then
+              echo "::error::$path on $host answered $status"
+              exit 1
+            fi
+            case "$content_type" in
+              "$expected_type"*) echo "$path answered 200, $content_type" ;;
+              *) echo "::error::$path on $host answered with content type '$content_type', not $expected_type"; exit 1 ;;
+            esac
+          }
+          check_answer "/" "text/html"
+          check_answer "/data/all/explore/daily_rollup.json" "application/json"
+          check_answer "/figures/fig_request_rate_day.png" "image/png"
         env:
           CLOUDFLARE_ACCOUNT_SUBDOMAIN: ${{ vars.CLOUDFLARE_ACCOUNT_SUBDOMAIN }}
