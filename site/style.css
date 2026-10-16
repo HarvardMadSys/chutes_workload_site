@@ -1418,10 +1418,28 @@ section[id] {
   max-width: 100%;
 }
 
+/* The image opens itself in a new tab without leaving the site, so it takes no arrow under it. */
+.figure-panel a::after {
+  content: none;
+}
+
 .figure-panel img {
   display: block;
   max-width: 100%;
   height: auto;
+}
+
+/* In the dark scheme the figure and its legend sit on one white panel, as a printed figure would: the images are
+   matplotlib's black ink on white, which would otherwise be a white block with no margin on the dark card. In the
+   light scheme the card is the panel. The white is the paper's, not a token of the site's palette. */
+@media (prefers-color-scheme: dark) {
+  .figure-panel {
+    width: fit-content;
+    max-width: 100%;
+    padding: 0.5rem;
+    border-radius: var(--radius-small);
+    background: #fff;
+  }
 }
 
 .legend {
