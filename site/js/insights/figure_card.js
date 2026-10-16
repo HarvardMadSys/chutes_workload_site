@@ -64,6 +64,24 @@ export const PALETTES = Object.freeze({
   endpoints: (names, labels, endpointMixRows) => endpointFigureColours(names, labels, endpointMixRows),
 });
 
+/**
+ * A card's colours for a count, of models, users, requests or instances, as the paper shades one: viridis on a log
+ * scale, from a quarter of the way along it, since its first colour, a near-black purple, vanishes into the dark
+ * scheme's card. A card spreads it into its `chart`.
+ */
+export const COUNT_COLOUR = Object.freeze({ scheme: "viridis", schemeStart: 0.25, colourLog: true });
+
+/**
+ * The trace's months an axis of its months 1 to 13 labels: every third from the first, as the paper labels them;
+ * all thirteen run together on a phone.
+ */
+export const TRACE_MONTH_TICKS = Object.freeze([1, 4, 7, 10, 13]);
+
+/** A card's x axis of the trace's months, 1 to 13, the first being April 2025's. */
+export const TRACE_MONTH_AXIS = Object.freeze({
+  label: "Trace month (1 = April 2025)", ticks: TRACE_MONTH_TICKS, tickFormat: String,
+});
+
 // The palette of a card that names none.
 const DEFAULT_PALETTE = "series";
 

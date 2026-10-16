@@ -1,3 +1,3 @@
 name: Monthly input intervals: Inputs stay stable while outputs shrink.
-x-axis: 2 | 4 | 6 | 8 | 10 | 12
-y-axis: 5k | 10k | 15k | 20k | 25k
+x-axis: 1 | 4 | 7 | 10 | 13
+y-axis: 100 | 1k | 10k

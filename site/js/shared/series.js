@@ -53,11 +53,13 @@ export const ENDPOINT_SERIES = Object.freeze({
 });
 
 /**
- * The series every figure card draws in one colour, by their names in the figure answers: the global series in the
- * text's ink, as the paper draws it in black, and the three highlighted models in the first three series slots.
+ * The series every figure card draws in one colour, by their names in the figure answers: the global series and the
+ * eviction figures' size-aware Belady oracle in the text's ink, as the paper draws its reference lines in black, and
+ * the three highlighted models in the first three series slots.
  */
 export const FIXED_SERIES_COLOURS = Object.freeze({
   Global: "var(--color-text)",
+  "Belady (size-aware)": "var(--color-text)",
   "DeepSeek V3.2": SERIES_SLOTS[0],
   "Deepseek R1": SERIES_SLOTS[1],
   "Minimax M2.5": SERIES_SLOTS[2],

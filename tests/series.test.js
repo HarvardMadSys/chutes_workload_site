@@ -92,8 +92,9 @@ test("a figure card given the families' slots colours ten series before the Othe
   assert.deepEqual([...colours.values()], [...FAMILY_SLOTS, OTHER_SERIES]);
 });
 
-test("the highlighted series are the fixed ones, the global series first, and only their names are relabelled", () => {
-  assert.deepEqual([...HIGHLIGHTED_SERIES].sort(), Object.keys(FIXED_SERIES_COLOURS).sort());
+test("the highlighted series and the oracle are the fixed ones, the global series first, and only their names are relabelled", () => {
+  assert.deepEqual([...HIGHLIGHTED_SERIES, "Belady (size-aware)"].sort(), Object.keys(FIXED_SERIES_COLOURS).sort());
+  assert.equal(FIXED_SERIES_COLOURS["Belady (size-aware)"], FIXED_SERIES_COLOURS.Global);
   assert.equal(HIGHLIGHTED_SERIES[0], "Global");
   assert.ok(Object.keys(HIGHLIGHTED_LABELS).every((name) => HIGHLIGHTED_SERIES.includes(name)));
 });

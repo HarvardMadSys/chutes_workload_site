@@ -6,15 +6,36 @@
  * A card's kind and chart say how its figure is drawn from its answer, as `insights/figure_card.js` defines them.
  */
 
-import { formatCount, formatCountTick, formatPercent, formatSeconds, formatShare } from "../shared/format.js";
+import {
+  formatCount, formatCountTick, formatPercent, formatSeconds, formatSecondsTick, formatShare, formatWholeCountTick,
+} from "../shared/format.js";
 import { URLS } from "../shared/layout.js";
-import { frozenCard } from "./figure_card.js";
+import { HIGHLIGHTED_LABELS, HIGHLIGHTED_SERIES } from "../shared/series.js";
+import { COUNT_COLOUR, frozenCard, TRACE_MONTH_AXIS } from "./figure_card.js";
 
 // The artifact's README of the trace's caching figures, which says how each is computed.
 const SECTION_README = `${URLS.code}/blob/main/paper/04_prefix_caching/README.md`;
 
 // The artifact's folder of the cache simulation, which draws the eviction figures; it has no README of its own.
 const SIMULATION_FOLDER = `${URLS.code}/tree/main/pipeline/caching`;
+
+// An axis of the token hit ratio, 0 to 1, labelled every fifth as the paper's.
+const HIT_RATIO_AXIS = Object.freeze({
+  label: "Token hit ratio", domain: [0, 1], ticks: [0, 0.2, 0.4, 0.6, 0.8, 1], tickFormat: String,
+});
+
+// The y axis of the hit-ratio CDFs: the share of requests at or below a ratio, in percent.
+const SHARE_OF_REQUESTS = Object.freeze({ label: "Share of requests" });
+
+// The CDF by input length's series, in the paper's legend order.
+const INPUT_LENGTH_SERIES = Object.freeze(["Global", "<1K input", ">8K input"]);
+
+// The eviction algorithms, in the paper's legend order, the size-aware Belady oracle last and dashed.
+const EVICTION_ALGORITHMS = Object.freeze(["FIFO", "LRU", "ARC", "LRB", "GDSF", "Sieve", "Belady (size-aware)"]);
+const ORACLE = Object.freeze(["Belady (size-aware)"]);
+
+// The three highlighted models, without the global series: the boxes of the per-user IAT.
+const HIGHLIGHTED_MODELS = Object.freeze(HIGHLIGHTED_SERIES.filter((name) => name !== "Global"));
 
 /** The Prefix caching topic. */
 export const CACHING_TOPIC = Object.freeze({
@@ -29,10 +50,13 @@ export const CACHING_TOPIC = Object.freeze({
       definition: "Share of requests whose token hit ratio, the share of input tokens served from the prefix cache, is at most this value: all requests, and those under 1K and over 8K input tokens.",
       source: SECTION_README,
       kind: "cdf",
+      series: INPUT_LENGTH_SERIES,
       chart: {
-        x: { label: "Token hit ratio", tickFormat: formatPercent },
+        x: HIT_RATIO_AXIS,
+        y: SHARE_OF_REQUESTS,
+        dashed: ["Global"],
         valueLabel: "Token hit ratio",
-        valueFormat: formatShare,
+        valueFormat: formatCount,
       },
     }),
     frozenCard({
@@ -43,10 +67,14 @@ export const CACHING_TOPIC = Object.freeze({
       definition: "Share of requests whose token hit ratio is at most this value, over all requests and for the three highlighted models.",
       source: SECTION_README,
       kind: "cdf",
+      series: HIGHLIGHTED_SERIES,
       chart: {
-        x: { label: "Token hit ratio", tickFormat: formatPercent },
+        x: HIT_RATIO_AXIS,
+        y: SHARE_OF_REQUESTS,
+        dashed: ["Global"],
+        labels: HIGHLIGHTED_LABELS,
         valueLabel: "Token hit ratio",
-        valueFormat: formatShare,
+        valueFormat: formatCount,
       },
     }),
     frozenCard({
@@ -59,8 +87,9 @@ export const CACHING_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "cells",
       chart: {
-        x: { label: "Requests", log: true, tickFormat: formatCountTick },
-        y: { label: "Average token hit ratio", tickFormat: formatPercent },
+        x: { label: "Requests", log: true, tickFormat: formatWholeCountTick },
+        y: { ...HIT_RATIO_AXIS, label: "Average token hit ratio" },
+        ...COUNT_COLOUR,
         valueLabel: "Models",
         valueFormat: formatCount,
       },
@@ -75,8 +104,9 @@ export const CACHING_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "cells",
       chart: {
-        x: { label: "Requests", log: true, tickFormat: formatCountTick },
-        y: { label: "Average token hit ratio", tickFormat: formatPercent },
+        x: { label: "Requests", log: true, tickFormat: formatWholeCountTick },
+        y: { ...HIT_RATIO_AXIS, label: "Average token hit ratio" },
+        ...COUNT_COLOUR,
         valueLabel: "Users",
         valueFormat: formatCount,
       },
@@ -90,8 +120,9 @@ export const CACHING_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "bands",
       chart: {
-        x: { label: "Trace month" },
-        y: { label: "Per-user IAT (s)" },
+        x: TRACE_MONTH_AXIS,
+        // The paper's limits: a third of a decade past the lowest 10th percentile and the highest 90th.
+        y: { label: "Inter-arrival time", log: true, domain: [0.3, 1000], tickFormat: formatSecondsTick },
         valueLabel: "Per-user IAT",
         valueFormat: formatSeconds,
       },
@@ -105,7 +136,16 @@ export const CACHING_TOPIC = Object.freeze({
       definition: "For each highlighted model, a box plot over users of each user's median time between consecutive requests to that model.",
       source: SECTION_README,
       kind: "boxes",
-      chart: { y: { label: "Median IAT per user (s)" }, valueLabel: "Median IAT per user", valueFormat: formatSeconds },
+      series: HIGHLIGHTED_MODELS,
+      chart: {
+        // Slanted as the paper's, so the three names keep clear of one another on a phone, with room below for them.
+        x: { tickRotate: -25 },
+        y: { label: "Per-user median IAT", tickFormat: formatSecondsTick },
+        margins: { marginBottom: 72 },
+        labels: HIGHLIGHTED_LABELS,
+        valueLabel: "Median IAT per user",
+        valueFormat: formatSeconds,
+      },
     }),
     frozenCard({
       figure: "fig_iat_pair_ttl_coverage",
@@ -116,8 +156,9 @@ export const CACHING_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "lines",
       chart: {
-        x: { label: "Time to live (s)", log: true, tickFormat: String },
-        y: { label: "Requests covered", tickFormat: formatPercent },
+        // Seconds written as numbers, "0.001": the seconds' own format writes a millisecond as "0.00 s".
+        x: { label: "Time to live (s)", log: true, domain: [1e-3, 1e4], tickFormat: formatCount },
+        y: { label: "Request-weighted coverage", domain: [0, 1], tickFormat: formatPercent },
         valueLabel: "Requests covered",
         valueFormat: formatShare,
       },
@@ -131,12 +172,14 @@ export const CACHING_TOPIC = Object.freeze({
       definition: "Token hit ratio (1 minus the byte miss ratio) against cache size in tokens, for seven eviction algorithms in libCacheSim replaying MiniMax-M2.5's reconstructed sessions.",
       source: SIMULATION_FOLDER,
       kind: "lines",
+      series: EVICTION_ALGORITHMS,
       chart: {
         x: { label: "Cache size (tokens)", log: true, tickFormat: formatCountTick },
-        y: { label: "Token hit ratio", tickFormat: formatPercent },
+        y: { label: "Token hit ratio", tickFormat: formatCount },
         markers: true,
+        dashed: ORACLE,
         valueLabel: "Token hit ratio",
-        valueFormat: formatShare,
+        valueFormat: formatCount,
       },
     }),
     frozenCard({
@@ -148,12 +191,14 @@ export const CACHING_TOPIC = Object.freeze({
       definition: "Token hit ratio (1 minus the byte miss ratio) against cache size in tokens, for seven eviction algorithms in libCacheSim replaying DeepSeek V3.2's reconstructed sessions.",
       source: SIMULATION_FOLDER,
       kind: "lines",
+      series: EVICTION_ALGORITHMS,
       chart: {
         x: { label: "Cache size (tokens)", log: true, tickFormat: formatCountTick },
-        y: { label: "Token hit ratio", tickFormat: formatPercent },
+        y: { label: "Token hit ratio", tickFormat: formatCount },
         markers: true,
+        dashed: ORACLE,
         valueLabel: "Token hit ratio",
-        valueFormat: formatShare,
+        valueFormat: formatCount,
       },
     }),
   ]),

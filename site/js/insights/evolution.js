@@ -6,15 +6,24 @@
  * A card's kind and chart say how its figure is drawn from its answer, as `insights/figure_card.js` defines them.
  */
 
-import { formatCompactCount, formatCountTick, formatPercent, formatShare } from "../shared/format.js";
+import { formatCountTick, formatPercent, formatShare, formatWholeCount } from "../shared/format.js";
 import { URLS } from "../shared/layout.js";
-import { frozenCard } from "./figure_card.js";
+import { SERIES_SLOTS } from "../theme/colours.js";
+import { frozenCard, TRACE_MONTH_AXIS, TRACE_MONTH_TICKS } from "./figure_card.js";
 
 // The artifact's README of these figures, which says how each is computed.
 const SECTION_README = `${URLS.code}/blob/main/paper/03_workload_evolution/README.md`;
 
 // The legend of the two monthly share panels: the ten most requested models and Others.
 const SHARE_LEGEND = "fig_top10_model_monthly_share_legend";
+
+// The colours of the bands, as the paper's: input tokens in the first series colour, a blue, output in the second, an
+// orange.
+const INPUT_COLOUR = SERIES_SLOTS[0];
+const OUTPUT_COLOUR = SERIES_SLOTS[1];
+
+// The x axis of the release cohorts: a user's cohort is the trace month the user first appeared in.
+const COHORT_AXIS = Object.freeze({ ...TRACE_MONTH_AXIS, label: "Release cohort (1 = April 2025)" });
 
 /** The Workload evolution topic. */
 export const EVOLUTION_TOPIC = Object.freeze({
@@ -30,12 +39,16 @@ export const EVOLUTION_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "stacked_bars",
       chart: {
-        xLabel: "Trace month",
+        xLabel: TRACE_MONTH_AXIS.label,
+        xTicks: TRACE_MONTH_TICKS,
+        yLabel: "Share of requests",
         yTickFormat: formatPercent,
         valueLabel: "Share of requests",
         valueFormat: formatShare,
       },
       legend: SHARE_LEGEND,
+      // Ten models and Others: more series than the eight slots.
+      palette: "families",
     }),
     frozenCard({
       figure: "fig_top10_model_monthly_token_share",
@@ -46,12 +59,16 @@ export const EVOLUTION_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "stacked_bars",
       chart: {
-        xLabel: "Trace month",
+        xLabel: TRACE_MONTH_AXIS.label,
+        xTicks: TRACE_MONTH_TICKS,
+        yLabel: "Share of total tokens",
         yTickFormat: formatPercent,
         valueLabel: "Share of tokens",
         valueFormat: formatShare,
       },
       legend: SHARE_LEGEND,
+      // Ten models and Others: more series than the eight slots.
+      palette: "families",
     }),
     frozenCard({
       figure: "fig_monthly_input_token_intervals",
@@ -62,10 +79,11 @@ export const EVOLUTION_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "bands",
       chart: {
-        x: { label: "Trace month" },
-        y: { label: "Input tokens", tickFormat: formatCountTick },
+        x: TRACE_MONTH_AXIS,
+        y: { label: "Input tokens", log: true, tickFormat: formatCountTick },
+        colour: INPUT_COLOUR,
         valueLabel: "Input tokens",
-        valueFormat: formatCompactCount,
+        valueFormat: formatWholeCount,
       },
     }),
     frozenCard({
@@ -78,10 +96,11 @@ export const EVOLUTION_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "bands",
       chart: {
-        x: { label: "Trace month" },
-        y: { label: "Output tokens", tickFormat: formatCountTick },
+        x: TRACE_MONTH_AXIS,
+        y: { label: "Output tokens", log: true, tickFormat: formatCountTick },
+        colour: OUTPUT_COLOUR,
         valueLabel: "Output tokens",
-        valueFormat: formatCompactCount,
+        valueFormat: formatWholeCount,
       },
     }),
     frozenCard({
@@ -93,10 +112,12 @@ export const EVOLUTION_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "bands",
       chart: {
-        x: { label: "Release cohort (trace month)" },
-        y: { label: "Median input tokens", tickFormat: formatCountTick },
+        x: COHORT_AXIS,
+        // From zero, as the paper's, to its top past the latest cohort's 90th percentile, 57k.
+        y: { label: "Median input", domain: [0, 60e3], tickFormat: formatCountTick },
+        colour: INPUT_COLOUR,
         valueLabel: "Median input tokens",
-        valueFormat: formatCompactCount,
+        valueFormat: formatWholeCount,
       },
     }),
     frozenCard({
@@ -109,10 +130,12 @@ export const EVOLUTION_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "bands",
       chart: {
-        x: { label: "Release cohort (trace month)" },
-        y: { label: "Median output tokens", tickFormat: formatCountTick },
+        x: COHORT_AXIS,
+        // From zero, as the paper's, to its top past the latest cohort's 90th percentile, 3,040.
+        y: { label: "Median output", domain: [0, 3200], tickFormat: formatCountTick },
+        colour: OUTPUT_COLOUR,
         valueLabel: "Median output tokens",
-        valueFormat: formatCompactCount,
+        valueFormat: formatWholeCount,
       },
     }),
   ]),

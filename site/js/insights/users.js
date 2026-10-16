@@ -8,14 +8,10 @@
 
 import { formatCount, formatWholeCountTick } from "../shared/format.js";
 import { URLS } from "../shared/layout.js";
-import { frozenCard } from "./figure_card.js";
+import { COUNT_COLOUR, frozenCard } from "./figure_card.js";
 
 // The artifact's README of these figures, which says how each is computed.
 const SECTION_README = `${URLS.code}/blob/main/paper/06_users_models/README.md`;
-
-// The colour of a count, of models, users or requests, as the paper's: viridis on a log scale. It starts a quarter of
-// the way along viridis, whose first colour, a near-black purple, would vanish into the dark scheme's card.
-const COUNT_COLOUR = Object.freeze({ scheme: "viridis", schemeStart: 0.25, colourLog: true });
 
 // The token-shape figures' axes, as the paper's: the users' medians up to 10⁶ input and 10⁵ output tokens, the
 // models' up to 10⁵ on both axes, so that the line of equal input and output is the diagonal.
