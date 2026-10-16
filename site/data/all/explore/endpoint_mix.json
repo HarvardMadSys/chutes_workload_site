@@ -1,0 +1,1 @@
+[{"endpoint_group":"chat","requests":2797441866},{"endpoint_group":"chat_stream","requests":2474885326},{"endpoint_group":"completion_stream","requests":784931050},{"endpoint_group":"other","requests":49613760},{"endpoint_group":"completion","requests":15541754}]

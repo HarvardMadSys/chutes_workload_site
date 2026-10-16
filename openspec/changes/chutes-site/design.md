@@ -192,3 +192,17 @@ is detached on deploy.
 The answers' total size and the images' total size (expected about 1 MB
 and 10 MB), and the time of `make data` (expected under a minute: the
 caches are small and the rendering is 48 pages).
+
+Measured on the first build (pypdfium2 5.14.0, Pillow 12.3.0, DuckDB 1.5.6),
+the same on a second run, which rewrote every file byte for byte:
+
+- The answers: 7 files, 5,482,899 bytes. `explore/daily_rollup` is
+  5,461,104 bytes of them (18,912 rows, one per day, model and endpoint
+  group, the same count as the artifact's cache; about 650 KB gzipped),
+  over the 1 MB D4 expected: each row repeats its eleven keys and the
+  model's chute id and name. The other six together are 21,795 bytes.
+- The images: 48 PNGs, 7,330,551 bytes, at `RENDER_SCALE` 4.4, about
+  1,130 by 970 px for a one-column panel. The largest is
+  `fig_routing_tradeoff.png`, 823,837 bytes, then the two model rasters
+  (374,803 and 300,214 bytes); none is near the 4 MiB limit.
+- `make data`: 3.6 seconds of wall time.

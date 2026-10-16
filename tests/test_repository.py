@@ -1,10 +1,14 @@
 """The repository's rules, checked on every commit: short units, small folders, no aliased imports, one home for library
-URLs and for SQL, libraries loaded only where they are drawn with, one page, no machine paths and no row files."""
+URLs and for SQL, libraries loaded only where they are drawn with, one page, no machine paths and no row files; and
+the built data: tracked, every listed image present, no file too large to host, every answer there and current."""
 
 import ast
+import json
 import pathlib
 import re
 import subprocess
+
+from site_data import answers, figure_images, paths
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 MAX_FUNCTION_LINES = 50  # a longer function does two jobs
@@ -16,6 +20,9 @@ QUERIES_FOLDER = ROOT / "site" / "queries"  # the only place SQL is written
 ANSWERS_MODULE = JAVASCRIPT_FOLDER / "shared" / "answers.js"  # the Explore page's answers
 PAGES = ("index.html",)  # the site's one page: Explore, the landing page
 CDN_HOSTS = ("cdn.jsdelivr.net", "unpkg.com", "cdnjs.cloudflare.com", "esm.sh")
+DATA_FOLDER = ROOT / "site" / "data"  # the answers make data writes
+FIGURES_FOLDER = ROOT / "site" / "figures"  # the figure images make data writes, with their index
+MAX_FILE_BYTES = 25 * 1024 * 1024  # the largest file Cloudflare serves as a static asset
 
 # A static import of the libraries module, by any relative path: the `from` clause, or an import for its side effects.
 # A dynamic `await import("./libraries.js")` is the allowed way and does not match.
@@ -147,9 +154,8 @@ def test_the_site_has_one_page_with_its_module() -> None:
 
 def tracked_text_files() -> list[pathlib.Path]:
     """Every file git tracks that reads as UTF-8 text."""
-    tracked = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, check=True)
     text_files = []
-    for name in tracked.stdout.splitlines():
+    for name in sorted(tracked_files()):
         path = ROOT / name
         if not path.is_file():  # a tracked file deleted but not yet staged, or a symbolic link to a folder
             continue
@@ -167,8 +173,47 @@ def test_no_tracked_file_names_a_machine_path() -> None:
             assert not MACHINE_PATH.search(line), f"{path.relative_to(ROOT)}:{number} names a machine path"
 
 
+def tracked_files() -> set[str]:
+    """The path of every file git tracks, relative to the repository."""
+    tracked = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, check=True)
+    return set(tracked.stdout.splitlines())
+
+
 def test_no_row_file_is_tracked() -> None:
     """Git tracks no Parquet file: the site ships answers, never the rows they come from."""
-    tracked = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, check=True)
-    row_files = sorted(name for name in tracked.stdout.split() if name.endswith(".parquet"))
+    row_files = sorted(name for name in tracked_files() if name.endswith(".parquet"))
     assert row_files == [], f"row files are tracked: {', '.join(row_files)}"
+
+
+def test_the_built_data_is_tracked() -> None:
+    """Every file make data wrote is committed, so a clone serves what the maintainer built."""
+    tracked = tracked_files()
+    for folder in [DATA_FOLDER, FIGURES_FOLDER]:
+        for path in sorted(folder.rglob("*")):
+            if path.is_file():
+                assert path.relative_to(ROOT).as_posix() in tracked, f"{path.relative_to(ROOT)} is not tracked"
+
+
+def test_every_image_of_the_index_is_tracked() -> None:
+    tracked = tracked_files()
+    index = json.loads((FIGURES_FOLDER / figure_images.INDEX_FILE).read_text())
+    assert index, "the figure index lists no image"
+    for image in index:
+        image_file = (FIGURES_FOLDER / f"{image['name']}.png").relative_to(ROOT).as_posix()
+        assert image_file in tracked, f"{image_file} is in the index but not tracked"
+
+
+def test_no_tracked_file_is_too_large_to_host() -> None:
+    for name in sorted(tracked_files()):
+        path = ROOT / name
+        if path.is_file():
+            assert path.stat().st_size <= MAX_FILE_BYTES, f"{name} is {path.stat().st_size:,} bytes"
+
+
+def test_every_query_has_its_answer() -> None:
+    for name in answers.answered_query_names():
+        assert (DATA_FOLDER / paths.answer_file(name)).is_file(), f"{name} has no answer; run make data"
+
+
+def test_every_answer_comes_from_its_query_s_current_text() -> None:
+    assert answers.stale_queries(DATA_FOLDER) == [], "queries edited since make data last ran; run make data"
