@@ -1,5 +1,7 @@
 """The site's database: every frame of the artifact is the table of its name, and a query is run from its file."""
 
+import datetime
+
 import duckdb
 
 from site_data import site_database
@@ -16,3 +18,9 @@ def test_every_frame_is_the_table_of_its_name(connection: duckdb.DuckDBPyConnect
 
 def test_the_database_runs_on_one_thread(connection: duckdb.DuckDBPyConnection) -> None:
     assert connection.execute("SELECT current_setting('threads')").fetchone()[0] == site_database.THREADS
+
+
+def test_the_calendar_runs_to_the_daily_rollup_s_last_day(connection: duckdb.DuckDBPyConnection) -> None:
+    calendar = connection.table("trace_calendar").df()
+    assert calendar["trace_day"].tolist()[-1].date() == datetime.date(1970, 2, 2)
+    assert calendar["month"].tolist()[-1] == 2

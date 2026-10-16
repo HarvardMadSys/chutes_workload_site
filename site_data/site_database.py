@@ -2,7 +2,8 @@
 queries.
 
 It is opened by registering each frame of `loading.ArtifactFrames` as the table of its name: `trace_totals`,
-`daily_rollup`, `monthly_requests_tokens_by_model`, `function_name_daily_requests` and `chute_models`. A query's
+`daily_rollup`, `monthly_requests_tokens_by_model`, `function_name_daily_requests` and `chute_models`, and the
+calendar of `months.trace_calendar` as `trace_calendar`, to the daily rollup's last day. A query's
 name is its path under `site/queries/` without `.sql`; `run_query` gives its result as `QueryRows`.
 """
 
@@ -11,7 +12,7 @@ import pathlib
 
 import duckdb
 
-from site_data import loading
+from site_data import loading, months
 
 QUERIES_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "site" / "queries"
 # One thread, so that a sum of floats adds its rows in the same order on every run and a rebuilt answer is the same to
@@ -33,13 +34,16 @@ def statement_text(name: str) -> str:
 
 
 def open_database(frames: loading.ArtifactFrames) -> duckdb.DuckDBPyConnection:
-    """A new in-memory database on `THREADS` threads, each of the artifact's frames the table of its name."""
+    """A new in-memory database on `THREADS` threads, each of the artifact's frames the table of its name, and the
+    trace calendar to the last day of the daily rollup."""
     connection = duckdb.connect(config={"threads": THREADS})
     connection.register("trace_totals", frames.trace_totals)
     connection.register("daily_rollup", frames.daily_rollup)
     connection.register("monthly_requests_tokens_by_model", frames.monthly_requests_tokens_by_model)
     connection.register("function_name_daily_requests", frames.function_name_daily_requests)
     connection.register("chute_models", frames.chute_models)
+    last_trace_day = frames.daily_rollup["day"].max().date()
+    connection.register("trace_calendar", months.trace_calendar(last_trace_day))
     return connection
 
 
