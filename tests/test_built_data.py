@@ -1,6 +1,7 @@
 """The built data, as `make data` wrote it and git tracks it: every file of it tracked, the images the figure index
-lists exactly the images tracked, none too large, every query's answer there, written from its current text and the
-same as a rebuild from the artifact's checkout (`ARTIFACT`; skipped, saying so, without one)."""
+lists exactly the images tracked, none too large, every query's answer there and written from its current text, and
+the answers, the images and their index the same as a rebuild from the artifact's checkout (`ARTIFACT`; skipped,
+saying so, without one)."""
 
 import json
 import pathlib
@@ -74,6 +75,19 @@ def test_the_answers_are_the_ones_the_artifact_gives(artifact_checkout: pathlib.
     rebuilt = files_by_name(tmp_path / paths.ANSWERS_FOLDER)
     committed = files_by_name(DATA_FOLDER / paths.ANSWERS_FOLDER)
     assert sorted(rebuilt) == sorted(committed), "the answers' files differ from a rebuild; run make data"
+    for name, path in rebuilt.items():
+        assert path.read_bytes() == committed[name].read_bytes(), f"{name} differs from a rebuild; run make data"
+
+
+def test_the_figure_images_are_the_ones_the_artifact_gives(artifact_checkout: pathlib.Path,
+                                                          tmp_path: pathlib.Path) -> None:
+    """The images and their index rebuilt from the artifact's checkout are the committed ones, file for file and byte
+    for byte."""
+    figures = figure_images.listed_figures(artifact_checkout)
+    figure_images.write_figure_images(figure_images.render_figures(figures), tmp_path)
+    rebuilt = files_by_name(tmp_path)
+    committed = files_by_name(FIGURES_FOLDER)
+    assert sorted(rebuilt) == sorted(committed), "the figure images' files differ from a rebuild; run make data"
     for name, path in rebuilt.items():
         assert path.read_bytes() == committed[name].read_bytes(), f"{name} differs from a rebuild; run make data"
 

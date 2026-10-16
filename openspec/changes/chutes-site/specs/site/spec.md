@@ -206,11 +206,16 @@ SHALL read, from the artifact repository's checkout, the committed caches
 under `data/paper/cache/` that the queries name, `data/paper/chute_models.csv`,
 `config/figures.json` and the PDFs under `figures/` that it lists, and
 nothing under `output/` and nothing of the trace. It SHALL stop with a
-message naming the first missing file and write nothing. Rebuilding from
+message naming the first missing file, or the first listed figure that
+does not render, and write nothing. Rebuilding from
 the same checkout SHALL write identical files.
 
 #### Scenario: A missing cache
 - **WHEN** `data/paper/cache/trace_totals.parquet` is absent
+- **THEN** the step SHALL stop naming it and write nothing
+
+#### Scenario: A figure that does not render
+- **WHEN** a listed figure's PDF counts one page but its page cannot be rendered
 - **THEN** the step SHALL stop naming it and write nothing
 
 #### Scenario: Rebuilding

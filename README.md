@@ -265,7 +265,7 @@ tests/               what make test runs
   test_answers.py    every answer written for the fixture equals its query run live; an edited query is stale
   test_built_data.py
                      the shipped data: tracked, the images the index lists, every answer current, and with
-                     ARTIFACT the same bytes as a rebuild
+                     ARTIFACT the answers, the images and their index the same bytes as a rebuild
   test_figures_registry.py
                      with ARTIFACT, the Insights' cards show every figure the artifact lists, and no other
   test_repository.py

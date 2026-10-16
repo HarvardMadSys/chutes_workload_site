@@ -2,8 +2,9 @@
 
 The artifact is a checkout of the paper's artifact repository, whose caches and figures the step reads. It writes the
 answer of every Explore query under the data folder (`answers.py`) and an image of every listed figure into the
-figures folder (`figure_images.py`), and prints each file written with its size, then the totals. A missing artifact
-folder or file stops the run with its message and exit status 1, before anything is written.
+figures folder (`figure_images.py`), and prints each file written with its size, then the totals. Every cache is read
+and every figure rendered in memory first: a missing artifact folder or file, or a figure that does not render, stops
+the run with its message and exit status 1, before anything is written.
 """
 
 import argparse
@@ -21,10 +22,10 @@ def main(arguments: list[str] | None = None) -> None:
               "repository as --artifact", file=sys.stderr)
         raise SystemExit(1)
     frames = loading.load_artifact(options.artifact)
-    figures = figure_images.listed_figures(options.artifact)
+    rendered = figure_images.render_figures(figure_images.listed_figures(options.artifact))
     connection = site_database.open_database(frames)
     print_sizes("answers", answers.write_answers(connection, options.out))
-    print_sizes("figure images", figure_images.write_figure_images(figures, options.figures))
+    print_sizes("figure images", figure_images.write_figure_images(rendered, options.figures))
 
 
 def parsed_arguments(arguments: list[str] | None) -> argparse.Namespace:

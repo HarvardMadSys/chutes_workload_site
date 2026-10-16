@@ -1,5 +1,5 @@
 """The data step's command: it writes the answers and the figure images from an artifact, and writes nothing when the
-artifact or one of its files is missing."""
+artifact or one of its files is missing, or a figure does not render."""
 
 import pathlib
 import re
@@ -59,6 +59,15 @@ def test_a_figure_of_two_pages_stops_before_writing(tmp_path: pathlib.Path) -> N
                                            pages=2)
     (artifact / fixture_artifact.SECTION_FIGURE).write_bytes(two_pages)
     with pytest.raises(SystemExit, match="has 2 pages"):
+        __main__.main(command(artifact, tmp_path))
+    assert not (tmp_path / "data").exists()
+    assert not (tmp_path / "figures").exists()
+
+
+def test_a_figure_that_does_not_render_stops_before_writing(tmp_path: pathlib.Path) -> None:
+    artifact = fixture_artifact.write_fixture_artifact(tmp_path / "artifact")
+    (artifact / fixture_artifact.EXTERNAL_FIGURE).write_bytes(fixture_artifact.unrenderable_pdf_bytes())
+    with pytest.raises(SystemExit, match=re.escape(f"{fixture_artifact.EXTERNAL_FIGURE.name} does not render")):
         __main__.main(command(artifact, tmp_path))
     assert not (tmp_path / "data").exists()
     assert not (tmp_path / "figures").exists()

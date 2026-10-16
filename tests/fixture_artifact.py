@@ -156,3 +156,9 @@ def pdf_bytes(width: int, height: int, pages: int = 1) -> bytes:
     document += b"trailer\n<< /Size %d /Root 1 0 R >>\n" % (len(objects) + 1)
     document += b"startxref\n%d\n%%%%EOF\n" % cross_reference_start
     return bytes(document)
+
+
+def unrenderable_pdf_bytes() -> bytes:
+    """A PDF that counts one page but cannot render it: its page tree names a page object the file does not hold."""
+    missing_page = b"9 0 R"  # no object 9: the fixture's PDF holds four
+    return pdf_bytes(FIGURE_WIDTH_POINTS, FIGURE_HEIGHT_POINTS).replace(b"/Kids [4 0 R]", b"/Kids [%s]" % missing_page)

@@ -1,5 +1,6 @@
 """The figure images over the fixture artifact: every listed PDF is found and rendered at the render scale, a rebuild
-writes the same bytes, the index names each image's size, and a missing PDF stops the step naming it."""
+writes the same bytes, the index names each image's size, and a missing PDF, or one that does not render, stops the
+step naming it."""
 
 import hashlib
 import json
@@ -25,25 +26,34 @@ def test_every_listed_figure_is_found_in_the_list_s_order(artifact: pathlib.Path
                                                       artifact / fixture_artifact.EXTERNAL_FIGURE]
 
 
-def test_a_figure_renders_at_the_render_scale(artifact: pathlib.Path, tmp_path: pathlib.Path) -> None:
-    image = figure_images.render_figure(artifact / fixture_artifact.SECTION_FIGURE, tmp_path / "fig_panel.png")
-    assert image == figure_images.FigureImage(
+def test_a_figure_renders_at_the_render_scale(artifact: pathlib.Path) -> None:
+    rendered = figure_images.render_figure(artifact / fixture_artifact.SECTION_FIGURE)
+    assert rendered.image == figure_images.FigureImage(
         name="fig_panel",
         width=round(fixture_artifact.FIGURE_WIDTH_POINTS * figure_images.RENDER_SCALE),
         height=round(fixture_artifact.FIGURE_HEIGHT_POINTS * figure_images.RENDER_SCALE),
     )
-    assert (tmp_path / "fig_panel.png").read_bytes().startswith(b"\x89PNG")
+    assert rendered.png.startswith(b"\x89PNG")
+
+
+def test_a_figure_that_does_not_render_stops_naming_it(tmp_path: pathlib.Path) -> None:
+    figure = tmp_path / "fig_broken.pdf"
+    figure.write_bytes(fixture_artifact.unrenderable_pdf_bytes())
+    assert figure_images.page_count(figure) == 1
+    with pytest.raises(SystemExit, match=re.escape(f"{figure} does not render")):
+        figure_images.render_figure(figure)
 
 
 def test_a_rebuild_writes_the_same_bytes(artifact: pathlib.Path, tmp_path: pathlib.Path) -> None:
     figures = figure_images.listed_figures(artifact)
-    figure_images.write_figure_images(figures, tmp_path / "first")
-    figure_images.write_figure_images(figures, tmp_path / "second")
+    figure_images.write_figure_images(figure_images.render_figures(figures), tmp_path / "first")
+    figure_images.write_figure_images(figure_images.render_figures(figures), tmp_path / "second")
     assert file_hashes(tmp_path / "first") == file_hashes(tmp_path / "second")
 
 
 def test_the_index_lists_each_image_s_size_by_name(artifact: pathlib.Path, tmp_path: pathlib.Path) -> None:
-    written = figure_images.write_figure_images(figure_images.listed_figures(artifact), tmp_path)
+    rendered = figure_images.render_figures(figure_images.listed_figures(artifact))
+    written = figure_images.write_figure_images(rendered, tmp_path)
     assert written == [tmp_path / "fig_panel.png", tmp_path / "fig_tradeoff.png"]
     index = json.loads((tmp_path / figure_images.INDEX_FILE).read_text())
     assert index == [{"name": "fig_panel", "width": 1100, "height": 550},
@@ -52,7 +62,7 @@ def test_the_index_lists_each_image_s_size_by_name(artifact: pathlib.Path, tmp_p
 
 def test_an_image_no_longer_listed_is_removed(artifact: pathlib.Path, tmp_path: pathlib.Path) -> None:
     (tmp_path / "fig_removed.png").write_bytes(b"")
-    figure_images.write_figure_images(figure_images.listed_figures(artifact), tmp_path)
+    figure_images.write_figure_images(figure_images.render_figures(figure_images.listed_figures(artifact)), tmp_path)
     assert not (tmp_path / "fig_removed.png").exists()
 
 
