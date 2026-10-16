@@ -167,3 +167,33 @@ gives the same bytes):
 - **Plotdata in the artifact:** 48 Parquet files, 610,376 bytes.
 - **`make data`:** 4.3 s of wall time, the same on two rebuilds, figure
   images included.
+
+
+### Measured: the artifact's plotdata
+
+At the artifact's commit `3871e3b` (the documentation commit that follows
+adds no plotdata):
+
+- **Files:** 48 Parquet files under `data/paper/plotdata/`, 610,376 bytes in
+  all (596 KiB), plus the folder's README. All are tracked and each is under
+  1 MB.
+- **The five largest:** `fig_model_heatmap_fixedxy_scatter_colored_metrics`
+  180,017 bytes, `fig_lb_concurrency` 47,188, `fig_iat_pair_ttl_coverage`
+  39,723, `fig_model_raster_qwen3_next_80b` 25,226 and
+  `fig_model_raster_gpt_oss_20b` 23,572.
+- **From the committed query caches only:** the 5 of section 2, the 8 of
+  section 3 (token shape), figures 1 to 5 of Workload evolution, figures 1 to 6
+  of Prefix caching, figures 1, 2, 4, 9 and 10 of Users and models, and the
+  three simulation figures (from `data/caching/results.txt` and
+  `data/routing/figure20_sweep.csv`).
+- **From local-only tables (not shipped):** `fig_user_release_cohort_input_band`
+  and `fig_user_release_cohort_output_band` (`user_cohort_token_medians`);
+  `fig_iat_pair_ttl_coverage` (`iat_per_user_model_pair`, about 700 MB); all
+  eight Load balancing figures (the instance-minute and per-request query
+  results of the DeepSeek models), `fig_lb_user_zoom_top` and
+  `fig_lb_user_zoom_min` also from one small trace query each;
+  `fig_user_median_input_output_heatmap` (`user_median_input_output`), the four
+  rasters (`fig_user_raster_periodic`, `fig_user_raster_explore`,
+  `fig_model_raster_qwen3_next_80b`, `fig_model_raster_gpt_oss_20b`; the
+  `user_usage_rasters/` tables and the two top-200 tables). The trace itself
+  is queried directly only by the two user zooms.
