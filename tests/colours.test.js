@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  assignColours, barColours, ENDPOINT_FIRST_SLOT, ENDPOINT_LABELS, endpointColours, modelColours, OTHER_SERIES,
+  assignColours, barColours, ENDPOINT_FIRST_SLOT, endpointColours, modelColours, OTHER_SERIES,
   SERIES_SLOTS, slottedColours,
 } from "../site/js/theme/colours.js";
 
@@ -95,14 +95,4 @@ test("the endpoint groups take the series colours from their own first slot, and
     ["Other", OTHER_SERIES],
   ]);
   assert.notEqual(ENDPOINT_FIRST_SLOT, 0, "the endpoint donut opens on another colour than the model donut");
-});
-
-test("each endpoint group is labelled in words", () => {
-  assert.deepEqual(ENDPOINT_LABELS, {
-    chat: "Chat",
-    chat_stream: "Chat stream",
-    completion: "Completion",
-    completion_stream: "Completion stream",
-    other: "Other",
-  });
 });

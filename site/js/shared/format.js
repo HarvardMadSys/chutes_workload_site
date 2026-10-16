@@ -14,6 +14,9 @@ const COMPACT_UNITS = [
   [1e3, "k"],
 ];
 
+// A count in billions or trillions under this many of its unit keeps two decimals, so it shows three figures: "2.04B".
+const THREE_FIGURE_BOUND = 10;
+
 // A duration's text is in the first unit it is below the bound of: seconds under a minute, minutes under 100 minutes,
 // hours under two days, else days, so a value keeps two or three figures.
 const SECONDS_PER_DAY = 86400;
@@ -66,7 +69,7 @@ export function formatCompactCount(count) {
   for (const [size, suffix] of COMPACT_UNITS) {
     if (count >= size) {
       // Under ten billions or ten trillions, two decimals, so the count shows three figures.
-      const decimals = size >= BILLION && count < 10 * size ? 2 : 1;
+      const decimals = size >= BILLION && count < THREE_FIGURE_BOUND * size ? 2 : 1;
       return `${(count / size).toFixed(decimals)}${suffix}`;
     }
   }

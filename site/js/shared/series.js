@@ -4,12 +4,12 @@
  * Map from name to colour. These are plain functions, tested with `node --test`.
  *
  * And the two kinds of series the Overview draws, the models and the endpoint groups, each `{ order, column, colours,
- * labels }`: `order`, the key of the page's `context.orders` (`explore/start.js`) whose rows give the series' colour
- * order; `column`, the column of an answer naming a row's series; `colours(orderRows)`, the series' colours, a Map from
- * name to colour; and `labels`, each series' label where it is written otherwise than its name.
+ * labels }`: `order`, the key of the page's `context.orders` (`explore/start.js`) whose rows give the colour order;
+ * `column`, the column of an answer naming a row's series; `colours(orderRows)`, a Map from name to colour; and
+ * `labels`, each series' label where it is not its name (the endpoint groups' are `ENDPOINT_LABELS`).
  */
 
-import { ENDPOINT_LABELS, endpointColours, modelColours, slottedColours } from "../theme/colours.js";
+import { endpointColours, modelColours, slottedColours } from "../theme/colours.js";
 
 /** The models as a chart's series, each written by its name. */
 export const MODEL_SERIES = Object.freeze({
@@ -17,6 +17,15 @@ export const MODEL_SERIES = Object.freeze({
   column: "model",
   colours: modelColours,
   labels: Object.freeze({}),
+});
+
+/** Each endpoint group's label, by its name in the answers. */
+export const ENDPOINT_LABELS = Object.freeze({
+  chat: "Chat",
+  chat_stream: "Chat stream",
+  completion: "Completion",
+  completion_stream: "Completion stream",
+  other: "Other",
 });
 
 /** The endpoint groups as a chart's series, each written by its label, "Chat stream". */

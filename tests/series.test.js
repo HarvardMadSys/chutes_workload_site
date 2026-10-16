@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  ENDPOINT_SERIES, MODEL_SERIES, partsLegend, rowsWithSeriesColour, seriesLegend, shownRows,
+  ENDPOINT_LABELS, ENDPOINT_SERIES, MODEL_SERIES, partsLegend, rowsWithSeriesColour, seriesLegend, shownRows,
 } from "../site/js/shared/series.js";
-import { ENDPOINT_LABELS, endpointColours, modelColours } from "../site/js/theme/colours.js";
+import { endpointColours, modelColours } from "../site/js/theme/colours.js";
 
 // Two series of a CDF query, `requests` and `tool_steps`, two points each.
 const ROWS = [
@@ -50,4 +50,14 @@ test("the models and the endpoint groups are each coloured by their order's rows
     ["endpoints", "endpoint_group", endpointColours]);
   assert.deepEqual(MODEL_SERIES.labels, {});
   assert.equal(ENDPOINT_SERIES.labels, ENDPOINT_LABELS);
+});
+
+test("each endpoint group is labelled in words", () => {
+  assert.deepEqual(ENDPOINT_LABELS, {
+    chat: "Chat",
+    chat_stream: "Chat stream",
+    completion: "Completion",
+    completion_stream: "Completion stream",
+    other: "Other",
+  });
 });

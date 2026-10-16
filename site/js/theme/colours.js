@@ -1,5 +1,5 @@
 /**
- * The site's colours as the style tokens give them, and the endpoint groups' labels beside their colours.
+ * The site's colours as the style tokens give them.
  *
  * Every colour is a CSS variable from `style.css`, so a chart follows the page into dark mode with no JavaScript.
  * Names get colours from one fixed order, so the same model has the same colour in every chart: the models from the
@@ -77,15 +77,6 @@ export function modelColours(modelMixRows) {
 
 /** The slot the endpoint groups' colours start from: apart from the models', so the two donuts do not open alike. */
 export const ENDPOINT_FIRST_SLOT = 4;
-
-/** Each endpoint group's label, by its name in the answers. */
-export const ENDPOINT_LABELS = Object.freeze({
-  chat: "Chat",
-  chat_stream: "Chat stream",
-  completion: "Completion",
-  completion_stream: "Completion stream",
-  other: "Other",
-});
 
 // The endpoint group of the requests to neither a chat nor a completion endpoint: drawn as "Other", grey and last.
 const OTHER_ENDPOINT_GROUP = "other";
