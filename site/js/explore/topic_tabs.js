@@ -4,9 +4,9 @@
  * and End move to another tab and show its topic; each topic section is a tab panel labelled by its tab.
  *
  * The shown topic is kept in the browser's history: the entry the page opened on holds its topic, a tab chosen writes
- * its topic's anchor as a new entry, and Back and Forward show the topic of the entry they return to, whatever anchor
- * the page opened on. A link with a topic's anchor opens on that topic. On a phone the row scrolls sideways and keeps
- * the shown tab in it.
+ * its topic's anchor as a new entry, and Back and Forward, which the page's start passes on, show the topic of the
+ * entry they return to, whatever anchor the page opened on. A link with a topic's anchor opens on that topic. On a
+ * phone the row scrolls sideways and keeps the shown tab in it.
  */
 
 import { bringIntoRow, markMoreBeyondEdge, mountScrollingRow } from "../shared/scrolling_row.js";
@@ -113,8 +113,9 @@ export function showTopic(topicSections, tabs, anchor) {
 /**
  * Draw the tabs into `row` for the sections `figureSections` name, show the topic the URL's hash names (the first by
  * default), keep it in the history entry the page opened on, and wire the tabs: a click or a key shows its topic and
- * writes its anchor as a new history entry, and Back and Forward show the topic of the entry they return to.
- * `onShow()` is called each time a topic is shown, after it is, so that its figures are drawn at their cards' width.
+ * writes its anchor as a new history entry. Return `showEntryTopic(state)`, which shows the topic of the history entry
+ * that Back or Forward returned to, `state` being the entry's state. `onShow()` is called each time a topic is shown,
+ * after it is, so that its figures are drawn at their cards' width.
  */
 export function mountTopicTabs(row, figureSections, onShow) {
   const topics = pageTopics(figureSections);
@@ -126,14 +127,12 @@ export function mountTopicTabs(row, figureSections, onShow) {
     tab.addEventListener("click", () => chooseTopic(view, tab.getAttribute("aria-controls")));
     tab.addEventListener("keydown", (event) => moveByKey(view, tab, event));
   }
-  window.addEventListener("popstate", (event) => {
-    showTab(view, topicForEntry(event.state, window.location.hash, anchors, shownTopic(view)));
-  });
   mountScrollingRow(row);
   const opened = topicForHash(window.location.hash, anchors, anchors[0]);
   // The entry the page opened on holds its topic, so Back to it shows that topic whatever its anchor names.
   window.history.replaceState({ topic: opened }, "");
   showTab(view, opened);
+  return (state) => showTab(view, topicForEntry(state, window.location.hash, anchors, shownTopic(view)));
 }
 
 /** A click on the tab of the topic `anchor`: unless it is shown already, write its anchor to the hash and show it. */

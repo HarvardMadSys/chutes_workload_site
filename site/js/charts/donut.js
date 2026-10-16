@@ -59,8 +59,8 @@ export function drawDonut(rows, body, colours, parameters, hidden) {
 
 /**
  * The legend of a donut: `{ series, colours }`, its slices in the donut's order, largest first, each labelled with its
- * name, as `labels` writes it where it has a label there, and its share of every slice, "glm-5.3-flash 44.0%"; and
- * `colours`, the donut's colours.
+ * name, as `labels` writes it where it has a label there, and its share of every slice,
+ * "deepseek-ai/DeepSeek-V3-0324 18.3%"; and `colours`, the donut's colours.
  */
 export function donutLegend(rows, colours, { nameColumn, countColumn, labels = {} }) {
   const slices = donutSlices(rows, nameColumn, countColumn, namedSeries(colours));
@@ -94,7 +94,7 @@ export function donutSlices(rows, nameColumn, countColumn, order) {
 
 /**
  * The legend's entries `[{ name, label }]` of `slices`, each labelled with its name, as `labels` writes it where it has
- * a label there, and its share of them: "glm-5.3-flash 44.0%".
+ * a label there, and its share of them: "deepseek-ai/DeepSeek-V3-0324 18.3%".
  */
 export function legendSeries(slices, labels = {}) {
   const total = columnTotal(slices, "count");

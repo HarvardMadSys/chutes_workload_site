@@ -6,13 +6,15 @@
  *
  * The page's module names its sections, each `{ id, run }`: the id of its place in `index.html` and the function that
  * runs it, which shows its loading state at once and then draws its answer. A section runs as `run(container,
- * context)` with `context = { totals, orders, replaceQuery }`:
+ * context)` with `context = { totals, orders, replaceQuery, onReturn }`:
  * - `totals`, the promised rows of `explore/trace_totals`, one row of the whole trace's counts, asked for once for the
  *   stats strip and the months the hero and the footer count;
  * - `orders`, `{ models, endpoints }`, the promised rows of `explore/model_mix` and of `explore/endpoint_mix`, each most
  *   requested first: the orders every chart colours the models and the endpoint groups by, and the donuts' rows,
  *   each asked for once;
- * - `replaceQuery(params)`, which writes `params` to the address bar and the header's brand.
+ * - `replaceQuery(params)`, which writes `params` to the address bar and the header's brand;
+ * - `onReturn(redraw)`, which calls `redraw()` each time Back or Forward returns to a history entry, after the tabs
+ *   show its topic and the header takes its query; this module is the page's one listener of `popstate`.
  */
 
 import { readAnswer, readFigureIndex } from "../shared/answers.js";
@@ -27,18 +29,31 @@ import { mountTopicTabs } from "./topic_tabs.js";
  * number of months the trace spans, null until the trace totals give it. Settles once the sections have drawn.
  */
 export async function startPage({ sections, showMonthCount }) {
-  mountInsights();
+  const pageHistory = followHistory(mountInsights());
   renderFooter(document.querySelector("#site-footer"), null);
   showMonthCount(null);
   renderPageHeader();
-  const context = sectionContext();
+  const context = sectionContext(pageHistory);
   await Promise.all([showMonths(context.totals, showMonthCount), runEverySection(sections, context)]);
   scrollToAnchor();
 }
 
 /**
- * Write each topic's takeaway and place its cards, each card's image loading, then draw the topic tabs. A topic's
- * images are drawn the first time it is shown (`drawShownTopic`), from the images' index, which is read once.
+ * Follow the browser's history, as the page's one listener of `popstate`: on Back or Forward, show the topic of the
+ * entry returned to (`showEntryTopic(state)`, as `mountTopicTabs` returns it), draw the header again from the entry's
+ * query, then call each `redraw` given to `onReturn`. Returns `{ replaceQuery, onReturn }`, the sections' part of the
+ * history (see the module's comment).
+ */
+export function followHistory(showEntryTopic) {
+  const redraws = [];
+  window.addEventListener("popstate", (event) => returnToEntry(event.state, showEntryTopic, redraws));
+  return { replaceQuery, onReturn: (redraw) => redraws.push(redraw) };
+}
+
+/**
+ * Write each topic's takeaway and place its cards, each card's image loading, then draw the topic tabs; return the
+ * tabs' `showEntryTopic`. A topic's images are drawn the first time it is shown (`drawShownTopic`), from the images'
+ * index, which is read once.
  */
 function mountInsights() {
   const sizes = readFigureIndex();
@@ -47,7 +62,7 @@ function mountInsights() {
   const topics = FIGURE_SECTIONS.map(placeTopic);
   const drawnSections = new Set();
   const drawShown = () => drawShownTopic(topics, drawnSections, sizes);
-  mountTopicTabs(document.querySelector("#topic-tabs"), FIGURE_SECTIONS, drawShown);
+  return mountTopicTabs(document.querySelector("#topic-tabs"), FIGURE_SECTIONS, drawShown);
 }
 
 /**
@@ -92,11 +107,11 @@ async function drawShownTopic(topics, drawnSections, sizes) {
   }
 }
 
-/** What every section is given; see the module's comment. */
-function sectionContext() {
+/** What every section is given, `pageHistory` being `followHistory`'s; see the module's comment. */
+function sectionContext(pageHistory) {
   const totals = promisedRows("explore/trace_totals");
   const orders = { models: promisedRows("explore/model_mix"), endpoints: promisedRows("explore/endpoint_mix") };
-  return { totals, orders, replaceQuery };
+  return { totals, orders, replaceQuery: pageHistory.replaceQuery, onReturn: pageHistory.onReturn };
 }
 
 /**
@@ -150,6 +165,15 @@ function replaceQuery(params) {
   // The entry keeps its state, the Insights' shown topic, which Back to it shows again.
   window.history.replaceState(window.history.state, "", `${pathname}${queryString(params)}${hash}`);
   renderPageHeader();
+}
+
+// Back or Forward to the entry whose state is `state`: its topic, the header from its query, each section's redraw.
+function returnToEntry(state, showEntryTopic, redraws) {
+  showEntryTopic(state);
+  renderPageHeader();
+  for (const redraw of redraws) {
+    redraw();
+  }
 }
 
 function renderPageHeader() {

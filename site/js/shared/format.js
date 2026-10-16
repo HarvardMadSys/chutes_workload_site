@@ -1,6 +1,7 @@
 /**
  * Numbers and dates as the page shows them, a value with one decimal kept and an axis's tick with none it does not
- * need: counts, compact counts and their ticks, durations, shares and whole percentages, and a span of days.
+ * need: counts, compact counts and their ticks, durations in seconds, shares and whole percentages, and a span of
+ * days.
  */
 
 // A compact count is shown in the largest of these units it reaches.
@@ -16,15 +17,7 @@ const COMPACT_UNITS = [
 // A count in billions or trillions under this many of its unit keeps two decimals, so it shows three figures: "2.04B".
 const THREE_FIGURE_BOUND = 10;
 
-// A duration's text is in the first unit it is below the bound of: seconds under a minute, minutes under 100 minutes,
-// hours under two days, else days, so a value keeps two or three figures.
-const SECONDS_PER_DAY = 86400;
-const DURATION_TEXT_UNITS = Object.freeze([
-  Object.freeze({ below: 60, size: 1, unit: "s" }),
-  Object.freeze({ below: 6000, size: 60, unit: "min" }),
-  Object.freeze({ below: 2 * SECONDS_PER_DAY, size: 3600, unit: "h" }),
-]);
-const TWO_DECIMALS_BELOW = 0.1; // a value under a tenth of its unit keeps two decimals, so 0.04 s is not written 0 s
+const TWO_DECIMALS_BELOW = 0.1; // a duration under a tenth of a second keeps two decimals, so 0.04 s is not written 0 s
 
 /** The text of a value that has none, such as an average over no requests. */
 export const MISSING_TEXT = "—";
@@ -72,17 +65,9 @@ export function formatCountTick(count) {
   return formatCount(count);
 }
 
-/**
- * A duration with one decimal kept: "4.3 s" and "42.0 s" under a minute, "1.0 min" and "63.0 min" under 100 minutes,
- * "1.8 h" under two days, then "3.8 d"; a duration under a tenth of a second keeps two decimals, "0.04 s".
- */
+/** A duration in seconds with one decimal kept, "4.3 s", "42.0 s"; under a tenth of a second, two, "0.04 s". */
 export function formatSeconds(seconds) {
-  for (const { below, size, unit } of DURATION_TEXT_UNITS) {
-    if (seconds < below) {
-      return `${oneDecimal(seconds / size)} ${unit}`;
-    }
-  }
-  return `${oneDecimal(seconds / SECONDS_PER_DAY)} d`;
+  return `${oneDecimal(seconds)} s`;
 }
 
 /** A share of one as a whole percentage, as an axis writes it: 0.632 → "63%", 1 → "100%". */

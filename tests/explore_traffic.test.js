@@ -1,107 +1,15 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { dayMonth, monthTicks, renderControls, renderTiles, tileTexts } from "../site/js/explore/traffic.js";
-import { DEFAULT_CHOICE, modelChoices, trafficSummary } from "../site/js/explore/traffic_filter.js";
-
-/** A stand-in for a page element: children, attributes, listeners and the properties the explorer sets. */
-class FakeElement {
-  constructor(tag) {
-    this.tag = tag;
-    this.children = [];
-    this.attributes = new Map();
-    this.listeners = new Map();
-    this.className = "";
-    this.textContent = "";
-    this.value = "";
-  }
-
-  append(...children) {
-    this.children.push(...children);
-  }
-
-  replaceChildren(...children) {
-    this.children = children;
-  }
-
-  setAttribute(name, value) {
-    this.attributes.set(name, value);
-  }
-
-  getAttribute(name) {
-    return this.attributes.get(name);
-  }
-
-  addEventListener(type, listener) {
-    this.listeners.set(type, listener);
-  }
-
-  dispatch(type) {
-    this.listeners.get(type)();
-  }
-}
+import { dayMonth, monthTicks, renderTiles, tileTexts } from "../site/js/explore/traffic.js";
+import { trafficSummary } from "../site/js/explore/traffic_filter.js";
+import { FakeElement } from "./fake_page.js";
 
 /** Make a stand-in the global document for the test of `context`; node has none of its own. */
 function useFakeDocument(context) {
   globalThis.document = { createElement: (tag) => new FakeElement(tag) };
   context.after(() => delete globalThis.document);
 }
-
-// A daily rollup of two named models and Other, as `explore/daily_rollup` answers it, its counts zero but requests.
-const ROWS = [
-  { day: "2025-07-01", chute_id: "id-a", model: "A", endpoint_group: "chat", requests: 10 },
-  { day: "2025-07-01", chute_id: "id-b", model: "B", endpoint_group: "chat", requests: 30 },
-  { day: "2025-07-01", chute_id: null, model: "Other", endpoint_group: "chat", requests: 5 },
-];
-
-// The controls row's three fields: the model drop-down, the endpoint drop-down and the period buttons.
-function controlsOf(row) {
-  const [modelField, endpointField, periodField] = row.children;
-  return { model: modelField.children[1], endpoint: endpointField.children[1], periods: periodField.children[1] };
-}
-
-test("the model drop-down lists All models, the named models by requests, then Other, the chosen shown", (context) => {
-  useFakeDocument(context);
-  const row = new FakeElement("div");
-  renderControls(row, { ...DEFAULT_CHOICE, model: "id-a" }, modelChoices(ROWS), () => undefined);
-  const { model, endpoint } = controlsOf(row);
-  assert.deepEqual(model.children.map((option) => [option.value, option.textContent]), [
-    ["", "All models"], ["id-b", "B"], ["id-a", "A"], ["other", "Other"],
-  ]);
-  assert.equal(model.value, "id-a");
-  assert.deepEqual(endpoint.children.map((option) => option.textContent), [
-    "All endpoints", "Chat", "Chat stream", "Completion", "Completion stream", "Other",
-  ]);
-  assert.deepEqual(row.children.map((field) => field.children[0].textContent), ["Model", "Endpoint", "Period"]);
-});
-
-test("a drop-down's change chooses its value", (context) => {
-  useFakeDocument(context);
-  const row = new FakeElement("div");
-  const chosen = [];
-  renderControls(row, DEFAULT_CHOICE, modelChoices(ROWS), (part) => chosen.push(part));
-  const { model, endpoint } = controlsOf(row);
-  model.value = "id-b";
-  model.dispatch("change");
-  endpoint.value = "chat_stream";
-  endpoint.dispatch("change");
-  assert.deepEqual(chosen, [{ model: "id-b" }, { endpoint: "chat_stream" }]);
-});
-
-test("the chosen period's button alone is pressed; a press presses its button alone and chooses it", (context) => {
-  useFakeDocument(context);
-  const row = new FakeElement("div");
-  const chosen = [];
-  renderControls(row, { ...DEFAULT_CHOICE, period: "2026-q1" }, modelChoices(ROWS), (part) => chosen.push(part));
-  const buttons = controlsOf(row).periods.children;
-  const pressed = () => buttons.map((button) => button.getAttribute("aria-pressed"));
-  assert.deepEqual(buttons.map((button) => button.textContent), ["All", "Q2 '25", "Q3 '25", "Q4 '25", "Q1 '26"]);
-  assert.deepEqual(pressed(), ["false", "false", "false", "false", "true"]);
-  buttons[2].dispatch("click");
-  assert.deepEqual(pressed(), ["false", "false", "true", "false", "false"]);
-  assert.deepEqual(chosen, [{ period: "2025-q3" }]);
-  assert.equal(controlsOf(row).periods.getAttribute("role"), "group");
-});
 
 test("the tiles write the requests as the stats strip does and each average over the requests that record it", () => {
   const summary = {
@@ -134,9 +42,33 @@ test("each tile shows its value, its label and its note, if any", (context) => {
   ]);
 });
 
+// Plot widths, in pixels: a desktop card's, and a phone's at 360 px.
+const WIDE_PLOT = 1200;
+const PHONE_PLOT = 286;
+
 test("the bars' axis writes the month at each first of a month, and at a quarter's first day", () => {
   const days = ["2025-04-29", "2025-04-30", "2025-05-01", "2025-05-02", "2025-06-01"];
-  assert.deepEqual(monthTicks(days, ""), ["2025-05-01", "2025-06-01"]);
-  assert.deepEqual(monthTicks(days, "2025-q2").map(dayMonth), ["2025-04", "2025-05", "2025-06"]);
-  assert.deepEqual(monthTicks(["2025-07-01", "2025-07-02", "2025-08-01"], "2025-q3"), ["2025-07-01", "2025-08-01"]);
+  assert.deepEqual(monthTicks(days, "", WIDE_PLOT), ["2025-05-01", "2025-06-01"]);
+  assert.deepEqual(monthTicks(days, "2025-q2", WIDE_PLOT).map(dayMonth), ["2025-04", "2025-05", "2025-06"]);
+  const quarter = ["2025-07-01", "2025-07-02", "2025-08-01"];
+  assert.deepEqual(monthTicks(quarter, "2025-q3", WIDE_PLOT), ["2025-07-01", "2025-08-01"]);
+});
+
+// The first day of each month of the whole trace's days, from 2025-04-11 to 2026-04-12.
+const TRACE_MONTH_STARTS = [
+  "2025-05-01", "2025-06-01", "2025-07-01", "2025-08-01", "2025-09-01", "2025-10-01", "2025-11-01", "2025-12-01",
+  "2026-01-01", "2026-02-01", "2026-03-01", "2026-04-01",
+];
+
+test("the whole trace's bars write every month on a wide plot and every other month on a phone's", () => {
+  const days = ["2025-04-11", ...TRACE_MONTH_STARTS, "2026-04-12"];
+  assert.deepEqual(monthTicks(days, "", WIDE_PLOT), TRACE_MONTH_STARTS);
+  assert.deepEqual(monthTicks(days, "", PHONE_PLOT).map(dayMonth), [
+    "2025-05", "2025-07", "2025-09", "2025-11", "2026-01", "2026-03",
+  ]);
+});
+
+test("a quarter's bars write every month on a phone's plot too", () => {
+  const days = ["2025-04-11", "2025-05-01", "2025-06-01", "2025-06-30"];
+  assert.deepEqual(monthTicks(days, "2025-q2", PHONE_PLOT), ["2025-04-11", "2025-05-01", "2025-06-01"]);
 });

@@ -21,9 +21,6 @@ const PERIOD_KEY = "period";
 /** The model of the rows of every model but the twenty named ones, in a choice and in the URL. */
 export const OTHER_MODEL = "other";
 
-/** The choice of everything: every model, every endpoint group, every day. It writes no URL key. */
-export const DEFAULT_CHOICE = Object.freeze({ model: "", endpoint: "", period: "" });
-
 // The text of each drop-down's first entry, which chooses everything.
 const EVERY_MODEL_TEXT = "All models";
 const EVERY_ENDPOINT_TEXT = "All endpoints";
@@ -64,6 +61,11 @@ export function writeTrafficChoice(params, choice) {
   setOrDelete(written, ENDPOINT_KEY, choice.endpoint);
   setOrDelete(written, PERIOD_KEY, choice.period);
   return written;
+}
+
+/** True when the choices `first` and `second` choose the same model, endpoint group and period. */
+export function isSameChoice(first, second) {
+  return first.model === second.model && first.endpoint === second.endpoint && first.period === second.period;
 }
 
 /**

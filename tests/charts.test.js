@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { chartFrame, chartName, colourScale, columnTotal } from "../site/js/shared/charts.js";
+import { chartFrame, chartName, chartWidth, colourScale, columnTotal } from "../site/js/shared/charts.js";
 import { assignColours } from "../site/js/theme/colours.js";
 
 test("every chart starts from the same frame, as wide as its body", () => {
@@ -9,6 +9,11 @@ test("every chart starts from the same frame, as wide as its body", () => {
   assert.equal(frame.width, 300);
   assert.equal(frame.height, chartFrame({ clientWidth: 600 }).height);
   assert.equal(chartFrame({ clientWidth: 0 }).width, 480); // a body not yet laid out gets the fallback width
+});
+
+test("a chart's width is its body's, or the fallback width before the body is laid out", () => {
+  assert.equal(chartWidth({ clientWidth: 286 }), 286);
+  assert.equal(chartWidth({ clientWidth: 0 }), chartFrame({ clientWidth: 0 }).width);
 });
 
 test("a colour scale keeps each shown name's colour from the map, in the order shown", () => {

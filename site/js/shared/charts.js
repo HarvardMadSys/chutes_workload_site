@@ -4,8 +4,8 @@
  * that need no page are tested with `node --test`.
  */
 
-/** Every chart's height, so a grid of figures lines up. */
-export const CHART_HEIGHT = 240;
+// Every chart's height, so a grid of figures lines up.
+const CHART_HEIGHT = 240;
 const FALLBACK_WIDTH = 480; // the width drawn when the body has not been laid out yet
 /** Pixels taken off each side of a bar: a 2px gap between neighbouring bars and segments. */
 export const BAR_INSET = 1;
@@ -75,11 +75,9 @@ export function renderFigure(container, { title, insight = null, caption, defini
   return body;
 }
 
-/**
- * A figure's Definition control: a closed `<details>` that opens on `definition` and, under it, `rows`, the line of
- * the rows it rests on (its element has the class `figure-rows`).
- */
-export function figureDefinition(definition, rows = "") {
+// A figure's Definition control: a closed `<details>` that opens on `definition` and, under it, `rows`, the line of the
+// rows it rests on (its element has the class `figure-rows`).
+function figureDefinition(definition, rows = "") {
   const details = document.createElement("details");
   details.className = "figure-definition";
   details.innerHTML = `
@@ -131,7 +129,8 @@ export function distinct(values) {
   return [...new Set(values)];
 }
 
-function chartWidth(body) {
+/** The width in pixels of a chart drawn into `body`: the body's width as laid out, or `FALLBACK_WIDTH` before it is. */
+export function chartWidth(body) {
   return body.clientWidth || FALLBACK_WIDTH;
 }
 

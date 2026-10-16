@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
-  choiceSeries, dailyRequests, DEFAULT_CHOICE, endpointChoices, modelChoices, OTHER_MODEL, PERIODS, periodDays,
+  choiceSeries, dailyRequests, endpointChoices, isSameChoice, modelChoices, OTHER_MODEL, PERIODS, periodDays,
   readTrafficChoice, rowsInChoice, trafficSummary, writeTrafficChoice,
 } from "../site/js/explore/traffic_filter.js";
 import { ENDPOINT_SERIES, MODEL_SERIES } from "../site/js/shared/series.js";
@@ -34,8 +34,11 @@ const ROWS = [
 
 const MODEL_VALUES = ["id-a", "id-b", OTHER_MODEL];
 
+// The choice of everything: every model, every endpoint group, every day.
+const EVERYTHING = Object.freeze({ model: "", endpoint: "", period: "" });
+
 test("the default choice writes no key and leaves every other key as it is", () => {
-  const written = writeTrafficChoice(new URLSearchParams("tab=x&model=id-a"), DEFAULT_CHOICE);
+  const written = writeTrafficChoice(new URLSearchParams("tab=x&model=id-a"), EVERYTHING);
   assert.equal(written.toString(), "tab=x");
 });
 
@@ -48,9 +51,17 @@ test("a choice written to the URL reads back the same", () => {
 
 test("a URL value the explorer does not know falls back to the default, the others kept", () => {
   const params = new URLSearchParams("model=nope&endpoint=fax&period=2027-q1");
-  assert.deepEqual(readTrafficChoice(params, MODEL_VALUES), DEFAULT_CHOICE);
+  assert.deepEqual(readTrafficChoice(params, MODEL_VALUES), EVERYTHING);
   const mixed = new URLSearchParams("model=other&endpoint=fax&period=2025-q3");
   assert.deepEqual(readTrafficChoice(mixed, MODEL_VALUES), { model: OTHER_MODEL, endpoint: "", period: "2025-q3" });
+});
+
+test("two choices are the same when their model, endpoint group and period all are", () => {
+  assert.equal(isSameChoice(EVERYTHING, { model: "", endpoint: "", period: "" }), true);
+  assert.equal(isSameChoice({ ...EVERYTHING, model: "id-a" }, { ...EVERYTHING, model: "id-a" }), true);
+  assert.equal(isSameChoice(EVERYTHING, { ...EVERYTHING, model: "id-a" }), false);
+  assert.equal(isSameChoice(EVERYTHING, { ...EVERYTHING, endpoint: "chat" }), false);
+  assert.equal(isSameChoice(EVERYTHING, { ...EVERYTHING, period: "2025-q3" }), false);
 });
 
 test("the periods are All and the four calendar quarters, by their keys and labels", () => {
@@ -75,7 +86,7 @@ test("each period holds the shipped answer's days of its quarter; All holds ever
 });
 
 test("a choice keeps the rows of its model, its endpoint group and its period's days", () => {
-  const requests = (choice) => rowsInChoice(ROWS, { ...DEFAULT_CHOICE, ...choice }).map((row) => row.requests);
+  const requests = (choice) => rowsInChoice(ROWS, { ...EVERYTHING, ...choice }).map((row) => row.requests);
   assert.deepEqual(requests({}), [10, 30, 50, 5, 20]);
   assert.deepEqual(requests({ model: "id-a" }), [10, 30]);
   assert.deepEqual(requests({ model: OTHER_MODEL }), [5]);
@@ -101,10 +112,10 @@ test("a summary of no requests has no averages and no share", () => {
 });
 
 test("the bars are by model while no model is chosen, and by endpoint group once one is", () => {
-  assert.equal(choiceSeries(DEFAULT_CHOICE), MODEL_SERIES);
-  assert.equal(choiceSeries({ ...DEFAULT_CHOICE, endpoint: "chat" }), MODEL_SERIES);
-  assert.equal(choiceSeries({ ...DEFAULT_CHOICE, model: "id-a" }), ENDPOINT_SERIES);
-  assert.equal(choiceSeries({ ...DEFAULT_CHOICE, model: OTHER_MODEL }), ENDPOINT_SERIES);
+  assert.equal(choiceSeries(EVERYTHING), MODEL_SERIES);
+  assert.equal(choiceSeries({ ...EVERYTHING, endpoint: "chat" }), MODEL_SERIES);
+  assert.equal(choiceSeries({ ...EVERYTHING, model: "id-a" }), ENDPOINT_SERIES);
+  assert.equal(choiceSeries({ ...EVERYTHING, model: OTHER_MODEL }), ENDPOINT_SERIES);
 });
 
 test("a model the Overview does not name folds into Other in the bars, summed per day", () => {

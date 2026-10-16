@@ -10,14 +10,9 @@ test("a count gets thousands separators", () => {
   assert.equal(formatCount(1186582), "1,186,582");
 });
 
-test("a duration keeps one decimal, in seconds only under a minute", () => {
+test("a duration is written in seconds with one decimal kept, two under a tenth of a second", () => {
   assert.equal(formatSeconds(4.25), "4.3 s");
   assert.equal(formatSeconds(42), "42.0 s");
-  assert.equal(formatSeconds(61), "1.0 min");
-  assert.equal(formatSeconds(724), "12.1 min");
-  assert.equal(formatSeconds(3780), "63.0 min");
-  assert.equal(formatSeconds(6480), "1.8 h");
-  assert.equal(formatSeconds(328000), "3.8 d");
   assert.equal(formatSeconds(0.04), "0.04 s");
   assert.equal(formatSeconds(0), "0.0 s");
 });

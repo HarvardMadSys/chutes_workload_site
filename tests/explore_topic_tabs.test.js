@@ -5,111 +5,18 @@ import {
   mountTopicTabs, showTopic, tabIndexForKey, topicForEntry, topicForHash, topicTab,
 } from "../site/js/explore/topic_tabs.js";
 
-// The topics' anchors on the page, in order.
-const ANCHORS = [
-  "insights-overview", "insights-tokens", "insights-users", "insights-evolution", "insights-caching", "insights-balancing",
-];
-
-// The topics' titles, as their headings give them after the number.
-const TITLES = [
-  "Workload overview", "Token shape and latency", "Users and models", "Workload evolution", "Prefix caching",
-  "Load balancing",
-];
-
-/** A stand-in for a tab, a section or the row: its attributes, its classes, its listeners and what the tabs set. */
-class FakeElement {
-  constructor(id = "") {
-    this.id = id;
-    this.hidden = false;
-    this.attributes = new Map();
-    this.classes = new Set();
-    this.listeners = new Map();
-    this.children = [];
-    this.classList = { toggle: (name, isOn) => (isOn ? this.classes.add(name) : this.classes.delete(name)) };
-    this.scrollLeft = 0;
-    this.clientWidth = 0;
-    this.scrollWidth = 0;
-  }
-
-  setAttribute(name, value) {
-    this.attributes.set(name, value);
-  }
-
-  getAttribute(name) {
-    return this.attributes.get(name);
-  }
-
-  addEventListener(type, listener) {
-    this.listeners.set(type, [...(this.listeners.get(type) ?? []), listener]);
-  }
-
-  dispatch(type, event) {
-    for (const listener of this.listeners.get(type) ?? []) {
-      listener(event);
-    }
-  }
-
-  replaceChildren(...children) {
-    this.children = children;
-  }
-
-  getBoundingClientRect() {
-    return { left: 0, right: 0 };
-  }
-
-  focus() {
-    globalThis.document.activeElement = this;
-  }
-}
-
-/** A topic section as the page holds it: its heading the number's element, a space and the title's text node. */
-function topicSection(anchor, index) {
-  const section = new FakeElement(anchor);
-  const number = { textContent: `0${index + 1}` };
-  const heading = { querySelector: () => number, lastChild: { textContent: ` ${TITLES[index]}` } };
-  section.querySelector = () => heading;
-  return section;
-}
+import {
+  FakeElement, FakeHistory, PAGE_ADDRESS, shownIds, TOPIC_ANCHORS, topicSections,
+} from "./fake_page.js";
 
 /**
- * The browser's history as the tabs use it: entries of `{ state, hash }`, the current one's hash in `location.hash`,
- * and `back()`, which moves to the entry before and tells the window's listeners of `popstate`.
+ * Mount the tabs on a page opened at `hash`: `{ tabs, sections, history }`; the globals are the fakes until `done`.
+ * Back and Forward reach the tabs as the page's start passes them on (`explore/start.js`).
  */
-class FakeHistory {
-  constructor(window, hash) {
-    this.window = window;
-    this.entries = [{ state: null, hash }];
-    this.index = 0;
-  }
-
-  get state() {
-    return this.entries[this.index].state;
-  }
-
-  pushState(state, title, url) {
-    this.entries = this.entries.slice(0, this.index + 1);
-    this.entries.push({ state, hash: url });
-    this.index += 1;
-    this.window.location.hash = url;
-  }
-
-  replaceState(state, title, url = this.entries[this.index].hash) {
-    this.entries[this.index] = { state, hash: url };
-  }
-
-  back() {
-    this.index -= 1;
-    this.window.location.hash = this.entries[this.index].hash;
-    this.window.dispatch("popstate", { state: this.entries[this.index].state });
-  }
-}
-
-/** Mount the tabs on a page opened at `hash`: `{ tabs, sections, history }`; the globals are the fakes until `done`. */
 function mountedTabs(hash) {
-  const sections = ANCHORS.map(topicSection);
+  const sections = topicSections();
   const window = new FakeElement();
-  window.location = { hash };
-  window.history = new FakeHistory(window, hash);
+  window.history = new FakeHistory(window, `${PAGE_ADDRESS}${hash}`);
   globalThis.window = window;
   globalThis.ResizeObserver = class { observe() {} };
   globalThis.document = {
@@ -117,8 +24,10 @@ function mountedTabs(hash) {
     getElementById: (id) => sections.find((section) => section.id === id),
     createElement: () => new FakeElement(),
   };
-  const row = new FakeElement("topic-tabs");
-  mountTopicTabs(row, ANCHORS.map((anchor) => ({ selector: `#${anchor}` })), () => undefined);
+  const row = new FakeElement("div", "topic-tabs");
+  const figureSections = TOPIC_ANCHORS.map((anchor) => ({ selector: `#${anchor}` }));
+  const showEntryTopic = mountTopicTabs(row, figureSections, () => undefined);
+  window.addEventListener("popstate", (event) => showEntryTopic(event.state));
   return { tabs: row.children, sections, history: window.history };
 }
 
@@ -126,10 +35,6 @@ function done() {
   delete globalThis.window;
   delete globalThis.document;
   delete globalThis.ResizeObserver;
-}
-
-function shownAnchors(sections) {
-  return sections.filter((section) => !section.hidden).map((section) => section.id);
 }
 
 test("a tab is a button in the tab role, controlling its topic's section", () => {
@@ -144,25 +49,25 @@ test("a tab is a button in the tab role, controlling its topic's section", () =>
 });
 
 test("a hash naming a topic shows that topic", () => {
-  assert.equal(topicForHash("#insights-caching", ANCHORS, "insights-overview"), "insights-caching");
-  assert.equal(topicForHash("#insights-overview", ANCHORS, "insights-evolution"), "insights-overview");
+  assert.equal(topicForHash("#insights-caching", TOPIC_ANCHORS, "insights-overview"), "insights-caching");
+  assert.equal(topicForHash("#insights-overview", TOPIC_ANCHORS, "insights-evolution"), "insights-overview");
 });
 
 test("no hash, or the Insights' own anchor, shows the first topic", () => {
-  assert.equal(topicForHash("", ANCHORS, "insights-evolution"), "insights-overview");
-  assert.equal(topicForHash("#insights", ANCHORS, "insights-evolution"), "insights-overview");
+  assert.equal(topicForHash("", TOPIC_ANCHORS, "insights-evolution"), "insights-overview");
+  assert.equal(topicForHash("#insights", TOPIC_ANCHORS, "insights-evolution"), "insights-overview");
 });
 
 test("a hash naming another section, or nothing on the page, leaves the shown topic as it is", () => {
   for (const hash of ["#traffic", "#cite", "#overview", "#duration_cdf", "#insights-unknown", "#tokens"]) {
-    assert.equal(topicForHash(hash, ANCHORS, "insights-evolution"), "insights-evolution", hash);
+    assert.equal(topicForHash(hash, TOPIC_ANCHORS, "insights-evolution"), "insights-evolution", hash);
   }
 });
 
 test("a history entry's topic wins over its hash; an entry with none, or an unknown one, goes by the hash", () => {
-  assert.equal(topicForEntry({ topic: "insights-overview" }, "#traffic", ANCHORS, "insights-evolution"), "insights-overview");
-  assert.equal(topicForEntry(null, "#insights-users", ANCHORS, "insights-evolution"), "insights-users");
-  assert.equal(topicForEntry({ topic: "gone" }, "#cite", ANCHORS, "insights-evolution"), "insights-evolution");
+  assert.equal(topicForEntry({ topic: "insights-overview" }, "#traffic", TOPIC_ANCHORS, "insights-evolution"), "insights-overview");
+  assert.equal(topicForEntry(null, "#insights-users", TOPIC_ANCHORS, "insights-evolution"), "insights-users");
+  assert.equal(topicForEntry({ topic: "gone" }, "#cite", TOPIC_ANCHORS, "insights-evolution"), "insights-evolution");
 });
 
 test("the arrow keys move to the next and the previous tab round the row, Home and End to its ends", () => {
@@ -176,43 +81,45 @@ test("the arrow keys move to the next and the previous tab round the row, Home a
 });
 
 test("showing a topic hides every other topic and selects its tab alone, the row's one tab stop", () => {
-  const sections = ANCHORS.map((anchor) => new FakeElement(anchor));
-  const tabs = ANCHORS.map((anchor) => {
+  const sections = TOPIC_ANCHORS.map((anchor) => new FakeElement("section", anchor));
+  const tabs = TOPIC_ANCHORS.map((anchor) => {
     const tab = new FakeElement();
     tab.setAttribute("aria-controls", anchor);
     return tab;
   });
   showTopic(sections, tabs, "insights-users");
-  assert.deepEqual(shownAnchors(sections), ["insights-users"]);
+  assert.deepEqual(shownIds(sections), ["insights-users"]);
   assert.deepEqual(tabs.map((tab) => tab.getAttribute("aria-selected")), [
     "false", "false", "true", "false", "false", "false",
   ]);
   assert.deepEqual(tabs.map((tab) => tab.tabIndex), [-1, -1, 0, -1, -1, -1]);
   assert.deepEqual(tabs.map((tab) => tab.classes.has("is-active")), [false, false, true, false, false, false]);
   showTopic(sections, tabs, "insights-overview");
-  assert.deepEqual(shownAnchors(sections), ["insights-overview"]);
+  assert.deepEqual(shownIds(sections), ["insights-overview"]);
   assert.equal(tabs[2].getAttribute("aria-selected"), "false");
   assert.equal(tabs[2].classes.has("is-active"), false);
 });
 
-test("Back from the fourth topic shows the first again", () => {
+test("Back from the fourth topic shows the first again, and Forward the fourth", () => {
   const { tabs, sections, history } = mountedTabs("");
   tabs[3].dispatch("click", {});
-  assert.deepEqual(shownAnchors(sections), ["insights-evolution"]);
+  assert.deepEqual(shownIds(sections), ["insights-evolution"]);
   assert.equal(globalThis.window.location.hash, "#insights-evolution");
   history.back();
+  assert.deepEqual(shownIds(sections), ["insights-overview"]);
+  history.forward();
   done();
-  assert.deepEqual(shownAnchors(sections), ["insights-overview"]);
+  assert.deepEqual(shownIds(sections), ["insights-evolution"]);
 });
 
 test("Back shows the first topic again on a page opened at another section's anchor", () => {
   const { tabs, sections, history } = mountedTabs("#traffic");
   tabs[2].dispatch("click", {});
-  assert.deepEqual(shownAnchors(sections), ["insights-users"]);
+  assert.deepEqual(shownIds(sections), ["insights-users"]);
   history.back();
   done();
-  assert.deepEqual(shownAnchors(sections), ["insights-overview"]);
-  assert.equal(history.entries[0].hash, "#traffic");
+  assert.deepEqual(shownIds(sections), ["insights-overview"]);
+  assert.equal(history.entries[0].url.hash, "#traffic");
 });
 
 test("ArrowRight on the shown tab shows the next topic and focuses its tab; Back returns", () => {
@@ -220,12 +127,12 @@ test("ArrowRight on the shown tab shows the next topic and focuses its tab; Back
   let isDefaultPrevented = false;
   tabs[1].dispatch("keydown", { key: "ArrowRight", preventDefault: () => { isDefaultPrevented = true; } });
   assert.equal(isDefaultPrevented, true);
-  assert.deepEqual(shownAnchors(sections), ["insights-users"]);
+  assert.deepEqual(shownIds(sections), ["insights-users"]);
   assert.equal(globalThis.document.activeElement, tabs[2]);
   assert.deepEqual(tabs.map((tab) => tab.tabIndex), [-1, -1, 0, -1, -1, -1]);
   history.back();
   done();
-  assert.deepEqual(shownAnchors(sections), ["insights-tokens"]);
+  assert.deepEqual(shownIds(sections), ["insights-tokens"]);
 });
 
 test("Tab is left to the browser, so focus leaves the row", () => {
@@ -234,5 +141,5 @@ test("Tab is left to the browser, so focus leaves the row", () => {
   tabs[0].dispatch("keydown", { key: "Tab", preventDefault: () => { isDefaultPrevented = true; } });
   done();
   assert.equal(isDefaultPrevented, false);
-  assert.deepEqual(shownAnchors(sections), ["insights-overview"]);
+  assert.deepEqual(shownIds(sections), ["insights-overview"]);
 });

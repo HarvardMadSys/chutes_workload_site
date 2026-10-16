@@ -34,7 +34,8 @@ The one page, `index.html`, holds, in order:
   average time to first token with the share of requests that record it.
   The choice is kept in the URL as `model`, `endpoint` and `period`
   (`?model=<chute id>&period=2025-q3#traffic`), so a view can be shared as
-  a link; the default, everything, writes no key.
+  a link, and Back and Forward show the choice of the entry they return
+  to; the default, everything, writes no key.
 - **Insights** (`#insights`). The paper's figures in six topics that follow
   its sections, one shown at a time behind a row of tabs, the shown topic
   in the URL's hash: Workload overview (`#insights-overview`), Token shape
@@ -236,10 +237,12 @@ site/                exactly the files that are deployed
     cite.js, team.js
                      the citation's sentence and copy buttons; the lab and the authors
   js/explore/        the page's start and its sections
-    start.js         places the Insights' cards and tabs, draws the header and footer, runs the sections
+    start.js         places the Insights' cards and tabs, draws the header and footer, runs the sections, and
+                     follows Back and Forward
     trends.js        the Overview's three monthly trends
-    traffic.js, traffic_filter.js
-                     the Traffic Explorer: its controls, tiles and bars; its choice, its URL keys and its sums
+    traffic.js, traffic_controls.js, traffic_filter.js
+                     the Traffic Explorer: its tiles and bars; its controls, kept in step with the URL; its
+                     choice, its URL keys and its sums
     legend.js        the legend of buttons that hides and shows a series
     topic_tabs.js    the Insights' tabs, one topic shown at a time, the shown one in the URL's hash
     figure_sections.js, figure_card.js
@@ -280,6 +283,8 @@ tests/               what make test runs
                      below
   figure_words.test.js
                      the word counts of every card's insight, caption and definition, and of each takeaway
+  fake_page.js       the stand-ins for an element, the topic sections and the browser's history that the
+                     node tests drive the page's modules with
   palette_contrast.test.js, palette.js
                      the colours' contrast in both schemes, read from style.css
   module_headers.test.js

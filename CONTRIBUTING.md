@@ -100,7 +100,10 @@ checks that each path it names exists.
   topic a tab panel): one is shown and the others hidden, the shown one
   named by the URL's hash and kept in the history entry's state; a tab
   chosen pushes a new entry with its topic, so Back returns to the topic
-  before. `explore/figure_sections.js` lists the topics in
+  before. `explore/start.js` is the page's one listener of `popstate`
+  (`followHistory`): on Back or Forward it shows the entry's topic, draws
+  the header from the entry's query and tells each section that asked
+  through `context.onReturn`. `explore/figure_sections.js` lists the topics in
   `FIGURE_SECTIONS`, one module each in `js/insights/`, and `index.html`
   holds, under the Insights heading and its `#topic-tabs` row, a section
   with a heading and a card grid for each, its id the topic's anchor. A
@@ -114,9 +117,11 @@ checks that each path it names exists.
   them when the page starts, a value it does not know falling back to
   everything, and `writeTrafficChoice` writes them on every change, through
   `context.replaceQuery`, which replaces the history entry rather than
-  adding one. The default, everything, writes no key; a key the explorer
-  does not read is left as it is; and the keys change nothing outside the
-  explorer.
+  adding one. `explore/traffic_controls.js` keeps the controls and the URL
+  in step: on Back or Forward (`context.onReturn`) it reads the keys
+  again, and an entry of another choice is shown and drawn. The default,
+  everything, writes no key; a key the explorer does not read is left as
+  it is; and the keys change nothing outside the explorer.
 
 **Adding a section.** Give it a place in `index.html`, an element with an
 id, under a heading if it is a part of its own; write its module with
@@ -316,12 +321,13 @@ Plot, the donuts as plain SVG; the Insights' figures are the paper's images.
   axis of months: the trends' x axis is ticked at every month, the first
   and the last included (the landing-page spec's Monthly trends), and the
   Traffic Explorer's at the first day of each month it shows (and of a
-  quarter that starts mid-month); their labels
-  are slanted so that thirteen fit a card. One format per
+  quarter that starts mid-month), every other month for the whole trace
+  on a plot narrower than `NARROW_PLOT_WIDTH`; their labels are slanted
+  so that thirteen fit a card. One format per
   quantity: an axis's counts as "1k", "600M" (`formatCountTick`); a value
   in a legend, a tooltip, a tile or the stats strip with one decimal kept
   ("129.1k", "94.0%", "4.3 s", and three figures in billions, "2.04B"),
-  in seconds only under a minute (`formatCompactCount`, `formatShare`,
+  a duration in seconds (`formatCompactCount`, `formatShare`,
   `formatSeconds`).
 
 ## Verifying a change
@@ -359,8 +365,8 @@ as "no longer shown".
 
 Before committing anything that touches the page: open it at 360 px wide
 and at desktop width, in light and dark mode; check that the console is
-clean; check that a Traffic Explorer choice survives a reload and opens
-the same from a copied link. `make setup-browser` installs a headless
+clean; check that a Traffic Explorer choice survives a reload, opens
+the same from a copied link, and follows Back and Forward. `make setup-browser` installs a headless
 Chromium; a short Playwright script from the virtual environment
 (`.venv/bin/python`) can open `http://localhost:8000`, collect the console
 and take the screenshots.

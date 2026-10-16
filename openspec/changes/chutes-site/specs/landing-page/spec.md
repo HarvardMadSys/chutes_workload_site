@@ -80,8 +80,8 @@ input tokens, average output tokens, and average TTFT with the share
 of the chosen requests that record it; an average SHALL divide by the
 requests that have the value. The choice SHALL live in the URL query
 string as `model`, `endpoint` and `period`, the default writing no key,
-and SHALL be read when the page opens; no other key SHALL be read or
-rewritten. The section SHALL draw from the `explore/daily_rollup`
+and SHALL be read when the page opens and when Back or Forward returns
+to a history entry; no other key SHALL be read or rewritten. The section SHALL draw from the `explore/daily_rollup`
 answer alone, filtering and summing in the browser. A bar SHALL take no
 click.
 
@@ -100,6 +100,10 @@ click.
 #### Scenario: Sharing a view
 - **WHEN** a visitor opens `index.html?endpoint=chat_stream&period=2026-q1`
 - **THEN** the chart SHALL show the streaming chat requests of January to March 2026 by model, and every figure SHALL be as without the keys
+
+#### Scenario: Back after a choice
+- **WHEN** the visitor shows the fourth topic, then chooses the endpoint Chat, then presses the browser's Back
+- **THEN** the URL SHALL carry no key, and the controls, the tiles, the chart and the header's brand SHALL show everything again; Forward SHALL show Chat again
 
 #### Scenario: A phone
 - **WHEN** the page is opened 360 pixels wide
