@@ -32,11 +32,11 @@ import {
 const FAMILY_QUERY = "explore/daily_by_family";
 const FAMILY_MODELS_QUERY = "explore/daily_by_model";
 
-// The bars' margins, in pixels, as the monthly trends': room on the left for a count tick ("600M"), below for a
-// slanted month ("2025-04"), and little on the right, so the bars take the card's width.
+// The bars' margins, in pixels: room on the left for a count tick ("600M"), below for a slanted month ("2025-04"),
+// and little on the right, so the bars take the card's width.
 const DAILY_MARGINS = Object.freeze({ marginLeft: 52, marginRight: 8, marginBottom: 60 });
 
-// The angle of the month labels under the bars, in degrees, as the trends slant theirs.
+// The angle of the month labels under the bars, in degrees, so that thirteen fit a card.
 const MONTH_LABEL_ANGLE = -45;
 
 // A plot narrower than this, in pixels, writes every other month under the whole trace's bars: on a phone its twelve

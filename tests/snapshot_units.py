@@ -285,6 +285,6 @@ def explore_page_units(page) -> dict[str, str]:
         "team": "\n".join(text_lines(page.locator("#team"))),
         "footer": "\n".join(text_lines(page.locator("#site-footer"))),
     }
-    units.update(cards_units(page.locator("#mixes > .card, #trends > .card"), figure_units))
+    units.update(cards_units(page.locator("#mixes > .card"), figure_units))
     units.update(traffic_units(page))
     return units

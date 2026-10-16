@@ -1,4 +1,0 @@
-title: Tokens per month
-caption: Input and output tokens each month, by model; the last month holds two days.
-definition: Input and output tokens together per month, stacked by model: the eight models the model mix names, and Other.
-rows: 38,318,155,947,665 tokens

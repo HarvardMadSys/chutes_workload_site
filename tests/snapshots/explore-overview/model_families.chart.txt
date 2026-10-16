@@ -1,0 +1,37 @@
+<svg viewBox="-100 -100 200 200" class="donut" role="img" aria-label="Model families: Each family's share of the requests.">
+<path d="M 0 -100 A 100 100 0 1 1 -30.59 95.21 L -18.96 59.03 A 62 62 0 1 0 0 -62 Z" fill="var(--series-1)" class="donut-slice">
+<title>DeepSeek: 54.9% of requests (3,364,115,623)</title>
+</path>
+<path d="M -30.59 95.21 A 100 100 0 0 1 -95.09 30.96 L -58.95 19.2 A 62 62 0 0 0 -18.96 59.03 Z" fill="var(--series-2)" class="donut-slice">
+<title>Qwen: 15.0% of requests (920,975,253)</title>
+</path>
+<path d="M -95.09 30.96 A 100 100 0 0 1 -99.94 -3.58 L -61.96 -2.22 A 62 62 0 0 0 -58.95 19.2 Z" fill="var(--series-3)" class="donut-slice">
+<title>Gemma: 5.6% of requests (341,624,272)</title>
+</path>
+<path d="M -99.94 -3.58 A 100 100 0 0 1 -95.54 -29.54 L -59.23 -18.31 A 62 62 0 0 0 -61.96 -2.22 Z" fill="var(--series-4)" class="donut-slice">
+<title>Mistral: 4.2% of requests (257,271,613)</title>
+</path>
+<path d="M -95.54 -29.54 A 100 100 0 0 1 -86.45 -50.27 L -53.6 -31.17 A 62 62 0 0 0 -59.23 -18.31 Z" fill="var(--series-5)" class="donut-slice">
+<title>GLM: 3.6% of requests (221,035,549)</title>
+</path>
+<path d="M -86.45 -50.27 A 100 100 0 0 1 -76.58 -64.31 L -47.48 -39.87 A 62 62 0 0 0 -53.6 -31.17 Z" fill="var(--series-6)" class="donut-slice">
+<title>Hermes: 2.7% of requests (167,420,443)</title>
+</path>
+<path d="M -76.58 -64.31 A 100 100 0 0 1 -71.89 -69.51 L -44.57 -43.1 A 62 62 0 0 0 -47.48 -39.87 Z" fill="var(--series-7)" class="donut-slice">
+<title>gpt-oss: 1.1% of requests (68,292,587)</title>
+</path>
+<path d="M -71.89 -69.51 A 100 100 0 0 1 -68.53 -72.83 L -42.49 -45.15 A 62 62 0 0 0 -44.57 -43.1 Z" fill="var(--series-8)" class="donut-slice">
+<title>Kimi: 0.8% of requests (46,005,021)</title>
+</path>
+<path d="M -68.53 -72.83 A 100 100 0 0 1 -65.71 -75.38 L -40.74 -46.74 A 62 62 0 0 0 -42.49 -45.15 Z" fill="var(--series-9)" class="donut-slice">
+<title>Llama: 0.6% of requests (37,044,916)</title>
+</path>
+<path d="M -65.71 -75.38 A 100 100 0 0 1 -64.41 -76.49 L -39.93 -47.43 A 62 62 0 0 0 -40.74 -46.74 Z" fill="var(--series-10)" class="donut-slice">
+<title>MiniMax: 0.3% of requests (16,692,311)</title>
+</path>
+<path d="M -64.41 -76.49 A 100 100 0 0 1 0 -100 L 0 -62 A 62 62 0 0 0 -39.93 -47.43 Z" fill="var(--series-other)" class="donut-slice">
+<title>Other: 11.1% of requests (681,936,168)</title>
+</path>
+<text y="-0.15em" class="donut-total">6.12B</text>
+<text y="1.35em" class="donut-unit">requests</text>
+</svg>

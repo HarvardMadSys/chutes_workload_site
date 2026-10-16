@@ -1,0 +1,11 @@
+DeepSeek 54.9% | pressed=true | legend-swatch background: var(--series-1);
+Qwen 15.0% | pressed=true | legend-swatch background: var(--series-2);
+Gemma 5.6% | pressed=true | legend-swatch background: var(--series-3);
+Mistral 4.2% | pressed=true | legend-swatch background: var(--series-4);
+GLM 3.6% | pressed=true | legend-swatch background: var(--series-5);
+Hermes 2.7% | pressed=true | legend-swatch background: var(--series-6);
+gpt-oss 1.1% | pressed=true | legend-swatch background: var(--series-7);
+Kimi 0.8% | pressed=true | legend-swatch background: var(--series-8);
+Llama 0.6% | pressed=true | legend-swatch background: var(--series-9);
+MiniMax 0.3% | pressed=true | legend-swatch background: var(--series-10);
+Other 11.1% | pressed=true | legend-swatch background: var(--series-other);

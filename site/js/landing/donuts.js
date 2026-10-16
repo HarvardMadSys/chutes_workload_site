@@ -1,30 +1,32 @@
 /**
- * The Overview's two donuts over the whole trace: the model mix, each model's share of the requests
- * (`explore/model_mix`), and the endpoint mix, each endpoint group's share (`explore/endpoint_mix`). Each answer is
- * also its series' colour order, so the page asks for it once and gives its rows as `context.orders.models` and
+ * The Overview's two donuts over the whole trace: the family mix, each model family's share of the requests
+ * (`explore/family_mix`), and the endpoint mix, each endpoint group's share (`explore/endpoint_mix`). Each answer is
+ * also its series' colour order, so the page asks for it once and gives its rows as `context.orders.families` and
  * `context.orders.endpoints`.
  *
- * A donut names the series that hold the eight colours of its colour order, in those colours, as the trends colour
- * them, and folds the rest into "Other"; the donut kind (`charts/donut.js`) draws it, the slices' total in its centre.
- * Its legend hides and shows a slice (`explore/legend.js`).
+ * A donut names each series its colours name, in those colours: the families as the Traffic Explorer colours them
+ * (`familyColours`), the endpoint groups as `endpointColours` does, every other name folded into "Other". The donut
+ * kind (`charts/donut.js`) draws it, the slices' total in its centre. Its legend hides and shows a slice
+ * (`explore/legend.js`).
  *
  * A section's `context` is what the page gives every section; see `explore/start.js`.
  */
 
 import { columnTotal, renderFigure, showError, showLoading } from "../shared/charts.js";
 import { formatCompactCount, formatQuantity } from "../shared/format.js";
-import { ENDPOINT_SERIES, MODEL_SERIES } from "../shared/series.js";
+import { ENDPOINT_SERIES, FAMILY_SERIES } from "../shared/series.js";
 import { drawWithLegend } from "../explore/legend.js";
 import { donutLegend, drawDonut } from "../charts/donut.js";
 
 /** The two donuts, in the page's order: each card's words and the series it slices the requests by. */
 export const MIXES = Object.freeze([
   Object.freeze({
-    title: "Model mix",
-    caption: "Each model's share of the requests.",
-    definition: "Requests over the whole trace, by the model they asked for. The eight models with most requests are "
-      + "named, as the trends name them; the rest are Other.",
-    series: MODEL_SERIES,
+    // placeholder: the family mix's title, caption and definition, for the authors.
+    title: "Model families",
+    caption: "Each family's share of the requests.",
+    definition: "Requests over the whole trace, by the family of the model they asked for, as the Traffic Explorer "
+      + "groups them; the models in no family are Other.",
+    series: FAMILY_SERIES,
   }),
   Object.freeze({
     title: "Endpoint mix",

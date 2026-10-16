@@ -686,7 +686,7 @@ section[id] {
 
 /* ---------- Overview donuts ---------- */
 
-/* The Overview: the two donuts side by side, then the three trends. */
+/* The Overview: the two donuts side by side. */
 .overview {
   display: flex;
   flex-direction: column;
@@ -726,8 +726,8 @@ section[id] {
   margin: 0.75rem 0;
 }
 
-/* The legend beside the donut lists its slices one under another, in rows close enough that nine end level with the
-   donut, and in two columns where it goes under the donut. */
+/* The legend beside the donut lists its slices one under another, in rows close enough that eleven, the family mix's,
+   end level with the donut, and in two columns where it goes under the donut. */
 .donut-card .figure-legend {
   grid-area: legend;
   display: grid;
@@ -800,7 +800,7 @@ section[id] {
   }
 }
 
-/* On a phone a donut's legend is one column, so a long model's name and its share keep one line. */
+/* On a phone a donut's legend is one column, so a long name and its share keep one line. */
 @media (max-width: 30rem) {
   .donut-card .figure-legend {
     grid-template-columns: minmax(0, 1fr);
@@ -1074,22 +1074,13 @@ section[id] {
   gap: 0 1.5rem;
 }
 
-/* The monthly trends: three charts side by side on a wide screen, one above the other on a narrow one. */
-.trend-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0 1.5rem;
-}
-
 /*
  * A figure card in a grid lays its parts on its row's tracks, so the charts of a row start at one height whatever the
- * length of their insights, captions and legends: a trend's five (title, caption, legend, chart, Definition), an
- * insight's six (title, insight, legend, chart, caption, Definition).
+ * length of their insights, captions and legends: its six (title, insight, legend, chart, caption, Definition).
  */
-.card-grid > .card,
-.trend-grid > .card {
+.card-grid > .card {
   display: grid;
-  grid-row: span 5;
+  grid-row: span 6;
   grid-template-rows: subgrid;
   grid-template-columns: minmax(0, 1fr); /* the card's one column never grows wider than the card */
   row-gap: 0;
@@ -1097,18 +1088,8 @@ section[id] {
   margin-bottom: 1.5rem;
 }
 
-.card-grid > .card {
-  grid-row: span 6;
-}
-
-.card-grid > .card > .figure,
-.trend-grid > .card > .figure {
+.card-grid > .card > .figure {
   display: contents;
-}
-
-/* A trend's legend sits on its chart: where a neighbour's legend runs longer, the room the row keeps is above it. */
-.trend-grid > .card .figure-legend {
-  align-self: end;
 }
 
 /* A card without a legend draws its chart where the legend would be, so it keeps no empty band above the chart. */
@@ -1126,11 +1107,7 @@ section[id] {
 .card-grid > .card .figure-insight,
 .card-grid > .card .figure-caption,
 .card-grid > .card .figure-legend:not(:empty),
-.card-grid > .card .figure-body,
-.trend-grid > .card .figure-title,
-.trend-grid > .card .figure-caption,
-.trend-grid > .card .figure-legend:not(:empty),
-.trend-grid > .card .figure-body {
+.card-grid > .card .figure-body {
   margin-bottom: 0.5rem;
 }
 
@@ -1554,7 +1531,6 @@ button:disabled:hover {
 /* ---------- Narrower screens ---------- */
 
 @media (max-width: 50rem) {
-  .trend-grid,
   .card-grid,
   .donut-grid {
     grid-template-columns: minmax(0, 1fr);

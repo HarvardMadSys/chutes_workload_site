@@ -37,9 +37,8 @@ binding, and `make test` checks the countable ones.
   (`$family`), bound by name by DuckDB and never written into the text. A
   query reads the site's tables and nothing else (`SITE_TABLES` in
   `tests/test_queries.py`):
-  - the artifact's four caches, each the table of its file's name:
-    `trace_totals`, `daily_rollup`, `monthly_requests_tokens_by_model` and
-    `function_name_daily_requests`;
+  - the artifact's three caches, each the table of its file's name:
+    `trace_totals`, `daily_rollup` and `function_name_daily_requests`;
   - `chute_models`, the artifact's model names (`chute_id`, `name`), and
     `model_families`, its family table (`match_order`, `family`,
     `pattern`), which the site never matches a name against: a row's
@@ -48,10 +47,6 @@ binding, and `make test` checks the countable ones.
     calendar day, its trace month and the calendar month that trace month
     is labelled with. It is the one place a date is computed; a query joins
     it rather than doing date arithmetic;
-  - `top_models`, the rows of `setup/top_models.sql`: the named models
-    ranked by their requests over the year. It is the one definition of the
-    most requested models; an answer that names models takes `rank <= 8`
-    (the eight series colours) from it;
   - `family_models`, the rows of `setup/family_models.sql`: the daily
     rollup's named models ranked within their family. A family's answer
     takes its eight from it.
@@ -70,8 +65,8 @@ binding, and `make test` checks the countable ones.
 ## How the site is put together
 
 ```
-make data:  the artifact's caches, chute_models.csv and model_families.csv  →  tables in DuckDB, with trace_calendar,
-              top_models and family_models  →  queries/explore/<query>.sql  →  data/all/explore/<query>.json (a family
+make data:  the artifact's caches, chute_models.csv and model_families.csv  →  tables in DuckDB, with trace_calendar
+              and family_models  →  queries/explore/<query>.sql  →  data/all/explore/<query>.json (a family
               query's data/all/explore/<query>/<family>.json, once per family) and data/all/queries.json
             the artifact's config/figures.json and data/paper/plotdata/<figure>.parquet  →  data/all/figures/<figure>.json
               and data/all/figures.json
@@ -92,9 +87,9 @@ checks that each path it names exists.
   `explore/start.js` with them. `startPage` places the Insights' cards and
   their tabs, draws the header and the footer, and runs each section as
   `run(container, context)`; `context` is described in `explore/start.js`.
-  Its `orders` are the rows of `explore/model_mix` and
-  `explore/endpoint_mix`, asked for once: the orders every chart colours the
-  models and the endpoint groups by.
+  Its `orders` are the rows of `explore/family_mix` and
+  `explore/endpoint_mix`, asked for once: the donuts' rows, and the order
+  every chart colours the endpoint groups by.
 - The header links the page's sections by anchor alone (`LINKED_SECTIONS`
   of `shared/layout.js`); its brand links the page with the URL's keys. On
   a phone it is two rows, the brand and the four links, which wrap, and the
@@ -158,8 +153,8 @@ ORDER BY requests DESC, endpoint_group;
 ```
 
 The first line says what one row is. Columns are named in words. A number
-that is a choice carries a comment (`AND top_models.rank <= 8  -- the eight
-series colours a chart of models has`). Every query is run by
+that is a choice carries a comment (`AND family_models.rank <= 8  -- the
+eight models a family's drop-down names`). Every query is run by
 `tests/test_queries.py` against the fixture artifact, which checks its
 columns against `EXPECTED_COLUMNS`, the tables it reads against
 `SITE_TABLES`, and its numbers against values counted by hand.
@@ -195,7 +190,7 @@ written to `data/all/explore/<query>/<family_slug>.json`, the slug being
 query under `queries/setup/` makes a table of the site's database and is
 not answered. `make data` also records the hash of the text of every query
 the answers depend on, the answered ones (a family query once) and
-`setup/top_models` and `setup/family_models`, in
+`setup/family_models`, in
 `data/all/queries.json`. **Rerun `make data` after editing a query**: the
 page reads the answers, not the queries, and `tests/test_built_data.py`
 fails while a query's text differs from the one its answer was written
@@ -399,13 +394,13 @@ Insights' figures are drawn from their plot-ready tables.
 
 - **Colour.** Series colours are the tokens `--series-1` to `--series-8` in
   `style.css`, assigned in that order to a chart's series and never cycled;
-  a ninth series folds into "Other" (`--series-other`). The one exception
-  is the Traffic Explorer's chart of families, which stacks all ten named
-  families and so takes two more, `--series-9` and `--series-10`
-  (`familyColours`). A model has the same colour in the donut and the
-  trends: the models take the slots from the first, in
-  `explore/model_mix`'s order (`modelColours` of `theme/colours.js`), and
-  the endpoint groups from `ENDPOINT_FIRST_SLOT`, in
+  a ninth series folds into "Other" (`--series-other`). The exceptions
+  are the families, in the Traffic Explorer's chart and the Overview's
+  family mix alike, which name all ten named families and so take two
+  more, `--series-9` and `--series-10` (`familyColours`): the families
+  take the slots from the first, in the order of their requests
+  (`explore/family_mix`'s, and the explorer's `familyOrder`), and the
+  endpoint groups from `ENDPOINT_FIRST_SLOT`, in
   `explore/endpoint_mix`'s order, so the two donuts do not open on one
   colour; in the Traffic Explorer a family's models take the slots in the
   order of their requests within the family. The palette is Open Data's tokens
@@ -443,9 +438,7 @@ Insights' figures are drawn from their plot-ready tables.
   `shared/charts.js`.
 - **Axis text.** A linear axis asks Plot for `TICK_COUNT` ticks
   (`axes/ticks.js`), which gives at most six or seven. The exception is an
-  axis of months: the trends' x axis is ticked at every month, the first
-  and the last included (the landing-page spec's Monthly trends), and the
-  Traffic Explorer's at the first day of each month it shows (and of a
+  axis of months: the Traffic Explorer's at the first day of each month it shows (and of a
   quarter that starts mid-month), every other month for the whole trace
   on a plot narrower than `NARROW_PLOT_WIDTH`; their labels are slanted
   so that thirteen fit a card. A figure's axes are the paper's: its

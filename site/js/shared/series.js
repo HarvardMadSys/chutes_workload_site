@@ -21,14 +21,17 @@ import {
 /** The column of a figure's answer naming each row's series. */
 export const SERIES_COLUMN = "series";
 
-/** The models as a chart's series, each written by its name. */
+/** The models as a chart's series, each written by its name: the Traffic Explorer's bars of a family's models. */
 export const MODEL_SERIES = Object.freeze({
   order: "models",
   column: "model",
   colours: modelColours,
 });
 
-/** The model families as a chart's series, each written by its name; the Traffic Explorer orders them by requests. */
+/**
+ * The model families as a chart's series, each written by its name; the Overview's family mix and the Traffic Explorer
+ * order them by requests.
+ */
 export const FAMILY_SERIES = Object.freeze({
   order: "families",
   column: "family",

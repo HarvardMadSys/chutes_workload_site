@@ -9,9 +9,9 @@
  * context)` with `context = { totals, orders, replaceQuery, onReturn }`:
  * - `totals`, the promised rows of `explore/trace_totals`, one row of the whole trace's counts, asked for once for the
  *   stats strip and the months the hero and the footer count;
- * - `orders`, `{ models, endpoints }`, the promised rows of `explore/model_mix` and of `explore/endpoint_mix`, each most
- *   requested first: the orders every chart colours the models and the endpoint groups by, and the donuts' rows,
- *   each asked for once;
+ * - `orders`, `{ families, endpoints }`, the promised rows of `explore/family_mix` and of `explore/endpoint_mix`, each
+ *   most requested first: the donuts' rows and colour orders, and the order every chart colours the endpoint groups
+ *   by, each asked for once;
  * - `replaceQuery(params)`, which writes `params` to the address bar and the header's brand;
  * - `onReturn(redraw)`, which calls `redraw()` each time Back or Forward returns to a history entry, after the tabs
  *   show its topic and the header takes its query; this module is the page's one listener of `popstate`.
@@ -98,7 +98,7 @@ function drawShownTopic(topics, drawnSections) {
 /** What every section is given, `pageHistory` being `followHistory`'s; see the module's comment. */
 function sectionContext(pageHistory) {
   const totals = promisedRows("explore/trace_totals");
-  const orders = { models: promisedRows("explore/model_mix"), endpoints: promisedRows("explore/endpoint_mix") };
+  const orders = { families: promisedRows("explore/family_mix"), endpoints: promisedRows("explore/endpoint_mix") };
   return { totals, orders, replaceQuery: pageHistory.replaceQuery, onReturn: pageHistory.onReturn };
 }
 

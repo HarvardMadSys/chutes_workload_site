@@ -32,7 +32,7 @@ def test_every_explore_query_has_its_answer(connection: duckdb.DuckDBPyConnectio
     for family in FIXTURE_FAMILIES:
         expected.append(tmp_path / "data" / paths.family_answer_file("explore/daily_by_model", family.slug))
     assert written == expected
-    assert len(expected) == 7 + 3
+    assert len(expected) == 4 + 3
 
 
 def test_the_single_answers_are_a_folder_s_queries_but_the_family_ones(tmp_path: pathlib.Path) -> None:
@@ -99,15 +99,14 @@ def test_an_answer_value_is_its_json_form() -> None:
     assert answers.json_value(3) == 3
 
 
-def test_the_hashes_cover_every_query_once_and_the_setup_queries(data_directory: pathlib.Path) -> None:
+def test_the_hashes_cover_every_query_once_and_the_setup_query(data_directory: pathlib.Path) -> None:
     recorded = json.loads((data_directory / paths.ANSWERS_FOLDER / paths.QUERY_HASHES_FILE).read_text())
-    assert sorted(recorded) == sorted(answers.answered_query_names() + ["setup/family_models", "setup/top_models"])
+    assert sorted(recorded) == sorted(answers.answered_query_names() + ["setup/family_models"])
     assert "explore/daily_by_model" in recorded
     assert answers.stale_queries(data_directory) == []
 
 
-@pytest.mark.parametrize("edited", ["explore/model_mix", "explore/daily_by_model", "setup/top_models",
-                                    "setup/family_models"])
+@pytest.mark.parametrize("edited", ["explore/family_mix", "explore/daily_by_model", "setup/family_models"])
 def test_an_edited_query_is_stale(data_directory: pathlib.Path, tmp_path: pathlib.Path, edited: str) -> None:
     queries_folder = tmp_path / "queries"
     shutil.copytree(site_database.QUERIES_FOLDER, queries_folder)

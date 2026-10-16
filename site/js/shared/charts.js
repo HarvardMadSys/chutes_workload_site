@@ -110,7 +110,7 @@ function figureDefinition(definition, rows = "") {
 
 /**
  * The accessible name of the chart in a figure's `body` (as `renderFigure` lays it out): its card's title and its
- * insight, or its caption where it has none, "Requests per month: Requests each month, by model."
+ * insight, or its caption where it has none, "Endpoint mix: Each endpoint group's share of the requests."
  */
 export function chartName(body) {
   const figure = body.closest(".figure");

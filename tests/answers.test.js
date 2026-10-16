@@ -31,7 +31,7 @@ test("an answer is read from its file under data/all/, and nothing else is fetch
 
 test("a missing answer file is an error naming the file", async (context) => {
   context.mock.method(globalThis, "fetch", fakeFetch({}, []));
-  await assert.rejects(readAnswer("explore/model_mix"), /data\/all\/explore\/model_mix\.json: 404/);
+  await assert.rejects(readAnswer("explore/no_such_query"), /data\/all\/explore\/no_such_query\.json: 404/);
 });
 
 test("a figure's answer is read from its file under data/all/figures/", async (context) => {

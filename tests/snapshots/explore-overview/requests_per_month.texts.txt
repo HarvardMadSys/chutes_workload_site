@@ -1,4 +1,0 @@
-title: Requests per month
-caption: Requests each month, by model; the last month holds two days.
-definition: Requests per month, stacked by model: the eight models the model mix names, and Other.
-rows: 6,122,413,756 requests

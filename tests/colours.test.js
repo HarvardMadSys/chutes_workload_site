@@ -60,13 +60,13 @@ test("a bar chart's colours are the first eight names' series colours and Other'
   assert.equal(colours.get("Other"), OTHER_SERIES);
 });
 
-test("the models take the series colours in the model mix's order from the first slot, and Other its grey", () => {
-  const modelMixRows = [
+test("a family's models take the series colours in their order from the first slot, and Other its grey", () => {
+  const modelRows = [
     { model: "deepseek-v3", requests: 30 },
     { model: "qwen3", requests: 20 },
     { model: "Other", requests: 50 },
   ];
-  assert.deepEqual([...modelColours(modelMixRows).entries()], [
+  assert.deepEqual([...modelColours(modelRows).entries()], [
     ["deepseek-v3", "var(--series-1)"],
     ["qwen3", "var(--series-2)"],
     ["Other", OTHER_SERIES],
@@ -88,7 +88,7 @@ test("the endpoint groups take the series colours from their own first slot, and
     ["completion", SERIES_SLOTS[ENDPOINT_FIRST_SLOT + 3]],
     ["Other", OTHER_SERIES],
   ]);
-  assert.notEqual(ENDPOINT_FIRST_SLOT, 0, "the endpoint donut opens on another colour than the model donut");
+  assert.notEqual(ENDPOINT_FIRST_SLOT, 0, "the endpoint donut opens on another colour than the family donut");
 });
 
 test("the ten family slots are the eight series slots, then the ninth and tenth series tokens", () => {

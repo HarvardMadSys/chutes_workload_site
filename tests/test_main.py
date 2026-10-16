@@ -25,7 +25,7 @@ def test_the_step_writes_every_answer_and_prints_its_size(artifact: pathlib.Path
         assert f"{answer}  {answer.stat().st_size:,} bytes" in printed
     family_answer = tmp_path / "data" / paths.family_answer_file("explore/daily_by_model", "gpt-oss")
     assert f"{family_answer}  {family_answer.stat().st_size:,} bytes" in printed
-    assert re.search(r"^10 answers, [\d,]+ bytes$", printed, re.MULTILINE)  # seven, and one per family of three
+    assert re.search(r"^7 answers, [\d,]+ bytes$", printed, re.MULTILINE)  # four, and one per family of three
     figure_answer = tmp_path / "data" / paths.ANSWERS_FOLDER / paths.FIGURE_ANSWERS_FOLDER / "fig_seasonality.json"
     assert f"{figure_answer}  {figure_answer.stat().st_size:,} bytes" in printed
     assert re.search(r"^10 figure answers, [\d,]+ bytes$", printed, re.MULTILINE)  # one per chart kind

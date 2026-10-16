@@ -1,4 +1,4 @@
-"""Reading the paper's artifact into frames: the four caches the site's queries read, the model names and the family
+"""Reading the paper's artifact into frames: the three caches the site's queries read, the model names and the family
 table.
 
 The artifact is a checkout of the paper's artifact repository. Each cache is the Parquet file
@@ -24,7 +24,7 @@ MODEL_NAMES_FILE = pathlib.Path("data") / "paper" / "chute_models.csv"  # in the
 MODEL_NAME_COLUMNS = ["chute_id", "name"]  # the columns of the model names the queries read
 MODEL_FAMILIES_FILE = pathlib.Path("data") / "paper" / "model_families.csv"  # in the artifact: the family table
 # The caches the site's queries read, each the file `<name>.parquet` and the table of its name.
-CACHE_NAMES = ["trace_totals", "daily_rollup", "monthly_requests_tokens_by_model", "function_name_daily_requests"]
+CACHE_NAMES = ["trace_totals", "daily_rollup", "function_name_daily_requests"]
 
 
 @dataclasses.dataclass(frozen=True)
@@ -35,15 +35,13 @@ class ArtifactFrames:
     (distinct anonymised user ids), models and serving instances. `daily_rollup`: one row per trace day, family, chute
     id (null for every model of the family outside its eight most requested named ones) and endpoint group, with
     requests, token sums, TTFT sum and how many requests recorded each; the family is one of the family table's, or
-    `Other`. `monthly_requests_tokens_by_model`: one row per trace month and chute id, with its requests and tokens.
-    `function_name_daily_requests`: one row per trace day and endpoint group, with its requests. `chute_models`: one
-    row per named chute, its `chute_id` and model `name`. `model_families`: one row per pattern of the family table,
-    its `match_order`, `family` and `pattern`.
+    `Other`. `function_name_daily_requests`: one row per trace day and endpoint group, with its requests.
+    `chute_models`: one row per named chute, its `chute_id` and model `name`. `model_families`: one row per pattern of
+    the family table, its `match_order`, `family` and `pattern`.
     """
 
     trace_totals: pandas.DataFrame
     daily_rollup: pandas.DataFrame
-    monthly_requests_tokens_by_model: pandas.DataFrame
     function_name_daily_requests: pandas.DataFrame
     chute_models: pandas.DataFrame
     model_families: pandas.DataFrame
@@ -59,7 +57,6 @@ def load_artifact(artifact: pathlib.Path) -> ArtifactFrames:
     return ArtifactFrames(
         trace_totals=read_cache(cache_paths["trace_totals"]),
         daily_rollup=read_cache(cache_paths["daily_rollup"]),
-        monthly_requests_tokens_by_model=read_cache(cache_paths["monthly_requests_tokens_by_model"]),
         function_name_daily_requests=read_cache(cache_paths["function_name_daily_requests"]),
         chute_models=read_model_names(model_names_path),
         model_families=pyarrow.csv.read_csv(model_families_path).to_pandas(),

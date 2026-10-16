@@ -2,9 +2,10 @@
  * The site's colours as the style tokens give them.
  *
  * Every colour is a CSS variable from `style.css`, so a chart follows the page into dark mode with no JavaScript.
- * Names get colours from one fixed order, so the same model has the same colour in every chart: the models from the
- * rows of `explore/model_mix`, the endpoint groups from those of `explore/endpoint_mix`. These are plain constants and
- * functions, tested with `node --test`.
+ * Names get colours from one fixed order, so the same name has the same colour in every chart: the families from
+ * their requests, the rows of `explore/family_mix` in the Overview and of `explore/daily_by_family` in the Traffic
+ * Explorer, which rank them alike; a family's models from their requests within it; the endpoint groups from the rows
+ * of `explore/endpoint_mix`. These are plain constants and functions, tested with `node --test`.
  */
 
 /** The eight series colours, in order. A chart assigns them in order and never cycles: a ninth series is "Other". */
@@ -20,8 +21,8 @@ export const SERIES_SLOTS = Object.freeze([
 ]);
 
 /**
- * The families' colours, in order: the eight series slots, then two more, as the Traffic Explorer stacks all ten named
- * families in one chart. No other chart takes the last two.
+ * The families' colours, in order: the eight series slots, then two more, as the Traffic Explorer's bars and the
+ * Overview's family mix name all ten named families in one chart. No other chart takes the last two.
  */
 export const FAMILY_SLOTS = Object.freeze([...SERIES_SLOTS, "var(--series-9)", "var(--series-10)"]);
 
@@ -59,11 +60,11 @@ export function barColours(names, firstSlot = 0) {
 }
 
 /**
- * The models' colours, which every chart of models colours them by: the named models of `modelMixRows` (the rows of
- * `explore/model_mix`, most requested first) in the series colours from the first slot, and "Other" in its grey.
+ * The models' colours, which the Traffic Explorer colours a family's models by: the named models of `modelRows` (rows
+ * `{ model }`, most requested first) in the series colours from the first slot, and "Other" in its grey.
  */
-export function modelColours(modelMixRows) {
-  const named = modelMixRows.map((row) => row.model).filter((model) => model !== OTHER_NAME);
+export function modelColours(modelRows) {
+  const named = modelRows.map((row) => row.model).filter((model) => model !== OTHER_NAME);
   return barColours(named);
 }
 
@@ -83,7 +84,7 @@ export function familyColours(familyRows) {
   return colours;
 }
 
-/** The slot the endpoint groups' colours start from: apart from the models', so the two donuts do not open alike. */
+/** The slot the endpoint groups' colours start from: apart from the families', so the two donuts do not open alike. */
 export const ENDPOINT_FIRST_SLOT = 4;
 
 // The endpoint group of the requests to neither a chat nor a completion endpoint: drawn as "Other", grey and last.

@@ -1,6 +1,6 @@
 /**
  * The donut kind: one ring segment per slice, clockwise from the top, largest first and "Other" last, with the slices'
- * total in the centre. A slice is a name with one of the eight series colours, its count summed over the rows; every
+ * total in the centre. A slice is a name its colours give a colour of its own, its count summed over the rows; every
  * other name is summed into "Other". Its legend lists the slices with their shares, and a hidden slice leaves the
  * donut, whose shares and total are then of the slices shown.
  *
@@ -12,7 +12,7 @@
 import { chartName, columnTotal } from "../shared/charts.js";
 import { formatCount, formatShare } from "../shared/format.js";
 import { seriesLabel } from "../shared/series.js";
-import { OTHER_NAME, SERIES_SLOTS } from "../theme/colours.js";
+import { OTHER_NAME } from "../theme/colours.js";
 
 const FULL_TURN = 2 * Math.PI;
 
@@ -27,7 +27,7 @@ const WHOLE_RING_TOLERANCE = 1e-9;
 
 /**
  * Draw `rows` into `body` as a donut of the slices not in `hidden`, each in its colour of `colours.series` (a Map from
- * name to colour, the eight series colours first, as `barColours` gives them), with a tooltip of its name, share and
+ * name to colour, "Other" last, as `barColours` and `familyColours` give them), with a tooltip of its name, share and
  * count, and the slices' total in the centre. Its named parameters:
  * - `nameColumn` and `countColumn`: the columns holding a row's name and its count.
  * - `unit`: what the count counts, in the plural, "requests", written under the total.
@@ -69,12 +69,11 @@ export function donutLegend(rows, colours, { nameColumn, countColumn, labels = {
 }
 
 /**
- * The donut's slices `[{ name, count }]` of `rows`: `row[countColumn]` summed by `row[nameColumn]`, a name among the
- * first eight of `order` keeping its own slice and every other name summed into "Other". The named slices come largest
- * first, "Other" last; a name with no rows has no slice.
+ * The donut's slices `[{ name, count }]` of `rows`: `row[countColumn]` summed by `row[nameColumn]`, a name of `named`
+ * keeping its own slice and every other name summed into "Other". The named slices come largest first, "Other" last; a
+ * name with no rows has no slice.
  */
-export function donutSlices(rows, nameColumn, countColumn, order) {
-  const named = order.slice(0, SERIES_SLOTS.length);
+export function donutSlices(rows, nameColumn, countColumn, named) {
   const counts = new Map();
   for (const row of rows) {
     const name = named.includes(row[nameColumn]) ? row[nameColumn] : OTHER_NAME;
@@ -111,7 +110,7 @@ export function centreUnit(plural, hiddenCount) {
   return hiddenCount === 0 ? plural : `shown ${plural}`;
 }
 
-// The names of `colours` that keep a slice of their own: those before "Other", the first eight of the colour order.
+// The names of `colours` that keep a slice of their own: every one but "Other".
 function namedSeries(colours) {
   return [...colours.keys()].filter((name) => name !== OTHER_NAME);
 }

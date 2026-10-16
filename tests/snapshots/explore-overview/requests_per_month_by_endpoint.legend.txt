@@ -1,5 +1,0 @@
-Chat | pressed=true | legend-swatch background: var(--series-5);
-Chat stream | pressed=true | legend-swatch background: var(--series-6);
-Completion stream | pressed=true | legend-swatch background: var(--series-7);
-Completion | pressed=true | legend-swatch background: var(--series-8);
-Other | pressed=true | legend-swatch background: var(--series-other);

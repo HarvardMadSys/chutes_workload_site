@@ -2,11 +2,7 @@
  "explore/daily_by_family": "6447a7ccf17613550b668acd3cd253d1e93de1c8fdabc83f624c70d3fb4d0732",
  "explore/daily_by_model": "051f7c6df34d43db2807ec89686f47d6623872256c24c18ff63a100d9e600506",
  "explore/endpoint_mix": "1368f3195e2749dd8cdc9ab7db3117b4d67d9cd55ebb553aa0727ec0168b63d0",
- "explore/model_mix": "5d2ee47b85c2ea81f51173b2ba02c51096c5c89c707bbe7899ceede94bce6767",
- "explore/requests_by_month_endpoint": "3a4eedd56133e229e86457a4da584a16b8da262ff33e9d5440812a39c68dc9b6",
- "explore/requests_by_month_model": "c489fc3522dc012ed2c86ae30873c082444779376598168c17291a3b34270fa0",
- "explore/tokens_by_month_model": "c52a3b35eb31a5258126efda35e0cabb65df4d49fde1136b2f0e767afef08f41",
+ "explore/family_mix": "775919ec8417e22226cfe427def3123a8f9757096cbf2bc56fa82385061009d2",
  "explore/trace_totals": "330caf7215d0527860fd7133830fda765104f42522ce6c9f93c618c979c9bff3",
- "setup/family_models": "a800b9c79fbdfa9f1d76a2079441e71c30856ca8564ba71107dfc631fb8e9bb3",
- "setup/top_models": "367a9a6b6fc1aa5dd6d373e4815c9c62e4ab0d3c0bac14ce25d564592c6ec69e"
+ "setup/family_models": "a800b9c79fbdfa9f1d76a2079441e71c30856ca8564ba71107dfc631fb8e9bb3"
 }

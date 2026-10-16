@@ -3,12 +3,12 @@
 A static website for the Chutes production trace, the dataset of the paper
 *A Year in LLM Serving: Workload Evolution, Caching and Load-Balancing*: a
 year of LLM serving on Chutes, request by request. The site shows the
-trace's totals, its model and endpoint mixes and monthly trends, a Traffic
+trace's totals, its family and endpoint mixes, a Traffic
 Explorer of requests per day, and the paper's figures in six topics, drawn
 from their plot-ready tables.
 
 The site is one HTML page, ES modules, a stylesheet, the JSON answers of
-eight queries (the query that takes a family is answered once per family,
+five queries (the query that takes a family is answered once per family,
 one file per family) and of the paper's 48 plot-ready tables, with
 Observable Plot drawing every chart in the browser. There is no
 server code, no bundler and no database in the browser.
@@ -22,11 +22,11 @@ The one page, `index.html`, holds, in order:
   dataset, the paper and the code; beside them the trace's totals: months,
   requests, input and output tokens, user ids, models and serving
   instances, and its first and last day.
-- **Overview** (`#overview`). Two donuts, the model mix (the eight most
-  requested named models and Other) and the endpoint mix (chat, chat
-  stream, completion, completion stream, other), and three monthly trends
-  as stacked bars: requests by model, tokens by model and requests by
-  endpoint group. A legend's button hides or shows a series.
+- **Overview** (`#overview`). Two donuts, the family mix (the model
+  families of the artifact's family table and Other, in the Traffic
+  Explorer's family colours) and the endpoint mix (chat, chat stream,
+  completion, completion stream, other). A legend's button hides or shows
+  a slice.
 - **Traffic Explorer** (`#traffic`). A family drop-down (the model
   families by their requests, and Other), a model drop-down (once a family
   is chosen: its eight most requested named models and, where it has any,
@@ -68,11 +68,11 @@ never from the trace. `make data` reads the artifact's committed query
 caches and plot-ready tables and writes the site's data ahead
 of time; the browser runs no query, it fetches the answers and draws them.
 
-- **The answers** come from four caches under the artifact's
+- **The answers** come from three caches under the artifact's
   `data/paper/cache/`, its model names, `data/paper/chute_models.csv`, and
   its family table, `data/paper/model_families.csv`. `make data` holds
   each cache as a DuckDB table of its name, the model names as
-  `chute_models` and the family table as `model_families`, adds three
+  `chute_models` and the family table as `model_families`, adds two
   tables derived from them, and runs each query of `site/queries/explore/`
   once, writing its rows to `site/data/all/explore/<query>.json`; the one
   query that takes a family, `daily_by_model`, it runs once per family of
@@ -83,15 +83,12 @@ of time; the browser runs no query, it fetches the answers and draws them.
   | Cache | What it holds | The answers drawn from it |
   |---|---|---|
   | `trace_totals` | one row: the first and last request, requests, input and output tokens, user ids, models, instances | `trace_totals`: the stats strip, and the months the hero and the footer count |
-  | `daily_rollup` | one row per trace day, family, model (each of the family's eight most requested named models, the family's rest together) and endpoint group: requests, token sums, the TTFT sum, and how many requests recorded each | `daily_by_family` and `daily_by_model`: the Traffic Explorer |
-  | `monthly_requests_tokens_by_model` | one row per trace month and model: requests and tokens | `model_mix`, `requests_by_month_model`, `tokens_by_month_model` |
-  | `function_name_daily_requests` | one row per trace day and endpoint group: requests | `endpoint_mix`, `requests_by_month_endpoint` |
+  | `daily_rollup` | one row per trace day, family, model (each of the family's eight most requested named models, the family's rest together) and endpoint group: requests, token sums, the TTFT sum, and how many requests recorded each | `daily_by_family` and `daily_by_model`: the Traffic Explorer; `family_mix`: the Overview's family mix |
+  | `function_name_daily_requests` | one row per trace day and endpoint group: requests | `endpoint_mix`: the Overview's endpoint mix |
 
-  The three derived tables are `trace_calendar`, each trace day's
-  calendar day and each trace month's label (`site_data/months.py`);
-  `top_models`, the named models ranked by their requests over the year,
-  the sum of their monthly requests (`site/queries/setup/top_models.sql`),
-  from which the Overview's answers take their eight; and `family_models`,
+  The two derived tables are `trace_calendar`, each trace day's
+  calendar day and each trace month's label (`site_data/months.py`); and
+  `family_models`,
   the daily rollup's named models ranked within their family
   (`site/queries/setup/family_models.sql`), from which a family's answer
   takes its eight.
@@ -254,11 +251,11 @@ wrangler.jsonc       the Cloudflare Worker that serves site/ as static assets: i
 site_data/           builds site/data/ from the artifact's caches and plot-ready tables (make data)
   __init__.py        the package's summary
   __main__.py        the command make data runs: reads the artifact, writes the answers and the figure answers
-  loading.py         reads the four caches, the model names and the family table into frames; a missing file stops
+  loading.py         reads the three caches, the model names and the family table into frames; a missing file stops
                      the step
   months.py          the trace's start date, and the calendar of its trace days and trace months
   site_database.py   the site's database in DuckDB: the caches, model names and family table as tables, with
-                     trace_calendar, top_models and family_models
+                     trace_calendar and family_models
   answers.py         runs every query of site/queries/explore/, a family's query once per family, writes its
                      answers and the queries' hashes
   figure_answers.py  writes the plot-ready table of every figure the artifact lists as its answer, and their index
@@ -280,8 +277,8 @@ site/                exactly the files that are deployed
     scrolling_row.js
                      a row that scrolls sideways, as the Insights' tabs do on a phone
   js/charts/         the chart kinds
-    stacked_bars.js  the trends' and the Traffic Explorer's bars
-    donut.js         the model and endpoint mixes
+    stacked_bars.js  the Traffic Explorer's bars and the two monthly share cards
+    donut.js         the family and endpoint mixes
     lines.js         a line per series, a CDF among them
     bands.js         a value's median and its two percentile bands
     cells.js         a grid of rectangles shaded by their values
@@ -292,18 +289,17 @@ site/                exactly the files that are deployed
   js/axes/ticks.js   how many ticks an axis asks for, a log axis's powers of ten, a card's axis as Plot's scale and
                      marks
   js/theme/colours.js
-                     the series colours as the style tokens give them, from one model order and one endpoint
-                     order, and the families' ten
+                     the series colours as the style tokens give them, from one family order and one endpoint
+                     order, the families taking ten
   js/landing/        the page's opening and closing parts
     hero.js, stats.js
                      the title, lede and buttons; the stats strip of the trace's totals
-    donuts.js        the Overview's model and endpoint mixes
+    donuts.js        the Overview's family and endpoint mixes
     cite.js, team.js
                      the citation's sentence and copy buttons; the lab and the authors
   js/explore/        the page's start and its sections
     start.js         places the Insights' cards and tabs, draws the header and footer, runs the sections, and
                      follows Back and Forward
-    trends.js        the Overview's three monthly trends
     traffic.js, traffic_controls.js, traffic_filter.js
                      the Traffic Explorer: its tiles and bars; its controls, kept in step with the URL; its
                      choice, its URL keys and its sums
@@ -316,9 +312,7 @@ site/                exactly the files that are deployed
     overview.js, tokens.js, users.js, evolution.js, caching.js, balancing.js
                      one module per topic: its takeaway, its cards' words, kinds and charts' parameters
   queries/           one .sql file per answer or table
-    explore/         the eight queries make data answers, one answer each, daily_by_model's one per family
-    setup/top_models.sql
-                     the named models ranked by their requests, held as the table top_models
+    explore/         the five queries make data answers, one answer each, daily_by_model's one per family
     setup/family_models.sql
                      the daily rollup's named models ranked within their family, held as the table family_models
   data/all/          built by make data and tracked: the answers, explore/<query>.json and

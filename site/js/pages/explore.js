@@ -1,11 +1,10 @@
 /**
- * The Explore page, the landing page: the hero with its stats strip, the model mix and monthly trends, the Traffic
+ * The Explore page, the landing page: the hero with its stats strip, the family mix and the endpoint mix, the Traffic
  * Explorer, the paper's figures in six topics, and the citation and the team. `explore/start.js` draws and runs them.
  */
 
 import { startPage } from "../explore/start.js";
 import { runTraffic } from "../explore/traffic.js";
-import { runTrends } from "../explore/trends.js";
 import { runMixes } from "../landing/donuts.js";
 import { mountCopyButtons, renderCiteLine } from "../landing/cite.js";
 import { renderHero } from "../landing/hero.js";
@@ -16,7 +15,6 @@ import { renderTeam } from "../landing/team.js";
 const SECTIONS = Object.freeze([
   Object.freeze({ id: "stats", run: runStats }),
   Object.freeze({ id: "mixes", run: runMixes }),
-  Object.freeze({ id: "trends", run: runTrends }),
   Object.freeze({ id: "traffic-explorer", run: runTraffic }),
 ]);
 

@@ -17,18 +17,14 @@ EXPECTED_COLUMNS = {
     "explore/daily_by_model": ["day", "chute_id", "model", "endpoint_group", "requests", "input_tokens",
                                "input_counted", "output_tokens", "output_counted", "ttft_sum", "ttft_counted"],
     "explore/endpoint_mix": ["endpoint_group", "requests"],
-    "explore/model_mix": ["model", "requests"],
-    "explore/requests_by_month_endpoint": ["month", "calendar_month", "endpoint_group", "requests"],
-    "explore/requests_by_month_model": ["month", "calendar_month", "model", "requests"],
-    "explore/tokens_by_month_model": ["month", "calendar_month", "model", "tokens"],
+    "explore/family_mix": ["family", "family_slug", "requests"],
     "explore/trace_totals": ["first_day", "last_day", "months", "requests", "input_tokens", "output_tokens", "users",
                              "models", "instances"],
     "setup/family_models": ["family", "chute_id", "name", "requests", "rank"],
-    "setup/top_models": ["chute_id", "name", "rank"],
 }
 # The tables of the site's database, the only ones a query may read.
-SITE_TABLES = {"trace_totals", "daily_rollup", "monthly_requests_tokens_by_model", "function_name_daily_requests",
-               "chute_models", "model_families", "trace_calendar", "top_models", "family_models"}
+SITE_TABLES = {"trace_totals", "daily_rollup", "function_name_daily_requests", "chute_models", "model_families",
+               "trace_calendar", "family_models"}
 # The parameters a query that takes one is run with here: a family of the fixture.
 QUERY_PARAMETERS = {"explore/daily_by_model": {"family": "DeepSeek"}}
 # A named parameter in a query's text, `$family`.
@@ -77,13 +73,6 @@ def test_the_table_check_sees_every_table_a_query_names() -> None:
     assert duckdb.get_table_names(text) == {"requests", "chute_models"}
 
 
-def test_the_named_models_are_ranked_by_their_requests(connection: duckdb.DuckDBPyConnection) -> None:
-    top_models = query_records(connection, "setup/top_models")
-    assert [model["chute_id"] for model in top_models[:3]] == ["chute-01", "chute-02", "chute-03"]
-    # The unnamed model and the idle one are not ranked.
-    assert [model["rank"] for model in top_models] == list(range(1, 11))
-
-
 def test_the_totals_span_the_trace_in_calendar_days(connection: duckdb.DuckDBPyConnection) -> None:
     [totals] = query_records(connection, "explore/trace_totals")
     assert totals["first_day"] == datetime.date(2025, 4, 11)
@@ -92,26 +81,20 @@ def test_the_totals_span_the_trace_in_calendar_days(connection: duckdb.DuckDBPyC
     assert totals["requests"] == fixture_artifact.TOTAL_REQUESTS
 
 
-def test_the_model_mix_is_the_eight_then_every_other_model(connection: duckdb.DuckDBPyConnection) -> None:
-    mix = query_records(connection, "explore/model_mix")
-    assert [row["model"] for row in mix] == ["model-01", "model-02", "model-03", "model-04", "model-05", "model-06",
-                                             "model-07", "model-08", "Other"]
-    assert mix[0]["requests"] == 105  # 100 in the first month, 5 in the second
-    assert mix[-1]["requests"] == 20 + 10 + 3 + 7  # the ninth and tenth named models, and the unnamed one
+def test_the_family_mix_is_each_family_by_its_requests_then_other(connection: duckdb.DuckDBPyConnection) -> None:
+    mix = query_records(connection, "explore/family_mix")
+    assert [(row["family"], row["family_slug"], row["requests"]) for row in mix] == [
+        ("DeepSeek", "deepseek", 95), ("gpt-oss", "gpt-oss", 20), ("Other", "other", 25)]
 
 
-def test_other_comes_last_in_a_month_whatever_its_requests(connection: duckdb.DuckDBPyConnection) -> None:
-    second_month = []
-    for row in query_records(connection, "explore/requests_by_month_model"):
-        if row["month"] == 2:
-            second_month.append((row["calendar_month"], row["model"], row["requests"]))
-    assert second_month == [("2025-05", "model-01", 5), ("2025-05", "Other", 7)]
-
-
-def test_the_endpoint_trend_counts_each_month_s_requests(connection: duckdb.DuckDBPyConnection) -> None:
-    trend = query_records(connection, "explore/requests_by_month_endpoint")
-    assert [(row["month"], row["endpoint_group"], row["requests"]) for row in trend] == [
-        (1, "chat", 85), (1, "chat_stream", 40), (2, "completion", 15)]
+def test_the_family_mix_sums_to_the_trace_and_names_the_daily_families(connection: duckdb.DuckDBPyConnection) -> None:
+    mix = query_records(connection, "explore/family_mix")
+    [totals] = query_records(connection, "explore/trace_totals")
+    assert sum(row["requests"] for row in mix) == totals["requests"]
+    by_family = query_records(connection, "explore/daily_by_family")
+    daily_families = {(row["family"], row["family_slug"]) for row in by_family}
+    assert {(row["family"], row["family_slug"]) for row in mix} == daily_families
+    assert len(mix) == len(daily_families)
 
 
 def test_the_family_models_are_ranked_within_their_family(connection: duckdb.DuckDBPyConnection) -> None:

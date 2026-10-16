@@ -1,8 +1,8 @@
 """The answers of the site's queries: every Explore query run over the site's database, each written as
 `all/explore/<query>.json`, and the SHA-256 of the text of each query an answer depends on written to
 `all/queries.json` as `{"<folder>/<query>": "<hex>"}`, so a query edited since can be found (`stale_queries`). An
-answer depends on its own query and on the setup queries `setup/top_models` and `setup/family_models`, whose rows the
-answers that name a model read.
+answer depends on its own query and on the setup query `setup/family_models`, whose rows the answers that name a
+family's models read.
 
 A family query (`FAMILY_QUERIES`) takes the family as its one parameter, `$family`: it is run once per family of the
 by-family answer (`FAMILIES_QUERY`) and written as `all/explore/<query>/<family_slug>.json`, its hash recorded once.
@@ -58,9 +58,8 @@ def single_answer_query_names(queries_folder: pathlib.Path = site_database.QUERI
 
 
 def hashed_query_names(queries_folder: pathlib.Path = site_database.QUERIES_FOLDER) -> list[str]:
-    """The name of every query the answers depend on: each answered query, and the setup queries of `top_models` and
-    `family_models`."""
-    return answered_query_names(queries_folder) + [site_database.TOP_MODELS_QUERY, site_database.FAMILY_MODELS_QUERY]
+    """The name of every query the answers depend on: each answered query, and the setup query of `family_models`."""
+    return answered_query_names(queries_folder) + [site_database.FAMILY_MODELS_QUERY]
 
 
 def families(family_rows: list[dict]) -> list[Family]:

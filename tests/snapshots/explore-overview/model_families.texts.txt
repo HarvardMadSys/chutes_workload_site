@@ -1,0 +1,4 @@
+title: Model families
+caption: Each family's share of the requests.
+definition: Requests over the whole trace, by the family of the model they asked for, as the Traffic Explorer groups them; the models in no family are Other.
+rows: 6,122,413,756 requests

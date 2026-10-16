@@ -1,13 +1,12 @@
-"""A small artifact checkout for the tests, written into a folder: the four caches the site reads, a few rows each, the
-model names, the family table, the figure list and the plot-ready table of each figure it lists.
+"""A small artifact checkout for the tests, written into a folder: the three caches the site reads, a few rows each,
+the model names, the family table, the figure list and the plot-ready table of each figure it lists.
 
 Its rows, in the artifact's column types:
 
-- ten named models, `chute-01` to `chute-10` (`model-01` to `model-10`), with 100, 90, ..., 10 requests in the first
-  trace month; `chute-unnamed`, which the model names do not list, with 3 then 7; `chute-01` again with 5 in the
-  second month; and `chute-idle`, named but with no requests;
+- eleven named chutes in the model names, `chute-01` to `chute-10` (`model-01` to `model-10`) and `chute-idle`
+  (`model-idle`), of which the daily rollup names `chute-01` to `chute-04`;
 - 140 requests on 1970-01-01, 1970-01-02 and 1970-02-02 in the daily rollup and the daily endpoint counts alike, which
-  the totals count too; the monthly cache's counts are its own;
+  the totals count too;
 - three families in the daily rollup: DeepSeek, 95 requests (`chute-01` 70, `chute-02` 15 and its rest 10), gpt-oss,
   20 (`chute-03`), and Other, 25 (`chute-04` 5 and the unnamed models 20); the family table lists DeepSeek and gpt-oss;
 - ten figures, one per chart kind, nine listed under `sections` and one under `external`, each with a plot-ready
@@ -48,7 +47,6 @@ def write_fixture_artifact(folder: pathlib.Path) -> pathlib.Path:
     cache.mkdir(parents=True)
     pyarrow.parquet.write_table(trace_totals(), cache / "trace_totals.parquet")
     pyarrow.parquet.write_table(daily_rollup(), cache / "daily_rollup.parquet")
-    pyarrow.parquet.write_table(monthly_requests_tokens_by_model(), cache / "monthly_requests_tokens_by_model.parquet")
     pyarrow.parquet.write_table(function_name_daily_requests(), cache / "function_name_daily_requests.parquet")
     write_model_names(folder / "data" / "paper" / "chute_models.csv")
     write_model_families(folder / "data" / "paper" / "model_families.csv")
@@ -89,27 +87,6 @@ def daily_rollup() -> pyarrow.Table:
         "output_counted": pyarrow.array([40, 20, 30, 10, 5, 20, 15], pyarrow.int64()),
         "ttft_sum": pyarrow.array([20.5, 10.0, None, None, 2.25, 10.0, 4.0], pyarrow.float64()),
         "ttft_counted": pyarrow.array([30, 20, 0, 0, 5, 20, 15], pyarrow.int64()),
-    })
-
-
-def monthly_requests_tokens_by_model() -> pyarrow.Table:
-    """The monthly cache: each model's requests per trace month, and as many tokens times 1,000.5."""
-    months, chute_ids, requests = [], [], []
-    for number in range(1, 11):
-        months.append(trace_time(1))
-        chute_ids.append(f"chute-{number:02d}")
-        requests.append((11 - number) * 10)
-    months += [trace_time(1), trace_time(1, month=2), trace_time(1, month=2)]
-    chute_ids += ["chute-unnamed", "chute-unnamed", "chute-01"]
-    requests += [3, 7, 5]
-    tokens = []
-    for count in requests:
-        tokens.append(count * 1000.5)
-    return pyarrow.table({
-        "month": pyarrow.array(months, pyarrow.timestamp("us")),
-        "chute_id": pyarrow.array(chute_ids, pyarrow.large_string()),
-        "model_requests": pyarrow.array(requests, pyarrow.int64()),
-        "model_tokens": pyarrow.array(tokens, pyarrow.float64()),
     })
 
 

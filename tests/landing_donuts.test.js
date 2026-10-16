@@ -7,37 +7,49 @@ import { statsRows } from "../site/js/landing/stats.js";
 import { donutSlices } from "../site/js/charts/donut.js";
 import { columnTotal } from "../site/js/shared/charts.js";
 import { formatCompactCount } from "../site/js/shared/format.js";
-import { ENDPOINT_FIRST_SLOT, OTHER_NAME, OTHER_SERIES, SERIES_SLOTS } from "../site/js/theme/colours.js";
+import { familyOrder } from "../site/js/explore/traffic_filter.js";
+import {
+  ENDPOINT_FIRST_SLOT, FAMILY_SLOTS, familyColours, OTHER_NAME, OTHER_SERIES, SERIES_SLOTS,
+} from "../site/js/theme/colours.js";
 
 // The rows of a shipped answer, as the page reads them.
 function shippedAnswer(name) {
   return JSON.parse(readFileSync(new URL(`../site/data/all/${name}.json`, import.meta.url), "utf8"));
 }
 
-test("the two donuts are the model mix and the endpoint mix", () => {
+test("the two donuts are the family mix and the endpoint mix", () => {
   assert.deepEqual(MIXES.map((mix) => [mix.title, mix.series.order, mix.series.column]), [
-    ["Model mix", "models", "model"],
+    ["Model families", "families", "family"],
     ["Endpoint mix", "endpoints", "endpoint_group"],
   ]);
 });
 
-test("the model mix's legend keeps the answer's order, Other last and grey, each with its share", () => {
+test("the family mix's legend is the families in the family colours, in the answer's order, Other last and grey", () => {
   const rows = [
-    { model: "deepseek-v3", requests: 50 },
-    { model: "qwen3", requests: 30 },
-    { model: "Other", requests: 20 },
+    { family: "DeepSeek", family_slug: "deepseek", requests: 50 },
+    { family: "Qwen", family_slug: "qwen", requests: 20 },
+    { family: "Other", family_slug: "other", requests: 30 },
   ];
   const legend = mixLegend(MIXES[0], rows);
   assert.deepEqual(legend.series, [
-    { name: "deepseek-v3", label: "deepseek-v3 50.0%" },
-    { name: "qwen3", label: "qwen3 30.0%" },
-    { name: "Other", label: "Other 20.0%" },
+    { name: "DeepSeek", label: "DeepSeek 50.0%" },
+    { name: "Qwen", label: "Qwen 20.0%" },
+    { name: "Other", label: "Other 30.0%" },
   ]);
-  assert.equal(legend.colours.get("deepseek-v3"), SERIES_SLOTS[0]);
+  assert.equal(legend.colours.get("DeepSeek"), FAMILY_SLOTS[0]);
+  assert.equal(legend.colours.get("Qwen"), FAMILY_SLOTS[1]);
   assert.equal(legend.colours.get("Other"), OTHER_SERIES);
 });
 
-test("the endpoint mix's legend writes each group's label, opens on another colour than the models, Other last", () => {
+test("the shipped family mix colours each family as the Traffic Explorer does, all ten named", () => {
+  const rows = shippedAnswer("explore/family_mix");
+  const explorerColours = familyColours(familyOrder(shippedAnswer("explore/daily_by_family")));
+  const legend = mixLegend(MIXES[0], rows);
+  assert.deepEqual([...legend.colours.entries()], [...explorerColours.entries()]);
+  assert.deepEqual(legend.series.map((entry) => entry.name), rows.map((row) => row.family));
+});
+
+test("the endpoint mix's legend writes each group's label, opens on another colour than the families, Other last", () => {
   const rows = [
     { endpoint_group: "chat", requests: 50 },
     { endpoint_group: "chat_stream", requests: 30 },
@@ -55,7 +67,7 @@ test("the endpoint mix's legend writes each group's label, opens on another colo
 test("each shipped donut's centre, the sum of its slices, is its answer's total and the stats strip's requests", () => {
   const totalsRow = shippedAnswer("explore/trace_totals")[0];
   const stripRequests = statsRows(totalsRow).find((stat) => stat.label === "Requests").value;
-  for (const [mix, name] of [[MIXES[0], "explore/model_mix"], [MIXES[1], "explore/endpoint_mix"]]) {
+  for (const [mix, name] of [[MIXES[0], "explore/family_mix"], [MIXES[1], "explore/endpoint_mix"]]) {
     const rows = shippedAnswer(name);
     // The names that keep a slice of their own, as the donut takes them from its colours: every one but Other.
     const order = [...mixLegend(mix, rows).colours.keys()].filter((slice) => slice !== OTHER_NAME);

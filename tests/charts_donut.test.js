@@ -4,12 +4,12 @@ import { test } from "node:test";
 import {
   centreUnit, donutArcs, donutLegend, donutSlices, legendSeries, pointAt, ringSegmentPath, sliceShares,
 } from "../site/js/charts/donut.js";
-import { barColours } from "../site/js/theme/colours.js";
+import { barColours, familyColours } from "../site/js/theme/colours.js";
 
-// Ten models, most requests first, as `setup/model_order` gives them.
+// Ten models, most requests first.
 const MODEL_ORDER = ["m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9", "m10"];
 
-test("a donut names the first eight of the order, folds the rest into Other, and leaves out a name with no rows", () => {
+test("a donut names each name given, folds the rest into Other, and leaves out a name with no rows", () => {
   const rows = [
     { model: "m2", requests: 20 },
     { model: "m1", requests: 50 },
@@ -17,7 +17,7 @@ test("a donut names the first eight of the order, folds the rest into Other, and
     { model: "m10", requests: 1 },
     { model: "m8", requests: 5 },
   ];
-  assert.deepEqual(donutSlices(rows, "model", "requests", MODEL_ORDER), [
+  assert.deepEqual(donutSlices(rows, "model", "requests", MODEL_ORDER.slice(0, 8)), [
     { name: "m1", count: 50 },
     { name: "m2", count: 20 },
     { name: "m8", count: 5 },
@@ -32,7 +32,7 @@ test("the named slices run largest first where the colour order and the counts d
     { model: "m3", requests: 20 },
     { model: "m9", requests: 40 },
   ];
-  assert.deepEqual(donutSlices(rows, "model", "requests", MODEL_ORDER).map((slice) => slice.name), [
+  assert.deepEqual(donutSlices(rows, "model", "requests", MODEL_ORDER.slice(0, 8)).map((slice) => slice.name), [
     "m2", "m3", "m1", "Other",
   ]);
 });
@@ -118,4 +118,12 @@ test("a donut's legend lists its slices largest first, Other last, the eight ser
     { name: "Other", label: "Other 6.7%" },
   ]);
   assert.equal(legend.colours, colours);
+});
+
+test("a donut coloured by the families names all ten named families, the eleventh folded into Other", () => {
+  const families = ["f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11"];
+  const rows = families.map((family, index) => ({ family, requests: 20 - index }));
+  rows.push({ family: "Other", requests: 1 });
+  const legend = donutLegend(rows, familyColours(rows), { nameColumn: "family", countColumn: "requests" });
+  assert.deepEqual(legend.series.map((entry) => entry.name), [...families.slice(0, 10), "Other"]);
 });

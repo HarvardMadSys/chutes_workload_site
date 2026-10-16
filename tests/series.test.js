@@ -9,7 +9,7 @@ import {
 import { assignColours, FAMILY_SLOTS, OTHER_SERIES, SERIES_SLOTS } from "../site/js/theme/colours.js";
 import { endpointColours, familyColours, modelColours } from "../site/js/theme/colours.js";
 
-// Two models of a monthly answer, two months each.
+// Two models' rows, two months each.
 const ROWS = [
   { model: "qwen3", calendar_month: "2025-04", requests: 3 },
   { model: "qwen3", calendar_month: "2025-05", requests: 40 },
