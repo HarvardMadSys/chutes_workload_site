@@ -83,8 +83,8 @@ query run live; for every figure, that its answer equals its plotdata
 rows. A node test SHALL check that every card's kind is one of the nine
 and that the card's shipped answer has the kind's columns. A snapshot
 test SHALL hold, under `tests/snapshots/`, the normalised text of every
-chart (its series, legend and tick labels), table, legend and text block
-of six page states (the page with each topic shown), compare them in
+chart (its series, legend, titles and tick labels), table, legend and text
+block of six page states (the page with each topic shown), compare them in
 headless Chromium on `make test`, and be rewritten by `make snapshots`
 when a change is meant; it SHALL skip, saying so, where Chromium is not
 installed, and fail, naming the host, where the libraries or fonts cannot

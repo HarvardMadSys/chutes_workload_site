@@ -102,7 +102,7 @@ SHALL carry the card's title and insight as its accessible name.
 
 #### Scenario: A raster
 - **WHEN** the Qwen3-Next-80B card is drawn
-- **THEN** it SHALL show one cell per user row and hour, shaded by requests, with the days of the window on the x axis
+- **THEN** it SHALL shade each user row's hours by their requests, with the days of the window on the x axis, neighbouring hours and rows sharing a pixel, shaded by the most requests among them, where the window has more hours or rows than the plot has pixels
 
 #### Scenario: A phone
 - **WHEN** the page is opened 360 pixels wide

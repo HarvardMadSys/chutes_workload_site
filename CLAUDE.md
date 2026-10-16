@@ -14,17 +14,22 @@ The rules in `CONTRIBUTING.md` are binding. The ones that matter most:
   measurement recorded in the change's `design.md`.
 - Plain HTML, CSS and ES modules. No framework, no bundler, no npm
   runtime dependency; library URLs only in `site/js/shared/libraries.js`.
-- SQL only in `site/queries/**/*.sql`, over the artifact's caches and the
-  two derived tables, `trace_calendar` and `top_models`; never assembled
-  from strings.
+- SQL only in `site/queries/**/*.sql`, over the artifact's caches, its
+  model names and family table, and the derived tables `trace_calendar`,
+  `top_models` and `family_models`; never assembled from strings.
 - Every definition comes from the artifact; the site filters, counts, sums
-  and draws, and never reads the trace.
+  and draws, and never reads the trace. The Insights' figures are drawn in
+  the browser from the artifact's plot-ready tables,
+  `data/paper/plotdata/<figure>.parquet`, which `make data` copies column
+  for column into `site/data/all/figures/<figure>.json`; a card names its
+  chart kind and the paper's axes (CONTRIBUTING's "A figure card" and
+  "Adding a figure"; README's column contract).
 - Names are words; functions ≤ 50 lines; modules ≤ 300 lines; every module
   has tests.
 - The page reads what `make data` wrote, never a query: after editing a
-  query, run `make data ARTIFACT=<the artifact's checkout>`, then
-  `make snapshots`, and commit `site/data` and `tests/snapshots` with the
-  change.
+  query, or when the artifact's caches or plot-ready tables change, run
+  `make data ARTIFACT=<the artifact's checkout>`, then `make snapshots`,
+  and commit `site/data` and `tests/snapshots` with the change.
 
 ## Verifying a change
 

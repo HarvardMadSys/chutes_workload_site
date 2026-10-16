@@ -287,16 +287,27 @@ frozenCard({
 }),
 ```
 
+**The column contract.** A figure's plot-ready table holds the columns of
+one chart kind, and its answer is that table, column for column; README's
+"Where the numbers come from" lists each kind's columns and its figures.
+The table is the artifact's: the figure's reproduce script writes it and
+draws the paper's PDF from it, so a number the site needs and the table
+lacks is added there, never computed in the browser.
+`tests/insights_figure_cards.test.js` (`KIND_COLUMNS`) checks every shipped
+answer against its card's kind.
+
 **Adding a figure.** A figure is the artifact's: it ends at its plot-ready
 table and the card's words.
 
-1. **The table.** The artifact lists the figure in its `config/figures.json`
-   and commits its `data/paper/plotdata/<figure>.parquet`; run `make data
-   ARTIFACT=<the artifact's checkout>`, which writes its answer to
-   `site/data/all/figures/<figure>.json` and lists it in
-   `site/data/all/figures.json`, and commit `site/data` with the change.
+1. **The table.** The artifact writes the figure's plot-ready table in the
+   columns of one kind, commits it as
+   `data/paper/plotdata/<figure>.parquet` and lists the figure in its
+   `config/figures.json`.
 2. **The card**, in its topic's module of `js/insights/`, in the paper's
-   order. Raise its topic's count in `CARD_COUNTS` of
+   order: its words, its `kind`, and in `chart` the paper's axes (titles,
+   log scales, limits and ticks) and its kind's parameters, with `panels`,
+   `legend`, `series` or `palette` where the figure needs them. Raise its
+   topic's count in `CARD_COUNTS` of
    `tests/insights_figure_sections.test.js`, which also checks that the
    cards draw every answer of the index once (the shared legend is named by
    two cards); `tests/insights_figure_cards.test.js` checks that its answer
@@ -304,19 +315,51 @@ table and the card's words.
    its insight, caption and definition; and, with `ARTIFACT`,
    `tests/test_figures_registry.py` checks that the cards draw every figure
    the artifact lists, and no other.
-3. **The snapshots.** Run `make snapshots` and commit `tests/snapshots`
+3. **The answer.** Run `make data ARTIFACT=<the artifact's checkout>`,
+   which writes its answer to `site/data/all/figures/<figure>.json` and
+   lists it in `site/data/all/figures.json`, and commit `site/data` with
+   the change.
+4. **The snapshots.** Run `make snapshots` and commit `tests/snapshots`
    with the change: a new card adds units; no other unit may move.
 
-**The chart kinds** (`js/charts/`), one module per shape the Overview and
-the Traffic Explorer draw: `stacked_bars` (stacked bars over a named x
-column, a month or a day) and `donut`. Each exports a draw function,
-`drawStackedBars(rows, body, colours, { named parameters }, hidden)`, and a
-legend function, `stackedBarsLegend(rows, colours, { named parameters })`,
-`colours` there being the Map of its series' colours in the legend's order;
-its module says what rows it takes and its draw function what each
-parameter decides. A kind imports only from `shared/`, `axes/` and
-`theme/`. A kind takes only parameters two or more charts use, or a frame
-or axis setting (the bars' `margins`, `inset` and `xTickRotate`).
+**The patterns a card copies.**
+
+- *Fixed series colours.* The global series and the three highlighted
+  models take the same colour on every card (`FIXED_SERIES_COLOURS` of
+  `shared/series.js`); a card of these series lists them in
+  `HIGHLIGHTED_SERIES` order, labels them with `HIGHLIGHTED_LABELS`, and
+  draws the global series dashed (`dashed: ["Global"]`), its legend
+  swatch dashed too.
+- *Panels.* A figure of several panels holds a `panel` column; the card
+  lists `panels`, each drawn as its own chart under its title from its
+  rows, with the card's `chart` and the panel's own parameters, under one
+  legend (the balancing topic's user zooms and the routing card).
+- *A legend answer.* Where the paper orders series by a legend of its own,
+  the card names the legend answer in `legend` and its series take the
+  legend's ranks (the two monthly shares).
+- *Shared axes and colours.* A constant two cards share, such as the count
+  colour (`COUNT_COLOUR`) or the trace's month axis (`TRACE_MONTH_AXIS`),
+  is exported once from `insights/figure_card.js`; one topic's axes are
+  constants of its module.
+
+**The chart kinds** (`js/charts/`), nine modules, one per shape: the
+Overview's and the Traffic Explorer's `stacked_bars` and `donut`, and the
+figures' `lines` (a CDF among them), `bands`, `cells`, `raster`, `scatter`,
+`boxes` and `bars`, the stacked bars drawing the two monthly shares too.
+Each exports one draw function of one interface,
+`draw<Kind>(rows, body, colours, parameters, hidden)`: the rows of its
+answer, the place to draw into, `colours.series` (the Map of its series'
+colours in the legend's order), its named parameters (a card's `chart`,
+with its kind's and a panel's) and the Set of series its legend hides; it
+replaces the place's content with one Plot chart. Its module's header says
+what rows it takes and its draw function's JSDoc what each parameter
+decides; its pure functions (the rows drawn, the tooltip's text, a scale's
+options) are exported and tested in `tests/charts_<kind>.test.js`. A kind
+imports only from `shared/`, `axes/` and `theme/`. A kind takes only
+parameters two or more charts use, or a frame or axis setting (the bars'
+`margins`, `inset` and `xTickRotate`, the lines' `gap`). Every kind but
+the raster has a tooltip, written by the kind's `…TipText` function, its x
+after the x axis's title (`axisValueText` of `axes/ticks.js`).
 
 ## JavaScript style
 
@@ -369,12 +412,19 @@ Insights' figures are drawn from their plot-ready tables.
   deuteranopia simulation. A new colour token is named there as text, a
   mark (`--series-*`) or a tint, or the test fails. Protanopia and
   tritanopia are not simulated, so no series is told by its colour alone:
-  every chart ships a legend and a hover tooltip.
+  every chart of more than one series ships a legend, and every chart but
+  a raster a hover tooltip. A figure that shades a value (`cells`,
+  `raster`, `scatter`) takes a Plot scheme instead, the paper's where it
+  names one, with its colour legend above the chart, ticked at the powers
+  of ten on a log colour scale.
 - **Marks.** A 1px inset on each side of a bar, a 2px gap between bars and
   stacked segments (`BAR_INSET`; none for the Traffic Explorer's day bars,
   which are a pixel or two wide), grid and axes in `--chart-grid` and
   `--chart-axis`, labels in `--chart-label`. Text is never coloured by
-  series. Bars start at zero.
+  series. Bars start at zero. A dashed line, a series' or the line where y
+  equals x, is dashed by `DASH` of `shared/charts.js`. A raster wider or
+  taller than its plot is drawn pooled, each pixel the most requests among
+  the hours and rows it covers, so no cell vanishes between two pixels.
 - **One axis.** Two measures of different scale are two charts.
 - **The card.** A chart's card shows its title, its caption, its legend
   above the chart (none where it has a single series), and a Definition
@@ -389,7 +439,11 @@ Insights' figures are drawn from their plot-ready tables.
   Traffic Explorer's at the first day of each month it shows (and of a
   quarter that starts mid-month), every other month for the whole trace
   on a plot narrower than `NARROW_PLOT_WIDTH`; their labels are slanted
-  so that thirteen fit a card. One format per
+  so that thirteen fit a card. A figure's axes are the paper's: its
+  titles, its log scales, ticked at the powers of ten (every second or
+  more past `MAX_LOG_TICKS`), its limits, and its ticks where the card
+  gives them, so that a phone's axis does not run its labels together.
+  One format per
   quantity: an axis's counts as "1k", "600M" (`formatCountTick`); a value
   in a legend, a tooltip, a tile or the stats strip with one decimal kept
   ("129.1k", "94.0%", "4.3 s", and three figures in billions, "2.04B"),

@@ -126,7 +126,11 @@ card's chart is drawn at the card's width. Series colours come from the
 theme: the three highlighted models (DeepSeek V3.2, DeepSeek R1, MiniMax
 M2.5) and "Global" get fixed entries in `shared/series.js`, so they look
 the same on every card; other series take the palette in the answer's
-order. Legends with more than one series toggle, as the Overview's do.
+order. Legends with more than one series toggle, as the Overview's do. A
+raster with more hours or rows than its plot has pixels is drawn pooled,
+each pixel the most requests among the cells it covers: drawn cell for
+cell, the browser's scaling dropped most hours and users at every width,
+so the picture changed with the card's width.
 
 ### D7. Tests
 
@@ -136,8 +140,12 @@ Parquet rows; a missing plotdata stops the step. Node: every card's
 `kind` is one of the nine and its shipped answer has the kind's columns
 (read from `site/data`); every chart module draws its fixture rows; the
 word-count test unchanged. Snapshot: each card's unit is the chart's
-series names, legend texts and tick labels instead of the image's source
-and size. The repository test checks `all/figures.json` against the
+name, its panels' titles, its colour legend's title and ticks and its
+axes' ticks and titles, with its legend's series in a unit of their own,
+instead of the image's source and size; each state also fails when the
+page requested another topic's answers. The spec's scenarios of a card's
+chart (a tooltip, a log axis, a raster, a series hidden in a CDF card) are
+node tests over the shipped answers. The repository test checks `all/figures.json` against the
 tracked answers and, when `ARTIFACT` is set, every answer against a
 rebuild. The deploy workflow fetches one figure answer instead of a PNG.
 
@@ -180,6 +188,30 @@ SVG, each run in a new browser context, so the topic's ten answers are
 fetched every time: 775, 824, 892, 819 and 824 ms over five runs, a median
 of 824 ms, under the two seconds the task allows. Nothing is cached or
 precomputed for it.
+
+### Measured: the change complete
+
+On the site's last commit of the change, against the artifact's commit
+`bb2cb3d`, whose plot-ready tables are `3871e3b`'s:
+
+- **Figure answers:** 48 files under `site/data/all/figures/`, 3,554,319
+  bytes in all (3.4 MiB), unchanged since first built; the largest
+  `fig_lb_concurrency`, 1,391,803 bytes, then
+  `fig_model_heatmap_fixedxy_scatter_colored_metrics`, 449,375. A rebuild
+  writes the same bytes.
+- **`make data`:** 1.5 to 1.6 s of wall time over three runs (1.60, 1.52,
+  1.52 s), the query answers and the figure answers; the 4.3 s above
+  rendered the 48 figure images too, which the step no longer does.
+- **The Users and models topic's draw:** 824 ms (median of five) when its
+  cards were finished; after the rasters were pooled to the plot's pixels
+  (each pixel the most requests among the hours and rows it covers, so no
+  hour vanishes between two pixels), 527 to 559 ms over five runs, a median
+  of 555 ms, measured as above.
+- **`site/`:** 19,534,370 bytes as git tracks it, against 26,826,615 bytes
+  before the images went (the commit `626d358`, whose 49 files under
+  `site/figures/`, 48 PNGs and their index, held 7,333,800 bytes): 7.3 MB
+  less, the figure answers having been added before. The largest file is
+  still the daily by-family answer, 3,376,522 bytes.
 
 ### Measured: the artifact's plotdata
 

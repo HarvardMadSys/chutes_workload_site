@@ -47,13 +47,16 @@ The one page, `index.html`, holds, in order:
   and latency (`#insights-tokens`), Users and models (`#insights-users`),
   Workload evolution (`#insights-evolution`), Prefix caching
   (`#insights-caching`) and Load balancing (`#insights-balancing`). Each of
-  the 47 cards draws one of the paper's figures from its plot-ready table,
-  with a title, an insight and a caption, a tooltip, and, where it has more
-  than one series, a legend whose buttons hide and show them; behind a
-  Definition control are its definition, a link to its plot-ready table in
-  the artifact and a link to the artifact's account of how it is computed.
-  The two monthly share cards take their series' order from the paper's
-  shared legend, the 48th table.
+  the 47 cards draws one of the paper's figures in the browser from its
+  plot-ready table, with the paper's axes, log scales and limits, in the
+  page's colours, light or dark: a title, an insight, the chart, as wide
+  as its card, and a caption; a tooltip with the values under the pointer,
+  but on the four rasters, which are drawn as one image each; and, where
+  it has more than one series, a legend whose buttons hide and show them.
+  Behind a Definition control are its definition, a link to its
+  plot-ready table in the artifact and a link to the artifact's account of
+  how it is computed. The two monthly share cards take their series' order
+  from the paper's shared legend, the 48th table.
 - **Cite** (`#cite`) and **Team**: the paper's citation as BibTeX with a
   copy button, and the lab, its collaborators and the paper's authors.
 
@@ -123,10 +126,26 @@ of time; the browser runs no query, it fetches the answers and draws them.
   `data/paper/plotdata/<figure>.parquet`, each written by
   `site_data/figure_answers.py` as `site/data/all/figures/<figure>.json`
   column for column, with no query, rounding or renaming, and each one's
-  row count in `site/data/all/figures.json`. Each card of the Insights
-  draws its figure from its answer with the chart kind it names
-  (`site/js/insights/figure_card.js`), the series of the global rows and
-  of the three highlighted models in one colour on every card.
+  row count in `site/data/all/figures.json`. A table is written by the
+  figure's own reproduce script in the artifact, which draws the paper's
+  PDF from the same table, so the paper and the site draw the same
+  numbers. Each card of the Insights draws its figure from its answer with
+  the chart kind it names (`site/js/insights/figure_card.js`), the series
+  of the global rows and of the three highlighted models in one colour on
+  every card. A table's columns are those of its kind:
+
+  | Kind | Columns, one row per | Figures |
+  |---|---|---|
+  | `lines` | `series`, `x`, `y`, and `panel` for a figure of panels: a point of a series' line | the daily and hourly lines, the TTL coverage, the two cache sweeps, the routing trade-off |
+  | `cdf` | `series`, `x`, `cdf`: a value of a series and the share at or below it | the token, ratio, latency, prefill and hit-ratio distributions |
+  | `bands` | `x`, `p10`, `p25`, `p50`, `p75`, `p90`: an x's median and its two percentile bands | the monthly token and IAT bands, the cohort bands |
+  | `cells` | `x_low`, `x_high`, `y_low`, `y_high`, `value`: a rectangle and its value | the heatmaps and density grids, the seasonality, the occupancy |
+  | `raster` | `x`, `y`, `value`: an hour of the window, a user's or a model's row, its requests | the four rasters |
+  | `scatter` | `x`, `y`, `value`: a point and the value it is shaded by | the lag-1 autocorrelation |
+  | `boxes` | `series`, `low`, `q1`, `median`, `q3`, `high`, `count`: a box's five statistics | the per-user IAT by model |
+  | `bars` | `series`, `x`, `value`, and `panel`: a bar | the two user zooms |
+  | `stacked_bars` | `series`, `x`, `value`: a segment of a bar | the two monthly shares |
+  | `legend` | `series`, `rank`: a series' place in a legend | the shares' legend, drawn by no card of its own |
 - **The figure cards' words** are the paper's: a card's insight the
   paper's lead-in for that figure, its caption the paper's caption, its
   definition the artifact's README's or plotting script's; a line its
