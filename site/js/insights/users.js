@@ -7,11 +7,7 @@
  */
 
 import { formatCount, formatWholeCountTick } from "../shared/format.js";
-import { URLS } from "../shared/layout.js";
 import { COUNT_COLOUR, frozenCard } from "./figure_card.js";
-
-// The artifact's README of these figures, which says how each is computed.
-const SECTION_README = `${URLS.code}/blob/main/paper/06_users_models/README.md`;
 
 // The token-shape figures' axes, as the paper's: the users' medians up to 10⁶ input and 10⁵ output tokens, the
 // models' up to 10⁵ on both axes, so that the line of equal input and output is the diagonal.
@@ -51,7 +47,6 @@ export const USERS_TOPIC = Object.freeze({
       insight: "Models and users span wide ranges of request volume.",
       caption: "Models with more requests often serve more users, yet models with similar request counts can differ by orders of magnitude in user count.",
       definition: "Each model placed by its request count and its number of distinct users, binned into hexagons shaded by how many models fall in each.",
-      source: SECTION_README,
       kind: "cells",
       chart: {
         x: { label: "Requests per model", log: true, tickFormat: formatWholeCountTick },
@@ -69,7 +64,6 @@ export const USERS_TOPIC = Object.freeze({
       insight: "Most users issue relatively few requests and access only a small number of models.",
       caption: "A sparse tail of users sends many requests across a much broader model set. These may be automated applications, proxy services, model routers or agentic workflows.",
       definition: "Each user placed by their request count and the number of distinct models they used, binned into hexagons shaded by how many users fall in each.",
-      source: SECTION_README,
       kind: "cells",
       chart: {
         x: { label: "Requests per user", log: true, tickFormat: formatWholeCountTick },
@@ -85,7 +79,6 @@ export const USERS_TOPIC = Object.freeze({
       insight: "Token shape varies substantially across models and users.",
       caption: "Most points fall below the dashed line of equal size, so most models are input heavy at the median. Some are strongly input-heavy, others output-heavy.",
       definition: "Each model placed by its median input tokens and median output tokens per request, binned into hexagons shaded by how many models fall in each.",
-      source: SECTION_README,
       kind: "cells",
       chart: {
         x: { label: "Median model input", log: true, domain: MODEL_TOKENS_DOMAIN, tickFormat: formatWholeCountTick },
@@ -103,7 +96,6 @@ export const USERS_TOPIC = Object.freeze({
       insight: "The user view is more concentrated, but still spans a broad range.",
       caption: "Some users consistently send short prompts, while others work with much larger contexts; output lengths also vary substantially.",
       definition: "Each user placed by their median input tokens and median output tokens per request, binned into hexagons shaded by how many users fall in each.",
-      source: SECTION_README,
       kind: "cells",
       chart: {
         x: { label: "Median user input", log: true, domain: USER_INPUT_DOMAIN, tickFormat: formatWholeCountTick },
@@ -119,8 +111,8 @@ export const USERS_TOPIC = Object.freeze({
       title: "Periodic user access",
       insight: "Popular models can exhibit very different user-level access patterns.",
       caption: "Many users remain active across long portions of the window, forming horizontal bands that persist over days or weeks, while new users appear gradually throughout the month.",
-      definition: "Thirty-one days of Qwen3-Next-80B-A3B-Instruct: one row per user, a mark for each request. At most 800 of the model's users are shown, picked by a seeded shuffle.",
-      source: SECTION_README,
+      // placeholder: the definition leaves out the README's sample of the model's users.
+      definition: "Thirty-one days of Qwen3-Next-80B-A3B-Instruct: one row per user, a mark for each request.",
       kind: "raster",
       chart: {
         x: RASTER_DAYS_AXIS,
@@ -135,8 +127,8 @@ export const USERS_TOPIC = Object.freeze({
       // placeholder: the paragraph's lead-in is on the periodic access card; this is its sentence on this panel.
       insight: "Requests from different users arrive at similar times, rather than spread independently across the window.",
       caption: "Activity is sparse early in the window, then expands sharply around the middle of the month as many users become active within the same period.",
-      definition: "Thirty-one days of gpt-oss-20b: one row per user, a mark for each request. At most 800 of the model's users are shown, picked by a seeded shuffle.",
-      source: SECTION_README,
+      // placeholder: the definition leaves out the README's sample of the model's users.
+      definition: "Thirty-one days of gpt-oss-20b: one row per user, a mark for each request.",
       kind: "raster",
       chart: {
         x: RASTER_DAYS_AXIS,
@@ -151,7 +143,6 @@ export const USERS_TOPIC = Object.freeze({
       insight: "Heavy users differ in how broadly they access models.",
       caption: "This user repeatedly accesses a small and stable set of models across the window; some are used throughout, others more periodically.",
       definition: "Thirty-one days of one heavy user, the 190th by requests in the window: one row per model, a mark for each request.",
-      source: SECTION_README,
       kind: "raster",
       chart: {
         x: RASTER_DAYS_AXIS,
@@ -167,7 +158,6 @@ export const USERS_TOPIC = Object.freeze({
       insight: "A single user may use multiple models concurrently, either steadily or in short bursts.",
       caption: "This user spends most of the month on a few models, but briefly accesses many additional models during a short period.",
       definition: "Thirty-one days of one heavy user, the 134th by requests in the window: one row per model, a mark for each request.",
-      source: SECTION_README,
       kind: "raster",
       chart: {
         x: RASTER_DAYS_AXIS,
@@ -182,7 +172,6 @@ export const USERS_TOPIC = Object.freeze({
       insight: "Most models are bursty and persistently so.",
       caption: "Most models lie above a coefficient of variation of 1, so their arrivals are bursty rather than evenly spaced, for low- and high-rate models alike.",
       definition: "Each model placed by its mean requests per active hour and the mean hourly coefficient of variation (standard deviation over mean) of its inter-arrival times, binned into hexagons shaded by how many models fall in each.",
-      source: SECTION_README,
       kind: "cells",
       chart: {
         x: REQUESTS_PER_HOUR_AXIS,
@@ -199,7 +188,6 @@ export const USERS_TOPIC = Object.freeze({
       insight: "High-load periods tend to follow high-load periods, and low-load periods tend to persist.",
       caption: "Among the bursty models, many show positive autocorrelation: model traffic often stays active or quiet for some time instead of fluctuating randomly.",
       definition: "The same axes, one dot per model, coloured by the Spearman correlation between each of its inter-arrival times and the next.",
-      source: SECTION_README,
       kind: "scatter",
       chart: {
         x: REQUESTS_PER_HOUR_AXIS,

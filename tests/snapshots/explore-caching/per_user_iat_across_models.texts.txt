@@ -2,4 +2,3 @@ title: Per-user IAT across models
 insight: The recurrence pattern also varies significantly by model.
 caption: MiniMax-M2.5 has the lowest per-user IAT, consistent with coding or agentic workflows; DeepSeek R1 has the longest, which may reflect more human-paced reasoning interactions.
 definition: For each highlighted model, a box plot over users of each user's median time between consecutive requests to that model.
-rows: The plot-ready table · data/paper/plotdata/fig_per_user_iat_p50_by_model.parquet — How it is computed · the artifact on GitHub

@@ -14,6 +14,8 @@ export const URLS = Object.freeze({
   paper: "https://arxiv.org/abs/2608.13573",
   code: "https://github.com/HarvardMadSys/chutes_workload",
   github: "https://github.com/HarvardMadSys",
+  // The blog post that explores the trace in the browser.
+  blog: "https://kasivisu4.github.io/blog/a-year-of-llm-traffic-in-a-browser-tab/",
 });
 
 // The site's one page, which the brand links.
@@ -134,9 +136,13 @@ function sectionLink(section, className) {
   return `<a class="${className}" href="${section.anchor}">${section.title}</a>`;
 }
 
-// A link off the site opens in a new tab, without giving that tab a handle on this one.
-function externalLink(link, className) {
-  return `<a class="${className}" href="${link.url}" target="_blank" rel="noopener">${link.title}</a>`;
+/**
+ * The markup of a link off the site to `link`, `{ title, url }`, of the class `className` where one is given: it opens
+ * in a new tab, without giving that tab a handle on this one, and the stylesheet ends it in an arrow.
+ */
+export function externalLink(link, className = null) {
+  const classAttribute = className === null ? "" : ` class="${className}"`;
+  return `<a${classAttribute} href="${link.url}" target="_blank" rel="noopener">${link.title}</a>`;
 }
 
 // A list of the footer's links under its title, which names the nav to a screen reader and is no heading of the page.

@@ -2,4 +2,3 @@ title: Output tokens and duration
 insight: Output length drives duration; input length drives TTFT.
 caption: Median end-to-end duration increases proportionally to output length and is barely affected by input length, since completion time is decode dominated.
 definition: Median duration of the requests in each bucket of input tokens and output tokens.
-rows: The plot-ready table · data/paper/plotdata/fig_duration_p50_heatmap.parquet — How it is computed · the artifact on GitHub

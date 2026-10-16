@@ -46,27 +46,36 @@ def test_a_figure_answer_s_address_names_its_figure() -> None:
     assert snapshot.answered_figure("http://127.0.0.1:8000/data/all/explore/trace_totals.json") is None
 
 
-class FakeTables:
-    """A stand-in for a Playwright locator of cards' plot-ready tables: the texts it matched."""
+class FakeCard:
+    """A stand-in for a Playwright locator of one card's article: its `data-figure` attribute."""
 
-    def __init__(self, texts: list[str]) -> None:
-        self.texts = texts
+    def __init__(self, figure: str) -> None:
+        self.figure = figure
 
-    def all_text_contents(self) -> list[str]:
-        return self.texts
+    def get_attribute(self, name: str) -> str | None:
+        return self.figure if name == "data-figure" else None
+
+
+class FakeCards:
+    """A stand-in for a Playwright locator of cards' articles: the cards it matched."""
+
+    def __init__(self, figures: list[str]) -> None:
+        self.figures = figures
+
+    def all(self) -> list[FakeCard]:
+        return [FakeCard(figure) for figure in self.figures]
 
 
 class FakeTopicsPage:
-    """A stand-in for a Playwright page holding each topic's cards, by the topic's id: `locator` finds the tables a
-    topic's Definition controls name, as `snapshot.topic_figures` asks for them."""
+    """A stand-in for a Playwright page holding each topic's cards, by the topic's id: `locator` finds the articles of
+    a topic's cards, as `snapshot.topic_figures` asks for them."""
 
     def __init__(self, figures_by_topic: dict[str, list[str]]) -> None:
         self.figures_by_topic = figures_by_topic
 
-    def locator(self, selector: str) -> FakeTables:
+    def locator(self, selector: str) -> FakeCards:
         topic = selector.split(" ", 1)[0].removeprefix("#")
-        figures = self.figures_by_topic.get(topic, [])
-        return FakeTables([f"data/paper/plotdata/{figure}.parquet" for figure in figures])
+        return FakeCards(self.figures_by_topic.get(topic, []))
 
 
 def test_another_topic_s_answer_requested_is_named_and_the_topic_s_own_are_not() -> None:

@@ -7,12 +7,8 @@
  */
 
 import { formatCountTick, formatPercent, formatShare, formatWholeCount } from "../shared/format.js";
-import { URLS } from "../shared/layout.js";
 import { SERIES_SLOTS } from "../theme/colours.js";
 import { frozenCard, TRACE_MONTH_AXIS, TRACE_MONTH_TICKS } from "./figure_card.js";
-
-// The artifact's README of these figures, which says how each is computed.
-const SECTION_README = `${URLS.code}/blob/main/paper/03_workload_evolution/README.md`;
 
 // The legend of the two monthly share panels: the ten most requested models and Others.
 const SHARE_LEGEND = "fig_top10_model_monthly_share_legend";
@@ -36,7 +32,6 @@ export const EVOLUTION_TOPIC = Object.freeze({
       insight: "Dominant models turn over.",
       caption: "Early traffic is dominated by DeepSeek models such as DeepSeek-V3-0324 and DeepSeek-R1. Their shares decline, while newer models such as Qwen3-32B and DeepSeek-V3.2 become more prominent.",
       definition: "Each month's share of requests among the ten most requested models, a model and its TEE variant counted as one, and Others for the rest.",
-      source: SECTION_README,
       kind: "stacked_bars",
       chart: {
         xLabel: TRACE_MONTH_AXIS.label,
@@ -56,7 +51,6 @@ export const EVOLUTION_TOPIC = Object.freeze({
       insight: "Traffic spreads across more models over time.",
       caption: "The Others band grows in both panels: a larger fraction of requests and tokens comes from non-dominant models as more models are released and adopted.",
       definition: "The same models' share of each month's input plus output tokens.",
-      source: SECTION_README,
       kind: "stacked_bars",
       chart: {
         xLabel: TRACE_MONTH_AXIS.label,
@@ -76,7 +70,6 @@ export const EVOLUTION_TOPIC = Object.freeze({
       insight: "Inputs stay stable while outputs shrink.",
       caption: "Input lengths remain broadly stable over the year, with the monthly median staying in the thousands of tokens.",
       definition: "Input tokens per request in each month: the median, and bands from the 25th to the 75th and from the 10th to the 90th percentile.",
-      source: SECTION_README,
       kind: "bands",
       chart: {
         x: TRACE_MONTH_AXIS,
@@ -93,7 +86,6 @@ export const EVOLUTION_TOPIC = Object.freeze({
       insight: "Output lengths show a clearer downward trend than input lengths.",
       caption: "The median falls from a few hundred tokens early in the trace to below one hundred near the end, and wider bands show greater variation.",
       definition: "Output tokens per request in each month: the median, and bands from the 25th to the 75th and from the 10th to the 90th percentile.",
-      source: SECTION_README,
       kind: "bands",
       chart: {
         x: TRACE_MONTH_AXIS,
@@ -109,7 +101,6 @@ export const EVOLUTION_TOPIC = Object.freeze({
       insight: "Newer user cohorts are more input-heavy.",
       caption: "Later cohorts have larger median input lengths, indicating that newer users typically submit longer prompts.",
       definition: "Each user's median input tokens, by release cohort, the month the user first appeared: the median over the cohort's users, with bands from the 25th to the 75th and the 10th to the 90th percentile.",
-      source: SECTION_README,
       kind: "bands",
       chart: {
         x: COHORT_AXIS,
@@ -127,7 +118,6 @@ export const EVOLUTION_TOPIC = Object.freeze({
       insight: "Change in the median output is less pronounced across cohorts.",
       caption: "The percentile bands widen for later cohorts, showing greater variation across users in their typical output lengths.",
       definition: "Each user's median output tokens, by release cohort: the median over the cohort's users, with bands from the 25th to the 75th and the 10th to the 90th percentile.",
-      source: SECTION_README,
       kind: "bands",
       chart: {
         x: COHORT_AXIS,

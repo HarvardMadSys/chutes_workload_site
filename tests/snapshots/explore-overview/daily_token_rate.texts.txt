@@ -2,4 +2,3 @@ title: Daily token rate
 insight: Similar request volumes can represent different amounts of serving work.
 caption: Daily token volume follows a similar but not identical trend: it grows quickly early in the trace, remains elevated for much of the year, and drops more sharply near the end.
 definition: Input plus output tokens per day, over the requests that completed.
-rows: The plot-ready table · data/paper/plotdata/fig_token_rate_day.parquet — How it is computed · the artifact on GitHub

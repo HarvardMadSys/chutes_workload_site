@@ -2,4 +2,3 @@ title: Models: requests and users
 insight: Models and users span wide ranges of request volume.
 caption: Models with more requests often serve more users, yet models with similar request counts can differ by orders of magnitude in user count.
 definition: Each model placed by its request count and its number of distinct users, binned into hexagons shaded by how many models fall in each.
-rows: The plot-ready table · data/paper/plotdata/fig_model_requests_vs_users_density.parquet — How it is computed · the artifact on GitHub

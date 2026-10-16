@@ -2,4 +2,3 @@ title: Model exploration
 insight: A single user may use multiple models concurrently, either steadily or in short bursts.
 caption: This user spends most of the month on a few models, but briefly accesses many additional models during a short period.
 definition: Thirty-one days of one heavy user, the 134th by requests in the window: one row per model, a mark for each request.
-rows: The plot-ready table · data/paper/plotdata/fig_user_raster_explore.parquet — How it is computed · the artifact on GitHub

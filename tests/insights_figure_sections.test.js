@@ -3,7 +3,6 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { FIGURE_SECTIONS } from "../site/js/insights/figure_sections.js";
-import { URLS } from "../site/js/shared/layout.js";
 
 // The figure answers the data step wrote, as their index lists them: each figure's row count, by name.
 const INDEX = JSON.parse(readFileSync(new URL("../site/data/all/figures.json", import.meta.url), "utf8"));
@@ -20,7 +19,7 @@ const CARD_COUNTS = [5, 8, 10, 6, 9, 9];
 // The fields of a topic, and of a card: its words, each a string, then its kind and its chart's parameters; a card
 // may also have the optional ones.
 const TOPIC_FIELDS = ["selector", "takeaway", "cards"];
-const CARD_FIELDS = ["figure", "title", "insight", "caption", "definition", "source", "kind"];
+const CARD_FIELDS = ["figure", "title", "insight", "caption", "definition", "kind"];
 const OPTIONAL_CARD_FIELDS = ["panels", "legend", "series", "palette", "isWide"];
 
 // The legend answer whose order the two monthly share cards' series take, and those cards.
@@ -29,9 +28,6 @@ const SHARE_PANELS = ["fig_top10_model_monthly_request_share", "fig_top10_model_
 
 // The one wide card: the routing simulation's panels.
 const WIDE_CARDS = ["fig_routing_tradeoff"];
-
-// A card's source: a section README of the artifact's paper folder, or one of its simulation folders.
-const SOURCE = new RegExp(`^${URLS.code}/(blob/main/paper/\\d\\d_\\w+/README\\.md|tree/main/pipeline/(caching|routing))$`);
 
 // Every card of every topic.
 function everyCard() {
@@ -89,12 +85,6 @@ test("only the two share cards name the legend, and only the routing simulation 
   assert.deepEqual(withLegend, SHARE_PANELS);
   const wide = everyCard().filter((card) => card.isWide === true).map((card) => card.figure);
   assert.deepEqual(wide, WIDE_CARDS);
-});
-
-test("every card links the artifact's README or simulation folder of its figure", () => {
-  for (const card of everyCard()) {
-    assert.match(card.source, SOURCE, card.figure);
-  }
 });
 
 // The objects and lists `value` holds, itself among them, all the way down; functions and plain values left out.

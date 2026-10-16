@@ -2,4 +2,3 @@ title: Daily active models
 insight: Active models and API mix shift over the year.
 caption: The number of active models per day grows from fewer than 100 early in the trace to more than 400 at its peak, before settling at a lower but still elevated level.
 definition: Distinct models with at least one request that day.
-rows: The plot-ready table · data/paper/plotdata/fig_daily_unique_models.parquet — How it is computed · the artifact on GitHub

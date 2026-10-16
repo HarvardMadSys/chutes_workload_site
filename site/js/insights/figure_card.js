@@ -1,18 +1,16 @@
 /**
  * A card of the Insights: one of the paper's figures, drawn by the site from the figure's answer, its plot-ready rows.
- * A card is `{ figure, title, insight, caption, definition, source, kind, chart, panels?, legend?, series?, palette?,
+ * A card is `{ figure, title, insight, caption, definition, kind, chart, panels?, legend?, series?, palette?,
  * isWide? }` (`insights/figure_sections.js` lists the topics, each card made by `frozenCard`): `figure` the figure's
- * name, its answer being `data/all/figures/<figure>.json`; `kind` the chart kind that draws it, a key of
- * `CHART_KINDS`; `chart` the parameters handed to the kind's draw function (`js/charts/<kind>.js` says what each
- * decides); `panels`, for a figure of several panels, `[{ panel, title, chart }]`, one chart per entry drawn from the
- * rows whose `panel` column is `panel`, under its title, with the card's `chart` and then the entry's own as its
- * parameters (the card has one legend for all its panels, so only the card's `chart.labels` relabel the legend; a
- * panel's own relabel only its tooltips); `legend`, the name of a legend answer, rows `{ series, rank }`, whose order
- * the card's series take;
+ * name, its answer being `data/all/figures/<figure>.json`; `kind` the chart kind that draws it, a key of `CHART_KINDS`; `chart`
+ * the parameters handed to the kind's draw function (`js/charts/<kind>.js` says what each decides); `panels`, for a
+ * figure of several panels, `[{ panel, title, chart }]`, one chart per entry drawn from the rows whose `panel` column
+ * is `panel`, under its title, with the card's `chart` and then the entry's own as its parameters (the card has one
+ * legend for all its panels, so only the card's `chart.labels` relabel the legend; a panel's own relabel only its
+ * tooltips); `legend`, the name of a legend answer, rows `{ series, rank }`, whose order the card's series take;
  * `series`, the names of the series drawn, in the order they are drawn and listed, the answer's others left out (the
- * stacked bars fold them into "Other"); `palette`, the colours its series take, a key of `PALETTES` of `insights/card_series.js`, "series" when
- * not given; `source` the address of the artifact's README, or folder, that says how the figure is computed; `isWide`
- * true for a card that takes its topic's width.
+ * stacked bars fold them into "Other"); `palette`, the colours its series take, a key of `PALETTES` of
+ * `insights/card_series.js`, "series" when not given; `isWide` true for a card that takes its topic's width.
  *
  * A card's words are placed at once (`renderFigureCard`), its chart only when its topic is first shown
  * (`drawFigureChart`), with a legend of buttons above it where it has more than one series.
@@ -20,7 +18,6 @@
 
 import { nameChart, renderFigure, showError, showLoading } from "../shared/charts.js";
 import { readAnswer } from "../shared/answers.js";
-import { URLS } from "../shared/layout.js";
 import { SERIES_COLUMN } from "../shared/series.js";
 import { drawBands } from "../charts/bands.js";
 import { drawBars } from "../charts/bars.js";
@@ -79,29 +76,21 @@ const ENDPOINT_ORDER = "explore/endpoint_mix";
 // The folder of the figure answers, under the answers' folder: the figure `name`'s answer is `figures/<name>`.
 const FIGURE_ANSWERS = "figures/";
 
-// The folder of the plot-ready tables in the artifact, from its root.
-const PLOTDATA_FOLDER = "data/paper/plotdata/";
-
-// The text of the link, behind a card's Definition control, to the plot-ready table its chart is drawn from.
-const PLOTDATA_LINK_TEXT = "The plot-ready table · ";
-
-// The text of the link, behind a card's Definition control, to the artifact's README or folder of its figure.
-const SOURCE_LINK_TEXT = "How it is computed · the artifact on GitHub";
-
-// Between the two links of a card's Definition control.
-const LINK_SEPARATOR = " — ";
-
-/** The element of `card`: an empty `<article>` of the class `card`, and `is-wide` for a wide card. */
+/**
+ * The element of `card`: an empty `<article>` of the class `card`, and `is-wide` for a wide card, whose `data-figure`
+ * attribute names the card's figure.
+ */
 export function newCardElement(card) {
   const element = document.createElement("article");
   element.className = card.isWide === true ? "card is-wide" : "card";
+  element.dataset.figure = card.figure;
   return element;
 }
 
 /**
  * Fill `container` with `card`'s words, as every figure card is laid out (`renderFigure` of `shared/charts.js`), and
  * return its body, the place of its chart, showing the loading state. Its Definition control opens on the definition
- * and a line of two links: the figure's plot-ready table in the artifact and the artifact's account of the figure.
+ * alone.
  */
 export function renderFigureCard(container, card) {
   const body = renderFigure(container, {
@@ -110,24 +99,8 @@ export function renderFigureCard(container, card) {
     caption: card.caption,
     definition: card.definition,
   });
-  const plotdata = newLink(plotdataAddress(card.figure), PLOTDATA_LINK_TEXT);
-  const path = document.createElement("code");
-  path.textContent = plotdataPath(card.figure);
-  plotdata.append(path);
-  const links = [plotdata, LINK_SEPARATOR, newLink(card.source, SOURCE_LINK_TEXT)];
-  container.querySelector(".figure-rows").replaceChildren(...links);
   showLoading(body);
   return body;
-}
-
-/** The path of the figure `figure`'s plot-ready table in the artifact: `data/paper/plotdata/<figure>.parquet`. */
-export function plotdataPath(figure) {
-  return `${PLOTDATA_FOLDER}${figure}.parquet`;
-}
-
-/** The address of the figure `figure`'s plot-ready table in the artifact on GitHub. */
-export function plotdataAddress(figure) {
-  return `${URLS.code}/blob/main/${plotdataPath(figure)}`;
 }
 
 /**
@@ -228,14 +201,4 @@ function placePanels(body, panels) {
   }
   body.replaceChildren(grid);
   return places;
-}
-
-// A link to `address` reading `text`, opened in a new tab.
-function newLink(address, text) {
-  const link = document.createElement("a");
-  link.href = address;
-  link.target = "_blank";
-  link.rel = "noopener";
-  link.textContent = text;
-  return link;
 }

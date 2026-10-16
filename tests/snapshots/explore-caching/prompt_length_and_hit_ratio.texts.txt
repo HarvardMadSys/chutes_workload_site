@@ -2,4 +2,3 @@ title: Prompt length and hit ratio
 insight: Request-level cached fractions are bimodal.
 caption: Most requests see either little to no prefix reuse or reuse nearly their entire input prefix. Short-input requests skew toward high reuse, long-input requests toward low.
 definition: Share of requests whose token hit ratio, the share of input tokens served from the prefix cache, is at most this value: all requests, and those under 1K and over 8K input tokens.
-rows: The plot-ready table · data/paper/plotdata/fig_request_cached_fraction_cdf_by_input.parquet — How it is computed · the artifact on GitHub

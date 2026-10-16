@@ -37,7 +37,8 @@ BETWEEN_ELEMENTS = re.compile(r">\s*<")  # where one element's tag ends and the 
 WHITESPACE = re.compile(r"\s+")
 NOT_A_WORD = re.compile(r"[^a-z0-9]+")
 
-# The texts of a figure card, in the order they are written: a label and its selector.
+# The texts of a figure card, in the order they are written: a label and its selector. The line of rows is an Overview
+# donut's and the Traffic Explorer's; an Insights card has none.
 CARD_TEXTS = (
     ("title", ".figure-title"),
     ("insight", ".figure-insight"),

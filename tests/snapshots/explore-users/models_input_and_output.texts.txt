@@ -2,4 +2,3 @@ title: Models: input and output
 insight: Token shape varies substantially across models and users.
 caption: Most points fall below the dashed line of equal size, so most models are input heavy at the median. Some are strongly input-heavy, others output-heavy.
 definition: Each model placed by its median input tokens and median output tokens per request, binned into hexagons shaded by how many models fall in each.
-rows: The plot-ready table · data/paper/plotdata/fig_model_median_input_output_heatmap.parquet — How it is computed · the artifact on GitHub

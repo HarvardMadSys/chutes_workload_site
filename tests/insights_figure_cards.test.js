@@ -3,12 +3,10 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
-  CHART_KINDS, chartParameters, drawFigureChart, frozenCard, newCardElement, plotdataAddress,
-  renderFigureCard,
+  CHART_KINDS, chartParameters, drawFigureChart, frozenCard, newCardElement, renderFigureCard,
 } from "../site/js/insights/figure_card.js";
 import { PALETTES } from "../site/js/insights/card_series.js";
 import { FIGURE_SECTIONS } from "../site/js/insights/figure_sections.js";
-import { URLS } from "../site/js/shared/layout.js";
 
 // The columns a figure answer of each chart kind holds: the plot-ready tables' contract.
 const KIND_COLUMNS = Object.freeze({
@@ -61,6 +59,7 @@ class FakeElement {
     this.children = [];
     this.className = "";
     this.textContent = "";
+    this.dataset = {};
   }
 
   append(...children) {
@@ -112,7 +111,6 @@ const CARD = Object.freeze({
   insight: "Aggregate demand is non-stationary.",
   caption: "Requests rise, peak and decline.",
   definition: "Requests per day.",
-  source: "https://github.com/HarvardMadSys/chutes_workload/blob/main/paper/01_workload_overview/README.md",
   kind: "lines",
   chart: { valueLabel: "Requests" },
 });
@@ -176,11 +174,12 @@ test("the figure answers' index lists every card's figure and legend", () => {
   }
 });
 
-test("a card is an article, and a wide card is marked wide", (context) => {
+test("a card is an article carrying its figure's name, and a wide card is marked wide", (context) => {
   useFakeDocument(context);
   const element = newCardElement(CARD);
   assert.equal(element.tag, "article");
   assert.equal(element.className, "card");
+  assert.equal(element.dataset.figure, "fig_a");
   assert.equal(newCardElement({ ...CARD, isWide: true }).className, "card is-wide");
 });
 
@@ -200,24 +199,15 @@ test("a card shows its title, insight, legend place, chart place, caption and De
   assert.equal(body.children[0].className, "loading");
 });
 
-test("the Definition control opens on the definition and the links to the plot-ready table and the README", (context) => {
+test("the Definition control opens on the definition alone, with no link and no line of rows", (context) => {
   useFakeDocument(context);
   const container = new FakeElement("article");
   renderFigureCard(container, CARD);
   const details = container.children[0].children[5];
   assert.equal(details.tag, "details");
+  assert.deepEqual(details.children.map((part) => part.tag), ["summary", "p"]);
   assert.equal(details.querySelector(".figure-definition-text").textContent, CARD.definition);
-  const [plotdata, separator, source] = details.querySelector(".figure-rows").children;
-  assert.deepEqual([plotdata.href, plotdata.target, plotdata.textContent], [
-    `${URLS.code}/blob/main/data/paper/plotdata/fig_a.parquet`, "_blank", "The plot-ready table · ",
-  ]);
-  assert.equal(plotdata.children[0].textContent, "data/paper/plotdata/fig_a.parquet");
-  assert.equal(typeof separator, "string");
-  assert.deepEqual([source.href, source.textContent], [CARD.source, "How it is computed · the artifact on GitHub"]);
-});
-
-test("a plot-ready table is linked in the artifact's repository on GitHub", () => {
-  assert.equal(plotdataAddress("fig_seasonality"), `${URLS.code}/blob/main/data/paper/plotdata/fig_seasonality.parquet`);
+  assert.equal(details.querySelector(".figure-rows"), null);
 });
 
 test("a card of the endpoints' palette reads the endpoint groups' order with its answer", async (context) => {

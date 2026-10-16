@@ -2,4 +2,3 @@ title: Active instances per hour
 insight: Replica count tracks serving utilization rather than request volume alone.
 caption: The number of active instances declines, closely following the reduction in total tokens processed per hour: scaling responds to token work, not just request arrivals.
 definition: Active instances of DeepSeek-V3-0324 in each minute, the median of each hour, over the trace's last two months.
-rows: The plot-ready table · data/paper/plotdata/fig_lb_active_instances.parquet — How it is computed · the artifact on GitHub

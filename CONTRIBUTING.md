@@ -233,11 +233,9 @@ at most twenty words, written under its heading.
 - `caption`: evidence for the insight, under the chart, in up to three
   short sentences and at most forty words: the paper's caption.
 - `definition`: what is drawn, in plain words, in up to three short
-  sentences and at most sixty words, behind the Definition control: the
-  artifact's README's account of the figure.
-- `source`: the address of the artifact's README, or folder, that says how
-  the figure is computed; linked behind the Definition control, after the
-  link to the figure's plot-ready table.
+  sentences and at most sixty words, alone behind the Definition control:
+  the artifact's README's account of the figure, naming no cut-off, count
+  or bin width.
 - `kind`: the chart kind that draws it, a key of `CHART_KINDS` in
   `insights/figure_card.js` (`cdf` is the lines kind with a share axis).
 - `chart`: the parameters handed to the kind's draw function: its axes,
@@ -274,7 +272,6 @@ frozenCard({
   insight: "Aggregate demand is non-stationary.",
   caption: "Daily request volume rises through mid-2025, peaks around late summer and fall, and then declines into early 2026.",
   definition: "Requests per day over the trace's year.",
-  source: SECTION_README,
   kind: "lines",
   chart: {
     x: { label: "Day of the trace" },

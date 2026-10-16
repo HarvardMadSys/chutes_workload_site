@@ -1,5 +1,4 @@
 title: Periodic user access
 insight: Popular models can exhibit very different user-level access patterns.
 caption: Many users remain active across long portions of the window, forming horizontal bands that persist over days or weeks, while new users appear gradually throughout the month.
-definition: Thirty-one days of Qwen3-Next-80B-A3B-Instruct: one row per user, a mark for each request. At most 800 of the model's users are shown, picked by a seeded shuffle.
-rows: The plot-ready table · data/paper/plotdata/fig_model_raster_qwen3_next_80b.parquet — How it is computed · the artifact on GitHub
+definition: Thirty-one days of Qwen3-Next-80B-A3B-Instruct: one row per user, a mark for each request.

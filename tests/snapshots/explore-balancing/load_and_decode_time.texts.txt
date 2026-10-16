@@ -2,4 +2,3 @@ title: Load and decode time
 insight: P90 decode time mainly follows output length and is largely insensitive to instance throughput.
 caption: Overload primarily affects prefill, making input-heavy traffic the most vulnerable to load imbalance.
 definition: Requests of DeepSeek-V3.2 binned into hexagons by their instance's load in tokens per second and their output tokens, each hexagon coloured by the 90th percentile of decode time.
-rows: The plot-ready table · data/paper/plotdata/fig_lb_decode_p90_vs_load.parquet — How it is computed · the artifact on GitHub

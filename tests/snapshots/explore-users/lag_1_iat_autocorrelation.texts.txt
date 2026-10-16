@@ -2,4 +2,3 @@ title: Lag-1 IAT autocorrelation
 insight: High-load periods tend to follow high-load periods, and low-load periods tend to persist.
 caption: Among the bursty models, many show positive autocorrelation: model traffic often stays active or quiet for some time instead of fluctuating randomly.
 definition: The same axes, one dot per model, coloured by the Spearman correlation between each of its inter-arrival times and the next.
-rows: The plot-ready table · data/paper/plotdata/fig_model_heatmap_fixedxy_scatter_colored_metrics.parquet — How it is computed · the artifact on GitHub

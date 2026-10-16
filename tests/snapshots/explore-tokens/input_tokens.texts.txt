@@ -2,4 +2,3 @@ title: Input tokens
 insight: Requests are often prompt-heavy.
 caption: Input sizes vary from roughly 10² to 10⁵ tokens, with a heavy tail toward very long prompts.
 definition: Share of requests with at most this many input tokens, over all requests and for three highlighted models: DeepSeek V3.2, DeepSeek R1 and MiniMax M2.5.
-rows: The plot-ready table · data/paper/plotdata/fig_token_length_input_cdf_by_model.parquet — How it is computed · the artifact on GitHub

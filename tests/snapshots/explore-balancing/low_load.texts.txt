@@ -1,5 +1,4 @@
 title: Low load
 insight: Under low load, the user stays mostly on one instance, and cache hits concentrate there.
 caption: Keeping a user's requests on one instance preserves its prefix state and maximizes reuse.
-definition: The same for the least busy such user, still with at least 200 requests in that hour.
-rows: The plot-ready table · data/paper/plotdata/fig_lb_user_zoom_min.parquet — How it is computed · the artifact on GitHub
+definition: The same for the least busy such user.

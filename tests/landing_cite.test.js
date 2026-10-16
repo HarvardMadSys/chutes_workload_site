@@ -63,3 +63,15 @@ test("the citation's sentence links the paper's address", () => {
   renderCiteLine(container);
   assert.ok(container.innerHTML.includes(`<a href="${URLS.paper}"`), container.innerHTML);
 });
+
+test("the see-also sentence links the blog post in a new tab, which the stylesheet ends in an arrow", () => {
+  const container = { innerHTML: "" };
+  renderCiteLine(container);
+  const seeAlso = container.innerHTML.split('<p class="cite-see-also">')[1];
+  assert.ok(seeAlso !== undefined, container.innerHTML);
+  const link = `<a href="${URLS.blog}" target="_blank" rel="noopener">A Year of LLM Traffic, in a Browser Tab</a>`;
+  assert.ok(seeAlso.startsWith(`See also ${link}`), seeAlso);
+  assert.equal(URLS.blog, "https://kasivisu4.github.io/blog/a-year-of-llm-traffic-in-a-browser-tab/");
+  const stylesheet = readFileSync(new URL("../site/style.css", import.meta.url), "utf8");
+  assert.match(stylesheet, /a\[target="_blank"\]::after \{\s*content: "\\2197";/);
+});

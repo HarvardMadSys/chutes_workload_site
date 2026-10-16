@@ -2,4 +2,3 @@ title: Users: requests and models
 insight: Most users issue relatively few requests and access only a small number of models.
 caption: A sparse tail of users sends many requests across a much broader model set. These may be automated applications, proxy services, model routers or agentic workflows.
 definition: Each user placed by their request count and the number of distinct models they used, binned into hexagons shaded by how many users fall in each.
-rows: The plot-ready table · data/paper/plotdata/fig_user_requests_distinct_models_heatmap.parquet — How it is computed · the artifact on GitHub

@@ -10,12 +10,8 @@ import {
   formatCount, formatCountTick, formatPercent, formatSeconds, formatSecondsTick, formatShare, formatThousandsTick,
   formatWholeCount,
 } from "../shared/format.js";
-import { URLS } from "../shared/layout.js";
 import { HIGHLIGHTED_LABELS, HIGHLIGHTED_SERIES } from "../shared/series.js";
 import { frozenCard } from "./figure_card.js";
-
-// The artifact's README of these figures, which says how each is computed.
-const SECTION_README = `${URLS.code}/blob/main/paper/02_token_shape_latency/README.md`;
 
 // The y axis of every CDF of this topic: the share of requests at or below a value, in percent.
 const SHARE_OF_REQUESTS = Object.freeze({ label: "Share of requests" });
@@ -44,7 +40,6 @@ export const TOKENS_TOPIC = Object.freeze({
       insight: "Requests are often prompt-heavy.",
       caption: "Input sizes vary from roughly 10² to 10⁵ tokens, with a heavy tail toward very long prompts.",
       definition: "Share of requests with at most this many input tokens, over all requests and for three highlighted models: DeepSeek V3.2, DeepSeek R1 and MiniMax M2.5.",
-      source: SECTION_README,
       kind: "cdf",
       series: HIGHLIGHTED_SERIES,
       chart: {
@@ -63,7 +58,6 @@ export const TOKENS_TOPIC = Object.freeze({
       insight: "Highlighted models show distinct usage profiles.",
       caption: "Output sizes are more concentrated, mostly between 10¹ and 10³ tokens. DeepSeek R1 has heavier output, consistent with reasoning workloads that generate longer completions.",
       definition: "Share of requests with at most this many output tokens, over all requests and for the three highlighted models.",
-      source: SECTION_README,
       kind: "cdf",
       series: HIGHLIGHTED_SERIES,
       chart: {
@@ -82,7 +76,6 @@ export const TOKENS_TOPIC = Object.freeze({
       insight: "Most requests generate fewer output tokens than input tokens.",
       caption: "MiniMax-M2.5 has the lowest output-to-input ratio, consistent with coding and agentic workloads; DeepSeek R1 has the highest.",
       definition: "Share of requests whose output tokens divided by their input tokens is at most this ratio, over all requests and for the three highlighted models.",
-      source: SECTION_README,
       kind: "cdf",
       series: HIGHLIGHTED_SERIES,
       chart: {
@@ -103,7 +96,6 @@ export const TOKENS_TOPIC = Object.freeze({
       insight: "Models can be latency-bound for different reasons.",
       caption: "End-to-end latency spans several orders of magnitude, from sub-second requests to requests lasting tens of seconds. DeepSeek R1 has the longest, consistent with its long outputs.",
       definition: "Share of requests whose end-to-end latency is at most this many seconds, over all requests and for the three highlighted models.",
-      source: SECTION_README,
       kind: "cdf",
       series: HIGHLIGHTED_SERIES,
       chart: {
@@ -121,7 +113,6 @@ export const TOKENS_TOPIC = Object.freeze({
       insight: "End-to-end latency is dominated by decode.",
       caption: "Time to first token is usually only a fraction of a request's duration. MiniMax-M2.5 completes faster overall, but a larger share of its latency comes from it.",
       definition: "Share of requests whose time to first token (TTFT, the prefill) is at most this fraction of the request's whole duration, over all requests and for the three highlighted models.",
-      source: SECTION_README,
       kind: "cdf",
       series: HIGHLIGHTED_SERIES,
       chart: {
@@ -140,7 +131,6 @@ export const TOKENS_TOPIC = Object.freeze({
       insight: "Output length drives duration; input length drives TTFT.",
       caption: "Median end-to-end duration increases proportionally to output length and is barely affected by input length, since completion time is decode dominated.",
       definition: "Median duration of the requests in each bucket of input tokens and output tokens.",
-      source: SECTION_README,
       kind: "cells",
       chart: {
         x: { label: "Input tokens", domain: INPUT_DOMAIN, tickFormat: formatThousandsTick },
@@ -157,7 +147,6 @@ export const TOKENS_TOPIC = Object.freeze({
       insight: "Time to first token grows primarily with input length.",
       caption: "Duration is governed by output length, and TTFT by input length.",
       definition: "Median time to first token of the requests in each bucket of input tokens and output tokens.",
-      source: SECTION_README,
       kind: "cells",
       chart: {
         x: { label: "Input tokens", domain: INPUT_DOMAIN, tickFormat: formatThousandsTick },
@@ -174,7 +163,6 @@ export const TOKENS_TOPIC = Object.freeze({
       insight: "Caching cuts TTFT most aggressively on long-input requests.",
       caption: "For requests with similar input length, higher token hit ratios correspond to lower TTFT. For short inputs, even near-full cache hits remove little prefill work.",
       definition: "Median time to first token over buckets of input tokens and token hit ratio, the share of a request's input tokens served from the prefix cache.",
-      source: SECTION_README,
       kind: "cells",
       chart: {
         x: { label: "Input tokens", domain: INPUT_DOMAIN, tickFormat: formatThousandsTick },

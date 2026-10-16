@@ -64,9 +64,7 @@ TILE_VALUE = "#traffic-explorer .traffic-tiles li strong"  # the value of each o
 A_DIGIT = re.compile(r"\d")  # a tile showing a number, not its loading or missing text
 MONTH_COUNT = re.compile(r"\d+ months? of")  # the hero's lede and the footer's line, once the totals give the months
 FIGURE_ANSWER = re.compile(r"/data/all/figures/(?P<figure>[^/?#]+)\.json$")  # the address of a figure's answer
-# A card names its figure's plot-ready table behind its Definition control, `data/paper/plotdata/<figure>.parquet`.
-CARD_TABLE = ".figure-rows code"
-PLOTDATA_TABLE = re.compile(r"data/paper/plotdata/(?P<figure>[^/]+)\.parquet$")
+CARD_FIGURE = "data-figure"  # the attribute of a card's article that names its figure
 SKIP_MESSAGE = "snapshots skipped: Chromium could not start ({reason}). `make setup-browser` installs it."
 
 
@@ -134,9 +132,11 @@ def record_figure_answer(requested: list[str], request) -> None:
 
 
 def topic_figures(page, topic: str) -> set[str]:
-    """The figures of the cards of the topic section `topic` (its id), as their Definition controls name them."""
-    tables = page.locator(f"#{topic} {CARD_TABLE}").all_text_contents()
-    return {PLOTDATA_TABLE.search(table)["figure"] for table in tables}
+    """The figures of the cards of the topic section `topic` (its id), as their articles' `data-figure` name them."""
+    figures = set()
+    for card in page.locator(f"#{topic} [{CARD_FIGURE}]").all():
+        figures.add(card.get_attribute(CARD_FIGURE))
+    return figures
 
 
 def other_topics_answers(page, topic: str, requested: list[str]) -> list[str]:

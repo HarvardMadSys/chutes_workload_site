@@ -53,12 +53,13 @@ The one page, `index.html`, holds, in order:
   as its card, and a caption; a tooltip with the values under the pointer,
   but on the four rasters, which are drawn as one image each; and, where
   it has more than one series, a legend whose buttons hide and show them.
-  Behind a Definition control are its definition, a link to its
-  plot-ready table in the artifact and a link to the artifact's account of
-  how it is computed. The two monthly share cards take their series' order
-  from the paper's shared legend, the 48th table.
+  Behind a Definition control is its definition, and nothing else. The
+  two monthly share cards take their series' order from the paper's shared
+  legend, the 48th table.
 - **Cite** (`#cite`) and **Team**: the paper's citation as BibTeX with a
-  copy button, and the lab, its collaborators and the paper's authors.
+  copy button and a see-also line linking the blog post that explores the
+  trace in the browser, and the lab, its collaborators and the paper's
+  authors.
 
 ## Where the numbers come from
 
