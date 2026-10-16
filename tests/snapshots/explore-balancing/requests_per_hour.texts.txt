@@ -1,0 +1,5 @@
+title: Requests per hour
+insight: Request rate stays roughly stationary.
+caption: Request rate remains bursty but roughly stationary throughout the trace's last two months.
+definition: Requests per hour to DeepSeek-V3-0324 over trace days 306 to 364, the trace's last two months.
+rows: Cache: instance_minute_stats_deepseek_v3_0324.parquet (40 MB), not shipped: built from the trace into output/paper/cache/ on the first run

@@ -1,7 +1,11 @@
 """The snapshot test's normalising of what it reads: markup one element per line with Plot's numbered ids unnumbered,
-whitespace collapsed, and a card's title made a file name; and its list of states."""
+whitespace collapsed, and a card's title made a file name; and its list of states, each a topic of the page."""
+
+import pathlib
 
 import snapshot_units
+
+PAGE = pathlib.Path(__file__).resolve().parent.parent / "site" / "index.html"
 
 
 def test_markup_is_written_one_element_per_line() -> None:
@@ -41,3 +45,9 @@ def test_a_card_title_is_a_file_name() -> None:
 def test_every_topic_is_a_state() -> None:
     assert snapshot_units.state_names() == list(snapshot_units.EXPLORE_STATES)
     assert "explore-balancing" in snapshot_units.state_names()
+
+
+def test_every_state_s_topic_is_a_section_of_the_page() -> None:
+    page = PAGE.read_text()
+    for topic in snapshot_units.EXPLORE_STATES.values():
+        assert f'<section id="{topic}"' in page, f"index.html has no section {topic}"

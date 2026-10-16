@@ -1,0 +1,5 @@
+title: Model exploration
+insight: A single user may use multiple models concurrently, either steadily or in short bursts.
+caption: This user spends most of the month on a few models, but briefly accesses many additional models during a short period.
+definition: Thirty-one days of one heavy user, the 134th by requests in the window: one row per model, a mark for each request.
+rows: Cache: the raster tables (29 MB for the four), not shipped: built from the trace into output/paper/cache/ on the first run

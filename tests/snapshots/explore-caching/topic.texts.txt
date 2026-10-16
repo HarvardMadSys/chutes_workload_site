@@ -1,0 +1,8 @@
+tab: 01 Workload overview | selected=false
+tab: 02 Token shape and latency | selected=false
+tab: 03 Users and models | selected=false
+tab: 04 Workload evolution | selected=false
+tab: 05 Prefix caching | selected=true
+tab: 06 Load balancing | selected=false
+heading: 05 Prefix caching
+takeaway: Cache reuse is common but uneven and strongly recency-driven, making simple policies such as FIFO and LRU highly competitive.

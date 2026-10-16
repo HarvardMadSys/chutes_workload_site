@@ -1,0 +1,8 @@
+13 Months
+6.12B Requests
+35.8T Input tokens
+2.52T Output tokens
+481.5k User ids
+9,174 Models
+875.9k Instances
+April 11, 2025 – April 12, 2026

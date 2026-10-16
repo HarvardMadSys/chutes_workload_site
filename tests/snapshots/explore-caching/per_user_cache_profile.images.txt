@@ -1,0 +1,1 @@
+figures/fig_user_nreq_vs_avg_hitratio_hexbin.png | width=567 | height=483

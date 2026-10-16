@@ -1,0 +1,4 @@
+title: Endpoint mix
+caption: Each endpoint group's share of the requests.
+definition: Requests over the whole trace, by the endpoint they were sent to: chat or completion, streamed or not. Requests to any other endpoint are Other.
+rows: 6,122,413,756 requests

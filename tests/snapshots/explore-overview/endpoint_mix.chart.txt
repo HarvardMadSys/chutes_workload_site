@@ -1,0 +1,19 @@
+<svg viewBox="-100 -100 200 200" class="donut" role="img" aria-label="Endpoint mix: Each endpoint group's share of the requests.">
+<path d="M 0 -100 A 100 100 0 0 1 26.74 96.36 L 16.58 59.74 A 62 62 0 0 0 0 -62 Z" fill="var(--series-5)" class="donut-slice">
+<title>Chat: 45.7% of requests (2,797,441,866)</title>
+</path>
+<path d="M 26.74 96.36 A 100 100 0 0 1 -76.59 -64.3 L -47.48 -39.86 A 62 62 0 0 0 16.58 59.74 Z" fill="var(--series-6)" class="donut-slice">
+<title>Chat stream: 40.4% of requests (2,474,885,326)</title>
+</path>
+<path d="M -76.59 -64.3 A 100 100 0 0 1 -6.68 -99.78 L -4.14 -61.86 A 62 62 0 0 0 -47.48 -39.86 Z" fill="var(--series-7)" class="donut-slice">
+<title>Completion stream: 12.8% of requests (784,931,050)</title>
+</path>
+<path d="M -6.68 -99.78 A 100 100 0 0 1 -5.09 -99.87 L -3.16 -61.92 A 62 62 0 0 0 -4.14 -61.86 Z" fill="var(--series-8)" class="donut-slice">
+<title>Completion: 0.3% of requests (15,541,754)</title>
+</path>
+<path d="M -5.09 -99.87 A 100 100 0 0 1 0 -100 L 0 -62 A 62 62 0 0 0 -3.16 -61.92 Z" fill="var(--series-other)" class="donut-slice">
+<title>Other: 0.8% of requests (49,613,760)</title>
+</path>
+<text y="-0.15em" class="donut-total">6.12B</text>
+<text y="1.35em" class="donut-unit">requests</text>
+</svg>

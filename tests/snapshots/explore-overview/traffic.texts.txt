@@ -1,0 +1,4 @@
+title: Requests per day
+caption: Requests each day, by model: the eight the model mix names, and Other.
+definition: Requests per calendar day of the chosen model, endpoint group and period, stacked by model (the eight models the model mix names, the rest as Other) while no model is chosen, and by the endpoint group they were sent to once one is. An average in the tiles divides by the requests that record its value.
+rows: 6,122,413,756 requests

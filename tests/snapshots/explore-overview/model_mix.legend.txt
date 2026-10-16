@@ -1,0 +1,9 @@
+deepseek-ai/DeepSeek-V3-0324 18.3% | pressed=true | legend-swatch background: var(--series-1);
+deepseek-ai/DeepSeek-R1 14.8% | pressed=true | legend-swatch background: var(--series-2);
+Qwen/Qwen3-32B 7.6% | pressed=true | legend-swatch background: var(--series-3);
+deepseek-ai/DeepSeek-V3.2-Exp 5.0% | pressed=true | legend-swatch background: var(--series-4);
+deepseek-ai/DeepSeek-R1-0528 4.5% | pressed=true | legend-swatch background: var(--series-5);
+unsloth/gemma-3-12b-it 4.1% | pressed=true | legend-swatch background: var(--series-6);
+tngtech/DeepSeek-TNG-R1T2-Chimera 3.2% | pressed=true | legend-swatch background: var(--series-7);
+Qwen/Qwen3-32B-TEE 2.0% | pressed=true | legend-swatch background: var(--series-8);
+Other 40.6% | pressed=true | legend-swatch background: var(--series-other);

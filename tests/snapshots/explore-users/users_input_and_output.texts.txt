@@ -1,0 +1,5 @@
+title: Users: input and output
+insight: The user view is more concentrated, but still spans a broad range.
+caption: Some users consistently send short prompts, while others work with much larger contexts; output lengths also vary substantially.
+definition: Each user placed by their median input tokens and median output tokens per request, binned into hexagons shaded by how many users fall in each.
+rows: Cache: the per-user medians (9.6 MB), not shipped: built from the trace into output/paper/cache/ on the first run

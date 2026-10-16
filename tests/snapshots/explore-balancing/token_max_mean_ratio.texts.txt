@@ -1,0 +1,5 @@
+title: Token max/mean ratio
+insight: Load is not always evenly distributed across active instances.
+caption: The per-hour max/mean token-load ratio drifts upward as the model scales down, so the imbalance worsens as the serving pool shrinks.
+definition: Each minute's highest token load on one instance of DeepSeek-V3-0324 divided by the mean across its instances, averaged over each hour.
+rows: Cache: instance_minute_stats_deepseek_v3_0324.parquet (40 MB), not shipped: built from the trace into output/paper/cache/ on the first run

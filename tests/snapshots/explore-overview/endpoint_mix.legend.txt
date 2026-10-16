@@ -1,0 +1,5 @@
+Chat 45.7% | pressed=true | legend-swatch background: var(--series-5);
+Chat stream 40.4% | pressed=true | legend-swatch background: var(--series-6);
+Completion stream 12.8% | pressed=true | legend-swatch background: var(--series-7);
+Completion 0.3% | pressed=true | legend-swatch background: var(--series-8);
+Other 0.8% | pressed=true | legend-swatch background: var(--series-other);

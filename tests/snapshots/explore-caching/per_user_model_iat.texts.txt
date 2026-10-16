@@ -1,0 +1,5 @@
+title: Per-user-model IAT
+insight: A short TTL covers most repeat arrivals.
+caption: 99% of reuse arrives within 15 minutes of the previous request. Cache locality is concentrated at short timescales.
+definition: Share of requests that follow the previous request of the same user and model within this time, weighted by request: the reuse a cache time-to-live (TTL) of that length would cover.
+rows: Cache: iat_per_user_model_pair.parquet (about 700 MB), not shipped: built from the trace into output/paper/cache/ on the first run

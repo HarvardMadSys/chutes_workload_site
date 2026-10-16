@@ -1,0 +1,5 @@
+title: Model token hit ratio
+insight: Cache behavior differs sharply across models.
+caption: The two DeepSeek models have many requests with zero cache hits, while MiniMax-M2.5 shows a broader distribution, with many requests at intermediate to high hit ratios.
+definition: Share of requests whose token hit ratio is at most this value, over all requests and for the three highlighted models.
+rows: Cache: this figure's query results, shipped in data/paper/cache/

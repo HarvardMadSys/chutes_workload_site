@@ -1,0 +1,8 @@
+tab: 01 Workload overview | selected=false
+tab: 02 Token shape and latency | selected=true
+tab: 03 Users and models | selected=false
+tab: 04 Workload evolution | selected=false
+tab: 05 Prefix caching | selected=false
+tab: 06 Load balancing | selected=false
+heading: 02 Token shape and latency
+takeaway: Requests are often prompt-heavy while decode dominates latency, and each highlighted model has a distinctive profile.

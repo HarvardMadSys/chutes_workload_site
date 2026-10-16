@@ -1,0 +1,8 @@
+tab: 01 Workload overview | selected=false
+tab: 02 Token shape and latency | selected=false
+tab: 03 Users and models | selected=false
+tab: 04 Workload evolution | selected=false
+tab: 05 Prefix caching | selected=false
+tab: 06 Load balancing | selected=true
+heading: 06 Load balancing
+takeaway: LLM serving faces a fundamental tension between cache locality and load balance: stickiness preserves locality but conflicts with balancing.

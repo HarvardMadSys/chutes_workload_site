@@ -1,0 +1,242 @@
+<svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" width="328" height="240" viewBox="0 0 328 240" role="img" aria-label="Requests per month: Requests each month, by model; the last month holds two days." style="color: var(--chart-label); background: transparent; font-family: var(--font-sans);">
+<style>:where(.plot-d6a7b5) { --plot-background: white; display: block; height: auto; height: intrinsic; max-width: 100%; } :where(.plot-d6a7b5 text), :where(.plot-d6a7b5 tspan) { white-space: pre; }</style>
+<g aria-label="y-grid" aria-hidden="true" stroke="var(--chart-grid)" transform="translate(0,0.5)">
+<line x1="52" x2="320" y1="180" y2="180">
+</line>
+<line x1="52" x2="320" y1="135.3827323990473" y2="135.3827323990473">
+</line>
+<line x1="52" x2="320" y1="90.76546479809463" y2="90.76546479809463">
+</line>
+<line x1="52" x2="320" y1="46.14819719714192" y2="46.14819719714192">
+</line>
+</g>
+<g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="var(--chart-axis)" transform="translate(9.5,0)">
+<path transform="translate(57,180)" d="M0,0L0,6">
+</path>
+<path transform="translate(77,180)" d="M0,0L0,6">
+</path>
+<path transform="translate(97,180)" d="M0,0L0,6">
+</path>
+<path transform="translate(117,180)" d="M0,0L0,6">
+</path>
+<path transform="translate(137,180)" d="M0,0L0,6">
+</path>
+<path transform="translate(157,180)" d="M0,0L0,6">
+</path>
+<path transform="translate(177,180)" d="M0,0L0,6">
+</path>
+<path transform="translate(197,180)" d="M0,0L0,6">
+</path>
+<path transform="translate(217,180)" d="M0,0L0,6">
+</path>
+<path transform="translate(237,180)" d="M0,0L0,6">
+</path>
+<path transform="translate(257,180)" d="M0,0L0,6">
+</path>
+<path transform="translate(277,180)" d="M0,0L0,6">
+</path>
+<path transform="translate(297,180)" d="M0,0L0,6">
+</path>
+</g>
+<g aria-label="x-axis tick label" text-anchor="end" transform="translate(9.5,12.32842712474619)">
+<text y="0.32em" transform="translate(57,180) rotate(-45)">2025-04</text>
+<text y="0.32em" transform="translate(77,180) rotate(-45)">2025-05</text>
+<text y="0.32em" transform="translate(97,180) rotate(-45)">2025-06</text>
+<text y="0.32em" transform="translate(117,180) rotate(-45)">2025-07</text>
+<text y="0.32em" transform="translate(137,180) rotate(-45)">2025-08</text>
+<text y="0.32em" transform="translate(157,180) rotate(-45)">2025-09</text>
+<text y="0.32em" transform="translate(177,180) rotate(-45)">2025-10</text>
+<text y="0.32em" transform="translate(197,180) rotate(-45)">2025-11</text>
+<text y="0.32em" transform="translate(217,180) rotate(-45)">2025-12</text>
+<text y="0.32em" transform="translate(237,180) rotate(-45)">2026-01</text>
+<text y="0.32em" transform="translate(257,180) rotate(-45)">2026-02</text>
+<text y="0.32em" transform="translate(277,180) rotate(-45)">2026-03</text>
+<text y="0.32em" transform="translate(297,180) rotate(-45)">2026-04</text>
+</g>
+<g aria-label="y-axis tick" aria-hidden="true" fill="none" stroke="var(--chart-axis)" transform="translate(0,0.5)">
+<path transform="translate(52,180)" d="M0,0L-6,0">
+</path>
+<path transform="translate(52,135.3827323990473)" d="M0,0L-6,0">
+</path>
+<path transform="translate(52,90.76546479809463)" d="M0,0L-6,0">
+</path>
+<path transform="translate(52,46.14819719714192)" d="M0,0L-6,0">
+</path>
+</g>
+<g aria-label="y-axis tick label" text-anchor="end" font-variant="tabular-nums" transform="translate(-8.5,0.5)">
+<text y="0.32em" transform="translate(52,180)">0</text>
+<text y="0.32em" transform="translate(52,135.3827323990473)">200M</text>
+<text y="0.32em" transform="translate(52,90.76546479809463)">400M</text>
+<text y="0.32em" transform="translate(52,46.14819719714192)">600M</text>
+</g>
+<g aria-label="bar">
+<rect x="58" width="16" y="144.26721952551486" height="34.73278047448514" fill="var(--series-1)">
+</rect>
+<rect x="58" width="16" y="138.64239154051825" height="3.624827984996614" fill="var(--series-2)">
+</rect>
+<rect x="58" width="16" y="138.36478312459147" height="0" fill="var(--series-6)">
+</rect>
+<rect x="58" width="16" y="138.59862646272848" height="0" fill="var(--series-3)">
+</rect>
+<rect x="58" width="16" y="123.4180270333236" height="12.946756091267872" fill="var(--series-other)">
+</rect>
+<rect x="78" width="16" y="129.03239628462185" height="49.96760371537815" fill="var(--series-1)">
+</rect>
+<rect x="78" width="16" y="120.47409583654964" height="6.558300448072217" fill="var(--series-2)">
+</rect>
+<rect x="78" width="16" y="117.34886839621034" height="0.7529949463707339" fill="var(--series-5)">
+</rect>
+<rect x="78" width="16" y="120.10186334258107" height="0" fill="var(--series-3)">
+</rect>
+<rect x="78" width="16" y="117.2863520193659" height="0" fill="var(--series-6)">
+</rect>
+<rect x="78" width="16" y="102.51309106550967" height="12.773260953856237" fill="var(--series-other)">
+</rect>
+<rect x="98" width="16" y="108.45870181159981" height="70.54129818840019" fill="var(--series-1)">
+</rect>
+<rect x="98" width="16" y="81.32324729678948" height="25.135454514810334" fill="var(--series-2)">
+</rect>
+<rect x="98" width="16" y="70.86860210176678" height="7.88825909948423" fill="var(--series-5)">
+</rect>
+<rect x="98" width="16" y="80.75686120125101" height="0" fill="var(--series-3)">
+</rect>
+<rect x="98" width="16" y="70.75783081149389" height="0" fill="var(--series-7)">
+</rect>
+<rect x="98" width="16" y="70.83170183677008" height="0" fill="var(--series-6)">
+</rect>
+<rect x="98" width="16" y="50.31473777332997" height="18.443093038163916" fill="var(--series-other)">
+</rect>
+<rect x="118" width="16" y="117.72085951076117" height="34.19504312647324" fill="var(--series-2)">
+</rect>
+<rect x="118" width="16" y="153.9159026372344" height="25.08409736276559" fill="var(--series-1)">
+</rect>
+<rect x="118" width="16" y="110.44576350246825" height="4.01676056421536" fill="var(--series-5)">
+</rect>
+<rect x="118" width="16" y="116.46252406668361" height="0" fill="var(--series-3)">
+</rect>
+<rect x="118" width="16" y="108.98642860636645" height="0" fill="var(--series-7)">
+</rect>
+<rect x="118" width="16" y="110.21953365487465" height="0" fill="var(--series-6)">
+</rect>
+<rect x="118" width="16" y="72.2822594009031" height="34.704169205463344" fill="var(--series-other)">
+</rect>
+<rect x="138" width="16" y="126.6066607419096" height="29.11589123991274" fill="var(--series-2)">
+</rect>
+<rect x="138" width="16" y="157.72255198182233" height="21.277448018177665" fill="var(--series-1)">
+</rect>
+<rect x="138" width="16" y="102.24332948843588" height="13.421668980202568" fill="var(--series-6)">
+</rect>
+<rect x="138" width="16" y="117.66499846863844" height="5.586824587272162" fill="var(--series-5)">
+</rect>
+<rect x="138" width="16" y="98.72125599228328" height="1.5220734961526006" fill="var(--series-7)">
+</rect>
+<rect x="138" width="16" y="125.2518230559106" height="0" fill="var(--series-3)">
+</rect>
+<rect x="138" width="16" y="22.28178037345224" height="74.43947561883104" fill="var(--series-other)">
+</rect>
+<rect x="158" width="16" y="84.17615101346297" height="36.687387787986964" fill="var(--series-6)">
+</rect>
+<rect x="158" width="16" y="128.91567260467832" height="35.285094953081256" fill="var(--series-2)">
+</rect>
+<rect x="158" width="16" y="166.20076755775958" height="12.799232442240424" fill="var(--series-1)">
+</rect>
+<rect x="158" width="16" y="122.86353880144993" height="2.252687722621971" fill="var(--series-5)">
+</rect>
+<rect x="158" width="16" y="82.21577847972809" height="0" fill="var(--series-7)">
+</rect>
+<rect x="158" width="16" y="127.24101499822066" height="0" fill="var(--series-3)">
+</rect>
+<rect x="158" width="16" y="127.1162265240719" height="0" fill="var(--series-4)">
+</rect>
+<rect x="158" width="16" y="13" height="67.21577847972809" fill="var(--series-other)">
+</rect>
+<rect x="178" width="16" y="134.73211413020036" height="32.45086445524413" fill="var(--series-2)">
+</rect>
+<rect x="178" width="16" y="120.72320519588266" height="10.035416023785729" fill="var(--series-5)">
+</rect>
+<rect x="178" width="16" y="169.1829785854445" height="9.817021414555512" fill="var(--series-1)">
+</rect>
+<rect x="178" width="16" y="111.9478412947591" height="6.249256936257197" fill="var(--series-7)">
+</rect>
+<rect x="178" width="16" y="133.1270440682428" height="0" fill="var(--series-3)">
+</rect>
+<rect x="178" width="16" y="120.1970982310163" height="0" fill="var(--series-6)">
+</rect>
+<rect x="178" width="16" y="132.75862121966838" height="0" fill="var(--series-4)">
+</rect>
+<rect x="178" width="16" y="49.2958424574373" height="60.6519988373218" fill="var(--series-other)">
+</rect>
+<rect x="198" width="16" y="149.63997980325018" height="19.67628575960299" fill="var(--series-2)">
+</rect>
+<rect x="198" width="16" y="130.14301176369452" height="14.62798805210653" fill="var(--series-4)">
+</rect>
+<rect x="198" width="16" y="115.83812303042897" height="12.304888733265543" fill="var(--series-5)">
+</rect>
+<rect x="198" width="16" y="171.31626556285318" height="7.683734437146825" fill="var(--series-1)">
+</rect>
+<rect x="198" width="16" y="106.82835629063271" height="6.715205546871815" fill="var(--series-7)">
+</rect>
+<rect x="198" width="16" y="146.77099981580105" height="0.8689799874491371" fill="var(--series-3)">
+</rect>
+<rect x="198" width="16" y="115.54356183750453" height="0" fill="var(--series-6)">
+</rect>
+<rect x="198" width="16" y="39.66619954158014" height="65.16215674905257" fill="var(--series-other)">
+</rect>
+<rect x="218" width="16" y="148.62149340461508" height="28.58458011695342" fill="var(--series-3)">
+</rect>
+<rect x="218" width="16" y="134.1699615440982" height="12.451531860516894" fill="var(--series-4)">
+</rect>
+<rect x="218" width="16" y="120.74976897849423" height="6.757853631367212" fill="var(--series-7)">
+</rect>
+<rect x="218" width="16" y="129.83936493348213" height="2.3305966106160554" fill="var(--series-5)">
+</rect>
+<rect x="218" width="16" y="179.46653306760655" height="0" fill="var(--series-1)">
+</rect>
+<rect x="218" width="16" y="129.50762260986144" height="0" fill="var(--series-6)">
+</rect>
+<rect x="218" width="16" y="179.2060735215685" height="0" fill="var(--series-2)">
+</rect>
+<rect x="218" width="16" y="69.75148677915003" height="48.9982821993442" fill="var(--series-other)">
+</rect>
+<rect x="238" width="16" y="151.82311809992214" height="27.17688190007786" fill="var(--series-3)">
+</rect>
+<rect x="238" width="16" y="134.08149643367605" height="15.74162166624609" fill="var(--series-4)">
+</rect>
+<rect x="238" width="16" y="123.9622486088359" height="7.869669761110984" fill="var(--series-7)">
+</rect>
+<rect x="238" width="16" y="133.8319183699469" height="0" fill="var(--series-6)">
+</rect>
+<rect x="238" width="16" y="75.37140084137943" height="46.59084776745648" fill="var(--series-other)">
+</rect>
+<rect x="258" width="16" y="151.90073652950414" height="27.099263470495856" fill="var(--series-3)">
+</rect>
+<rect x="258" width="16" y="133.5533649602923" height="16.347371569211845" fill="var(--series-4)">
+</rect>
+<rect x="258" width="16" y="131.6855444786918" height="0" fill="var(--series-7)">
+</rect>
+<rect x="258" width="16" y="133.4428856900359" height="0" fill="var(--series-6)">
+</rect>
+<rect x="258" width="16" y="82.53347952614841" height="47.1520649525434" fill="var(--series-other)">
+</rect>
+<rect x="278" width="16" y="150.6723267791519" height="23.693648627717238" fill="var(--series-8)">
+</rect>
+<rect x="278" width="16" y="176.37282571905024" height="2.6271742809497596" fill="var(--series-3)">
+</rect>
+<rect x="278" width="16" y="176.36597540686913" height="0" fill="var(--series-6)">
+</rect>
+<rect x="278" width="16" y="109.65308331047085" height="39.01924346868104" fill="var(--series-other)">
+</rect>
+<rect x="298" width="16" y="179.43427857559877" height="0" fill="var(--series-8)">
+</rect>
+<rect x="298" width="16" y="180.99961562223962" height="0" fill="var(--series-6)">
+</rect>
+<rect x="298" width="16" y="177.0917473212858" height="0.3425312543129735" fill="var(--series-other)">
+</rect>
+</g>
+<g aria-label="rule" stroke="var(--chart-axis)" transform="translate(0,0.5)">
+<line x1="52" x2="320" y1="180" y2="180">
+</line>
+</g>
+<g aria-label="tip" fill="var(--plot-background)" stroke="currentColor" pointer-events="none" text-anchor="start" transform="translate(9.5,0.5)">
+</g>
+</svg>

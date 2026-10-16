@@ -1,0 +1,1 @@
+figures/fig_model_heatmap_fixedxy_density.png | width=600 | height=514

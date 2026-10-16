@@ -1,0 +1,1 @@
+figures/fig_model_raster_qwen3_next_80b.png | width=564 | height=486

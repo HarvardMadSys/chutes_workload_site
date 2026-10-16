@@ -1,0 +1,1 @@
+figures/fig_monthly_output_token_intervals.png | width=566 | height=485

@@ -1,0 +1,4 @@
+6.12B Requests
+6,321 Avg input tokens
+445 Avg output tokens
+2.3 s Avg TTFT 49% record it

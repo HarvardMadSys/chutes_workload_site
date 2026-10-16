@@ -1,0 +1,1 @@
+figures/fig_user_release_cohort_input_band.png | width=564 | height=485

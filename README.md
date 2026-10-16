@@ -221,9 +221,9 @@ tests/             what make test runs
   test_differences.py       no figure's definition names the paper
   test_repository.py        the repository's countable rules
   snapshot.py, snapshot_units.py, test_snapshot.py, test_snapshot_units.py
-                   the snapshot test: twelve states of the pages opened in headless Chromium (the Explore page with
-                   each topic shown, two fixed sessions in each view), each unit they show (a chart, a table, a legend,
-                   a block of text) read as text and compared with tests/snapshots/
+                   the snapshot test: six states of the page opened in headless Chromium (the page with each
+                   Insights topic shown), each unit they show (a chart, a legend, a block of text, a card's images)
+                   read as text and compared with tests/snapshots/
   snapshots/       one folder per page state, one text file per unit, rewritten by make snapshots
   *.test.js        node --test, one file per JavaScript module with pure functions
   module_headers.test.js    the module headers over ten lines, listed as a warning for review, never failed

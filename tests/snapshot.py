@@ -1,10 +1,10 @@
 """The snapshot test: what a visitor sees on six states of the site, kept as text in `tests/snapshots/` and compared.
 
 A snapshot is one folder per page state, `tests/snapshots/<state>/`, holding one text file per unit the state shows:
-each chart's SVG, each table's rows, each legend's entries, each card's texts, the stats strip. `snapshot_units.py`
-names the states and says what each file holds. The states are the Explore page with each of its six Insights topics
-shown. A unit that is the same in every state is written once, with the first state: the Explore page's hero, stats
-strip, Overview, cite and team.
+each chart's SVG, each legend's entries, each card's texts and images, the stats strip. `snapshot_units.py`
+names the states and says what each file holds. The states are the Explore page opened at each of its six Insights
+topics' anchors (`index.html#insights-tokens`), each in a fresh page. A unit that is the same in every state is written
+once, with the first state: the Explore page's hero, stats strip, Overview, Traffic Explorer, cite, team and footer.
 
     .venv/bin/python tests/snapshot.py           # compare: fails naming each unit that changed (make test)
     .venv/bin/python tests/snapshot.py --write   # rewrite every file (make snapshots)
@@ -24,6 +24,7 @@ import difflib
 import functools
 import http.server
 import pathlib
+import re
 import shutil
 import sys
 import threading
@@ -44,6 +45,14 @@ DRAW_TIMEOUT_MS = 60_000  # the longest a state may take to draw: a topic fetche
 SETTLE_PAUSE_MS = 250  # the pause between two reads of a state; it is read until two reads agree
 SETTLE_REREADS = 20  # the most reads of a state after its first before it is called unsettled
 DIFF_LINES_SHOWN = 12  # the lines of each changed unit's diff printed; `git diff` after `make snapshots` shows the rest
+# True once the topic section the argument names holds images and every one has loaded; an image that failed to load
+# is complete with no width, and so is never counted loaded.
+IMAGES_LOADED = """(topic) => {
+  const images = [...document.querySelectorAll(`#${topic} img`)];
+  return images.length > 0 && images.every((image) => image.complete && image.naturalWidth > 0);
+}"""
+TILE_VALUE = "#traffic-explorer .traffic-tiles li strong"  # the value of each of the Traffic Explorer's tiles
+A_DIGIT = re.compile(r"\d")  # a tile showing a number, not its loading or missing text
 SKIP_MESSAGE = "snapshots skipped: Chromium could not start ({reason}). `make setup-browser` installs it."
 
 
@@ -96,9 +105,15 @@ def record_failed_request(errors: list[str], request) -> None:
     errors.append(f"request failed: {request.url} ({request.failure})")
 
 
-def wait_until_drawn(page) -> None:
-    """Wait until no loading line is visible: every chart, table and text block of the state has been drawn."""
-    playwright.sync_api.expect(page.locator(".loading:visible")).to_have_count(0, timeout=DRAW_TIMEOUT_MS)
+def wait_until_drawn(page, topic: str) -> None:
+    """Wait until the topic section `topic` (its id) is the one shown and the state has drawn: no loading line is
+    visible, every image of the topic has loaded, and the Traffic Explorer's first tile shows a number."""
+    expect = playwright.sync_api.expect
+    expect(page.locator(f"#tab-{topic}")).to_have_attribute("aria-selected", "true", timeout=DRAW_TIMEOUT_MS)
+    expect(page.locator(f"#{topic}")).to_be_visible(timeout=DRAW_TIMEOUT_MS)
+    expect(page.locator(".loading:visible")).to_have_count(0, timeout=DRAW_TIMEOUT_MS)
+    page.wait_for_function(IMAGES_LOADED, arg=topic, timeout=DRAW_TIMEOUT_MS)
+    expect(page.locator(TILE_VALUE).first).to_have_text(A_DIGIT, timeout=DRAW_TIMEOUT_MS)
 
 
 def read_when_settled(page, read) -> dict[str, str]:
@@ -113,34 +128,36 @@ def read_when_settled(page, read) -> dict[str, str]:
     raise PageError(f"the page was still changing after {SETTLE_REREADS + 1} reads at {page.url}")
 
 
-def read_explore_states(page, address: str) -> dict[str, dict[str, str]]:
-    """The units of the Explore page with each topic shown in turn, by its tab, and its other parts with the first."""
-    page.goto(f"{address}/index.html", wait_until="networkidle")
-    states = {}
-    for state, topic in snapshot_units.EXPLORE_STATES.items():
-        page.locator(f"#tab-{topic}").click()
-        playwright.sync_api.expect(page.locator(f"#{topic}")).to_be_visible()
-        wait_until_drawn(page)
-        try:
-            units = read_when_settled(page, functools.partial(snapshot_units.topic_units, page, topic))
-            if not states:  # the first state also holds the page's units that no tab changes
-                units.update(read_when_settled(page, functools.partial(snapshot_units.explore_page_units, page)))
-        except snapshot_units.SharedTitleError as error:
-            raise PageError(f"in the state {state}: {error}") from error
-        states[state] = units
-    return states
+def read_state(page, address: str, topic: str, with_page_units: bool) -> dict[str, str]:
+    """The units of the Explore page opened at the topic `topic` (its anchor), once drawn; with `with_page_units`, also
+    the page's units that no topic changes."""
+    page.goto(f"{address}/index.html#{topic}", wait_until="networkidle")
+    wait_until_drawn(page, topic)
+    units = read_when_settled(page, functools.partial(snapshot_units.topic_units, page, topic))
+    if with_page_units:
+        page_units = read_when_settled(page, functools.partial(snapshot_units.explore_page_units, page))
+        shared = sorted(set(units) & set(page_units))
+        if shared:
+            raise snapshot_units.SharedTitleError(f"the topic and the page both show {', '.join(shared)}")
+        units.update(page_units)
+    return units
 
 
 def read_states(browser, address: str) -> dict[str, dict[str, str]]:
-    """Every state's units, `{state: {unit: text}}`, read in a fresh page of `browser` from the site at `address`."""
-    page = browser.new_page(viewport=VIEWPORT, locale=LOCALE, timezone_id=TIME_ZONE, color_scheme=COLOUR_SCHEME)
+    """Every state's units, `{state: {unit: text}}`, each read in a fresh page of `browser` from the site at
+    `address`; the first state also holds the page's units that no topic changes."""
     errors = []
-    record_errors(page, errors)
-    try:
-        states = read_explore_states(page, address)
-    except (playwright.sync_api.Error, AssertionError) as error:  # a state that did not draw: say why, with what the browser reported
-        raise PageError(f"{error}\nthe browser reported:\n" + "\n".join(errors)) from error
-    page.close()
+    states = {}
+    for state, topic in snapshot_units.EXPLORE_STATES.items():
+        page = browser.new_page(viewport=VIEWPORT, locale=LOCALE, timezone_id=TIME_ZONE, color_scheme=COLOUR_SCHEME)
+        record_errors(page, errors)
+        try:
+            states[state] = read_state(page, address, topic, with_page_units=not states)
+        except (playwright.sync_api.Error, AssertionError) as error:  # a state that did not draw: say why, with what the browser reported
+            raise PageError(f"in the state {state}: {error}\nthe browser reported:\n" + "\n".join(errors)) from error
+        except snapshot_units.SharedTitleError as error:
+            raise PageError(f"in the state {state}: {error}") from error
+        page.close()
     if errors:
         raise PageError("the site reported errors in the browser:\n" + "\n".join(errors))
     return states

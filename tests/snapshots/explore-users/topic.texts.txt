@@ -1,0 +1,8 @@
+tab: 01 Workload overview | selected=false
+tab: 02 Token shape and latency | selected=false
+tab: 03 Users and models | selected=true
+tab: 04 Workload evolution | selected=false
+tab: 05 Prefix caching | selected=false
+tab: 06 Load balancing | selected=false
+heading: 03 Users and models
+takeaway: Users and models exhibit distinct temporal access patterns, and model burstiness is often persistent and correlated.

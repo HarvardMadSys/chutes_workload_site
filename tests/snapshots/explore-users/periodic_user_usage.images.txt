@@ -1,0 +1,1 @@
+figures/fig_user_raster_periodic.png | width=564 | height=486

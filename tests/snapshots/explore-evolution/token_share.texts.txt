@@ -1,0 +1,5 @@
+title: Token share
+insight: Traffic spreads across more models over time.
+caption: The Others band grows in both panels: a larger fraction of requests and tokens comes from non-dominant models as more models are released and adopted.
+definition: The same models' share of each month's input plus output tokens.
+rows: Cache: monthly_requests_tokens_by_model.parquet, shipped in data/paper/cache/

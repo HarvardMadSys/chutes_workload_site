@@ -1,0 +1,1 @@
+figures/fig_lb_concurrency.png | width=684 | height=573

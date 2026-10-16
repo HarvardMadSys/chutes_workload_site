@@ -1,0 +1,5 @@
+title: Daily API calls
+insight: Chat-based traffic becomes more prominent, while completion-based traffic declines.
+caption: Streaming calls also become less dominant, with non-streaming functions accounting for a larger share later in the trace.
+definition: Requests per day by API function: chat, chat stream, completion, completion stream, and Other for every other function.
+rows: Cache: function_name_daily_requests.parquet, shipped in data/paper/cache/

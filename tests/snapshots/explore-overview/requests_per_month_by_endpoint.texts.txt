@@ -1,0 +1,4 @@
+title: Requests per month by endpoint
+caption: Requests each month, by endpoint group; the last month holds two days.
+definition: Requests per month, stacked by the endpoint they were sent to: chat or completion, streamed or not, and Other.
+rows: 6,122,413,756 requests

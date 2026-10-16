@@ -1,0 +1,1 @@
+figures/fig_lb_maxmean_tokens.png | width=524 | height=445

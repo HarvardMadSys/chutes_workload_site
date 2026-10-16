@@ -1,12 +1,12 @@
 """The states of a snapshot, and the units read from each in the browser: each unit is one block a visitor sees (a
-chart, a table, a legend, a block of text), returned as the text written to its file, `<state>/<unit>.txt`.
+chart, a legend, a block of text, a card's images), returned as the text written to its file, `<state>/<unit>.txt`.
 
-Text units hold one line per entry, their whitespace collapsed: a card's texts as `label: text`, a legend's entries
-as `text | pressed=… | mark`, a table's rows as cells joined by ` | `. Markup units (a chart's SVG) hold the element's
-outer HTML with one element per line and Plot's numbered ids made plain, so that `git diff` shows which element
-changed. Colours are recorded as the CSS tokens the page names (`var(--series-5)`), so
-a series moved to another colour slot is caught; the colour a token holds is the palette tests' job. Every reading
-function takes a Playwright page or locator and reads it as it is now; this module imports no Playwright itself.
+Text units hold one line per entry, whitespace collapsed: a card's texts as `label: text`, a legend's entries as `text
+| pressed=… | mark`, an image as `src | width=… | height=…`, a control's choice as `field: choice | selected=…`, an axis
+as `x-axis: label | label …`. A chart's SVG is written one element per line with Plot's numbered ids made plain, so
+`git diff` shows which element changed. Colours are recorded as the CSS tokens the page names (`var(--series-5)`), so a
+series moved to another colour slot is caught. Every reading function takes a Playwright page or locator and reads it
+as it is now; this module imports no Playwright itself.
 """
 
 import re
@@ -16,8 +16,8 @@ class SharedTitleError(Exception):
     """Two cards of one state share a title, so their units, which are named by title, would share files."""
 
 
-# The Explore page's states, each a folder of `tests/snapshots/`, and the Insights topic each shows, by its section id;
-# in the order of the topic tabs, the page opening on the first.
+# The Explore page's states, each a folder of `tests/snapshots/`, and the Insights topic each shows, by its section id,
+# which is also the anchor the page is opened at to show it; in the order of the topic tabs.
 EXPLORE_STATES = {
     "explore-overview": "insights-overview",
     "explore-tokens": "insights-tokens",
@@ -48,6 +48,15 @@ LEGEND_MARK = ".legend-swatch"  # the colour mark inside a legend entry
 
 # A chart is an SVG element drawn in a figure's body that is not inside another SVG.
 CHART = ".figure-body svg:not(svg svg)"
+
+FIGURE_IMAGES = ".figure-body img"  # an Insights card's figure image, and its legend image where it has one
+
+# A chart's tick labels along one axis: Plot labels the group "x-axis tick label" or "y-axis tick label".
+AXIS_TICK_LABELS = 'g[aria-label$="axis tick label"]'
+
+TRAFFIC = "#traffic-explorer"  # the Traffic Explorer: its controls, then its card of tiles, legend and bars
+TRAFFIC_CARD = "#traffic-explorer .traffic-card"
+TRAFFIC_TILES = "#traffic-explorer .traffic-tiles li"
 
 
 def state_names() -> list[str]:
@@ -96,17 +105,28 @@ def legend_lines(scope) -> str:
     return "\n".join(lines)
 
 
-def table_lines(table) -> str:
-    """One line per row of `table`, header first: its cells' texts joined by ` | `."""
+def image_lines(scope) -> str:
+    """One line per figure image inside `scope`: its source and the width and height it is shown at."""
     lines = []
-    for row in table.locator("tr").all():
-        cells = row.locator("th, td").all_inner_texts()
-        lines.append(" | ".join(plain_text(cell) for cell in cells))
+    for image in scope.locator(FIGURE_IMAGES).all():
+        width = image.get_attribute("width")
+        height = image.get_attribute("height")
+        lines.append(f"{image.get_attribute('src')} | width={width} | height={height}")
+    return "\n".join(lines)
+
+
+def axis_lines(scope) -> str:
+    """One line per chart axis inside `scope`: its name, "x-axis" or "y-axis", and its tick labels in order."""
+    lines = []
+    for axis in scope.locator(AXIS_TICK_LABELS).all():
+        name = axis.get_attribute("aria-label").removesuffix(" tick label")
+        labels = [plain_text(label) for label in axis.locator("text").all_text_contents()]
+        lines.append(f"{name}: " + " | ".join(labels))
     return "\n".join(lines)
 
 
 def figure_units(scope, name: str) -> dict[str, str]:
-    """A figure's units under `name`: its texts, and where it has them its legend, its charts and its table."""
+    """A figure's units under `name`: its texts, and where it has them its legend, its charts and its images."""
     units = {f"{name}.texts": labelled_texts(scope, CARD_TEXTS)}
     legend = legend_lines(scope)
     if legend:
@@ -114,9 +134,9 @@ def figure_units(scope, name: str) -> dict[str, str]:
     charts = scope.locator(CHART).evaluate_all("charts => charts.map((chart) => chart.outerHTML)")
     if charts:
         units[f"{name}.chart"] = "\n".join(markup_lines(chart) for chart in charts)
-    tables = scope.locator(".figure-body table")
-    if tables.count() > 0:
-        units[f"{name}.table"] = "\n\n".join(table_lines(table) for table in tables.all())
+    images = image_lines(scope)
+    if images:
+        units[f"{name}.images"] = images
     return units
 
 
@@ -160,13 +180,43 @@ def stats_lines(page) -> str:
     return "\n".join(lines)
 
 
+def control_lines(page) -> str:
+    """The Traffic Explorer's controls: one line per choice of each drop-down and per period button, each with whether
+    it is the one chosen."""
+    lines = []
+    for field in page.locator(f"{TRAFFIC} .control-field").all():
+        name = plain_text(field.locator(".control-field-name").inner_text())
+        for option in field.locator("option").all():
+            selected = option.evaluate("option => option.selected")
+            lines.append(f"{name}: {plain_text(option.inner_text())} | selected={str(selected).lower()}")
+        for button in field.locator("button").all():
+            lines.append(f"{name}: {plain_text(button.inner_text())} | pressed={button.get_attribute('aria-pressed')}")
+    return "\n".join(lines)
+
+
+def traffic_units(page) -> dict[str, str]:
+    """The Traffic Explorer's units as it opens, nothing chosen: its controls, tiles, texts, legend and its chart's
+    axes. The bars themselves, a rectangle for each day and series, are left to the tiles and the axes."""
+    card = page.locator(TRAFFIC_CARD)
+    return {
+        "traffic.controls": control_lines(page),
+        "traffic.tiles": "\n".join(plain_text(tile) for tile in page.locator(TRAFFIC_TILES).all_inner_texts()),
+        "traffic.texts": labelled_texts(card, CARD_TEXTS),
+        "traffic.legend": legend_lines(card),
+        "traffic.axes": axis_lines(card.locator(CHART)),
+    }
+
+
 def explore_page_units(page) -> dict[str, str]:
-    """The Explore page's units outside the Insights: hero, stats strip, Overview cards, cite, team."""
+    """The Explore page's units outside the Insights: hero, stats strip, Overview cards, Traffic Explorer, cite, team,
+    footer."""
     units = {
         "hero": "\n".join(text_lines(page.locator("#hero"))),
         "stats": stats_lines(page),
         "cite": "\n".join(text_lines(page.locator("#cite"))),
         "team": "\n".join(text_lines(page.locator("#team"))),
+        "footer": "\n".join(text_lines(page.locator("#site-footer"))),
     }
     units.update(cards_units(page.locator("#mixes > .card, #trends > .card")))
+    units.update(traffic_units(page))
     return units

@@ -1,0 +1,5 @@
+title: Correlated access
+insight: Requests from different users arrive at similar times, rather than spread independently across the window.
+caption: Activity is sparse early in the window, then expands sharply around the middle of the month as many users become active within the same period.
+definition: Thirty-one days of gpt-oss-20b: one row per user, a mark for each request. At most 800 of the model's users are shown, picked by a seeded shuffle.
+rows: Cache: the raster tables (29 MB for the four), not shipped: built from the trace into output/paper/cache/ on the first run

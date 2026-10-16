@@ -1,0 +1,5 @@
+title: High load
+insight: Under high load, the load balancer spreads a user across many instances to avoid overloading any one.
+caption: The user's traffic resembles the global load distribution, but several instances still show measurable hit ratios: routing duplicates KV state across instances.
+definition: The busiest hour of the busiest DeepSeek-V3.2 user whose token hit ratio that hour is at least 0.4: per instance, the user's share of requests and its token hit ratio.
+rows: Cache: user_busiest_hour_deepseek_v32.parquet and instance_minute_stats_deepseek_v32.parquet, not shipped: built from the trace into output/paper/cache/ on the first run

@@ -1,0 +1,8 @@
+tab: 01 Workload overview | selected=true
+tab: 02 Token shape and latency | selected=false
+tab: 03 Users and models | selected=false
+tab: 04 Workload evolution | selected=false
+tab: 05 Prefix caching | selected=false
+tab: 06 Load balancing | selected=false
+heading: 01 Workload overview
+takeaway: Production load is non-stationary and cannot be summarized by request count alone.

@@ -1,0 +1,1 @@
+figures/fig_lb_user_zoom_top.png | width=573 | height=494

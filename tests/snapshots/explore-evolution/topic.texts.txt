@@ -1,0 +1,8 @@
+tab: 01 Workload overview | selected=false
+tab: 02 Token shape and latency | selected=false
+tab: 03 Users and models | selected=false
+tab: 04 Workload evolution | selected=true
+tab: 05 Prefix caching | selected=false
+tab: 06 Load balancing | selected=false
+heading: 04 Workload evolution
+takeaway: Dominant models turn over, global outputs become shorter, and newer users show larger and more variable token lengths.

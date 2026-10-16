@@ -546,10 +546,9 @@ make serve     # then open http://localhost:8000
 ```
 
 `make test` ends with the snapshot test (`tests/snapshot.py`): it opens
-twelve states of the pages in headless Chromium (the Explore page with each
-Insights topic shown, two fixed sessions, one with subagents, in each of
-their three views) and compares
-every chart, table, legend and block of text they show with its text file
+six states of the page in headless Chromium (the page opened at each
+Insights topic's anchor) and compares every chart, legend, block of text
+and figure image (its source and size) they show with its text file
 in `tests/snapshots/`, failing with the name of each unit that changed. A
 change that is meant to alter a chart or a text, a data rebuild among them,
 runs `make snapshots` to rewrite the files and commits them with the

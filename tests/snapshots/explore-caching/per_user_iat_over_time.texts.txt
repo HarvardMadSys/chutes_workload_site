@@ -1,0 +1,5 @@
+title: Per-user IAT over time
+insight: User IAT trends downwards over time.
+caption: Per-user inter-arrival time remains on the order of minutes for most of the trace, but declines toward early 2026 with a widened spread.
+definition: Each user's time between consecutive requests (inter-arrival time, IAT), by trace month: the median over users of each user's median, with bands between the medians of each user's 10th and 90th and 25th and 75th percentiles.
+rows: Cache: iat_monthly_per_user.parquet, shipped in data/paper/cache/
