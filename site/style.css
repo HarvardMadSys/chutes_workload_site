@@ -672,7 +672,7 @@ section[id] {
   margin: 1.5rem 0 0;
 }
 
-/* The stats strip: a white card of six numbers parted by hairlines, with no frame of their own inside the card's, and
+/* The stats strip: a white card of seven numbers parted by hairlines, with no frame of their own inside the card's, and
    the line of dates under them. */
 .stats-card {
   padding: clamp(1rem, 2vw, 1.25rem);
@@ -697,6 +697,11 @@ section[id] {
   min-width: 0;
   padding: 0.75rem 0.6rem;
   background: var(--color-surface);
+}
+
+/* The last number, alone in its row, takes the row, so no empty cell shows the hairlines' colour. */
+.stats-grid li:last-child:nth-child(3n + 1) {
+  grid-column: 1 / -1;
 }
 
 .stats-grid strong,
@@ -739,6 +744,14 @@ section[id] {
 @media (max-width: 30rem) {
   .stats-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stats-grid li:last-child:nth-child(3n + 1) {
+    grid-column: auto;
+  }
+
+  .stats-grid li:last-child:nth-child(2n + 1) {
+    grid-column: 1 / -1;
   }
 
   /* The five buttons in even rows rather than ragged ones: the primary one across both columns, the others two by two,

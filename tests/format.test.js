@@ -79,12 +79,15 @@ test("a compact count is in its largest unit, lower-case k, one decimal kept", (
   assert.equal(formatCompactCount(2_000_000_000), "2.00B");
   assert.equal(formatCompactCount(2_036_000_000), "2.04B");
   assert.equal(formatCompactCount(209_000_000_000), "209.0B");
+  assert.equal(formatCompactCount(2_522_394_591_477), "2.52T");
+  assert.equal(formatCompactCount(35_795_761_356_238), "35.8T");
   assert.equal(formatCompactCount(250), "250");
 });
 
 test("a count on an axis has no decimal it does not need", () => {
   assert.equal(formatCountTick(300000), "300k");
   assert.equal(formatCountTick(1500), "1.5k");
+  assert.equal(formatCountTick(4_000_000_000_000), "4T");
   assert.equal(formatCountTick(250), "250");
 });
 

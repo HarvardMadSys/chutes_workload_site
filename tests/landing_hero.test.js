@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { renderHero } from "../site/js/landing/hero.js";
+import { ledeText, renderHero } from "../site/js/landing/hero.js";
 import { monthCountText } from "../site/js/shared/layout.js";
 
 test("the lede's first words count the months in digits, one month in the singular, and say One year unknown", () => {
@@ -10,10 +10,22 @@ test("the lede's first words count the months in digits, one month in the singul
   assert.equal(monthCountText(null), "One year");
 });
 
-test("with no count the lede reads as one year of the trace", () => {
+test("the lede counts the trace totals' months in digits", () => {
+  const totalsRow = { months: 13 };
   const container = { innerHTML: "" };
-  renderHero(container, null);
-  assert.match(container.innerHTML, /<p class="hero-lede">One year of production LLM serving on Chutes: every request's timing, tokens, model, user and instance\.<\/p>/);
+  renderHero(container, totalsRow.months);
+  assert.match(container.innerHTML, /<p class="hero-lede">One year of production LLM serving on Chutes: 13 months of every request's timing, tokens, model, user and instance\.<\/p>/);
+});
+
+test("until the count is known the lede leaves it out, and one month is in the singular", () => {
+  assert.equal(ledeText(null), "One year of production LLM serving on Chutes: every request's timing, tokens, model, user and instance.");
+  assert.match(ledeText(1), /Chutes: 1 month of every request's/);
+});
+
+test("the hero has no eyebrow above its title", () => {
+  const container = { innerHTML: "" };
+  renderHero(container, 13);
+  assert.match(container.innerHTML.trim(), /^<h1 /);
 });
 
 test("the title is the page's h1, the hero section's label, and the five buttons and the lab's name lead to their addresses", () => {

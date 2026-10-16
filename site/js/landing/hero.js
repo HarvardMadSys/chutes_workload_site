@@ -1,7 +1,7 @@
 /**
- * The Explore page's hero: the dataset's name as its title, a lede whose first words count the months of the trace
- * and whose rest says what the trace holds, the buttons to the page's Traffic Explorer and Insights, the dataset, the
- * paper and the code, and the lab's name under them.
+ * The Explore page's hero: the dataset's name as its title, a lede saying what the trace holds and counting its months
+ * (the `months` of the `explore/trace_totals` answer, which the page gives once it is read), the buttons to the page's
+ * Traffic Explorer and Insights, the dataset, the paper and the code, and the lab's name under them.
  */
 
 import { AFFILIATION, monthCountText, TRAFFIC_EXPLORER_ANCHOR, URLS } from "../shared/layout.js";
@@ -10,8 +10,9 @@ import { AFFILIATION, monthCountText, TRAFFIC_EXPLORER_ANCHOR, URLS } from "../s
 const TITLE = "Chutes";
 const TITLE_ACCENT = "Production Trace";
 
-// The lede after its first words, which count the months.
-const LEDE_REST = "of production LLM serving on Chutes: every request's timing, tokens, model, user and instance.";
+// The lede, before and after the words that count the months.
+const LEDE_OPENING = "One year of production LLM serving on Chutes:";
+const LEDE_HOLDINGS = "every request's timing, tokens, model, user and instance.";
 
 // The buttons under the lede: the first two scroll to the page's own sections, the first of them the primary one; the
 // others leave the site.
@@ -35,10 +36,21 @@ export function renderHero(container, monthCount) {
   );
   container.innerHTML = `
     <h1 id="hero-title">${TITLE} <em>${TITLE_ACCENT}</em></h1>
-    <p class="hero-lede">${monthCountText(monthCount)} ${LEDE_REST}</p>
+    <p class="hero-lede">${ledeText(monthCount)}</p>
     <div class="hero-actions">
       ${siteButtons.join("")}
       ${externalButtons.join("")}
     </div>
     <p class="hero-affiliation"><a class="affiliation" href="${URLS.lab}" target="_blank" rel="noopener">${AFFILIATION}</a></p>`;
+}
+
+/**
+ * The lede for the `monthCount` months the trace spans: "One year of production LLM serving on Chutes: 13 months of
+ * every request's …"; while the count is not known (null), the same words without "13 months of".
+ */
+export function ledeText(monthCount) {
+  if (monthCount === null) {
+    return `${LEDE_OPENING} ${LEDE_HOLDINGS}`;
+  }
+  return `${LEDE_OPENING} ${monthCountText(monthCount)} of ${LEDE_HOLDINGS}`;
 }

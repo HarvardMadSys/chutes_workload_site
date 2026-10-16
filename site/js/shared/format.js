@@ -6,8 +6,9 @@
 
 // A compact count is shown in the largest of these units it reaches.
 const BILLION = 1e9;
-const SMALL_BILLIONS = 10 * BILLION; // under ten billion, a count keeps two decimals, so it shows three figures
+const TRILLION = 1e12;
 const COMPACT_UNITS = [
+  [TRILLION, "T"],
   [BILLION, "B"],
   [1e6, "M"],
   [1e3, "k"],
@@ -58,20 +59,21 @@ export function formatQuantity(count, singular, plural) {
 }
 
 /**
- * A count in B, M or k with one decimal kept, and three figures at least in billions: 129087 → "129.1k", 1000 →
- * "1.0k", 2036000000 → "2.04B"; under a thousand, the count itself.
+ * A count in T, B, M or k with one decimal kept, and three figures at least in billions and trillions: 129087 →
+ * "129.1k", 1000 → "1.0k", 2036000000 → "2.04B", 35795761356238 → "35.8T"; under a thousand, the count itself.
  */
 export function formatCompactCount(count) {
   for (const [size, suffix] of COMPACT_UNITS) {
     if (count >= size) {
-      const decimals = size === BILLION && count < SMALL_BILLIONS ? 2 : 1;
+      // Under ten billions or ten trillions, two decimals, so the count shows three figures.
+      const decimals = size >= BILLION && count < 10 * size ? 2 : 1;
       return `${(count / size).toFixed(decimals)}${suffix}`;
     }
   }
   return formatCount(count);
 }
 
-/** A count as an axis writes it, in B, M or k with one decimal at most: 129087 → "129.1k", 1000 → "1k". */
+/** A count as an axis writes it, in T, B, M or k with one decimal at most: 129087 → "129.1k", 1000 → "1k". */
 export function formatCountTick(count) {
   for (const [size, suffix] of COMPACT_UNITS) {
     if (count >= size) {
