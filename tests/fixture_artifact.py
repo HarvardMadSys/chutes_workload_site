@@ -19,7 +19,7 @@ import pyarrow
 import pyarrow.parquet
 
 FIGURE_WIDTH_POINTS = 250  # the fixture figure's page width: 1,100 px at the render scale
-FIGURE_HEIGHT_POINTS = 100
+FIGURE_HEIGHT_POINTS = 125  # 550 px at the render scale
 SECTION_FIGURE = pathlib.Path("figures") / "paper" / "01_workload_overview" / "fig_panel.pdf"
 EXTERNAL_FIGURE = pathlib.Path("figures") / "routing" / "fig_tradeoff.pdf"
 TOTAL_REQUESTS = 140  # every request of the totals, the daily rollup and the daily endpoint counts

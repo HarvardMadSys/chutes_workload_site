@@ -11,6 +11,8 @@ dependencies = [
     "pyarrow>=25",       # the artifact's caches are Parquet, read by site_data/loading.py
     "pandas>=3",         # the caches are read into data frames
     "duckdb>=1.3",       # runs the site's queries over the caches' rows, for make data's answers and for the tests
+    "pypdfium2==5.14.0", # renders the artifact's figure PDFs (site_data/figure_images.py); pinned, for the same pixels
+    "pillow==12.3.0",    # writes the rendered pages as PNG; pinned, since its encoder decides the images' bytes
 ]
 
 [project.optional-dependencies]

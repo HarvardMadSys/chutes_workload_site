@@ -1,5 +1,5 @@
-"""The data step's command: it writes the answers from an artifact, and writes nothing when the artifact or one of its
-files is missing."""
+"""The data step's command: it writes the answers and the figure images from an artifact, and writes nothing when the
+artifact or one of its files is missing."""
 
 import pathlib
 import re
@@ -15,7 +15,7 @@ def command(artifact: pathlib.Path, output: pathlib.Path) -> list[str]:
     return ["--artifact", str(artifact), "--out", str(output / "data"), "--figures", str(output / "figures")]
 
 
-def test_the_step_writes_every_answer_and_prints_its_size(artifact: pathlib.Path, tmp_path: pathlib.Path,
+def test_the_step_writes_every_answer_and_image_and_prints_its_size(artifact: pathlib.Path, tmp_path: pathlib.Path,
                                                            capsys: pytest.CaptureFixture) -> None:
     __main__.main(command(artifact, tmp_path))
     printed = capsys.readouterr().out
@@ -23,6 +23,9 @@ def test_the_step_writes_every_answer_and_prints_its_size(artifact: pathlib.Path
         answer = tmp_path / "data" / paths.answer_file(name)
         assert f"{answer}  {answer.stat().st_size:,} bytes" in printed
     assert re.search(r"^7 answers, [\d,]+ bytes$", printed, re.MULTILINE)
+    image = tmp_path / "figures" / "fig_panel.png"
+    assert f"{image}  {image.stat().st_size:,} bytes" in printed
+    assert re.search(r"^2 figure images, [\d,]+ bytes$", printed, re.MULTILINE)
 
 
 def test_a_missing_artifact_folder_stops_before_writing(tmp_path: pathlib.Path, capsys: pytest.CaptureFixture) -> None:
@@ -39,3 +42,12 @@ def test_a_missing_cache_stops_before_writing(tmp_path: pathlib.Path) -> None:
     with pytest.raises(SystemExit, match="daily_rollup.parquet"):
         __main__.main(command(artifact, tmp_path))
     assert not (tmp_path / "data").exists()
+
+
+def test_a_missing_figure_stops_before_writing(tmp_path: pathlib.Path) -> None:
+    artifact = fixture_artifact.write_fixture_artifact(tmp_path / "artifact")
+    (artifact / fixture_artifact.EXTERNAL_FIGURE).unlink()
+    with pytest.raises(SystemExit, match=fixture_artifact.EXTERNAL_FIGURE.name):
+        __main__.main(command(artifact, tmp_path))
+    assert not (tmp_path / "data").exists()
+    assert not (tmp_path / "figures").exists()
