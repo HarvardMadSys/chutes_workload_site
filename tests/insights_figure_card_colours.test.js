@@ -47,6 +47,12 @@ test("a card of the families' palette colours ten series before the Other grey; 
   assert.throws(() => cardColours({ ...CARD, palette: "pastel" }, rows, null), /fig_a .*"pastel"/);
 });
 
+test("a card of the policies' palette colours each series by its policy", () => {
+  const rows = ["A, Sticky", "B, Sticky", "A, Load-first"].map((name) => ({ series: name, x: 1, y: 1 }));
+  const colours = cardColours({ ...CARD, palette: "policies" }, rows, null);
+  assert.deepEqual([...colours.values()], [SERIES_SLOTS[0], SERIES_SLOTS[0], SERIES_SLOTS[1]]);
+});
+
 test("a card of the endpoints' palette colours its series as the Overview colours their endpoint groups", () => {
   const endpointMixRows = [{ endpoint_group: "chat", requests: 2 }, { endpoint_group: "chat_stream", requests: 1 }];
   const card = { ...CARD, palette: "endpoints", chart: { labels: { "Chat Stream": "Chat stream" } } };

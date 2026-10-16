@@ -113,6 +113,31 @@ export function endpointFigureColours(names, labels, endpointMixRows) {
   return colours;
 }
 
+// Between a routing series' model and its policy: "MiniMax M2.5, Sticky".
+const POLICY_SEPARATOR = ", ";
+
+/**
+ * A figure card's colours where its series are named "<model>, <policy>", as the routing figure's: a Map from each of
+ * `names`, in order, to its policy's colour, the policies taking the series slots in the order they first appear, so
+ * that one policy has one colour for every model. Throws a RangeError naming a series with no policy in its name.
+ */
+export function policyColours(names) {
+  const policySlots = new Map();
+  const colours = new Map();
+  for (const name of names) {
+    const separator = name.lastIndexOf(POLICY_SEPARATOR);
+    if (separator === -1) {
+      throw new RangeError(`the series "${name}" names no policy after "${POLICY_SEPARATOR}"`);
+    }
+    const policy = name.slice(separator + POLICY_SEPARATOR.length);
+    if (!policySlots.has(policy)) {
+      policySlots.set(policy, SERIES_SLOTS[policySlots.size] ?? OTHER_SERIES);
+    }
+    colours.set(name, policySlots.get(policy));
+  }
+  return colours;
+}
+
 /** A series' label: `labels[name]` where `labels` gives one, else its name. */
 export function seriesLabel(labels, name) {
   return Object.hasOwn(labels, name) ? labels[name] : name;

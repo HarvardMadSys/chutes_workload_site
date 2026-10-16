@@ -96,7 +96,7 @@ export function formatPercent(share) {
   return `${Math.round(share * 100)}%`;
 }
 
-/** A time in minutes from the start of a window as hours and minutes, as an axis writes it: 832 → "13:52", 240 → "4:00". */
+/** A time in minutes from a window's start as hours and minutes, as an axis writes it: 832 → "13:52", 240 → "4:00". */
 export function formatMinutesTick(minutes) {
   const wholeMinutes = Math.round(minutes);
   const hours = Math.floor(wholeMinutes / MINUTES_PER_HOUR);

@@ -24,9 +24,9 @@ const SIMULATION_FOLDER = `${URLS.code}/tree/main/pipeline/routing`;
 const TRACE_DAY_AXIS = Object.freeze({ label: "Day of the trace" });
 
 // The occupancy's x axis: the minutes of its 24-hour window, which starts at 17:00 UTC on day 317 of the trace,
-// labelled every eighth hour (every fourth runs together on a phone), written as hours and minutes from its start.
+// labelled every sixth hour as the paper's, written as hours and minutes from its start.
 const WINDOW_AXIS = Object.freeze({
-  label: "Time from day 317, 17:00 UTC", ticks: [0, 480, 960, 1440], tickFormat: formatMinutesTick,
+  label: "Time from day 317, 17:00 UTC", ticks: [0, 360, 720, 1080, 1440], tickFormat: formatMinutesTick,
 });
 
 // The instance load's axis of the two P90 grids, labelled every second power of ten as the paper's.
@@ -34,16 +34,26 @@ const INSTANCE_LOAD_AXIS = Object.freeze({
   label: "Instance load (tokens/s)", log: true, ticks: [10, 1e3, 1e5], tickFormat: formatWholeCountTick,
 });
 
-// The two panels of a user zoom: per instance, the user's share of the hour's requests and its token hit ratio, both
-// in percent, the token hit on the paper's 0 to 100.
+// The two panels of a user zoom whose request shares reach up to `requestShareTop` percent: per instance, the user's
+// share of the hour's requests, on the paper's 0 to `requestShareTop`, and its token hit ratio, on 0 to 100.
 // placeholder: the panel titles are the paper's axis titles, for the authors to confirm.
-const USER_ZOOM_PANELS = [
-  { panel: "request_share", title: "User request (%)", chart: { valueLabel: "User request" } },
-  { panel: "token_hit", title: "Token hit (%)", chart: { y: { domain: [0, 100] }, valueLabel: "Token hit" } },
-];
+function userZoomPanels(requestShareTop) {
+  return [
+    {
+      panel: "request_share",
+      title: "User request (%)",
+      chart: { y: { domain: [0, requestShareTop] }, valueLabel: "User request" },
+    },
+    { panel: "token_hit", title: "Token hit (%)", chart: { y: { domain: [0, 100] }, valueLabel: "Token hit" } },
+  ];
+}
 
-// The routing figure's eight series, a policy of the four for each of the two models, in the paper's legend order;
-// MiniMax-M2.5's, the paper's lower row, dashed.
+// The request share's top on each zoom, as the paper sets it: 1.25 times the largest share, and at least 8.
+const HIGH_LOAD_SHARE_TOP = 11.5; // 1.25 × 9.2%
+const LOW_LOAD_SHARE_TOP = 34.5; // 1.25 × 27.6%
+
+// The routing figure's eight series, a policy of the four for each of the two models, in the paper's legend order,
+// each in its policy's colour (`palette: "policies"`); MiniMax-M2.5's, the paper's lower row, dashed.
 const ROUTING_POLICIES = ["Round-robin", "Load-first", "Cache-first", "Sticky"];
 const ROUTING_DEEPSEEK = ROUTING_POLICIES.map((policy) => `DeepSeek V3.2, ${policy}`);
 const ROUTING_MINIMAX = ROUTING_POLICIES.map((policy) => `MiniMax M2.5, ${policy}`);
@@ -117,8 +127,9 @@ export const BALANCING_TOPIC = Object.freeze({
       chart: {
         x: WINDOW_AXIS,
         y: { label: "Instance index" },
-        // The paper's: viridis, clipped to the 5th and 99th percentiles of the minutes' requests.
+        // The paper's: viridis on a log scale, clipped to the 5th and 99th percentiles of the minutes' requests.
         scheme: "viridis",
+        colourLog: true,
         colourDomain: [36, 80],
         valueLabel: "Requests per minute",
         valueFormat: formatCount,
@@ -173,7 +184,7 @@ export const BALANCING_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "bars",
       chart: { x: { label: "Instance index" }, valueFormat: formatPercentage },
-      panels: USER_ZOOM_PANELS,
+      panels: userZoomPanels(HIGH_LOAD_SHARE_TOP),
     }),
     frozenCard({
       figure: "fig_lb_user_zoom_min",
@@ -185,7 +196,7 @@ export const BALANCING_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "bars",
       chart: { x: { label: "Instance index" }, valueFormat: formatPercentage },
-      panels: USER_ZOOM_PANELS,
+      panels: userZoomPanels(LOW_LOAD_SHARE_TOP),
     }),
     frozenCard({
       figure: "fig_routing_tradeoff",
@@ -196,13 +207,17 @@ export const BALANCING_TOPIC = Object.freeze({
       source: SIMULATION_FOLDER,
       kind: "lines",
       series: [...ROUTING_DEEPSEEK, ...ROUTING_MINIMAX],
+      palette: "policies",
       chart: { markers: true, dashed: ROUTING_MINIMAX, valueFormat: formatCount },
       // placeholder: the panel titles are the figure's own subcaptions, for the authors to confirm.
       panels: [
         {
           panel: "a",
           title: "(a) Hit ratio vs cache size",
-          chart: { x: CACHE_SIZE_AXIS, y: { label: "Token hit ratio" }, valueLabel: "Token hit ratio" },
+          // From zero, as the paper's, to past MiniMax-M2.5's highest ratio, 0.64.
+          chart: {
+            x: CACHE_SIZE_AXIS, y: { label: "Token hit ratio", domain: [0, 0.7] }, valueLabel: "Token hit ratio",
+          },
         },
         {
           panel: "b",

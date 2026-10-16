@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  endpointFigureColours, ENDPOINT_LABELS, ENDPOINT_SERIES, FAMILY_SERIES, figureColours, FIXED_SERIES_COLOURS, HIGHLIGHTED_LABELS,
-  HIGHLIGHTED_SERIES, MODEL_SERIES, SERIES_COLUMN, seriesLabel, seriesLegend, shownRows, shownSeriesRows,
+  endpointFigureColours, ENDPOINT_LABELS, ENDPOINT_SERIES, FAMILY_SERIES, figureColours, FIXED_SERIES_COLOURS,
+  HIGHLIGHTED_LABELS, HIGHLIGHTED_SERIES, MODEL_SERIES, policyColours, SERIES_COLUMN, seriesLabel, seriesLegend,
+  shownRows, shownSeriesRows,
 } from "../site/js/shared/series.js";
 import { assignColours, FAMILY_SLOTS, OTHER_SERIES, SERIES_SLOTS } from "../site/js/theme/colours.js";
 import { endpointColours, familyColours, modelColours } from "../site/js/theme/colours.js";
@@ -92,7 +93,7 @@ test("a figure card given the families' slots colours ten series before the Othe
   assert.deepEqual([...colours.values()], [...FAMILY_SLOTS, OTHER_SERIES]);
 });
 
-test("the highlighted series and the oracle are the fixed ones, the global series first, and only their names are relabelled", () => {
+test("the highlighted series and the oracle are the fixed ones, Global first, and only their names relabelled", () => {
   assert.deepEqual([...HIGHLIGHTED_SERIES, "Belady (size-aware)"].sort(), Object.keys(FIXED_SERIES_COLOURS).sort());
   assert.equal(FIXED_SERIES_COLOURS["Belady (size-aware)"], FIXED_SERIES_COLOURS.Global);
   assert.equal(HIGHLIGHTED_SERIES[0], "Global");
@@ -118,4 +119,11 @@ test("a figure's endpoint groups, written by their labels, take the endpoint gro
     ["Other", OTHER_SERIES],
   ]);
   assert.throws(() => endpointFigureColours(["Batch"], {}, ENDPOINT_MIX_ROWS), /"Batch"/);
+});
+
+test("a routing series takes its policy's colour, the same for every model", () => {
+  const names = ["DeepSeek, Round-robin", "DeepSeek, Sticky", "MiniMax, Round-robin", "MiniMax, Sticky"];
+  const [first, second] = SERIES_SLOTS;
+  assert.deepEqual([...policyColours(names).values()], [first, second, first, second]);
+  assert.throws(() => policyColours(["Sticky"]), /"Sticky"/);
 });

@@ -7,7 +7,8 @@
  * decides); `panels`, for a figure of several panels, `[{ panel, title, chart }]`, one chart per entry drawn from the
  * rows whose `panel` column is `panel`, under its title, with the card's `chart` and then the entry's own as its
  * parameters (the card has one legend for all its panels, so only the card's `chart.labels` relabel the legend; a
- * panel's own relabel only its tooltips); `legend`, the name of a legend answer, rows `{ series, rank }`, whose order the card's series take;
+ * panel's own relabel only its tooltips); `legend`, the name of a legend answer, rows `{ series, rank }`, whose order
+ * the card's series take;
  * `series`, the names of the series drawn, in the order they are drawn and listed, the answer's others left out (the
  * stacked bars fold them into "Other"); `palette`, the colours its series take, a key of `PALETTES`, "series" when
  * not given; `source` the address of the artifact's README, or folder, that says how the figure is computed; `isWide`
@@ -20,7 +21,9 @@
 import { distinct, nameChart, renderFigure, showError, showLoading } from "../shared/charts.js";
 import { readAnswer } from "../shared/answers.js";
 import { URLS } from "../shared/layout.js";
-import { endpointFigureColours, figureColours, SERIES_COLUMN, seriesLegend } from "../shared/series.js";
+import {
+  endpointFigureColours, figureColours, policyColours, SERIES_COLUMN, seriesLegend,
+} from "../shared/series.js";
 import { FAMILY_SLOTS, SERIES_SLOTS } from "../theme/colours.js";
 import { drawBands } from "../charts/bands.js";
 import { drawBars } from "../charts/bars.js";
@@ -57,12 +60,14 @@ export const CHART_KINDS = Object.freeze({
  * The colours a card's series may take, by the card's `palette`, each a function of the series' names, in order, the
  * card's series labels and the rows of `explore/endpoint_mix`, to a Map from name to colour: "series", the eight
  * series slots; "families", the ten of the families, for a card of more series than eight; "endpoints", the endpoint
- * groups' colours as the Overview's, for series that are endpoint groups written by their labels.
+ * groups' colours as the Overview's, for series that are endpoint groups written by their labels; "policies", one
+ * colour per routing policy, for series named "<model>, <policy>".
  */
 export const PALETTES = Object.freeze({
   series: (names) => figureColours(names, SERIES_SLOTS),
   families: (names) => figureColours(names, FAMILY_SLOTS),
   endpoints: (names, labels, endpointMixRows) => endpointFigureColours(names, labels, endpointMixRows),
+  policies: (names) => policyColours(names),
 });
 
 /**
@@ -147,7 +152,8 @@ export function plotdataAddress(figure) {
 /**
  * Read `card`'s answer, its legend answer where it names one and the endpoint groups' order where its palette is
  * theirs, and draw its chart into `body` by its kind, with a legend of buttons above it where its rows hold more than
- * one series; each click redraws the chart from the rows already read. An answer that cannot be read, or a chart that fails to draw, shows its error in `body`.
+ * one series; each click redraws the chart from the rows already read. An answer that cannot be read, or a chart
+ * that fails to draw, shows its error in `body`.
  */
 export async function drawFigureChart(body, card) {
   try {

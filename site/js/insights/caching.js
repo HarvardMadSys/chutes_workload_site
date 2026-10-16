@@ -122,7 +122,7 @@ export const CACHING_TOPIC = Object.freeze({
       chart: {
         x: TRACE_MONTH_AXIS,
         // The paper's limits: a third of a decade past the lowest 10th percentile and the highest 90th.
-        y: { label: "Inter-arrival time", log: true, domain: [0.3, 1000], tickFormat: formatSecondsTick },
+        y: { label: "Inter-arrival time", log: true, domain: [0.34, 1350], tickFormat: formatSecondsTick },
         valueLabel: "Per-user IAT",
         valueFormat: formatSeconds,
       },
@@ -140,7 +140,8 @@ export const CACHING_TOPIC = Object.freeze({
       chart: {
         // Slanted as the paper's, so the three names keep clear of one another on a phone, with room below for them.
         x: { tickRotate: -25 },
-        y: { label: "Per-user median IAT", tickFormat: formatSecondsTick },
+        // From zero, as the paper's, to past the highest whisker, 538.8 s.
+        y: { label: "Per-user median IAT", domain: [0, 560], tickFormat: formatSecondsTick },
         margins: { marginBottom: 72 },
         labels: HIGHLIGHTED_LABELS,
         valueLabel: "Median IAT per user",

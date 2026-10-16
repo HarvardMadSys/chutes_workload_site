@@ -3,8 +3,8 @@ import { test } from "node:test";
 
 import {
   dateSpanText, formatCompactCount, formatCount, formatCountTick, formatMinutesTick, formatPercent, formatPercentage,
-  formatQuantity,
-  formatSeconds, formatSecondsTick, formatShare, formatThousandsTick, formatWholeCount, formatWholeCountTick,
+  formatQuantity, formatSeconds, formatSecondsTick, formatShare, formatThousandsTick, formatWholeCount,
+  formatWholeCountTick,
 } from "../site/js/shared/format.js";
 
 test("a count gets thousands separators", () => {

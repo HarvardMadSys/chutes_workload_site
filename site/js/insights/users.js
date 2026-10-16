@@ -55,7 +55,8 @@ export const USERS_TOPIC = Object.freeze({
       kind: "cells",
       chart: {
         x: { label: "Requests per model", log: true, tickFormat: formatWholeCountTick },
-        y: { label: "Distinct users", log: true, tickFormat: formatWholeCountTick },
+        // The paper's: from 1 to 1.5 times the most users of a model.
+        y: { label: "Distinct users", log: true, domain: [1, 485333], tickFormat: formatWholeCountTick },
         ...COUNT_COLOUR,
         valueLabel: "Models",
         valueFormat: formatCount,

@@ -152,7 +152,7 @@ test("a card listing its series names only series its answer holds, each once", 
 });
 
 test("a card naming a palette names one of the palettes", () => {
-  assert.deepEqual(Object.keys(PALETTES), ["series", "families", "endpoints"]);
+  assert.deepEqual(Object.keys(PALETTES), ["series", "families", "endpoints", "policies"]);
   for (const card of everyCard().filter((one) => one.palette !== undefined)) {
     assert.ok(Object.hasOwn(PALETTES, card.palette), `${card.figure}: ${card.palette}`);
   }
