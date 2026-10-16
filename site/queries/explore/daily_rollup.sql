@@ -2,6 +2,8 @@
 -- and TTFT, and how many requests recorded each (`input_counted`, `output_counted`, `ttft_counted`), so that an average
 -- divides by the requests that have the value. The model is one of the twenty most requested named models over the
 -- whole trace (`top_models`), with its `chute_id`, or `Other`, with a null `chute_id`, for every other model.
+-- The cache's twenty named chute ids are `top_models`' ranks 1 to 20, since the artifact ranks the named models the
+-- same way, so the join names each of them and folds only the cache's null chute id into `Other`.
 SELECT trace_calendar.calendar_day AS day,
        top_models.chute_id,
        coalesce(top_models.name, 'Other') AS model,

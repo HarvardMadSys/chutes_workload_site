@@ -69,3 +69,40 @@ def test_a_missing_figure_list_stops_naming_it(tmp_path: pathlib.Path) -> None:
     (artifact / "config" / "figures.json").unlink()
     with pytest.raises(SystemExit, match=re.escape(str(artifact / "config" / "figures.json"))):
         figure_images.listed_figures(artifact)
+
+
+def test_a_listed_figure_of_two_pages_stops_naming_it(tmp_path: pathlib.Path) -> None:
+    artifact = fixture_artifact.write_fixture_artifact(tmp_path / "artifact")
+    two_pages = fixture_artifact.pdf_bytes(fixture_artifact.FIGURE_WIDTH_POINTS, fixture_artifact.FIGURE_HEIGHT_POINTS,
+                                           pages=2)
+    (artifact / fixture_artifact.EXTERNAL_FIGURE).write_bytes(two_pages)
+    with pytest.raises(SystemExit, match=re.escape(f"{fixture_artifact.EXTERNAL_FIGURE.name} has 2 pages")):
+        figure_images.listed_figures(artifact)
+
+
+def test_a_listed_name_two_files_share_stops_naming_both(tmp_path: pathlib.Path) -> None:
+    artifact = fixture_artifact.write_fixture_artifact(tmp_path)
+    copy = artifact / "figures" / "caching" / fixture_artifact.SECTION_FIGURE.name
+    copy.parent.mkdir()
+    copy.write_bytes((artifact / fixture_artifact.SECTION_FIGURE).read_bytes())
+    with pytest.raises(SystemExit, match=re.escape(f"two figures are named {fixture_artifact.SECTION_FIGURE.name}")):
+        figure_images.listed_figures(artifact)
+
+
+def test_an_unlisted_name_two_files_share_is_ignored(tmp_path: pathlib.Path) -> None:
+    artifact = fixture_artifact.write_fixture_artifact(tmp_path)
+    figure_bytes = (artifact / fixture_artifact.SECTION_FIGURE).read_bytes()
+    for folder in ["caching", "extra"]:
+        (artifact / "figures" / folder).mkdir()
+        (artifact / "figures" / folder / "fig_unlisted.pdf").write_bytes(figure_bytes)
+    assert len(figure_images.listed_figures(artifact)) == 2
+
+
+def test_a_list_whose_count_disagrees_stops_naming_both_numbers(tmp_path: pathlib.Path) -> None:
+    artifact = fixture_artifact.write_fixture_artifact(tmp_path)
+    figure_list_path = artifact / "config" / "figures.json"
+    figure_list = json.loads(figure_list_path.read_text())
+    figure_list["count"] = 3
+    figure_list_path.write_text(json.dumps(figure_list))
+    with pytest.raises(SystemExit, match="names 2 figures but counts 3"):
+        figure_images.listed_figures(artifact)

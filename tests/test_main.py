@@ -51,3 +51,14 @@ def test_a_missing_figure_stops_before_writing(tmp_path: pathlib.Path) -> None:
         __main__.main(command(artifact, tmp_path))
     assert not (tmp_path / "data").exists()
     assert not (tmp_path / "figures").exists()
+
+
+def test_a_figure_of_two_pages_stops_before_writing(tmp_path: pathlib.Path) -> None:
+    artifact = fixture_artifact.write_fixture_artifact(tmp_path / "artifact")
+    two_pages = fixture_artifact.pdf_bytes(fixture_artifact.FIGURE_WIDTH_POINTS, fixture_artifact.FIGURE_HEIGHT_POINTS,
+                                           pages=2)
+    (artifact / fixture_artifact.SECTION_FIGURE).write_bytes(two_pages)
+    with pytest.raises(SystemExit, match="has 2 pages"):
+        __main__.main(command(artifact, tmp_path))
+    assert not (tmp_path / "data").exists()
+    assert not (tmp_path / "figures").exists()

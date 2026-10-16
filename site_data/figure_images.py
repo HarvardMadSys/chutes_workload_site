@@ -1,8 +1,9 @@
 """Images of the paper's figures: every PDF the artifact's `config/figures.json` lists, rendered to PNG.
 
 The list names each figure's PDF by its file name: under `sections`, a list of names per paper section, and under
-`external`, one key per name. A name is looked up anywhere under the artifact's `figures/`, where names are unique.
-`listed_figures` finds every listed PDF, stopping on the first that is missing, before anything is written.
+`external`, one key per name; `count` says how many names it holds. A name is looked up anywhere under the artifact's
+`figures/`, where a listed name is unique. `listed_figures` finds every listed PDF and checks it is one page, stopping
+on the first that is missing, ambiguous or of other than one page, before anything is written.
 `write_figure_images` renders each PDF's one page at `RENDER_SCALE` to `<folder>/<name>.png`, `<name>` being its file
 name without `.pdf`, and writes `<folder>/index.json`: a list of `{"name", "width", "height"}`, sizes in pixels,
 sorted by name. Pillow writes each PNG with no metadata and no time, so the same PDF gives the same bytes on every
@@ -34,35 +35,49 @@ class FigureImage:
 
 def listed_figures(artifact: pathlib.Path) -> list[pathlib.Path]:
     """The PDF of every figure the artifact's figure list names, in the list's order: each section's, then the
-    external ones; stops, naming it, on the first that is not under the artifact's `figures/`."""
+    external ones; stops, naming it, on the first that is not under the artifact's `figures/`, that two files there
+    share, or that is not one page."""
     files = figure_files_by_name(artifact)
     found = []
     for name in listed_figure_names(artifact):
         if name not in files:
             raise SystemExit(f"missing {name} under {artifact / FIGURES_FOLDER}: {FIGURE_LIST_FILE} lists it")
-        found.append(files[name])
+        if len(files[name]) > 1:
+            raise SystemExit(f"two figures are named {name}: {files[name][0]} and {files[name][1]}")
+        figure = files[name][0]
+        pages = page_count(figure)
+        if pages != 1:
+            raise SystemExit(f"{figure} has {pages} pages; a figure is one page")
+        found.append(figure)
     return found
 
 
 def listed_figure_names(artifact: pathlib.Path) -> list[str]:
-    """The file name of every figure the artifact's figure list names: each section's, then the external ones."""
-    figure_list = json.loads(loading.required_file(artifact / FIGURE_LIST_FILE).read_text())
+    """The file name of every figure the artifact's figure list names: each section's, then the external ones; stops
+    if they are not as many as the list's `count`."""
+    figure_list_path = loading.required_file(artifact / FIGURE_LIST_FILE)
+    figure_list = json.loads(figure_list_path.read_text())
     names = []
     for section_names in figure_list["sections"].values():
         names.extend(section_names)
     names.extend(figure_list["external"])
+    if len(names) != figure_list["count"]:
+        raise SystemExit(f"{figure_list_path} names {len(names)} figures but counts {figure_list['count']}")
     return names
 
 
-def figure_files_by_name(artifact: pathlib.Path) -> dict[str, pathlib.Path]:
-    """Every PDF under the artifact's `figures/`, by file name; stops if two share a name, since a list entry would
-    then name either."""
+def figure_files_by_name(artifact: pathlib.Path) -> dict[str, list[pathlib.Path]]:
+    """Every PDF under the artifact's `figures/`, by file name: each name's files, sorted by path."""
     files = {}
     for path in sorted((artifact / FIGURES_FOLDER).rglob("*.pdf")):
-        if path.name in files:
-            raise SystemExit(f"two figures are named {path.name}: {files[path.name]} and {path}")
-        files[path.name] = path
+        files.setdefault(path.name, []).append(path)
     return files
+
+
+def page_count(figure: pathlib.Path) -> int:
+    """The number of pages of the PDF `figure`."""
+    with pypdfium2.PdfDocument(figure) as document:
+        return len(document)
 
 
 def write_figure_images(figures: list[pathlib.Path], images_directory: pathlib.Path) -> list[pathlib.Path]:
@@ -81,10 +96,9 @@ def write_figure_images(figures: list[pathlib.Path], images_directory: pathlib.P
 
 
 def render_figure(figure: pathlib.Path, image_path: pathlib.Path) -> FigureImage:
-    """Render the one page of the PDF `figure` at `RENDER_SCALE` to the PNG `image_path`, with no metadata."""
+    """Render the first page of the PDF `figure`, which `listed_figures` checked is its only one, at `RENDER_SCALE` to
+    the PNG `image_path`, with no metadata."""
     with pypdfium2.PdfDocument(figure) as document:
-        if len(document) != 1:
-            raise SystemExit(f"{figure} has {len(document)} pages; a figure is one page")
         bitmap = document[0].render(scale=RENDER_SCALE)
         image = bitmap.to_pil()
         image.save(image_path, format="PNG", optimize=False)

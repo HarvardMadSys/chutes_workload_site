@@ -129,15 +129,21 @@ def write_figures(folder: pathlib.Path) -> None:
         (folder / figure).write_bytes(pdf_bytes(FIGURE_WIDTH_POINTS, FIGURE_HEIGHT_POINTS))
 
 
-def pdf_bytes(width: int, height: int) -> bytes:
-    """A one-page PDF `width` by `height` points holding one filled rectangle, with a correct cross-reference table."""
+def pdf_bytes(width: int, height: int, pages: int = 1) -> bytes:
+    """A PDF of `pages` pages, each `width` by `height` points holding one filled rectangle, with a correct
+    cross-reference table."""
     content = b"0 0.4 0.8 rg 10 10 80 40 re f"
+    first_page = 4  # the object number of the first page, after the catalog, the page tree and the content
+    kids = []
+    for number in range(first_page, first_page + pages):
+        kids.append(b"%d 0 R" % number)
     objects = [
         b"<< /Type /Catalog /Pages 2 0 R >>",
-        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 %d %d] /Contents 4 0 R >>" % (width, height),
+        b"<< /Type /Pages /Kids [%s] /Count %d >>" % (b" ".join(kids), pages),
         b"<< /Length %d >>\nstream\n%s\nendstream" % (len(content), content),
     ]
+    for _ in range(pages):
+        objects.append(b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 %d %d] /Contents 3 0 R >>" % (width, height))
     document = bytearray(b"%PDF-1.4\n")
     offsets = []
     for number, body in enumerate(objects, start=1):
