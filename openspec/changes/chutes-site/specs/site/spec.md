@@ -220,9 +220,10 @@ the same checkout SHALL write identical files.
 The data step SHALL hold each cache it reads as a DuckDB table under the
 cache file's name, and `chute_models.csv` as `chute_models`, and the
 queries SHALL read from those tables and from nothing else. The caches
-read SHALL be `trace_totals`, `daily_rollup`, `model_request_rank`,
+read SHALL be `trace_totals`, `daily_rollup`,
 `monthly_requests_tokens_by_model` and `function_name_daily_requests`,
-and no other.
+and no other; a model's rank over the year is the sum of its monthly
+requests.
 
 #### Scenario: A query over the trace
 - **WHEN** a query names a table that is not one of the caches

@@ -63,7 +63,8 @@ figure that should become interactive is its own later change).
 `python -m site_data --artifact <dir> --out site/data` registers the
 artifact's small caches as DuckDB tables, each under the cache file's
 name (`monthly_requests_tokens_by_model`, `function_name_daily_requests`,
-`model_request_rank`, `trace_totals`, `daily_rollup`), the model names (`data/paper/chute_models.csv`) as
+`trace_totals`, `daily_rollup`; a model's rank over the year is the sum of
+its monthly requests), the model names (`data/paper/chute_models.csv`) as
 `chute_models`, and runs one `.sql` file per answer under
 `site/queries/explore/`, writing `site/data/all/explore/<query>.json`
 and the queries' hashes, as the agentic site does. The queries filter,
