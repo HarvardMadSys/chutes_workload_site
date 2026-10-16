@@ -167,8 +167,9 @@ export function colourScale(colours, shown) {
 /**
  * Plot's colour scale of a chart shading a value on a sequential scheme, with its legend titled `valueLabel`: the
  * scheme `scheme`, else `defaultScheme`, from the point `schemeStart` of it (0 to 1, its first colour when not given)
- * to its last colour; a log scale where `colourLog`, its legend's ticks Plot's own, which label only the powers of
- * ten; else the scale type `colourScale`, else linear, its ticks written by `valueFormat`.
+ * to its last colour, over the values `colourDomain` (`[low, high]`, a value beyond either taking that end's colour)
+ * or else the values' own; a log scale where `colourLog`, its legend's ticks Plot's own, which label only the powers
+ * of ten; else the scale type `colourScale`, else linear, its ticks written by `valueFormat`.
  */
 export function sequentialColour(parameters, defaultScheme) {
   const { scheme = defaultScheme, colourScale: scaleType = "linear", colourLog = false, valueLabel } = parameters;
@@ -182,6 +183,10 @@ export function sequentialColour(parameters, defaultScheme) {
   if (parameters.schemeStart !== undefined) {
     // With a scheme, Plot reads a range of two numbers as the part of the scheme the values span.
     colour.range = [parameters.schemeStart, 1];
+  }
+  if (parameters.colourDomain !== undefined) {
+    colour.domain = parameters.colourDomain;
+    colour.clamp = true;
   }
   return colour;
 }

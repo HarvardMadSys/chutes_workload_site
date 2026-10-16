@@ -2,9 +2,9 @@ name: Load balance simulation: Cache-aware routing unlocks fleet-wide KV capacit
 name: Load balance simulation: Cache-aware routing unlocks fleet-wide KV capacity.
 name: Load balance simulation: Cache-aware routing unlocks fleet-wide KV capacity.
 name: Load balance simulation: Cache-aware routing unlocks fleet-wide KV capacity.
-x-axis: 10k | 100k | 1M
+x-axis: 1k | 10k | 100k | 1M
 y-axis: 0.2 | 0.4 | 0.6
-x-axis: 10k | 100k | 1M
+x-axis: 1k | 10k | 100k | 1M
 y-axis: 1.0 | 1.5 | 2.0 | 2.5
 x-axis: 5 | 10 | 15 | 20
 y-axis: 1.0 | 1.5 | 2.0 | 2.5

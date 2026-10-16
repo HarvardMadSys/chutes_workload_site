@@ -7,7 +7,10 @@
  * A card's kind and chart say how its figure is drawn from its answer, as `insights/figure_card.js` defines them.
  */
 
-import { formatCompactCount, formatCount, formatCountTick } from "../shared/format.js";
+import {
+  formatCompactCount, formatCount, formatCountTick, formatMinutesTick, formatPercentage, formatSecondsTick,
+  formatWholeCountTick,
+} from "../shared/format.js";
 import { URLS } from "../shared/layout.js";
 import { frozenCard } from "./figure_card.js";
 
@@ -17,14 +20,37 @@ const SECTION_README = `${URLS.code}/blob/main/paper/05_load_balancing/README.md
 // The artifact's folder of the routing simulation, which draws its figure; it has no README of its own.
 const SIMULATION_FOLDER = `${URLS.code}/tree/main/pipeline/routing`;
 
-// The two panels of a user zoom: per instance, the user's share of the hour's requests and its token hit ratio.
+// The x axis of the three hourly lines: the hour's start, as a day of the trace.
+const TRACE_DAY_AXIS = Object.freeze({ label: "Day of the trace" });
+
+// The occupancy's x axis: the minutes of its 24-hour window, which starts at 17:00 UTC on day 317 of the trace,
+// labelled every eighth hour (every fourth runs together on a phone), written as hours and minutes from its start.
+const WINDOW_AXIS = Object.freeze({
+  label: "Time from day 317, 17:00 UTC", ticks: [0, 480, 960, 1440], tickFormat: formatMinutesTick,
+});
+
+// The instance load's axis of the two P90 grids, labelled every second power of ten as the paper's.
+const INSTANCE_LOAD_AXIS = Object.freeze({
+  label: "Instance load (tokens/s)", log: true, ticks: [10, 1e3, 1e5], tickFormat: formatWholeCountTick,
+});
+
+// The two panels of a user zoom: per instance, the user's share of the hour's requests and its token hit ratio, both
+// in percent, the token hit on the paper's 0 to 100.
+// placeholder: the panel titles are the paper's axis titles, for the authors to confirm.
 const USER_ZOOM_PANELS = [
-  { panel: "request_share", title: "The user's share of requests (%)", chart: { valueLabel: "Share of requests (%)" } },
-  { panel: "token_hit", title: "Token hit ratio (%)", chart: { valueLabel: "Token hit ratio (%)" } },
+  { panel: "request_share", title: "User request (%)", chart: { valueLabel: "User request" } },
+  { panel: "token_hit", title: "Token hit (%)", chart: { y: { domain: [0, 100] }, valueLabel: "Token hit" } },
 ];
 
-// The x axis of the routing panels drawn against the cache size.
-const CACHE_SIZE_AXIS = { label: "Cache size (tokens)", log: true, tickFormat: formatCountTick };
+// The routing figure's eight series, a policy of the four for each of the two models, in the paper's legend order;
+// MiniMax-M2.5's, the paper's lower row, dashed.
+const ROUTING_POLICIES = ["Round-robin", "Load-first", "Cache-first", "Sticky"];
+const ROUTING_DEEPSEEK = ROUTING_POLICIES.map((policy) => `DeepSeek V3.2, ${policy}`);
+const ROUTING_MINIMAX = ROUTING_POLICIES.map((policy) => `MiniMax M2.5, ${policy}`);
+
+// The routing panels' x axes: the cache size of an instance, on the paper's 10³ to past 10⁶, and the instances.
+const CACHE_SIZE_AXIS = { label: "Instance cache size", log: true, domain: [1e3, 6e6], tickFormat: formatCountTick };
+const INSTANCES_AXIS = { label: "Instances", ticks: [5, 10, 15, 20], tickFormat: String };
 
 /** The Load balancing topic. */
 export const BALANCING_TOPIC = Object.freeze({
@@ -41,7 +67,7 @@ export const BALANCING_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "lines",
       chart: {
-        x: { label: "Trace day" },
+        x: TRACE_DAY_AXIS,
         y: { label: "Requests per hour", tickFormat: formatCountTick },
         valueLabel: "Requests",
         valueFormat: formatCompactCount,
@@ -57,7 +83,7 @@ export const BALANCING_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "lines",
       chart: {
-        x: { label: "Trace day" },
+        x: TRACE_DAY_AXIS,
         y: { label: "Active instances" },
         valueLabel: "Active instances",
         valueFormat: formatCount,
@@ -73,7 +99,7 @@ export const BALANCING_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "lines",
       chart: {
-        x: { label: "Trace day" },
+        x: TRACE_DAY_AXIS,
         y: { label: "Max/mean token load" },
         valueLabel: "Max/mean token load",
         valueFormat: formatCount,
@@ -89,9 +115,12 @@ export const BALANCING_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "cells",
       chart: {
-        x: { label: "Minute of the day" },
-        y: { label: "Instance" },
-        valueLabel: "Requests",
+        x: WINDOW_AXIS,
+        y: { label: "Instance index" },
+        // The paper's: viridis, clipped to the 5th and 99th percentiles of the minutes' requests.
+        scheme: "viridis",
+        colourDomain: [36, 80],
+        valueLabel: "Requests per minute",
         valueFormat: formatCount,
       },
     }),
@@ -105,10 +134,14 @@ export const BALANCING_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "cells",
       chart: {
-        x: { label: "Instance load (tokens/s)", log: true, tickFormat: formatCountTick },
-        y: { label: "Input tokens", log: true, tickFormat: formatCountTick },
+        x: INSTANCE_LOAD_AXIS,
+        y: { label: "Input tokens", log: true, tickFormat: formatWholeCountTick },
+        // The latency grids' scheme, its darkest values keeping their ink on either card; clipped as the paper's, to
+        // the 5th and 95th percentiles of every request's TTFT.
+        scheme: "YlOrRd",
+        colourDomain: [1.1, 13.6],
         valueLabel: "P90 TTFT",
-        valueFormat: formatCount,
+        valueFormat: formatSecondsTick,
       },
     }),
     frozenCard({
@@ -121,10 +154,13 @@ export const BALANCING_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "cells",
       chart: {
-        x: { label: "Instance load (tokens/s)", log: true, tickFormat: formatCountTick },
-        y: { label: "Output tokens", log: true, tickFormat: formatCountTick },
+        x: INSTANCE_LOAD_AXIS,
+        y: { label: "Output tokens", log: true, tickFormat: formatWholeCountTick },
+        // As the TTFT grid's, clipped to the 5th and 95th percentiles of every request's decode time.
+        scheme: "YlOrRd",
+        colourDomain: [0, 153],
         valueLabel: "P90 decode time",
-        valueFormat: formatCount,
+        valueFormat: formatSecondsTick,
       },
     }),
     frozenCard({
@@ -136,7 +172,7 @@ export const BALANCING_TOPIC = Object.freeze({
       definition: "The busiest hour of the busiest DeepSeek-V3.2 user whose token hit ratio that hour is at least 0.4: per instance, the user's share of requests and its token hit ratio.",
       source: SECTION_README,
       kind: "bars",
-      chart: { x: { label: "Instance" }, valueFormat: formatCount },
+      chart: { x: { label: "Instance index" }, valueFormat: formatPercentage },
       panels: USER_ZOOM_PANELS,
     }),
     frozenCard({
@@ -148,7 +184,7 @@ export const BALANCING_TOPIC = Object.freeze({
       definition: "The same for the least busy such user, still with at least 200 requests in that hour.",
       source: SECTION_README,
       kind: "bars",
-      chart: { x: { label: "Instance" }, valueFormat: formatCount },
+      chart: { x: { label: "Instance index" }, valueFormat: formatPercentage },
       panels: USER_ZOOM_PANELS,
     }),
     frozenCard({
@@ -159,12 +195,30 @@ export const BALANCING_TOPIC = Object.freeze({
       definition: "A simulated fleet of LRU caches replaying DeepSeek V3.2 (top) and MiniMax-M2.5 (bottom) under four routing policies: hit ratio (a) and replication (b) against cache size on 20 instances; replication (c) and load imbalance (d) against the number of instances.",
       source: SIMULATION_FOLDER,
       kind: "lines",
-      chart: { markers: true, valueFormat: formatCount },
+      series: [...ROUTING_DEEPSEEK, ...ROUTING_MINIMAX],
+      chart: { markers: true, dashed: ROUTING_MINIMAX, valueFormat: formatCount },
+      // placeholder: the panel titles are the figure's own subcaptions, for the authors to confirm.
       panels: [
-        { panel: "a", title: "(a) Hit ratio", chart: { x: CACHE_SIZE_AXIS, valueLabel: "Hit ratio" } },
-        { panel: "b", title: "(b) Replication", chart: { x: CACHE_SIZE_AXIS, valueLabel: "Replication" } },
-        { panel: "c", title: "(c) Replication", chart: { x: { label: "Instances" }, valueLabel: "Replication" } },
-        { panel: "d", title: "(d) Load imbalance", chart: { x: { label: "Instances" }, valueLabel: "Load imbalance" } },
+        {
+          panel: "a",
+          title: "(a) Hit ratio vs cache size",
+          chart: { x: CACHE_SIZE_AXIS, y: { label: "Token hit ratio" }, valueLabel: "Token hit ratio" },
+        },
+        {
+          panel: "b",
+          title: "(b) Replication vs cache size",
+          chart: { x: CACHE_SIZE_AXIS, y: { label: "Replication ratio" }, valueLabel: "Replication ratio" },
+        },
+        {
+          panel: "c",
+          title: "(c) Replication vs instance count",
+          chart: { x: INSTANCES_AXIS, y: { label: "Replication ratio" }, valueLabel: "Replication ratio" },
+        },
+        {
+          panel: "d",
+          title: "(d) Imbalance vs instance count",
+          chart: { x: INSTANCES_AXIS, y: { label: "Load imbalance (%)" }, valueLabel: "Load imbalance (%)" },
+        },
       ],
       isWide: true,
     }),

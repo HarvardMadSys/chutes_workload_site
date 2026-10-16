@@ -1,7 +1,8 @@
 /**
  * Numbers and dates as the page shows them, a value with one decimal kept and an axis's tick with none it does not
  * need: counts, compact counts and their ticks (a count given in thousands, or rounded to a whole one, among them),
- * durations in seconds and their ticks, shares and whole percentages, and a span of days.
+ * durations in seconds and their ticks, minutes as hours and minutes, shares, whole percentages and values already in
+ * percent, and a span of days.
  */
 
 // A compact count is shown in the largest of these units it reaches.
@@ -18,6 +19,8 @@ const COMPACT_UNITS = [
 const THREE_FIGURE_BOUND = 10;
 
 const TWO_DECIMALS_BELOW = 0.1; // a duration under a tenth of a second keeps two decimals, so 0.04 s is not written 0 s
+
+const MINUTES_PER_HOUR = 60; // how a time in minutes is split into hours and minutes
 
 /** The text of a value that has none, such as an average over no requests. */
 export const MISSING_TEXT = "—";
@@ -91,6 +94,19 @@ export function formatSecondsTick(seconds) {
 /** A share of one as a whole percentage, as an axis writes it: 0.632 → "63%", 1 → "100%". */
 export function formatPercent(share) {
   return `${Math.round(share * 100)}%`;
+}
+
+/** A time in minutes from the start of a window as hours and minutes, as an axis writes it: 832 → "13:52", 240 → "4:00". */
+export function formatMinutesTick(minutes) {
+  const wholeMinutes = Math.round(minutes);
+  const hours = Math.floor(wholeMinutes / MINUTES_PER_HOUR);
+  const minutesPastHour = String(wholeMinutes % MINUTES_PER_HOUR).padStart(2, "0");
+  return `${hours}:${minutesPastHour}`;
+}
+
+/** A value already in percent with one decimal kept: 8.564 → "8.6%", 100 → "100.0%". */
+export function formatPercentage(percent) {
+  return `${percent.toFixed(1)}%`;
 }
 
 /** A share of one as a percentage with one decimal kept: 0.632 → "63.2%", 0.94 → "94.0%", 1 → "100.0%". */

@@ -21,8 +21,9 @@ const DIAGONAL_DASH = "4,3"; // the dash and gap, in pixels, of the line where y
  * - `xTicks`, `yTicks`: an axis's category names, in place of its ticks and their format, the cell from i to i + 1
  *   named by the i-th, "Mon"; every category is labelled, or, where the axis gives `ticks`, those of its indices.
  * - `scheme`: the colour scheme, "YlOrRd" when not given; `schemeStart`: the point of it, from 0 to 1, the lowest
- *   value takes, its first colour when not given; `colourLog`: true for a log colour scale, on which a cell of value
- *   zero is not drawn; `colourScale`: Plot's colour scale type otherwise, linear when not given.
+ *   value takes, its first colour when not given; `colourDomain`: the values at the scale's two ends, a cell beyond
+ *   either taking that end's colour, the values' own when not given; `colourLog`: true for a log colour scale, on
+ *   which a cell of value zero is not drawn; `colourScale`: Plot's colour scale type otherwise, linear when not given.
  * - `diagonal`: true to draw a dashed line where y equals x, as a figure of input against output tokens marks them
  *   equal.
  * - `valueLabel`: what a value is, the colour legend's title and the tooltip's; `valueFormat`: how it is written there.

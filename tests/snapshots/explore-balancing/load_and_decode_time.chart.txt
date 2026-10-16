@@ -1,3 +1,3 @@
 name: Load and decode time: P90 decode time mainly follows output length and is largely insensitive to instance throughput.
-x-axis: 10 | 100 | 1k | 10k | 100k | 1M
+x-axis: 10 | 1k | 100k
 y-axis: 1 | 10 | 100 | 1k | 10k

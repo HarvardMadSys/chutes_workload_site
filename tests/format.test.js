@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  dateSpanText, formatCompactCount, formatCount, formatCountTick, formatPercent, formatQuantity, formatSeconds,
-  formatSecondsTick, formatShare, formatThousandsTick, formatWholeCount, formatWholeCountTick,
+  dateSpanText, formatCompactCount, formatCount, formatCountTick, formatMinutesTick, formatPercent, formatPercentage,
+  formatQuantity,
+  formatSeconds, formatSecondsTick, formatShare, formatThousandsTick, formatWholeCount, formatWholeCountTick,
 } from "../site/js/shared/format.js";
 
 test("a count gets thousands separators", () => {
@@ -36,6 +37,17 @@ test("an axis writes a count given in thousands as the count itself", () => {
   assert.equal(formatThousandsTick(10), "10k");
   assert.equal(formatThousandsTick(0.5), "500");
   assert.equal(formatThousandsTick(2000), "2M");
+});
+
+test("an axis writes minutes from a window's start as hours and minutes", () => {
+  assert.equal(formatMinutesTick(832), "13:52");
+  assert.equal(formatMinutesTick(240), "4:00");
+  assert.equal(formatMinutesTick(1440), "24:00");
+});
+
+test("a value already in percent is written with one decimal kept", () => {
+  assert.equal(formatPercentage(8.564), "8.6%");
+  assert.equal(formatPercentage(100), "100.0%");
 });
 
 test("a share is a percentage with one decimal kept", () => {

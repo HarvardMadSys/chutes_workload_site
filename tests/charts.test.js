@@ -73,6 +73,9 @@ test("a sequential colour scale takes the card's scheme and type, a log one wher
   assert.equal(sequentialColour({ colourScale: "sqrt", valueLabel: "Users" }, "Blues").type, "sqrt");
   assert.equal(sequentialColour({ valueLabel: "Users" }, "Blues").range, undefined);
   assert.deepEqual(sequentialColour({ schemeStart: 0.25, valueLabel: "Users" }, "Blues").range, [0.25, 1]);
+  const clipped = sequentialColour({ colourDomain: [36, 80], valueLabel: "Requests" }, "Blues");
+  assert.deepEqual([clipped.domain, clipped.clamp], [[36, 80], true]);
+  assert.equal(sequentialColour({ valueLabel: "Requests" }, "Blues").domain, undefined);
 });
 
 test("a panel's rows are those naming it; every row when no panel is asked for", () => {
