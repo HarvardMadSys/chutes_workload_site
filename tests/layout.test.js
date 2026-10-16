@@ -7,20 +7,27 @@ import { LINKED_SECTIONS, renderFooter, renderHeader, queryString } from "../sit
 // The Explore page, whose sections the header and footer link by anchor.
 const EXPLORE_PAGE = new URL("../site/index.html", import.meta.url);
 
-// URL keys, as a page gives them to the header and footer.
+// URL keys, as the page gives them to the header.
 const PAGE_KEYS = "model=qwen3&period=q3";
 
-// The markup `render` writes into a stand-in container for the page `activeFile` with the URL keys `query`.
-function rendered(render, activeFile, query, monthCount = 13) {
+// The header's markup in a stand-in container, given the URL keys `query`.
+function renderedHeader(query) {
   const container = { innerHTML: "" };
-  render(container, activeFile, new URLSearchParams(query), monthCount);
+  renderHeader(container, new URLSearchParams(query));
   return container.innerHTML;
 }
 
-// The header's links to the Explore page's sections as `[title, href]`.
-function sectionLinks(activeFile, query) {
+// The footer's markup in a stand-in container, counting `monthCount` months.
+function renderedFooter(monthCount = 13) {
+  const container = { innerHTML: "" };
+  renderFooter(container, monthCount);
+  return container.innerHTML;
+}
+
+// The header's links to the page's sections as `[title, href]`, given the URL keys `query`.
+function sectionLinks(query) {
   const links = [];
-  const markup = rendered(renderHeader, activeFile, query);
+  const markup = renderedHeader(query);
   for (const match of markup.matchAll(/<a class="nav-link" href="([^"]*)">([^<]*)<\/a>/g)) {
     links.push([match[2], match[1]]);
   }
@@ -38,13 +45,13 @@ function externalLinks(markup) {
 
 // The titles of the footer's links under the heading `heading`.
 function footerList(heading) {
-  const markup = rendered(renderFooter, "index.html", "");
+  const markup = renderedFooter();
   const list = markup.split(`<p class="footer-nav-title">${heading}</p>`)[1].split("</nav>")[0];
   return [...list.matchAll(/>([^<]+)<\/a>/g)].map((match) => match[1]);
 }
 
-test("on the Explore page the header links its four sections by anchor alone", () => {
-  assert.deepEqual(sectionLinks("index.html", PAGE_KEYS), [
+test("the header links the page's four sections by anchor alone, whatever the URL's keys", () => {
+  assert.deepEqual(sectionLinks(PAGE_KEYS), [
     ["Overview", "#overview"],
     ["Traffic Explorer", "#traffic"],
     ["Insights", "#insights"],
@@ -52,31 +59,24 @@ test("on the Explore page the header links its four sections by anchor alone", (
   ]);
 });
 
-test("from another page the header's section links carry the URL keys", () => {
-  assert.deepEqual(sectionLinks("other.html", PAGE_KEYS), [
-    ["Overview", `index.html?${PAGE_KEYS}#overview`],
-    ["Traffic Explorer", `index.html?${PAGE_KEYS}#traffic`],
-    ["Insights", `index.html?${PAGE_KEYS}#insights`],
-    ["Cite", `index.html?${PAGE_KEYS}#cite`],
-  ]);
-});
-
-test("the brand links the Explore page with the URL keys", () => {
-  const markup = rendered(renderHeader, "other.html", "model=qwen3");
+test("the header's brand links the page with the URL keys, and the footer's with none", () => {
+  const markup = renderedHeader("model=qwen3");
   assert.match(markup, /<a class="brand" href="index\.html\?model=qwen3">/);
+  assert.match(renderedHeader(""), /<a class="brand" href="index\.html">/);
+  assert.match(renderedFooter(), /<a class="brand" href="index\.html">/);
   assert.match(markup, /Chutes <em>Production Trace<\/em>/);
 });
 
 test("the header links nothing off the site", () => {
-  assert.deepEqual(externalLinks(rendered(renderHeader, "index.html", "")), []);
+  assert.deepEqual(externalLinks(renderedHeader("")), []);
 });
 
 test("the header links no About page", () => {
-  assert.doesNotMatch(rendered(renderHeader, "index.html", ""), /about\.html|>About</);
+  assert.doesNotMatch(renderedHeader(""), /about\.html|>About</);
 });
 
 test("the footer names the lab under its line, linking to it", () => {
-  const markup = rendered(renderFooter, "index.html", "");
+  const markup = renderedFooter();
   assert.match(markup, /<a class="affiliation" href="https:\/\/madsys\.seas\.harvard\.edu\/" target="_blank" rel="noopener">Harvard SEAS · MadSys Lab<\/a>/);
 });
 
@@ -85,19 +85,18 @@ test("the footer lists the sections on this site and the places elsewhere", () =
   assert.deepEqual(footerList("Elsewhere"), ["Dataset", "Paper", "Code (this trace)", "MadSys on GitHub"]);
 });
 
-test("the footer's section links lead where the header's do, with the URL keys from another page", () => {
-  const markup = rendered(renderFooter, "other.html", "model=qwen3");
-  const links = [...markup.matchAll(/<a class="footer-link" href="([^"]*)">([^<]*)<\/a>/g)];
+test("the footer's section links lead where the header's do, by anchor alone", () => {
+  const links = [...renderedFooter().matchAll(/<a class="footer-link" href="([^"]*)">([^<]*)<\/a>/g)];
   assert.deepEqual(links.map((match) => [match[2], match[1]]), [
-    ["Overview", "index.html?model=qwen3#overview"],
-    ["Traffic Explorer", "index.html?model=qwen3#traffic"],
-    ["Insights", "index.html?model=qwen3#insights"],
-    ["Cite", "index.html?model=qwen3#cite"],
+    ["Overview", "#overview"],
+    ["Traffic Explorer", "#traffic"],
+    ["Insights", "#insights"],
+    ["Cite", "#cite"],
   ]);
 });
 
 test("the footer holds the brand, its line and the two lists of links, with no headings and no copyright or policy text", () => {
-  const markup = rendered(renderFooter, "index.html", "");
+  const markup = renderedFooter();
   assert.match(markup, /Chutes <em>Production Trace<\/em>/);
   const titles = [...markup.matchAll(/<p class="footer-nav-title">([^<]+)<\/p>/g)].map((match) => match[1]);
   assert.deepEqual(titles, ["On this site", "Elsewhere"]);
@@ -130,9 +129,9 @@ test("the Explore page runs Overview, Traffic Explorer, Insights, Cite and Team,
 });
 
 test("the footer's line counts the months in digits as the hero's lede does, and says One year while the count is unknown", () => {
-  assert.match(rendered(renderFooter, "index.html", "", 13), /<p>13 months of production LLM serving on Chutes\.<\/p>/);
-  assert.match(rendered(renderFooter, "index.html", "", 1), /<p>1 month of production LLM serving/);
-  assert.match(rendered(renderFooter, "index.html", "", null), /<p>One year of production LLM serving/);
+  assert.match(renderedFooter(13), /<p>13 months of production LLM serving on Chutes\.<\/p>/);
+  assert.match(renderedFooter(1), /<p>1 month of production LLM serving/);
+  assert.match(renderedFooter(null), /<p>One year of production LLM serving/);
 });
 
 test("the query string keeps the commas of a list of names plain", () => {

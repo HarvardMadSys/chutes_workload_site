@@ -10,9 +10,8 @@ import duckdb
 import pytest
 
 import fixture_artifact
+from repository_root import ROOT
 from site_data import figure_images, loading, site_database
-
-ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 
 @pytest.fixture(scope="session")

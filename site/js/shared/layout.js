@@ -1,9 +1,10 @@
 /**
- * The header and footer of the page, and the query string of the URL keys their links carry (`queryString`).
+ * The header and footer of the site's one page, and the query string of the URL keys the header's brand carries
+ * (`queryString`).
  *
- * They link the Explore page's sections. From another page, the links carry the URL keys the page gives them. On the
- * Explore page itself a link is its section's anchor alone, so following it scrolls the page rather than loading it
- * again.
+ * Their links lead to the page's sections by anchor alone, so following one scrolls the page rather than loading it
+ * again. The header's brand links the page itself with the URL's keys, so it opens the page at the top with the Traffic
+ * Explorer's choice kept; the footer's brand links the page with none.
  */
 
 /** Every address outside the site that a page links, each written once. */
@@ -15,13 +16,13 @@ export const URLS = Object.freeze({
   github: "https://github.com/HarvardMadSys",
 });
 
-/** The Explore page, the landing page, which holds the sections the header and footer link. */
-export const EXPLORE_FILE = "index.html";
+// The site's one page, which the brand links.
+const PAGE_FILE = "index.html";
 
-/** The anchor of the Explore page's Traffic Explorer, where the header's link and the hero's first button lead. */
+/** The anchor of the Traffic Explorer, where the header's link and the hero's first button lead. */
 export const TRAFFIC_EXPLORER_ANCHOR = "#traffic";
 
-/** The Explore page's sections, linked from the header and from the footer's "On this site": `{ anchor, title }`. */
+/** The page's sections, linked from the header and from the footer's "On this site": `{ anchor, title }`. */
 export const LINKED_SECTIONS = Object.freeze([
   Object.freeze({ anchor: "#overview", title: "Overview" }),
   Object.freeze({ anchor: TRAFFIC_EXPLORER_ANCHOR, title: "Traffic Explorer" }),
@@ -62,15 +63,14 @@ export function queryString(params) {
 }
 
 /**
- * Fill `container` with the site header: the brand and the links to the Explore page's sections.
- * `activeFile` is the page's own file name; `carried` is the URLSearchParams every link to the Explore page carries.
+ * Fill `container` with the site header: the brand, linking the page with the URLSearchParams `carried`, and the links
+ * to the page's sections.
  */
-export function renderHeader(container, activeFile, carried) {
-  const query = queryString(carried);
-  const sectionLinks = LINKED_SECTIONS.map((section) => headerSectionLink(section, activeFile, query));
+export function renderHeader(container, carried) {
+  const sectionLinks = LINKED_SECTIONS.map((section) => sectionLink(section, "nav-link"));
   container.innerHTML = `
     <div class="header-inner">
-      ${brand(query)}
+      ${brand(queryString(carried))}
       <nav class="site-nav" aria-label="Site">
         ${sectionLinks.join("")}
       </nav>
@@ -88,12 +88,12 @@ const HEADER_HEIGHT_PROPERTY = "--header-measured-height";
  * Draw the site header into `container` as `renderHeader` does, and keep the page's `--header-measured-height` at the
  * header's height whenever it changes. A redraw into the same container keeps the measuring.
  */
-export function mountHeader(container, activeFile, carried) {
+export function mountHeader(container, carried) {
   if (!MEASURED_HEADERS.has(container)) {
     MEASURED_HEADERS.add(container);
     new ResizeObserver(() => measureHeader(container)).observe(container);
   }
-  renderHeader(container, activeFile, carried);
+  renderHeader(container, carried);
 }
 
 // Write the header's height, as drawn now, to the page's `--header-measured-height`.
@@ -103,17 +103,15 @@ function measureHeader(container) {
 
 /**
  * Fill `container` with the site footer: the brand and one line counting the `monthCount` months (null when not
- * known), the Explore page's sections and the places off the site.
- * `activeFile` and `carried` are as `renderHeader` takes them.
+ * known), the page's sections and the places off the site.
  */
-export function renderFooter(container, activeFile, carried, monthCount) {
-  const query = queryString(carried);
-  const sectionLinks = LINKED_SECTIONS.map((section) => footerSectionLink(section, activeFile, query));
+export function renderFooter(container, monthCount) {
+  const sectionLinks = LINKED_SECTIONS.map((section) => sectionLink(section, "footer-link"));
   const elsewhereLinks = ELSEWHERE_LINKS.map((link) => externalLink(link, "footer-link"));
   container.innerHTML = `
     <div class="footer-inner">
       <div class="footer-brand">
-        ${brand(query)}
+        ${brand("")}
         <p>${monthCountText(monthCount)} ${FOOTER_LINE_REST}</p>
         <p><a class="affiliation" href="${URLS.lab}" target="_blank" rel="noopener">${AFFILIATION}</a></p>
       </div>
@@ -122,27 +120,19 @@ export function renderFooter(container, activeFile, carried, monthCount) {
     </div>`;
 }
 
-// The brand, linking to the Explore page with the carried keys: a crimson square over a pale one, and the name.
+// The brand, linking the page with `query`, the URL keys it carries ("" for none): a crimson square over a pale one, and
+// the name.
 function brand(query) {
   return `
-    <a class="brand" href="${EXPLORE_FILE}${query}">
+    <a class="brand" href="${PAGE_FILE}${query}">
       <span class="brand-mark" aria-hidden="true"></span>
       <span>Chutes <em>Production Trace</em></span>
     </a>`;
 }
 
-// The address of `section` from the page `activeFile`: its anchor alone on the Explore page, else the page, the
-// carried keys and the anchor.
-function sectionHref(section, activeFile, query) {
-  return activeFile === EXPLORE_FILE ? section.anchor : `${EXPLORE_FILE}${query}${section.anchor}`;
-}
-
-function headerSectionLink(section, activeFile, query) {
-  return `<a class="nav-link" href="${sectionHref(section, activeFile, query)}">${section.title}</a>`;
-}
-
-function footerSectionLink(section, activeFile, query) {
-  return `<a class="footer-link" href="${sectionHref(section, activeFile, query)}">${section.title}</a>`;
+// A link of the class `className` to `section` by its anchor alone.
+function sectionLink(section, className) {
+  return `<a class="${className}" href="${section.anchor}">${section.title}</a>`;
 }
 
 // A link off the site opens in a new tab, without giving that tab a handle on this one.

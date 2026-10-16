@@ -6,17 +6,9 @@
 
 /** Every chart's height, so a grid of figures lines up. */
 export const CHART_HEIGHT = 240;
-/** The height of a chart beside a tall neighbour, a long table or a chart of many categories, so its row has no gap. */
-export const TALL_CHART_HEIGHT = 400;
 const FALLBACK_WIDTH = 480; // the width drawn when the body has not been laid out yet
-/** The width of every chart's lines, in pixels: thin lines. */
-export const LINE_WIDTH = 2;
 /** Pixels taken off each side of a bar: a 2px gap between neighbouring bars and segments. */
 export const BAR_INSET = 1;
-/** The dash and gap lengths of every dashed line, in pixels: a CDF's median, a percentile, a reference line. */
-export const DASH = "4 3";
-/** Pixels between the y axis and an x axis's first value, so its label and the y axis's lowest keep a gap. */
-export const X_INSET = 16;
 
 // The Plot options every chart shares, so every chart has the same ink, in the page's own face: Plot's default face
 // draws a name's punctuation otherwise than the page's text does.
@@ -28,10 +20,6 @@ const PLOT_MARGINS = Object.freeze({ marginTop: 32, marginRight: 32, marginBotto
 export const GRID_STYLE = Object.freeze({ stroke: "var(--chart-grid)", strokeOpacity: 1 });
 /** The options of every chart's axes and reference rules: the axis ink, and an axis title with no arrow. */
 export const AXIS_STYLE = Object.freeze({ stroke: "var(--chart-axis)", labelArrow: "none" });
-/** A label written on a chart: in the label ink, on a halo of the card's colour so a line under it does not cross it. */
-export const LINE_LABEL_STYLE = Object.freeze({
-  fill: "var(--chart-label)", stroke: "var(--color-surface)", strokeWidth: 4, paintOrder: "stroke",
-});
 
 /** The Plot options every chart starts from: its margins, its height, the width of `body`, and its ink. */
 export function chartFrame(body) {
@@ -68,8 +56,7 @@ export function showError(container, error) {
  * sentence of what the chart means, shows its title, the insight, an empty place for its legend, the body and its
  * caption (evidence supporting the insight); a card without one shows its title, its caption, the legend's place and
  * the body. Both end in a Definition control that opens on the full definition and the line of rows it rests on,
- * `rows`, which may also be written later into the card's `.figure-rows`. The title is a heading of the tag `heading`,
- * an `h3` under a section's `h2` by default.
+ * `rows`. The title is a heading of the tag `heading`, an `h3` under a section's `h2` by default.
  */
 export function renderFigure(container, { title, insight = null, caption, definition, rows = "", heading = "h3" }) {
   const figure = document.createElement("div");
@@ -116,7 +103,7 @@ export function chartName(body) {
 
 /**
  * Name every chart drawn in a figure's `body` for a screen reader, as one image named by `chartName`; called after
- * each drawing, since a drawing replaces the chart. A body holding a note or a table has no chart to name.
+ * each drawing, since a drawing replaces the chart. A body holding a note has no chart to name.
  */
 export function nameChart(body) {
   for (const chart of body.querySelectorAll("svg:not(svg svg)")) {
@@ -128,11 +115,6 @@ export function nameChart(body) {
 /** The place above a figure's body, as `renderFigure` lays it out, where its legend goes. */
 export function legendPlace(body) {
   return body.closest(".figure").querySelector(".figure-legend");
-}
-
-/** The place behind a figure's Definition control, as `renderFigure` lays it out, where its line of rows goes. */
-export function rowsPlace(body) {
-  return body.closest(".figure").querySelector(".figure-rows");
 }
 
 /** The sum of `row[column]` over `rows`. */

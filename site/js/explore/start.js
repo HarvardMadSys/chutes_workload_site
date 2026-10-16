@@ -12,12 +12,12 @@
  * - `orders`, `{ models, endpoints }`, the promised rows of `explore/model_mix` and of `explore/endpoint_mix`, each most
  *   requested first: the orders every chart colours the models and the endpoint groups by, and the donuts' rows,
  *   each asked for once;
- * - `replaceQuery(params)`, which writes `params` to the address bar and the header's links.
+ * - `replaceQuery(params)`, which writes `params` to the address bar and the header's brand.
  */
 
 import { readAnswer, readFigureIndex } from "../shared/answers.js";
 import { showError } from "../shared/charts.js";
-import { EXPLORE_FILE, mountHeader, renderFooter, queryString } from "../shared/layout.js";
+import { mountHeader, renderFooter, queryString } from "../shared/layout.js";
 import { drawFigureImage, newCardElement, renderFigureCard } from "./figure_card.js";
 import { FIGURE_SECTIONS } from "./figure_sections.js";
 import { mountTopicTabs } from "./topic_tabs.js";
@@ -28,7 +28,7 @@ import { mountTopicTabs } from "./topic_tabs.js";
  */
 export async function startPage({ sections, showMonthCount }) {
   mountInsights();
-  renderFooter(document.querySelector("#site-footer"), EXPLORE_FILE, new URLSearchParams(), null);
+  renderFooter(document.querySelector("#site-footer"), null);
   showMonthCount(null);
   renderPageHeader();
   const context = sectionContext();
@@ -109,7 +109,7 @@ async function showMonths(totals, showMonthCount) {
     return;
   }
   const monthCount = rows[0].months;
-  renderFooter(document.querySelector("#site-footer"), EXPLORE_FILE, new URLSearchParams(), monthCount);
+  renderFooter(document.querySelector("#site-footer"), monthCount);
   showMonthCount(monthCount);
 }
 
@@ -143,7 +143,7 @@ function scrollToAnchor() {
 
 /**
  * Write `params` to the address bar, as `queryString` writes them, keeping its anchor, without reloading the page;
- * then redraw the header, whose links carry them.
+ * then redraw the header, whose brand carries them.
  */
 function replaceQuery(params) {
   const { pathname, hash } = window.location;
@@ -153,8 +153,8 @@ function replaceQuery(params) {
 }
 
 function renderPageHeader() {
-  // The header is given every key of the URL, as a link from it carries them.
-  mountHeader(document.querySelector("#site-header"), EXPLORE_FILE, new URLSearchParams(window.location.search));
+  // The header is given every key of the URL, as its brand carries them.
+  mountHeader(document.querySelector("#site-header"), new URLSearchParams(window.location.search));
 }
 
 function sectionElement(section) {

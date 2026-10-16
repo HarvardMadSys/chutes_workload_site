@@ -62,8 +62,8 @@ def test_a_query_reads_only_the_site_s_tables(name: str) -> None:
 
 
 def test_the_table_check_sees_every_table_a_query_names() -> None:
-    text = "WITH counted AS (SELECT requests.id FROM requests JOIN sessions ON true) SELECT * FROM counted"
-    assert duckdb.get_table_names(text) == {"requests", "sessions"}
+    text = "WITH counted AS (SELECT requests.id FROM requests JOIN chute_models ON true) SELECT * FROM counted"
+    assert duckdb.get_table_names(text) == {"requests", "chute_models"}
 
 
 def test_the_named_models_are_ranked_by_their_requests(connection: duckdb.DuckDBPyConnection) -> None:

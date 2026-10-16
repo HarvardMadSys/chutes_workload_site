@@ -2,9 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  formatCount, formatDurationTick, formatMultiple, formatOptionalShare, formatQuantity, formatSeconds, formatShare,
-  monthName, formatBinaryThousands, formatCompactCount, formatPercent, monthAndDay, dateSpanText, formatCountTick,
-  formatMultipleTick, shortMonth, formatWholeCount,
+  dateSpanText, formatCompactCount, formatCount, formatCountTick, formatPercent, formatQuantity, formatSeconds,
+  formatShare, formatWholeCount,
 } from "../site/js/shared/format.js";
 
 test("a count gets thousands separators", () => {
@@ -23,27 +22,6 @@ test("a duration keeps one decimal, in seconds only under a minute", () => {
   assert.equal(formatSeconds(0), "0.0 s");
 });
 
-test("a duration tick is in the largest unit it reaches, to one decimal at most", () => {
-  assert.equal(formatDurationTick(0), "0 s");
-  assert.equal(formatDurationTick(0.1), "0.1 s");
-  assert.equal(formatDurationTick(50), "50 s");
-  assert.equal(formatDurationTick(60), "1 min");
-  assert.equal(formatDurationTick(80), "1.3 min");
-  assert.equal(formatDurationTick(90), "1.5 min");
-  assert.equal(formatDurationTick(120), "2 min");
-  assert.equal(formatDurationTick(3600), "1 h");
-  assert.equal(formatDurationTick(86400), "1 d");
-  assert.equal(formatDurationTick(604800), "7 d");
-});
-
-test("a multiple has a times sign and the decimals asked for, or is written as it is", () => {
-  assert.equal(formatMultiple(1.3757185, 2), "1.38×");
-  assert.equal(formatMultiple(3.1066, 1), "3.1×");
-  assert.equal(formatMultiple(1, 2), "1.00×");
-  assert.equal(formatMultiple(2), "2×");
-  assert.equal(formatMultiple(0.4), "0.4×");
-});
-
 test("a share is a percentage with one decimal kept", () => {
   assert.equal(formatShare(0.632), "63.2%");
   assert.equal(formatShare(0.94), "94.0%");
@@ -55,20 +33,10 @@ test("a percentile of counts is written as a whole count", () => {
   assert.equal(formatWholeCount(5040), "5,040");
 });
 
-test("an optional share is a percentage, or a dash when it is missing", () => {
-  assert.equal(formatOptionalShare(0.632), "63.2%");
-  assert.equal(formatOptionalShare(0), "0.0%");
-  assert.equal(formatOptionalShare(null), "—");
-});
-
 test("a quantity names its noun, singular for exactly one", () => {
   assert.equal(formatQuantity(1, "user", "users"), "1 user");
   assert.equal(formatQuantity(0, "user", "users"), "0 users");
   assert.equal(formatQuantity(5040, "request", "requests"), "5,040 requests");
-});
-
-test("a month is written as its name and year", () => {
-  assert.equal(monthName("2026-07"), "July 2026");
 });
 
 test("a compact count is in its largest unit, lower-case k, one decimal kept", () => {
@@ -91,26 +59,10 @@ test("a count on an axis has no decimal it does not need", () => {
   assert.equal(formatCountTick(250), "250");
 });
 
-test("a power-of-two token count is written in units of 1,024", () => {
-  assert.equal(formatBinaryThousands(4096), "4k");
-  assert.equal(formatBinaryThousands(262144), "256k");
-  assert.equal(formatBinaryThousands(512), "512");
-});
-
 test("an axis's percentage has no decimals", () => {
   assert.equal(formatPercent(1), "100%");
   assert.equal(formatPercent(0), "0%");
   assert.equal(formatPercent(0.632), "63%");
-});
-
-test("a multiple on an axis is written as it is, whatever else Plot passes", () => {
-  assert.equal(formatMultipleTick(2, 3), "2×");
-  assert.equal(formatMultipleTick(0.5), "0.5×");
-});
-
-test("a date is written as its short month and day, or its month alone", () => {
-  assert.equal(monthAndDay("2026-08-09"), "Aug 9");
-  assert.equal(shortMonth("2026-05-17"), "May");
 });
 
 test("a span of days names the year once when both share it", () => {

@@ -6,9 +6,9 @@ import json
 import pathlib
 import subprocess
 
+from repository_root import ROOT
 from site_data import figure_images
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
 FIGURE_SECTIONS_MODULE = ROOT / "site" / "js" / "explore" / "figure_sections.js"
 
 # A node script that prints the name of every image the cards show, a card's image and its legend's, as JSON.

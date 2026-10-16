@@ -7,8 +7,8 @@ import ast
 import pathlib
 import re
 
+from repository_root import ROOT
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
 MAX_FUNCTION_LINES = 50  # a longer function does two jobs
 MAX_MODULE_LINES = 300  # a longer module holds two purposes
 MAX_MODULES_PER_FOLDER = 9  # a folder holds one purpose and about eight modules

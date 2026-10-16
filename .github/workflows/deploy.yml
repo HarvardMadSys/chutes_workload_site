@@ -59,7 +59,7 @@ jobs:
           # that the page, the daily rollup answer and one figure image are served, each with its content type.
           host="chutes-trace-site.${CLOUDFLARE_ACCOUNT_SUBDOMAIN:-}.workers.dev"
           if [ -z "${CLOUDFLARE_ACCOUNT_SUBDOMAIN:-}" ]; then
-            echo "Set the CLOUDFLARE_ACCOUNT_SUBDOMAIN repository variable to check the deployed site; skipping."
+            echo "::warning::The deployed site was not checked: set the CLOUDFLARE_ACCOUNT_SUBDOMAIN repository variable to check it."
             exit 0
           fi
           # Fails the job unless the path answers 200 with a content type that starts with the expected one.

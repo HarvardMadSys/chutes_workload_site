@@ -5,9 +5,9 @@ same as a rebuild from the artifact's checkout (`ARTIFACT`; skipped, saying so, 
 import json
 import pathlib
 
+from repository_root import ROOT
 from site_data import answers, figure_images, loading, paths, site_database
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
 DATA_FOLDER = ROOT / "site" / "data"  # the answers make data writes
 FIGURES_FOLDER = ROOT / "site" / "figures"  # the figure images make data writes, with their index
 MAX_IMAGE_BYTES = 4 * 1024 * 1024  # an image larger than this is rendered at too high a resolution for its card

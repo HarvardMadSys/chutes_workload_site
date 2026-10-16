@@ -1,17 +1,15 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import {
-  ENDPOINT_LABELS, ENDPOINT_SERIES, MODEL_SERIES, partsLegend, rowsWithSeriesColour, seriesLegend, shownRows,
-} from "../site/js/shared/series.js";
+import { ENDPOINT_LABELS, ENDPOINT_SERIES, MODEL_SERIES, seriesLegend, shownRows } from "../site/js/shared/series.js";
 import { endpointColours, modelColours } from "../site/js/theme/colours.js";
 
-// Two series of a CDF query, `requests` and `tool_steps`, two points each.
+// Two models of a monthly answer, two months each.
 const ROWS = [
-  { series: "requests", x: 3, share: 0 },
-  { series: "requests", x: 40, share: 1 },
-  { series: "tool_steps", x: 0, share: 0 },
-  { series: "tool_steps", x: 12, share: 1 },
+  { model: "qwen3", calendar_month: "2025-04", requests: 3 },
+  { model: "qwen3", calendar_month: "2025-05", requests: 40 },
+  { model: "glm-5", calendar_month: "2025-04", requests: 7 },
+  { model: "glm-5", calendar_month: "2025-05", requests: 12 },
 ];
 
 test("a long-format figure keeps the rows of the series not hidden, in their order", () => {
@@ -21,34 +19,17 @@ test("a long-format figure keeps the rows of the series not hidden, in their ord
 });
 
 test("a legend lists the series the rows hold, in the colours' order, each labelled where it has a label", () => {
-  const colours = new Map([["requests", "red"], ["user_steps", "blue"], ["tool_steps", "green"]]);
-  const legend = seriesLegend(ROWS, "series", colours, { tool_steps: "Tool steps" });
-  assert.deepEqual(legend.series, [{ name: "requests", label: "requests" }, { name: "tool_steps", label: "Tool steps" }]);
+  const colours = new Map([["qwen3", "red"], ["kimi-k2", "blue"], ["glm-5", "green"]]);
+  const legend = seriesLegend(ROWS, "model", colours, { "glm-5": "GLM 5" });
+  assert.deepEqual(legend.series, [{ name: "qwen3", label: "qwen3" }, { name: "glm-5", label: "GLM 5" }]);
   assert.equal(legend.colours, colours);
-});
-
-test("a legend of parts lists each part with its label, in order, with the colours given", () => {
-  const colours = new Map([["cached", "green"], ["uncached", "orange"], ["output", "blue"]]);
-  const legend = partsLegend({ cached: "Cached input", uncached: "Uncached input", output: "Output" }, colours);
-  assert.deepEqual(legend.series, [
-    { name: "cached", label: "Cached input" },
-    { name: "uncached", label: "Uncached input" },
-    { name: "output", label: "Output" },
-  ]);
-  assert.equal(legend.colours, colours);
-});
-
-test("the rows drawn as lines are those of a series with a series colour, never one in the Other grey", () => {
-  const colours = new Map([["A", "var(--series-1)"], ["B", "var(--series-other)"]]);
-  const rows = [{ provider: "A" }, { provider: "B" }, { provider: "C" }];
-  assert.deepEqual(rowsWithSeriesColour(rows, "provider", colours), [{ provider: "A" }]);
 });
 
 test("the models and the endpoint groups are each coloured by their order's rows and named by their column", () => {
   assert.deepEqual([MODEL_SERIES.order, MODEL_SERIES.column, MODEL_SERIES.colours], ["models", "model", modelColours]);
   assert.deepEqual([ENDPOINT_SERIES.order, ENDPOINT_SERIES.column, ENDPOINT_SERIES.colours],
     ["endpoints", "endpoint_group", endpointColours]);
-  assert.deepEqual(MODEL_SERIES.labels, {});
+  assert.equal(MODEL_SERIES.labels, undefined, "a model is written by its name");
   assert.equal(ENDPOINT_SERIES.labels, ENDPOINT_LABELS);
 });
 

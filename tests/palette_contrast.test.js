@@ -1,9 +1,7 @@
 /**
- * The palette's contrast in both colour schemes, read from `site/style.css`: every series slot and every colour that
- * marks data at least 3:1 on its scheme's card, every text colour at least 4.5:1 on the paper and on a card, each
- * slot the same hue in both schemes, the slots spread round the colour wheel and apart for a red-green colour-blind
- * reader, and the parts of a session's time in the paper's hues; what a colour may share with another is checked in
- * `palette_meanings.test.js`.
+ * The palette's contrast in both colour schemes, read from `site/style.css`: every series slot at least 3:1 on its
+ * scheme's card, every text colour at least 4.5:1 on the paper and on a card, each slot the same hue in both schemes,
+ * and the slots spread round the colour wheel and apart for a red-green colour-blind reader.
  */
 import assert from "node:assert/strict";
 import { test } from "node:test";
@@ -19,10 +17,6 @@ const MAX_HUE_SHIFT = 15; // degrees of OKLCH hue a slot may move between the sc
 const MIN_HUE_GAP = 30; // the fewest degrees of OKLCH hue between any two slots, so the eight spread round the wheel
 const MIN_DEUTERANOPE_DISTANCE = 5; // OKLab distance (×100) any two slots keep as a deuteranope sees them
 
-// The OKLCH hues of the colours the paper draws the four parts of a session's time in: prefill blue (#1f6feb), decode
-// orange (#e8710a), tool green (#2da44e) and user idle red (#d1242f).
-const PAPER_PART_HUES = { "--part-prefill": 260, "--part-decode": 51, "--part-tool": 148, "--part-user": 25 };
-
 const SLOTS = [1, 2, 3, 4, 5, 6, 7, 8].map((slot) => `--series-${slot}`);
 
 // Colours set as text, read on the paper, on a card and on a card's raised fill.
@@ -31,23 +25,18 @@ const TEXT_TOKENS = [
   "--color-accent", "--color-accent-strong", "--chart-label",
 ];
 
-// The families of colours that each stand for something in a chart: a series, a part, a cause, a role, a transition,
-// a tool group, a tool category without one, a bin.
-const MARK_PREFIXES = [
-  "--series-", "--part-", "--token-", "--cause-", "--role-", "--transition-", "--tool-group-", "--tool-category-",
-  "--gap-bin-",
-];
+// The colours that stand for something in a chart, the series slots and the Other grey, are all named so.
+const MARK_PREFIX = "--series-";
 
 // Fills and rules that sit behind or beside a mark and stand for nothing alone; no contrast is asked of them.
 const TINT_TOKENS = [
   "--color-background", "--color-surface", "--color-surface-raised", "--color-border", "--color-accent-wash",
-  "--color-highlight", "--chart-grid", "--chart-axis", "--wait-tint-base",
+  "--chart-grid", "--chart-axis",
 ];
 
-/** The mark tokens of `tokens`: the families of `MARK_PREFIXES`. */
+/** The mark tokens of `tokens`: the colours whose names start with `MARK_PREFIX`. */
 function markTokens(tokens) {
-  const marks = colourTokens(tokens).filter((name) => MARK_PREFIXES.some((prefix) => name.startsWith(prefix)));
-  return marks;
+  return colourTokens(tokens).filter((name) => name.startsWith(MARK_PREFIX));
 }
 
 test("a contrast ratio runs from 1 for one colour to 21 for black on white, whichever is first", () => {
@@ -153,15 +142,6 @@ test("a deuteranope tells every pair of slots apart in both schemes", () => {
         const pair = `${scheme} ${SLOTS[first]} and ${SLOTS[second]}`;
         assert.ok(distance >= MIN_DEUTERANOPE_DISTANCE, `${pair} are ${distance.toFixed(1)} apart to a deuteranope`);
       }
-    }
-  }
-});
-
-test("the parts of a session's time take the paper's hues: prefill blue, decode orange, tool green, user red", () => {
-  for (const [scheme, tokens] of Object.entries(SCHEMES)) {
-    for (const [name, hue] of Object.entries(PAPER_PART_HUES)) {
-      const shift = hueDistance(oklchHue(colourOf(tokens, name)), hue);
-      assert.ok(shift <= MAX_HUE_SHIFT, `${scheme} ${name} is ${shift.toFixed(1)}° from the paper's hue`);
     }
   }
 });

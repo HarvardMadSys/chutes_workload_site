@@ -1,7 +1,7 @@
 /**
- * The palette tests' reading of `site/style.css` and their colour arithmetic: each scheme's custom properties, a
- * token's colour, WCAG's contrast, OKLab and OKLCH, and the colours as a deuteranope sees them. Shared by
- * `palette_contrast.test.js` and `palette_meanings.test.js`.
+ * The palette test's reading of `site/style.css` and its colour arithmetic: each scheme's custom properties, a token's
+ * colour, WCAG's contrast, OKLab and OKLCH hue, and the colours as a deuteranope sees them. Used by
+ * `palette_contrast.test.js`.
  */
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -91,12 +91,6 @@ export function oklab([red, green, blue]) {
 export function oklchHue(hex) {
   const [, greenRed, blueYellow] = oklab(hexChannels(hex).map(linear));
   return ((Math.atan2(blueYellow, greenRed) * 180) / Math.PI + 360) % 360;
-}
-
-/** The OKLCH chroma of a `#rrggbb` colour: 0 for a grey, about 0.2 for the most vivid series. */
-export function oklchChroma(hex) {
-  const [, greenRed, blueYellow] = oklab(hexChannels(hex).map(linear));
-  return Math.hypot(greenRed, blueYellow);
 }
 
 /** A `#rrggbb` colour in OKLab as a deuteranope sees it: `DEUTERANOPIA` on its linear channels, kept within 0 to 1. */

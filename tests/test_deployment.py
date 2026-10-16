@@ -6,8 +6,8 @@ import json
 import pathlib
 import re
 
+from repository_root import ROOT
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
 WRANGLER_SETTINGS = ROOT / "wrangler.jsonc"
 DEPLOY_WORKFLOW = ROOT / ".github" / "workflows" / "deploy.yml"
 WORKER_NAME = "chutes-trace-site"  # the Worker the site is deployed to, and its workers.dev hostname

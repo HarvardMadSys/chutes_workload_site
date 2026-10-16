@@ -2,8 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  assignColours, barColours, ENDPOINT_FIRST_SLOT, endpointColours, modelColours, OTHER_SERIES,
-  SERIES_SLOTS, slottedColours,
+  assignColours, barColours, ENDPOINT_FIRST_SLOT, endpointColours, modelColours, OTHER_SERIES, SERIES_SLOTS,
 } from "../site/js/theme/colours.js";
 
 const NINE_MODELS = ["m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9"];
@@ -58,12 +57,6 @@ test("a bar chart's colours are the first eight names' series colours and Other'
   assert.deepEqual([...colours.keys()], ["m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "Other"]);
   assert.equal(colours.get("m8"), SERIES_SLOTS[7]);
   assert.equal(colours.get("Other"), OTHER_SERIES);
-});
-
-test("the slotted colours are the first eight names in their order, none in the Other grey", () => {
-  const slotted = slottedColours(assignColours(NINE_MODELS));
-  assert.deepEqual([...slotted.keys()], NINE_MODELS.slice(0, 8));
-  assert.ok(![...slotted.values()].includes(OTHER_SERIES));
 });
 
 test("the models take the series colours in the model mix's order from the first slot, and Other its grey", () => {

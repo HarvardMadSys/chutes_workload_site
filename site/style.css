@@ -35,7 +35,6 @@
   --color-surface-raised: #f1efec;
   --color-border: #e4dfdb;
 
-  --shadow-subtle: 0 1px 2px rgb(28 25 23 / 0.06);
   --shadow-card: 0 1px 2px rgb(28 25 23 / 0.04), 0 12px 32px -20px rgb(28 25 23 / 0.22);
   --radius: 0.9rem;
   --radius-small: 0.375rem;
@@ -53,13 +52,11 @@
   /*
    * Categorical series, in the fixed order charts assign them. A ninth series folds into "Other".
    * Eight OKLCH hues, the same in both schemes: blue 255°, orange 50°, green 143°, amber 81°, magenta 340°, teal 192°,
-   * violet 293° and red 18°. They are not evenly spread, because the paper's four (blue, orange, green and red) are
-   * fixed, and its red and orange stand only 26° apart; 30° is the floor between any two, and the other four fill
-   * the wheel around them. In light most slots are the lightest colour of their hue that keeps 3.3:1 on the white
-   * card, at the most chroma sRGB holds there (capped at 0.19, short of neon). Five are set apart in lightness so
-   * that a reader with red-green colour blindness can still tell every pair apart: blue, teal, red and amber deeper
-   * (3.8 to 4:1), and green deeper still (4.4:1), where it would otherwise merge with amber and red. Amber leans
-   * towards orange (81°) so that it reads golden rather than olive.
+   * violet 293° and red 18°, no two closer than 30°. In light most slots are the lightest colour of their hue that
+   * keeps 3.3:1 on the white card, at the most chroma sRGB holds there (capped at 0.19, short of neon). Five are set
+   * apart in lightness so that a reader with red-green colour blindness can still tell every pair apart: blue, teal,
+   * red and amber deeper (3.8 to 4:1), and green deeper still (4.4:1), where it would otherwise merge with amber and
+   * red. Amber leans towards orange (81°) so that it reads golden rather than olive.
    */
   --series-1: #1a82f2;
   --series-2: #df6d19;
@@ -70,81 +67,6 @@
   --series-7: #9a76fa;
   --series-8: #ed3d57;
   --series-other: #938a86;
-
-  /* The four parts of a session's time as the paper colours them: prefill blue, decode orange, tool green, user red. */
-  --part-prefill: var(--series-1);
-  --part-decode: var(--series-2);
-  --part-tool: var(--series-3);
-  --part-user: var(--series-8);
-
-  /* The three parts of a request's tokens, the same everywhere they are drawn, in slots no part of a session's time
-     uses: cached input teal, uncached input amber, output magenta. A stacked chart of tokens and one of time never
-     show one hue with two meanings. */
-  --token-cached: var(--series-6);
-  --token-uncached: var(--series-4);
-  --token-output: var(--series-5);
-
-  /* What a wait before a request waited for, the same everywhere it is drawn: a tool and the user in their parts'
-     colours, a subagent violet, the slot no part of a session's time uses, and an ask-user tool amber. */
-  --cause-tool: var(--part-tool);
-  --cause-ask-user: var(--series-4);
-  --cause-user: var(--part-user);
-  --cause-subagent: var(--series-7);
-
-  /* A wait on the Session page's Timeline is a pale tint of its part's colour, since nothing ran: the colour mixed
-     towards the card in light and towards the text ink in dark, so it is lighter than the card in both schemes. */
-  --wait-tint-base: var(--color-surface);
-  --wait-tool: color-mix(in srgb, var(--part-tool) 45%, var(--wait-tint-base));
-  --wait-user: color-mix(in srgb, var(--part-user) 45%, var(--wait-tint-base));
-  --wait-subagent: color-mix(in srgb, var(--cause-subagent) 45%, var(--wait-tint-base));
-
-  /* The roles of a request's input, in hues no token part uses, since the Context view splits one area either way:
-     system a cerulean (OKLCH hue 224°) that no token part, no part of a session's time and no other series takes, and
-     the three others in the colour of the part of a session's time they come from, the user's red, the assistant's
-     (what the model decoded) orange and tool results green; tool definitions grey. */
-  --role-system: #0992b7;
-  --role-user: var(--part-user);
-  --role-assistant: var(--part-decode);
-  --role-tool-results: var(--part-tool);
-  --role-tool-definitions: var(--series-other);
-
-  /* How a request's context changed from the one before it: appended to, or rewritten. */
-  --transition-append: var(--series-3);
-  --transition-mutation: var(--series-8);
-
-  /* The eight tool groups of the tool mix along a turn: Read blue, Search amber, Write/Edit violet, Execute green,
-     Build/Test teal, Git/VCS red, Browser/Web magenta and Other grey. Every tool category takes its group's colour,
-     so a colour names one group on every card. */
-  --tool-group-read: var(--series-1);
-  --tool-group-search: var(--series-4);
-  --tool-group-write-edit: var(--series-7);
-  --tool-group-execute: var(--series-3);
-  --tool-group-build-test: var(--series-6);
-  --tool-group-git-vcs: var(--series-8);
-  --tool-group-browser-web: var(--series-5);
-  --tool-group-other: var(--series-other);
-
-  /* The six tool categories that have no tool group, each in a colour of its own, so that grey is Other alone: hues
-     between the groups' (OKLCH MCP indigo 274°, Subagent purple 316°, Ask User rose 359°, *Wait/Poll olive 112°,
-     *File Ops sea green 167°) and *Packages in the orange slot, which no group takes; each at 3.3 to 4.6:1 on the card. */
-  --tool-category-mcp: #5f6fee;
-  --tool-category-subagent: #b962da;
-  --tool-category-ask-user: #cf3b7a;
-  --tool-category-packages: var(--series-2);
-  --tool-category-wait-poll: #888c02;
-  --tool-category-file-ops: #08946f;
-
-  /* The six gap bins, shortest gap lightest: the first series' blue (OKLCH hue 255°) from 64% to 32% lightness in even
-     steps, so the lightest keeps 3:1 on the card and the darkest stays blue. */
-  --gap-bin-1: #2a8bf9;
-  --gap-bin-2: #1477e0;
-  --gap-bin-3: #1065bf;
-  --gap-bin-4: #0b53a0;
-  --gap-bin-5: #074281;
-  --gap-bin-6: #043264;
-
-  /* A highlighted row, step or bar: a wash of the amber slot's hue, its bright dark-scheme tone, in both schemes. */
-  --color-highlight: rgb(233 172 19 / 0.25);
 }
 
 /*
@@ -170,7 +92,6 @@
     --color-surface-raised: #302b28;
     --color-border: #3d3633;
 
-    --shadow-subtle: 0 1px 2px rgb(0 0 0 / 0.4);
     --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 32px -20px rgb(0 0 0 / 0.6);
 
     --chart-grid: #3d3633;
@@ -185,24 +106,6 @@
     --series-7: #a386fa;
     --series-8: #fb6874;
     --series-other: #8c8480;
-
-    /* The role and the tool categories of their own hues, at 4.6 to 6:1 on the dark card. */
-    --role-system: #03a6cf;
-    --tool-category-mcp: #7588ff;
-    --tool-category-subagent: #cd75ee;
-    --tool-category-ask-user: #e95590;
-    --tool-category-wait-poll: #a2a705;
-    --tool-category-file-ops: #02ae82;
-
-    /* The gap bins on the dark card: the same blue from 90% to 62% lightness, so the darkest keeps 3:1 on it. */
-    --gap-bin-1: #cae0fd;
-    --gap-bin-2: #abcffd;
-    --gap-bin-3: #8cbdfc;
-    --gap-bin-4: #6cabfb;
-    --gap-bin-5: #4798fa;
-    --gap-bin-6: #1d84f5;
-
-    --wait-tint-base: var(--color-text);
   }
 }
 

@@ -32,8 +32,8 @@ import threading
 import playwright.sync_api
 
 import snapshot_units
+from repository_root import ROOT
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
 SITE_FOLDER = ROOT / "site"
 SNAPSHOTS_FOLDER = ROOT / "tests" / "snapshots"
 
@@ -42,8 +42,6 @@ LOCALE = "en-US"  # the browser formats numbers and dates in its locale, so it i
 TIME_ZONE = "UTC"  # and in its time zone
 COLOUR_SCHEME = "light"  # the scheme the pages are read in; colours are recorded as tokens, which both schemes share
 DRAW_TIMEOUT_MS = 60_000  # the longest a state may take to draw: a topic fetches its answers, and Plot from the CDN
-SETTLE_PAUSE_MS = 250  # the pause between two reads of a state; it is read until two reads agree
-SETTLE_REREADS = 20  # the most reads of a state after its first before it is called unsettled
 DIFF_LINES_SHOWN = 12  # the lines of each changed unit's diff printed; `git diff` after `make snapshots` shows the rest
 # True once the topic section the argument names holds images and every one has loaded; an image that failed to load
 # is complete with no width, and so is never counted loaded.
@@ -51,8 +49,17 @@ IMAGES_LOADED = """(topic) => {
   const images = [...document.querySelectorAll(`#${topic} img`)];
   return images.length > 0 && images.every((image) => image.complete && image.naturalWidth > 0);
 }"""
+# True once every chart of the Overview and of the Traffic Explorer is drawn and named: each chart's place holds an SVG
+# that the page has given its name, the last step of a drawing.
+CHARTS_DRAWN = """() => {
+  const bodies = [...document.querySelectorAll("#overview .figure-body, #traffic .figure-body")];
+  return bodies.length > 0 && bodies.every((body) => body.querySelector('svg[role="img"]') !== null);
+}"""
+# The month labels under the Traffic Explorer's bars, the last part of its chart that Plot draws.
+TRAFFIC_MONTH_LABELS = '#traffic-explorer .figure-body g[aria-label="x-axis tick label"] text'
 TILE_VALUE = "#traffic-explorer .traffic-tiles li strong"  # the value of each of the Traffic Explorer's tiles
 A_DIGIT = re.compile(r"\d")  # a tile showing a number, not its loading or missing text
+MONTH_COUNT = re.compile(r"\d+ months? of")  # the hero's lede and the footer's line, once the totals give the months
 SKIP_MESSAGE = "snapshots skipped: Chromium could not start ({reason}). `make setup-browser` installs it."
 
 
@@ -106,26 +113,21 @@ def record_failed_request(errors: list[str], request) -> None:
 
 
 def wait_until_drawn(page, topic: str) -> None:
-    """Wait until the topic section `topic` (its id) is the one shown and the state has drawn: no loading line is
-    visible, every image of the topic has loaded, and the Traffic Explorer's first tile shows a number."""
+    """Wait until the topic section `topic` (its id) is the one shown and every unit the state reads has drawn: no
+    loading line is visible, the hero and the footer count the months, every chart of the Overview and the Traffic
+    Explorer is drawn and named, the Traffic Explorer's bars have their month labels, every image of the topic has
+    loaded, and the Traffic Explorer's first tile shows a number. Nothing is drawn after these, so the state is read
+    once."""
     expect = playwright.sync_api.expect
     expect(page.locator(f"#tab-{topic}")).to_have_attribute("aria-selected", "true", timeout=DRAW_TIMEOUT_MS)
     expect(page.locator(f"#{topic}")).to_be_visible(timeout=DRAW_TIMEOUT_MS)
     expect(page.locator(".loading:visible")).to_have_count(0, timeout=DRAW_TIMEOUT_MS)
+    expect(page.locator("#hero .hero-lede")).to_contain_text(MONTH_COUNT, timeout=DRAW_TIMEOUT_MS)
+    expect(page.locator("#site-footer")).to_contain_text(MONTH_COUNT, timeout=DRAW_TIMEOUT_MS)
+    page.wait_for_function(CHARTS_DRAWN, timeout=DRAW_TIMEOUT_MS)
+    expect(page.locator(TRAFFIC_MONTH_LABELS).first).to_be_attached(timeout=DRAW_TIMEOUT_MS)
     page.wait_for_function(IMAGES_LOADED, arg=topic, timeout=DRAW_TIMEOUT_MS)
     expect(page.locator(TILE_VALUE).first).to_have_text(A_DIGIT, timeout=DRAW_TIMEOUT_MS)
-
-
-def read_when_settled(page, read) -> dict[str, str]:
-    """Call `read()` until two calls a pause apart return the same units, so a chart still drawing is not read."""
-    previous = read()
-    for reread in range(SETTLE_REREADS):
-        page.wait_for_timeout(SETTLE_PAUSE_MS)
-        current = read()
-        if current == previous:
-            return current
-        previous = current
-    raise PageError(f"the page was still changing after {SETTLE_REREADS + 1} reads at {page.url}")
 
 
 def read_state(page, address: str, topic: str, with_page_units: bool) -> dict[str, str]:
@@ -133,9 +135,9 @@ def read_state(page, address: str, topic: str, with_page_units: bool) -> dict[st
     the page's units that no topic changes."""
     page.goto(f"{address}/index.html#{topic}", wait_until="networkidle")
     wait_until_drawn(page, topic)
-    units = read_when_settled(page, functools.partial(snapshot_units.topic_units, page, topic))
+    units = snapshot_units.topic_units(page, topic)
     if with_page_units:
-        page_units = read_when_settled(page, functools.partial(snapshot_units.explore_page_units, page))
+        page_units = snapshot_units.explore_page_units(page)
         shared = sorted(set(units) & set(page_units))
         if shared:
             raise snapshot_units.SharedTitleError(f"the topic and the page both show {', '.join(shared)}")

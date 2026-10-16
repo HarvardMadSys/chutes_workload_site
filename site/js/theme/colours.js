@@ -43,20 +43,6 @@ export function assignColours(names, firstSlot = 0) {
 }
 
 /**
- * The entries of `colours` (a Map from name to colour) whose colour is one of the eight series slots, in their order:
- * a line or a CDF of a named series is drawn only for these, since a series in the Other grey could not be told apart.
- */
-export function slottedColours(colours) {
-  const slotted = new Map();
-  for (const [name, colour] of colours) {
-    if (colour !== OTHER_SERIES) {
-      slotted.set(name, colour);
-    }
-  }
-  return slotted;
-}
-
-/**
  * A bar chart's colours: the first eight of `names` in their series colours from the slot `firstSlot` (as
  * `assignColours` gives them), and "Other", which the rest fold into.
  */
