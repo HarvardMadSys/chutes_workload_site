@@ -28,7 +28,7 @@ CONTRIBUTING.md   the rules, the patterns to copy, and how to verify a change
 CLAUDE.md         a pointer to the two files above and the git rules
 Makefile          make setup, setup-browser, data, serve, test, snapshots, deploy
 wrangler.jsonc    the Cloudflare Worker that serves site/ as static assets
-pyproject.toml    Python 3.12; pyarrow, pandas, duckdb, pypdfium2 (pinned); pytest and Playwright (pinned) for tests
+pyproject.toml    Python 3.12; pyarrow, pandas, duckdb, pypdfium2 and Pillow (pinned); pytest and Playwright (pinned) for tests
 package.json      sets ES modules for node --test; wrangler, the one dev dependency; package-lock.json pins it
 .nvmrc            the Node version the deploy workflow uses
 .github/          workflows/deploy.yml: the deploy on every push to main
@@ -37,14 +37,15 @@ site/             exactly the files that are deployed
   index.html      the one page
   style.css       tokens, layout and components
   favicon.svg     the brand mark, for the browser tab
-  js/shared/      the answers, the libraries, formatting, charts, series, the table, the layout
-  js/charts/      the two chart kinds the Overview draws: stacked_bars, donut
-  js/axes/        the ticks of the Overview's axes
+  js/shared/      the answers, the libraries, formatting, charts, series, the layout, the scrolling row
+  js/charts/      the two chart kinds the Overview and the Traffic Explorer draw: stacked_bars, donut
+  js/axes/        the ticks of the Overview's and the Traffic Explorer's axes
   js/theme/       the site's colours as the style tokens give them
   js/pages/       the page's module
   js/landing/     the hero, the stats strip, the donuts, the cite and team sections
   js/explore/     the page's start and its sections: the trends, the traffic explorer, the figure cards, the topic tabs
-  queries/        one .sql file per answer, under explore/
+  js/insights/    one module per Insights topic: its takeaway and its cards
+  queries/        one .sql file per answer, under explore/, and under setup/ the query of the derived table top_models
   data/           built by make data and tracked: the answers and the queries' hashes
   figures/        built by make data and tracked: one PNG per figure of the paper and their index
 tests/            Python tests, node --test files, and snapshots/: the six page states as text

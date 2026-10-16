@@ -37,7 +37,7 @@ export function formatCount(count) {
   return count.toLocaleString("en-US");
 }
 
-/** A count rounded to a whole one, as a percentile of counts is written: 368.4 → "368", 5040 → "5,040". */
+/** A count rounded to a whole one, as an average count of tokens is written: 368.4 → "368", 5040 → "5,040". */
 export function formatWholeCount(count) {
   return formatCount(Math.round(count));
 }

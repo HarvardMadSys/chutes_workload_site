@@ -134,10 +134,8 @@ test("the footer's line counts the months in digits as the hero's lede does, and
   assert.match(renderedFooter(null), /<p>One year of production LLM serving/);
 });
 
-test("the query string keeps the commas of a list of names plain", () => {
-  const params = new URLSearchParams("period=q3");
-  params.set("models", "qwen3,kimi-k2");
-  assert.equal(queryString(params), "?period=q3&models=qwen3,kimi-k2");
+test("the query string is a question mark and the keys", () => {
+  assert.equal(queryString(new URLSearchParams("model=qwen3&period=2025-q3")), "?model=qwen3&period=2025-q3");
 });
 
 test("no keys give an empty query string", () => {

@@ -28,7 +28,7 @@ test("a share is a percentage with one decimal kept", () => {
   assert.equal(formatShare(1), "100.0%");
 });
 
-test("a percentile of counts is written as a whole count", () => {
+test("an average count is written as a whole count", () => {
   assert.equal(formatWholeCount(368.4), "368");
   assert.equal(formatWholeCount(5040), "5,040");
 });

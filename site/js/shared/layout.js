@@ -55,10 +55,9 @@ export function monthCountText(monthCount) {
   return `${monthCount} ${monthCount === 1 ? "month" : "months"}`;
 }
 
-/** The query string of `params` for the address bar or a link: "?" and the keys, commas left plain; "" for no keys. */
+/** The query string of `params` for the address bar or a link: "?" and the keys; "" for no keys. */
 export function queryString(params) {
-  // A comma needs no escaping in a query string and reads back the same, so `models=a,b` stays readable.
-  const query = params.toString().replaceAll("%2C", ",");
+  const query = params.toString();
   return query === "" ? "" : `?${query}`;
 }
 

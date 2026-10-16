@@ -21,6 +21,6 @@ export function axisWithTicks(makeAxis, ticks, { tickFormat, ...options }) {
   if (tickFormat === undefined) {
     return makeAxis(ticks, options);
   }
-  // As `text` every tick is labelled; as `tickFormat` a log axis blanks a tick not 1, 2 or 5 times 10^k, such as 60.
+  // Through `text`, each given tick is written by `tickFormat` itself, whatever Plot's scale would make of it.
   return makeAxis(ticks, { ...options, text: (tick) => tickFormat(tick) });
 }

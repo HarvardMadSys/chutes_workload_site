@@ -51,7 +51,7 @@ binding, and `make test` checks the countable ones.
 - **Every definition comes from the artifact.** A query filters, groups,
   counts and sums; none restates a definition the artifact owns, and neither
   a query nor the browser decides what a user, a model's name, an endpoint
-  group, a token hit ratio or a trace month is. A number no cache holds is
+  group or a trace month is. A number no cache holds is
   added to the artifact as a cache, in its caching pattern, and then read
   here. The site never reads the trace.
 - **No framework, no bundler, no npm dependency.** Plain HTML, CSS and ES
@@ -312,8 +312,12 @@ Plot, the donuts as plain SVG; the Insights' figures are the paper's images.
   for a screen reader by its title and caption, `nameChart` in
   `shared/charts.js`.
 - **Axis text.** A linear axis asks Plot for `TICK_COUNT` ticks
-  (`axes/ticks.js`), which gives at most six or seven; the month labels
-  under the bars are slanted so thirteen fit a card. One format per
+  (`axes/ticks.js`), which gives at most six or seven. The exception is an
+  axis of months: the trends' x axis is ticked at every month, the first
+  and the last included (the landing-page spec's Monthly trends), and the
+  Traffic Explorer's at the first day of each month it shows (and of a
+  quarter that starts mid-month); their labels
+  are slanted so that thirteen fit a card. One format per
   quantity: an axis's counts as "1k", "600M" (`formatCountTick`); a value
   in a legend, a tooltip, a tile or the stats strip with one decimal kept
   ("129.1k", "94.0%", "4.3 s", and three figures in billions, "2.04B"),
@@ -343,9 +347,9 @@ such as a refactoring, leaves the snapshots as they are.
 The test reads each state once, when it has drawn, and it waits on
 conditions, never on time (`wait_until_drawn`): the topic's tab selected,
 no loading line visible, the hero and the footer counting the months,
-every chart of the Overview and the Traffic Explorer drawn and named, the
-explorer's month labels placed, every image of the topic loaded and the
-first tile showing a number. A part of the page that is drawn later than
+every chart of the Overview and the Traffic Explorer drawn and named (as
+many as `CHART_COUNTS` says), every image of the topic loaded and the first
+tile showing a number. A part of the page that is drawn later than
 these adds its own condition there. Without Chromium (`make
 setup-browser`) the snapshot test skips, saying so. It needs the network,
 since the page loads Plot from its CDN and the fonts from Google: offline

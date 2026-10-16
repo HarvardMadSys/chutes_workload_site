@@ -1081,7 +1081,7 @@ section[id] {
   display: grid;
   grid-row: span 5;
   grid-template-rows: subgrid;
-  grid-template-columns: minmax(0, 1fr); /* a part wider than the card, such as a table, scrolls inside it */
+  grid-template-columns: minmax(0, 1fr); /* the card's one column never grows wider than the card */
   row-gap: 0;
   min-width: 0;
   margin-bottom: 1.5rem;

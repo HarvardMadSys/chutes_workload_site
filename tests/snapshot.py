@@ -49,14 +49,14 @@ IMAGES_LOADED = """(topic) => {
   const images = [...document.querySelectorAll(`#${topic} img`)];
   return images.length > 0 && images.every((image) => image.complete && image.naturalWidth > 0);
 }"""
-# True once every chart of the Overview and of the Traffic Explorer is drawn and named: each chart's place holds an SVG
-# that the page has given its name, the last step of a drawing.
-CHARTS_DRAWN = """() => {
-  const bodies = [...document.querySelectorAll("#overview .figure-body, #traffic .figure-body")];
-  return bodies.length > 0 && bodies.every((body) => body.querySelector('svg[role="img"]') !== null);
-}"""
-# The month labels under the Traffic Explorer's bars, the last part of its chart that Plot draws.
-TRAFFIC_MONTH_LABELS = '#traffic-explorer .figure-body g[aria-label="x-axis tick label"] text'
+# The charts each state draws outside the Insights, by the selector of the section that holds them.
+CHART_COUNTS = {"#overview": 5, "#traffic": 1}  # the two donuts and three trends; the Traffic Explorer's bars
+# True once each section the argument names holds as many drawn charts as it gives: a chart's place holding an SVG
+# that the page has named, the last step of every drawing, whole axes and labels included.
+CHARTS_DRAWN = """(counts) => Object.entries(counts).every(([section, count]) => {
+  const bodies = [...document.querySelectorAll(`${section} .figure-body`)];
+  return bodies.length === count && bodies.every((body) => body.querySelector('svg[role="img"]') !== null);
+})"""
 TILE_VALUE = "#traffic-explorer .traffic-tiles li strong"  # the value of each of the Traffic Explorer's tiles
 A_DIGIT = re.compile(r"\d")  # a tile showing a number, not its loading or missing text
 MONTH_COUNT = re.compile(r"\d+ months? of")  # the hero's lede and the footer's line, once the totals give the months
@@ -115,17 +115,15 @@ def record_failed_request(errors: list[str], request) -> None:
 def wait_until_drawn(page, topic: str) -> None:
     """Wait until the topic section `topic` (its id) is the one shown and every unit the state reads has drawn: no
     loading line is visible, the hero and the footer count the months, every chart of the Overview and the Traffic
-    Explorer is drawn and named, the Traffic Explorer's bars have their month labels, every image of the topic has
-    loaded, and the Traffic Explorer's first tile shows a number. Nothing is drawn after these, so the state is read
-    once."""
+    Explorer (`CHART_COUNTS`) is drawn and named, every image of the topic has loaded, and the Traffic Explorer's first
+    tile shows a number. Nothing is drawn after these, so the state is read once."""
     expect = playwright.sync_api.expect
     expect(page.locator(f"#tab-{topic}")).to_have_attribute("aria-selected", "true", timeout=DRAW_TIMEOUT_MS)
     expect(page.locator(f"#{topic}")).to_be_visible(timeout=DRAW_TIMEOUT_MS)
     expect(page.locator(".loading:visible")).to_have_count(0, timeout=DRAW_TIMEOUT_MS)
     expect(page.locator("#hero .hero-lede")).to_contain_text(MONTH_COUNT, timeout=DRAW_TIMEOUT_MS)
     expect(page.locator("#site-footer")).to_contain_text(MONTH_COUNT, timeout=DRAW_TIMEOUT_MS)
-    page.wait_for_function(CHARTS_DRAWN, timeout=DRAW_TIMEOUT_MS)
-    expect(page.locator(TRAFFIC_MONTH_LABELS).first).to_be_attached(timeout=DRAW_TIMEOUT_MS)
+    page.wait_for_function(CHARTS_DRAWN, arg=CHART_COUNTS, timeout=DRAW_TIMEOUT_MS)
     page.wait_for_function(IMAGES_LOADED, arg=topic, timeout=DRAW_TIMEOUT_MS)
     expect(page.locator(TILE_VALUE).first).to_have_text(A_DIGIT, timeout=DRAW_TIMEOUT_MS)
 

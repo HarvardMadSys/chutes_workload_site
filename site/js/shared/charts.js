@@ -18,7 +18,7 @@ const PLOT_STYLE = Object.freeze({
 const PLOT_MARGINS = Object.freeze({ marginTop: 32, marginRight: 32, marginBottom: 48, marginLeft: 72 });
 /** The options of every chart's grid lines. */
 export const GRID_STYLE = Object.freeze({ stroke: "var(--chart-grid)", strokeOpacity: 1 });
-/** The options of every chart's axes and reference rules: the axis ink, and an axis title with no arrow. */
+/** The options of every chart's axes and its zero line: the axis ink, and an axis title with no arrow. */
 export const AXIS_STYLE = Object.freeze({ stroke: "var(--chart-axis)", labelArrow: "none" });
 
 /** The Plot options every chart starts from: its margins, its height, the width of `body`, and its ink. */
