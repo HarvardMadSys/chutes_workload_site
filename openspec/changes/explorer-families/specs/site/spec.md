@@ -2,6 +2,50 @@
 
 ## MODIFIED Requirements
 
+### Requirement: The look follows Open Data
+The site SHALL use Open Data's tokens: the paper background `#f8f7f5`,
+white surfaces, ink `#1c1917`, the rule `#e4dfdb`, the crimson accent
+`#a51c30` with its dark and tint; Crimson Text for headings, the stat
+numbers and the affiliation, Inter for body text, and the monospace
+stack, uppercase and letter-spaced, for eyebrows, chips, the nav and the
+cite caption. Cards SHALL carry a 1px rule, a soft shadow and a 0.9rem
+radius. A dark scheme SHALL follow the visitor's system preference, with
+the paper, surfaces and inks retuned dark. The ten series slots SHALL
+be the same hues in both schemes, at least 30° apart in OKLCH, each at
+least 3:1 in contrast against its scheme's card, and a test SHALL check
+every colour token's contrast in both schemes. A figure image SHALL sit
+on a white panel in both schemes.
+
+#### Scenario: A heading
+- **WHEN** any heading renders
+- **THEN** its computed font family SHALL begin with Crimson Text
+
+#### Scenario: Dark system scheme
+- **WHEN** the visitor's system prefers a dark scheme
+- **THEN** the page SHALL render on the dark paper, every series at least 3:1 against its card, and every figure image on a white panel
+
+### Requirement: Built from the artifact's checkout
+`python -m site_data --artifact <dir> --out site/data --figures site/figures`
+SHALL read, from the artifact repository's checkout, the committed caches
+under `data/paper/cache/` that the queries name, `data/paper/chute_models.csv`,
+`data/paper/model_families.csv`, `config/figures.json` and the PDFs under
+`figures/` that it lists, and nothing under `output/` and nothing of the
+trace. It SHALL stop with a message naming the first missing file, or the
+first listed figure that does not render, and write nothing. Rebuilding
+from the same checkout SHALL write identical files.
+
+#### Scenario: A missing cache
+- **WHEN** `data/paper/cache/trace_totals.parquet` is absent
+- **THEN** the step SHALL stop naming it and write nothing
+
+#### Scenario: A figure that does not render
+- **WHEN** a listed figure's PDF counts one page but its page cannot be rendered
+- **THEN** the step SHALL stop naming it and write nothing
+
+#### Scenario: Rebuilding
+- **WHEN** the step runs twice on the same checkout
+- **THEN** the two runs' files SHALL be byte for byte identical
+
 ### Requirement: The caches as tables
 The data step SHALL hold each cache it reads as a DuckDB table under the
 cache file's name, `chute_models.csv` as `chute_models` and

@@ -2,6 +2,27 @@
 
 ## MODIFIED Requirements
 
+### Requirement: The look follows Open Data
+The site SHALL use Open Data's tokens: the paper background `#f8f7f5`,
+white surfaces, ink `#1c1917`, the rule `#e4dfdb`, the crimson accent
+`#a51c30` with its dark and tint; Crimson Text for headings, the stat
+numbers and the affiliation, Inter for body text, and the monospace
+stack, uppercase and letter-spaced, for eyebrows, chips, the nav and the
+cite caption. Cards SHALL carry a 1px rule, a soft shadow and a 0.9rem
+radius. A dark scheme SHALL follow the visitor's system preference, with
+the paper, surfaces and inks retuned dark. The ten series slots SHALL
+be the same hues in both schemes, at least 30° apart in OKLCH, each at
+least 3:1 in contrast against its scheme's card, and a test SHALL check
+every colour token's contrast in both schemes.
+
+#### Scenario: A heading
+- **WHEN** any heading renders
+- **THEN** its computed font family SHALL begin with Crimson Text
+
+#### Scenario: Dark system scheme
+- **WHEN** the visitor's system prefers a dark scheme
+- **THEN** the page SHALL render on the dark paper, every series at least 3:1 against its card
+
 ### Requirement: Repository layout
 The repository SHALL have this layout, and git SHALL track nothing beyond it
 and `.gitignore`:
@@ -139,7 +160,7 @@ SHALL be set in the display serif and keep their ratios to the base. The
 `python -m site_data --artifact <dir> --out site/data` SHALL read, from
 the artifact repository's checkout, the committed caches under
 `data/paper/cache/` that the queries name, `data/paper/chute_models.csv`,
-`config/figures.json` and, for every figure it lists, the plot-ready
+`data/paper/model_families.csv`, `config/figures.json` and, for every figure it lists, the plot-ready
 table `data/paper/plotdata/<figure>.parquet`, and nothing under `output/`
 and nothing of the trace. It SHALL stop with a message naming the first
 missing file and write nothing. Rebuilding from the same checkout SHALL
