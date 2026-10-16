@@ -259,6 +259,8 @@ site/                exactly the files that are deployed
     donut.js         the model and endpoint mixes
     lines.js         a line per series, a CDF among them
     bands.js         a value's median and its two percentile bands
+    cells.js         a grid of rectangles shaded by their values
+    raster.js        a dense grid of cells drawn as one image, as hours by users
   js/axes/ticks.js   how many ticks an axis asks for, a log axis's powers of ten, a card's axis as Plot's scale and
                      marks
   js/theme/colours.js

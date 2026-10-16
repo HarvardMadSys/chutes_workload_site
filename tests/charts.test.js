@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  chartFrame, chartName, chartWidth, colourScale, columnTotal, logColumns, panelRows, positiveRows, titledFrame,
+  chartFrame, chartName, chartWidth, colourScale, columnTotal, logColumns, panelRows, positiveRows, sequentialColour,
+  titledFrame,
 } from "../site/js/shared/charts.js";
 import { assignColours } from "../site/js/theme/colours.js";
 
@@ -59,6 +60,17 @@ test("a chart whose y axis has no title has a small top margin, and a card's mar
   assert.equal(titledFrame({ clientWidth: 600 }, "Requests", undefined).marginTop, 32);
   assert.equal(titledFrame({ clientWidth: 600 }, null, undefined).marginTop, 12);
   assert.equal(titledFrame({ clientWidth: 600 }, "Requests", { marginLeft: 40 }).marginLeft, 40);
+});
+
+test("a sequential colour scale takes the card's scheme and type, a log one where asked, with its legend in its format", () => {
+  assert.deepEqual(sequentialColour({ valueLabel: "Requests" }, "YlOrRd"), {
+    type: "linear", scheme: "YlOrRd", legend: true, label: "Requests", tickFormat: undefined,
+  });
+  assert.equal(sequentialColour({ valueLabel: "Users", valueFormat: String }, "Blues").tickFormat, String);
+  assert.equal(sequentialColour({ colourLog: true, valueLabel: "Users", valueFormat: String }, "Blues").tickFormat, undefined);
+  assert.equal(sequentialColour({ scheme: "Viridis", valueLabel: "Users" }, "YlOrRd").scheme, "Viridis");
+  assert.equal(sequentialColour({ colourLog: true, valueLabel: "Users" }, "Blues").type, "log");
+  assert.equal(sequentialColour({ colourScale: "sqrt", valueLabel: "Users" }, "Blues").type, "sqrt");
 });
 
 test("a panel's rows are those naming it; every row when no panel is asked for", () => {

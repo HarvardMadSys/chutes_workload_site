@@ -160,6 +160,22 @@ export function colourScale(colours, shown) {
   };
 }
 
+/**
+ * Plot's colour scale of a chart shading a value on a sequential scheme, with its legend titled `valueLabel`: the
+ * scheme `scheme`, else `defaultScheme`; a log scale where `colourLog`, its legend's ticks Plot's own, which label
+ * only the powers of ten; else the scale type `colourScale`, else linear, its ticks written by `valueFormat`.
+ */
+export function sequentialColour(parameters, defaultScheme) {
+  const { scheme = defaultScheme, colourScale: scaleType = "linear", colourLog = false, valueLabel } = parameters;
+  return {
+    type: colourLog ? "log" : scaleType,
+    scheme,
+    legend: true,
+    label: valueLabel,
+    tickFormat: colourLog ? undefined : parameters.valueFormat,
+  };
+}
+
 /** The rows of the panel `panel`, by their `panel` column; every row when `panel` is not given. */
 export function panelRows(rows, panel) {
   if (panel === undefined) {
