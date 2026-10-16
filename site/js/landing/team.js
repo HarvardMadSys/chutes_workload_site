@@ -8,8 +8,8 @@ import { URLS } from "../shared/layout.js";
 // The paper's authors in its order, each with their affiliation, short so the five fit one row.
 const AUTHORS = Object.freeze([
   Object.freeze({ name: "William Nixon", affiliation: "UChicago & Harvard" }),
-  Object.freeze({ name: "Muxin Tian", affiliation: "Toronto" }),
-  Object.freeze({ name: "Yunjia Zheng", affiliation: "Harvard" }),
+  Object.freeze({ name: "Jon Durbin", affiliation: "Chutes" }),
+  Object.freeze({ name: "Florian Standhartinger", affiliation: "Chutes" }),
   Object.freeze({ name: "Haryadi S. Gunawi", affiliation: "UChicago" }),
   Object.freeze({ name: "Juncheng Yang", affiliation: "Harvard" }),
 ]);

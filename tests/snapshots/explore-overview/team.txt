@@ -3,10 +3,10 @@ Contributors
 Harvard MadSys and collaborators.
 William Nixon
 UChicago & Harvard
-Muxin Tian
-Toronto
-Yunjia Zheng
-Harvard
+Jon Durbin
+Chutes
+Florian Standhartinger
+Chutes
 Haryadi S. Gunawi
 UChicago
 Juncheng Yang
