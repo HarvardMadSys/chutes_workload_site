@@ -37,7 +37,7 @@ snapshots:
 	$(PYTHON) tests/snapshot.py --write
 
 # Publish site/, with its data, to Cloudflare as the static assets of the Worker wrangler.jsonc names. Needs
-# `npm install` once and a Cloudflare API token (see README); a push to main deploys the same way through
+# `npm ci` once and a Cloudflare API token (see README); a push to main deploys the same way through
 # .github/workflows/deploy.yml.
 deploy:
 	npx wrangler deploy

@@ -27,9 +27,10 @@ because task 3 reads what it writes.
 ## 1. The repository seed
 
 - [ ] 1.1 Copy the agentic site's files into this repository (no git
-      history) and delete what D1 names; rename the package to
-      `chutes_site`, the brand to "Chutes Production Trace", the Worker
-      to `chutes-trace-site`; keep `CONTRIBUTING.md`, `CLAUDE.md`,
+      history) and delete what D1 names; rename the project to
+      `chutes-site` (the Python package keeps its name, `site_data`),
+      the brand to "Chutes Production Trace", the Worker to
+      `chutes-trace-site`; keep `CONTRIBUTING.md`, `CLAUDE.md`,
       `README.md` as drafts to rewrite in task 8.
       *Verify:* `node --test` passes over what remains; the Python tests
       that read a release are deleted, not skipped; the repository test

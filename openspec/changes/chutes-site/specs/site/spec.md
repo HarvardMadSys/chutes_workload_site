@@ -218,16 +218,24 @@ the same checkout SHALL write identical files.
 
 ### Requirement: The caches as tables
 The data step SHALL hold each cache it reads as a DuckDB table under the
-cache file's name, and `chute_models.csv` as `chute_models`, and the
-queries SHALL read from those tables and from nothing else. The caches
+cache file's name, and `chute_models.csv` as `chute_models`. The caches
 read SHALL be `trace_totals`, `daily_rollup`,
 `monthly_requests_tokens_by_model` and `function_name_daily_requests`,
-and no other; a model's rank over the year is the sum of its monthly
-requests.
+and no other. It SHALL add two tables derived from them, and no other:
+`trace_calendar`, each trace day's calendar day, trace month and
+calendar month, computed from the trace's start date (see Trace months);
+and `top_models`, the named models ranked by their requests over the
+year, the sum of their monthly requests, made by the setup query
+`setup/top_models`. The queries SHALL read from these seven
+tables and from nothing else.
 
 #### Scenario: A query over the trace
-- **WHEN** a query names a table that is not one of the caches
+- **WHEN** a query names a table that is not one of the seven
 - **THEN** the query test SHALL fail naming the table
+
+#### Scenario: The most requested models
+- **WHEN** an answer names the most requested models, the eight of the mixes and trends or the twenty of the daily rollup
+- **THEN** it SHALL take them from `top_models`, so that every answer ranks the models alike
 
 ### Requirement: Trace months
 The caches count days and months from the trace's first request: a trace
