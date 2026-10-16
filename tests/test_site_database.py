@@ -24,3 +24,10 @@ def test_the_calendar_runs_to_the_daily_rollup_s_last_day(connection: duckdb.Duc
     calendar = connection.table("trace_calendar").df()
     assert calendar["trace_day"].tolist()[-1].date() == datetime.date(1970, 2, 2)
     assert calendar["month"].tolist()[-1] == 2
+
+
+def test_the_top_models_are_registered_when_the_database_opens(connection: duckdb.DuckDBPyConnection) -> None:
+    top_models = connection.table("top_models").df()
+    assert list(top_models.columns) == ["chute_id", "name", "rank"]
+    assert top_models["chute_id"].tolist()[0] == "chute-01"
+    assert len(top_models) == 10

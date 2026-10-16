@@ -1,21 +1,27 @@
 """Build the site's data folder: `python -m site_data --artifact <dir> --out <dir> --figures <dir>`.
 
-The artifact is a checkout of the paper's artifact repository, whose caches and figures the step reads. A missing
-artifact folder stops the run with its message and exit status 1, before anything is written.
+The artifact is a checkout of the paper's artifact repository, whose caches the step reads. It writes the answer of
+every Explore query under the data folder (`answers.py`) and prints each answer file with its size, then the total.
+A missing artifact folder or file stops the run with its message and exit status 1, before anything is written.
 """
 
 import argparse
 import pathlib
 import sys
 
+from site_data import answers, loading, site_database
+
 
 def main(arguments: list[str] | None = None) -> None:
-    """Stop with exit status 1, naming the folder, unless the artifact folder exists."""
+    """Read the artifact named on the command line and write the site's answers from it."""
     options = parsed_arguments(arguments)
     if not options.artifact.is_dir():
         print(f"the artifact folder {options.artifact} does not exist; pass a checkout of the paper's artifact "
               "repository as --artifact", file=sys.stderr)
         raise SystemExit(1)
+    frames = loading.load_artifact(options.artifact)
+    connection = site_database.open_database(frames)
+    print_sizes("answers", answers.write_answers(connection, options.out))
 
 
 def parsed_arguments(arguments: list[str] | None) -> argparse.Namespace:
@@ -26,6 +32,16 @@ def parsed_arguments(arguments: list[str] | None) -> argparse.Namespace:
     parser.add_argument("--out", type=pathlib.Path, required=True, help="the data folder to write")
     parser.add_argument("--figures", type=pathlib.Path, required=True, help="the folder of figure images to write")
     return parser.parse_args(arguments)
+
+
+def print_sizes(kind: str, files: list[pathlib.Path]) -> None:
+    """Print each file with its size in bytes, then how many there are of `kind` and their total size."""
+    total = 0
+    for path in files:
+        size = path.stat().st_size
+        total += size
+        print(f"{path}  {size:,} bytes")
+    print(f"{len(files)} {kind}, {total:,} bytes")
 
 
 if __name__ == "__main__":
