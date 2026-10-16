@@ -1,13 +1,18 @@
 """Fixtures shared by the tests: the fixture artifact (`fixture_artifact.py`), its frames and the site's database over
-them."""
+them; the artifact's own checkout, which the environment variable `ARTIFACT` names, as `make test` passes it; and the
+files git tracks."""
 
+import os
 import pathlib
+import subprocess
 
 import duckdb
 import pytest
 
 import fixture_artifact
-from site_data import loading, site_database
+from site_data import figure_images, loading, site_database
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 
 @pytest.fixture(scope="session")
@@ -26,3 +31,22 @@ def frames(artifact: pathlib.Path) -> loading.ArtifactFrames:
 def connection(frames: loading.ArtifactFrames) -> duckdb.DuckDBPyConnection:
     """The site's database over the fixture artifact's frames."""
     return site_database.open_database(frames)
+
+
+@pytest.fixture
+def artifact_checkout() -> pathlib.Path:
+    """The artifact's checkout `ARTIFACT` names, relative to the repository; skips the test when it names none."""
+    named = os.environ.get("ARTIFACT", "")
+    if named == "":
+        pytest.skip("ARTIFACT is not set; run `make test`, or set it to the artifact's checkout, to compare with it")
+    checkout = ROOT / named
+    if not (checkout / figure_images.FIGURE_LIST_FILE).is_file():
+        pytest.skip(f"no {figure_images.FIGURE_LIST_FILE} under ARTIFACT={named}; set it to the artifact's checkout")
+    return checkout
+
+
+@pytest.fixture(scope="session")
+def tracked_files() -> set[str]:
+    """The path of every file git tracks, relative to the repository."""
+    tracked = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, check=True)
+    return set(tracked.stdout.splitlines())

@@ -219,7 +219,8 @@ tests/             what make test runs
   test_pipeline_mirrors.py, test_pipeline_mirrors_caching.py
                    the pipeline constants the queries and modules hold a copy of, against the pipeline's own
   test_differences.py       no figure's definition names the paper
-  test_repository.py        the repository's countable rules
+  test_repository.py        the repository's countable rules and the files git tracks
+  test_built_data.py        the built data: tracked, the images the index lists, every answer there and current
   snapshot.py, snapshot_units.py, test_snapshot.py, test_snapshot_units.py
                    the snapshot test: six states of the page opened in headless Chromium (the page with each
                    Insights topic shown), each unit they show (a chart, a legend, a block of text, a card's images)
