@@ -1,3 +1,6 @@
 name: Per-user cache profile: Most users exhibit little reuse, while a smaller group achieves high hit ratios.
+colour-legend: Users: 1 | 10 | 100
 x-axis: 100 | 10k | 1M | 100M
 y-axis: 0 | 0.2 | 0.4 | 0.6 | 0.8 | 1
+x-axis title: Requests
+y-axis title: Average token hit ratio

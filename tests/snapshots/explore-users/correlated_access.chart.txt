@@ -1,3 +1,6 @@
 name: Correlated access: Requests from different users arrive at similar times, rather than spread independently across the window.
+colour-legend: Requests per hour: 1 | 10 | 100 | 1k
 x-axis: 0 | 6 | 12 | 18 | 24 | 30
 y-axis: 0 | 100 | 200 | 300 | 400 | 500
+x-axis title: Day of the window
+y-axis title: User (by first request)

@@ -23,6 +23,10 @@ const SIMULATION_FOLDER = `${URLS.code}/tree/main/pipeline/routing`;
 // The x axis of the three hourly lines: the hour's start, as a day of the trace.
 const TRACE_DAY_AXIS = Object.freeze({ label: "Day of the trace" });
 
+// The largest step, in days, the three hourly lines are drawn across: an hour and a half, so a line breaks where an
+// hour is missing from its answer, as the paper's does, and joins every two hours that follow each other.
+const HOURLY_GAP = 1.5 / 24;
+
 // The occupancy's x axis: the minutes of its 24-hour window, which starts at 17:00 UTC on day 317 of the trace,
 // labelled every sixth hour as the paper's, written as hours and minutes from its start.
 const WINDOW_AXIS = Object.freeze({
@@ -78,6 +82,7 @@ export const BALANCING_TOPIC = Object.freeze({
       kind: "lines",
       chart: {
         x: TRACE_DAY_AXIS,
+        gap: HOURLY_GAP,
         y: { label: "Requests per hour", tickFormat: formatCountTick },
         valueLabel: "Requests",
         valueFormat: formatCompactCount,
@@ -94,6 +99,7 @@ export const BALANCING_TOPIC = Object.freeze({
       kind: "lines",
       chart: {
         x: TRACE_DAY_AXIS,
+        gap: HOURLY_GAP,
         y: { label: "Active instances" },
         valueLabel: "Active instances",
         valueFormat: formatCount,
@@ -110,6 +116,7 @@ export const BALANCING_TOPIC = Object.freeze({
       kind: "lines",
       chart: {
         x: TRACE_DAY_AXIS,
+        gap: HOURLY_GAP,
         y: { label: "Max/mean token load" },
         valueLabel: "Max/mean token load",
         valueFormat: formatCount,

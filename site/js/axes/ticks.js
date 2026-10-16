@@ -1,9 +1,9 @@
 /**
  * A chart's axes: how many ticks a linear axis asks Plot for, the powers of ten a log axis is ticked at, Plot's scale
- * options for a card's axis, its axis and grid marks (a band axis's among them), and a value written as its axis
- * writes it. A card's axis options are `{ label, log, domain, ticks, tickFormat }`, each optional: its title, whether
- * it is a log axis, its `[low, high]`, the values it ticks and how a tick is written. All are plain functions, tested
- * with `node --test`; a mark's is given Plot.
+ * options for a card's axis, its axis and grid marks (a band axis's among them), a value written as its axis writes
+ * it, alone or in a tooltip, and the ticks of a colour legend on a log scale. A card's axis options are `{ label, log,
+ * domain, ticks, tickFormat }`, each optional: its title, whether it is a log axis, its `[low, high]`, the values it
+ * ticks and how a tick is written. All are plain functions, tested with `node --test`; a mark's is given Plot.
  */
 
 import { AXIS_STYLE, GRID_STYLE } from "../shared/charts.js";
@@ -119,6 +119,27 @@ export function axisText(axis, value) {
 /** `text`, a value of the card's axis options `axis`, after the axis's title where it has one: "Requests: 1.2k". */
 export function afterAxisTitle(axis, text) {
   return axis.label ? `${axis.label}: ${text}` : text;
+}
+
+/**
+ * A value of the card's axis options `axis` as a tooltip writes it: as the axis writes it (`axisText`), after the
+ * axis's title where it has one, "Day of the trace: 120".
+ */
+export function axisValueText(axis, value) {
+  return afterAxisTitle(axis, axisText(axis, value));
+}
+
+/**
+ * The values a colour legend ticks for the card's parameters over the shaded `values`: on a log colour scale
+ * (`colourLog`), the powers of ten over `colourDomain` or the values' extent, as a log axis's (`logAxisTicks`), so
+ * the legend shows no comb of unlabelled ticks between them; else, or where fewer than two powers fall in the range,
+ * undefined, for Plot's own.
+ */
+export function colourLegendTicks({ colourLog = false, colourDomain }, values) {
+  if (!colourLog) {
+    return undefined;
+  }
+  return logAxisTicks(colourDomain ?? extent(values));
 }
 
 /**

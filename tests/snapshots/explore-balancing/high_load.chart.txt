@@ -1,6 +1,10 @@
 name: High load: Under high load, the load balancer spreads a user across many instances to avoid overloading any one.
 name: High load: Under high load, the load balancer spreads a user across many instances to avoid overloading any one.
+panel: User request (%)
 x-axis: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11
 y-axis: 0 | 2 | 4 | 6 | 8 | 10
+x-axis title: Instance index
+panel: Token hit (%)
 x-axis: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11
 y-axis: 0 | 20 | 40 | 60 | 80 | 100
+x-axis title: Instance index

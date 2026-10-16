@@ -7,7 +7,7 @@
  */
 
 import { AXIS_STYLE, BAR_INSET, colourScale, distinct, GRID_STYLE, titledFrame } from "../shared/charts.js";
-import { axisWithTicks, TICK_COUNT } from "../axes/ticks.js";
+import { afterAxisTitle, axisWithTicks, TICK_COUNT } from "../axes/ticks.js";
 import { OTHER_NAME } from "../theme/colours.js";
 import { seriesLabel, seriesLegend, shownRows } from "../shared/series.js";
 
@@ -43,6 +43,7 @@ export async function drawStackedBars(rows, body, colours, parameters, hidden) {
   const { xDomain, xTicks, inset = BAR_INSET } = parameters;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
+  const tipParameters = { xColumn, seriesColumn, valueColumn, valueLabel, valueFormat, labels, xLabel };
   const folded = foldedRows(rows, colours.series, { xColumn, seriesColumn, valueColumn });
   const shown = shownRows(folded, seriesColumn, hidden);
   const stacked = [...colours.series.keys()].filter((name) => shown.some((row) => row[seriesColumn] === name));
@@ -62,7 +63,7 @@ export async function drawStackedBars(rows, body, colours, parameters, hidden) {
         fill: seriesColumn,
         order: stacked, // the stacking order, bottom up
         inset,
-        title: (row) => barTipText(row, { xColumn, seriesColumn, valueColumn, valueLabel, valueFormat, labels }),
+        title: (row) => barTipText(row, tipParameters),
         tip: true,
       }),
       Plot.ruleY([0], AXIS_STYLE),
@@ -118,10 +119,11 @@ export function sumFolded(rows, { xColumn, seriesColumn, valueColumn }) {
 }
 
 /**
- * A segment's tooltip, three lines: its series, by its label in `labels` where it has one there, its bar's x value, and
- * its value, "Requests: 412".
+ * A segment's tooltip, three lines: its series, by its label in `labels` where it has one there, its bar's x value,
+ * after the x axis's title `xLabel` where it has one, and its value, "Requests: 412".
  */
-export function barTipText(row, { xColumn, seriesColumn, valueColumn, valueLabel, valueFormat, labels = {} }) {
+export function barTipText(row, { xColumn, seriesColumn, valueColumn, valueLabel, valueFormat, labels = {}, xLabel }) {
   const series = seriesLabel(labels, row[seriesColumn]);
-  return `${series}\n${row[xColumn]}\n${valueLabel}: ${valueFormat(row[valueColumn])}`;
+  const bar = afterAxisTitle({ label: xLabel }, row[xColumn]);
+  return `${series}\n${bar}\n${valueLabel}: ${valueFormat(row[valueColumn])}`;
 }

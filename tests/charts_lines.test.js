@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  drawnPoints, drawnSeries, lineTipText, lineYAxis, seriesDash, yColumn,
+  brokenAtGaps, drawnPoints, drawnSeries, lineTipText, lineYAxis, seriesDash, yColumn,
 } from "../site/js/charts/lines.js";
 import { formatPercent } from "../site/js/shared/format.js";
 import { assignColours } from "../site/js/theme/colours.js";
@@ -64,6 +64,22 @@ test("a point's tooltip names its series by its label, its x as the axis writes 
   };
   assert.equal(lineTipText({ series: "Global", x: 120, y: 5313409 }, parameters), "All models\nDay 120\nRequests: 5,313,409");
   assert.equal(lineTipText({ series: "DeepSeek R1", x: 3, y: 7 }, { ...parameters, x: {} }), "DeepSeek R1\n3\nRequests: 7");
+  const titled = { ...parameters, x: { label: "Day of the trace" } };
+  assert.equal(lineTipText({ series: "DeepSeek R1", x: 3, y: 7 }, titled),
+    "DeepSeek R1\nDay of the trace: 3\nRequests: 7");
+});
+
+test("a line is broken where two neighbouring points of a series are farther apart than the gap", () => {
+  const points = [
+    { series: "Requests", x: 1, y: 5 }, { series: "Requests", x: 2, y: 6 }, { series: "Requests", x: 5, y: 7 },
+    { series: "Other", x: 9, y: 1 },
+  ];
+  const broken = brokenAtGaps(points, 1.5, "y");
+  assert.deepEqual(broken.map((point) => [point.series, point.x]),
+    [["Requests", 1], ["Requests", 2], ["Requests", 2], ["Requests", 5], ["Other", 9]]);
+  assert.ok(Number.isNaN(broken[2].y));
+  assert.equal(brokenAtGaps(points, undefined, "y"), points);
+  assert.equal(brokenAtGaps(points, 4, "y").length, points.length);
 });
 
 test("a CDF point's tooltip gives its value and the share at or below it", () => {

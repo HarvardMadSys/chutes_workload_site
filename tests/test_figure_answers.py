@@ -1,7 +1,7 @@
 """The figure answers over the fixture artifact: every listed figure is answered, in the list's order, each answer
 holds its plot-ready table's rows column for column, a missing figure list or one whose count disagrees stops the
-step, the index holds each answer's row count, a missing table stops
-the step naming it before anything is written, and a rebuild writes the same bytes."""
+step, the index holds each answer's row count, a missing table stops the step naming it before anything is written,
+and a rebuild writes the same bytes."""
 
 import hashlib
 import json
@@ -37,7 +37,6 @@ def test_every_listed_figure_is_named_in_the_list_s_order(artifact: pathlib.Path
     assert sorted(expected) == sorted(fixture_plotdata.plotdata_tables())
 
 
-
 def test_a_missing_figure_list_stops_naming_it(tmp_path: pathlib.Path) -> None:
     artifact = fixture_artifact.write_fixture_artifact(tmp_path)
     (artifact / figure_answers.FIGURE_LIST_FILE).unlink()
@@ -53,6 +52,7 @@ def test_a_list_whose_count_disagrees_stops_naming_both_numbers(tmp_path: pathli
     figure_list_path.write_text(json.dumps(figure_list))
     with pytest.raises(SystemExit, match="names 10 figures but counts 11"):
         figure_answers.listed_figures(artifact)
+
 
 def test_every_listed_figure_is_answered(artifact: pathlib.Path, tmp_path: pathlib.Path) -> None:
     written = figure_answers.write_figure_answers(figure_answers.read_figure_tables(artifact), tmp_path)

@@ -93,3 +93,11 @@ test("a segment's tooltip names its series by its label where it has one, its ba
     "Chat stream\n2025-06\nRequests: 4,120");
   assert.equal(barTipText(row, { ...columns, valueFormat }), "chat_stream\n2025-06\nRequests: 4,120");
 });
+
+test("a segment's bar follows the x axis's title where the bars have one", () => {
+  const parameters = { xColumn: "x", seriesColumn: "series", valueColumn: "value", valueLabel: "Share" };
+  const row = { x: 8, series: "Others", value: 0.25 };
+  assert.equal(barTipText(row, { ...parameters, valueFormat: String, xLabel: "Trace month" }),
+    "Others\nTrace month: 8\nShare: 0.25");
+  assert.equal(barTipText(row, { ...parameters, valueFormat: String, xLabel: null }), "Others\n8\nShare: 0.25");
+});

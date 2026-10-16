@@ -407,9 +407,11 @@ make serve      # then open http://localhost:8000
 `make test` ends with the snapshot test (`tests/snapshot.py`): it opens
 six states of the page in headless Chromium (the page opened at each
 Insights topic's anchor) and compares every chart (an Insights card's as
-its accessible name and tick labels), legend and block of text they show
-with its text file in
-`tests/snapshots/`, failing with the name of each unit that changed. A
+its accessible name, its panels' titles, its colour legend's title and
+labelled ticks, and its axes' tick labels and titles), legend and block of
+text they show with its text file in `tests/snapshots/`, failing with the
+name of each unit that changed. It also fails when the page, opened at a
+topic, requested another topic's figure answers. A
 change that is meant to alter a chart or a text, a data rebuild among
 them, runs `make snapshots` to rewrite the files and commits them with the
 change. The diff of `tests/snapshots/` is reviewed like code: it is what a

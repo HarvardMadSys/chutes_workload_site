@@ -1,4 +1,4 @@
-Global | pressed=true | legend-swatch is-line background: var(--color-text);
+Global | pressed=true | legend-swatch is-line background: repeating-linear-gradient(to right, var(--color-text) 0 4px, transparent 4px 7px);
 DeepSeek V3.2 | pressed=true | legend-swatch is-line background: var(--series-1);
 DeepSeek R1 | pressed=true | legend-swatch is-line background: var(--series-2);
 MiniMax M2.5 | pressed=true | legend-swatch is-line background: var(--series-3);

@@ -1,3 +1,6 @@
 name: Per-model cache profile: Request volume alone does not determine a model's reuse.
+colour-legend: Models: 1 | 10
 x-axis: 1k | 10k | 100k | 1M | 10M | 100M
 y-axis: 0 | 0.2 | 0.4 | 0.6 | 0.8 | 1
+x-axis title: Requests
+y-axis title: Average token hit ratio

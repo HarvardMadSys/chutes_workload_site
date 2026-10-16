@@ -1,6 +1,6 @@
 /**
- * Stand-ins for the parts of the page the node tests drive, as node has no page of its own: an element, the topic
- * sections the tabs read, and the browser's history.
+ * Stand-ins for the parts of the page the node tests drive, as node has no page of its own: an element, a figure's
+ * body with its legend's place, the topic sections the tabs read, and the browser's history.
  */
 
 /** The topics' anchors on the page, in the order of their tabs. */
@@ -19,8 +19,8 @@ export const TOPIC_TITLES = Object.freeze([
 export const PAGE_ADDRESS = "http://localhost/index.html";
 
 /**
- * A stand-in for an element of the page, or for the window: its tag, id, attributes, classes, listeners, children, text
- * and value, and what the page's modules set on it.
+ * A stand-in for an element of the page, or for the window: its tag, id, attributes, classes, inline style, listeners,
+ * children, text and value, and what the page's modules set on it.
  */
 export class FakeElement {
   constructor(tag = "", id = "") {
@@ -33,6 +33,7 @@ export class FakeElement {
     this.value = "";
     this.attributes = new Map();
     this.classes = new Set();
+    this.style = {};
     this.listeners = new Map();
     this.children = [];
     this.classList = { toggle: (name, isOn) => (isOn ? this.classes.add(name) : this.classes.delete(name)) };
@@ -74,6 +75,21 @@ export class FakeElement {
 
   focus() {
     globalThis.document.activeElement = this;
+  }
+}
+
+/**
+ * A figure's body, the place its chart is drawn, as `renderFigure` of `shared/charts.js` lays it out, as far as a
+ * legend reads it: its figure's place for the legend, `legendPlace`, found through `closest`.
+ */
+export class FakeFigureBody extends FakeElement {
+  constructor() {
+    super("div");
+    this.legendPlace = new FakeElement("div");
+  }
+
+  closest() {
+    return { querySelector: () => this.legendPlace };
   }
 }
 

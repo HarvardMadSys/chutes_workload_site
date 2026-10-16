@@ -326,8 +326,9 @@ tests/               what make test runs
   test_readme.py     every path this layout names exists
   snapshot.py, snapshot_units.py, test_snapshot.py, test_snapshot_units.py
                      the snapshot test: the page opened at each of the six topics in headless Chromium, each
-                     unit it shows (a chart, a legend, a block of text, a card's chart's name and ticks) read as
-                     text and compared with tests/snapshots/
+                     unit it shows (a chart, a legend, a block of text; a card's chart as its name, panel titles,
+                     colour legend, axis ticks and axis titles) read as text and compared with tests/snapshots/,
+                     and no other topic's figure answers requested
   snapshots/         one folder per page state, one text file per unit, rewritten by make snapshots
   *.test.js          node --test: one file per JavaScript module with pure functions, named after the module it
                      tests (explore_traffic.test.js for explore/traffic.js), and the checks of the whole page
@@ -338,8 +339,11 @@ tests/               what make test runs
                      every card's kind, and its shipped answer holding that kind's columns
   insights_figure_card_colours.test.js
                      a card's series' order and the colours each palette gives them
-  fake_page.js       the stand-ins for an element, the topic sections and the browser's history that the
-                     node tests drive the page's modules with
+  insights_figure_charts.test.js
+                     cards drawn from their shipped answers as the spec describes them: a tooltip, a log axis, a
+                     raster, a series hidden in a CDF card, the hourly lines' gaps, the shared colour and month axis
+  fake_page.js       the stand-ins for an element, a figure's body, the topic sections and the browser's
+                     history that the node tests drive the page's modules with
   palette_contrast.test.js, palette.js
                      the colours' contrast in both schemes, read from style.css
   module_headers.test.js

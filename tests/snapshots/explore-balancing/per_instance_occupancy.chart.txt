@@ -1,3 +1,6 @@
 name: Per-instance occupancy: Load is balanced in aggregate, but not perfectly balanced at every instant.
+colour-legend: Requests per minute: 40 | 50 | 60 | 70
 x-axis: 0:00 | 6:00 | 12:00 | 18:00 | 24:00
 y-axis: 0 | 5 | 10 | 15
+x-axis title: Time from day 317, 17:00 UTC
+y-axis title: Instance index

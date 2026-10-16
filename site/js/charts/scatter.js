@@ -6,7 +6,7 @@
  */
 
 import { logColumns, positiveRows, titledFrame } from "../shared/charts.js";
-import { afterAxisTitle, axisMark, axisScale, axisText, axisTicks, gridMark } from "../axes/ticks.js";
+import { axisMark, axisScale, axisTicks, axisValueText, gridMark } from "../axes/ticks.js";
 
 const DEFAULT_SCHEME = "RdBu"; // a scatter's diverging colour scheme when the card names none
 const DOT_RADIUS = 2; // pixels; small, so that thousands of points overlap little
@@ -70,7 +70,6 @@ export function divergingColour({ scheme = DEFAULT_SCHEME, colourDomain, valueLa
 
 /** A point's tooltip: its x and its y as their axes write them, after each axis's title, and its value. */
 export function pointTipText(point, { x: xAxis = {}, y: yAxis = {}, valueLabel, valueFormat }) {
-  const xText = afterAxisTitle(xAxis, axisText(xAxis, point.x));
-  const yText = afterAxisTitle(yAxis, axisText(yAxis, point.y));
-  return `${xText}\n${yText}\n${valueLabel}: ${valueFormat(point.value)}`;
+  const value = `${valueLabel}: ${valueFormat(point.value)}`;
+  return `${axisValueText(xAxis, point.x)}\n${axisValueText(yAxis, point.y)}\n${value}`;
 }

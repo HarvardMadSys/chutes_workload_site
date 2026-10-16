@@ -11,6 +11,11 @@ const FALLBACK_WIDTH = 480; // the width drawn when the body has not been laid o
 const UNTITLED_MARGIN_TOP = 12; // pixels above a chart whose y axis has no title: room for half its top tick's label
 /** Pixels taken off each side of a bar: a 2px gap between neighbouring bars and segments. */
 export const BAR_INSET = 1;
+/**
+ * The dash and the gap, in pixels, of every dashed line: a series drawn dashed, its swatch in a legend, and the line
+ * where y equals x.
+ */
+export const DASH = Object.freeze([4, 3]);
 
 // The Plot options every chart shares, so every chart has the same ink, in the page's own face: Plot's default face
 // draws a name's punctuation otherwise than the page's text does.
@@ -168,10 +173,11 @@ export function colourScale(colours, shown) {
  * Plot's colour scale of a chart shading a value on a sequential scheme, with its legend titled `valueLabel`: the
  * scheme `scheme`, else `defaultScheme`, from the point `schemeStart` of it (0 to 1, its first colour when not given)
  * to its last colour, over the values `colourDomain` (`[low, high]`, a value beyond either taking that end's colour)
- * or else the values' own; a log scale where `colourLog`, its legend's ticks Plot's own, which label only the powers
- * of ten; else the scale type `colourScale`, else linear, its ticks written by `valueFormat`.
+ * or else the values' own; a log scale where `colourLog`, its legend's ticks written as Plot writes a power of ten;
+ * else the scale type `colourScale`, else linear, its ticks written by `valueFormat`. The legend ticks `legendTicks`
+ * where given (`colourLegendTicks` of `axes/ticks.js`), else Plot's own.
  */
-export function sequentialColour(parameters, defaultScheme) {
+export function sequentialColour(parameters, defaultScheme, legendTicks = undefined) {
   const { scheme = defaultScheme, colourScale: scaleType = "linear", colourLog = false, valueLabel } = parameters;
   const colour = {
     type: colourLog ? "log" : scaleType,
@@ -187,6 +193,9 @@ export function sequentialColour(parameters, defaultScheme) {
   if (parameters.colourDomain !== undefined) {
     colour.domain = parameters.colourDomain;
     colour.clamp = true;
+  }
+  if (legendTicks !== undefined) {
+    colour.ticks = legendTicks;
   }
   return colour;
 }

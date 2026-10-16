@@ -1,3 +1,6 @@
 name: Periodic user access: Popular models can exhibit very different user-level access patterns.
+colour-legend: Requests per hour: 1 | 10 | 100 | 1k | 10k
 x-axis: 0 | 6 | 12 | 18 | 24 | 30
 y-axis: 0 | 50 | 100 | 150 | 200
+x-axis title: Day of the window
+y-axis title: User (by first request)

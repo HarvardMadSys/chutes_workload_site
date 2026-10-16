@@ -1,3 +1,5 @@
 name: Output-to-input ratio: Most requests generate fewer output tokens than input tokens.
 x-axis: 0.01 | 1 | 100
 y-axis: 0% | 20% | 40% | 60% | 80% | 100%
+x-axis title: Output / input tokens
+y-axis title: Share of requests

@@ -7,7 +7,7 @@
  */
 
 import { AXIS_STYLE, BAR_INSET, colourScale, distinct, titledFrame } from "../shared/charts.js";
-import { axisMark, axisText, bandAxisMark, gridMark } from "../axes/ticks.js";
+import { axisMark, axisValueText, bandAxisMark, gridMark } from "../axes/ticks.js";
 import { SERIES_COLUMN, shownSeriesRows } from "../shared/series.js";
 
 /**
@@ -52,7 +52,9 @@ export function drawnBars(rows, colours, { panel }, hidden) {
   return shownSeriesRows(rows, colours, panel, hidden);
 }
 
-/** A bar's tooltip: its x as the x axis writes it, and its value, "Share of requests: 12.4%". */
+/**
+ * A bar's tooltip: its x as the x axis writes it, after the axis's title, and its value, "Share of requests: 12.4%".
+ */
 export function barTipText(bar, { x: xAxis = {}, valueLabel, valueFormat }) {
-  return `${axisText(xAxis, bar.x)}\n${valueLabel}: ${valueFormat(bar.value)}`;
+  return `${axisValueText(xAxis, bar.x)}\n${valueLabel}: ${valueFormat(bar.value)}`;
 }

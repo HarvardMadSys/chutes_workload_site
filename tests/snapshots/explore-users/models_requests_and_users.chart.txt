@@ -1,3 +1,6 @@
 name: Models: requests and users: Models and users span wide ranges of request volume.
+colour-legend: Models: 1 | 10 | 100
 x-axis: 1k | 100k | 10M | 1B
 y-axis: 1 | 10 | 100 | 1k | 10k | 100k
+x-axis title: Requests per model
+y-axis title: Distinct users

@@ -7,7 +7,7 @@
  */
 
 import { logColumns, positiveRows, titledFrame } from "../shared/charts.js";
-import { axisMark, axisScale, axisText, axisTicks, gridMark } from "../axes/ticks.js";
+import { axisMark, axisScale, axisTicks, axisValueText, gridMark } from "../axes/ticks.js";
 import { SERIES_SLOTS } from "../theme/colours.js";
 
 /** The percentile columns of a bands answer, low to high, with the name the tooltip gives each. */
@@ -65,11 +65,11 @@ export function drawnBands(rows, { x: xAxis = {}, y: yAxis = {} }) {
 }
 
 /**
- * An x's tooltip: its x as the x axis writes it, `valueLabel`, then each percentile, high to low, as `valueFormat`
- * writes it, "90th: 12.4k".
+ * An x's tooltip: its x as the x axis writes it, after the axis's title, `valueLabel`, then each percentile, high to
+ * low, as `valueFormat` writes it, "90th: 12.4k".
  */
 export function bandTipText(row, { x: xAxis = {}, valueLabel, valueFormat }) {
-  const lines = [axisText(xAxis, row.x), valueLabel];
+  const lines = [axisValueText(xAxis, row.x), valueLabel];
   for (const { column, label } of [...PERCENTILES].reverse()) {
     lines.push(`${label}: ${valueFormat(row[column])}`);
   }

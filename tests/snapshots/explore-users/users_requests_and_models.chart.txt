@@ -1,3 +1,6 @@
 name: Users: requests and models: Most users issue relatively few requests and access only a small number of models.
+colour-legend: Users: 1 | 10 | 100 | 1k | 10k
 x-axis: 100 | 10k | 1M | 100M
 y-axis: 10 | 100 | 1k
+x-axis title: Requests per user
+y-axis title: Distinct models

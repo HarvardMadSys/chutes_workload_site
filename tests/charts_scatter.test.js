@@ -29,4 +29,6 @@ test("a point's tooltip gives its x and y after their axes' titles, and its valu
     valueFormat: (value) => value.toFixed(2),
   };
   assert.equal(pointTipText(ROWS[2], parameters), "Requests per hour: 870\n1.1\nAutocorrelation: 0.55");
+  const titled = { ...parameters, y: { label: "Mean CV(IAT)", tickFormat: String } };
+  assert.equal(pointTipText(ROWS[2], titled), "Requests per hour: 870\nMean CV(IAT): 1.1\nAutocorrelation: 0.55");
 });

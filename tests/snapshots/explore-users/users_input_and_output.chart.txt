@@ -1,3 +1,6 @@
 name: Users: input and output: The user view is more concentrated, but still spans a broad range.
+colour-legend: Users: 1 | 10 | 100 | 1k | 10k
 x-axis: 1 | 100 | 10k | 1M
 y-axis: 1 | 10 | 100 | 1k | 10k | 100k
+x-axis title: Median user input
+y-axis title: Median user output

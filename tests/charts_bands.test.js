@@ -23,3 +23,10 @@ test("an x's tooltip gives its x, what a value is, and its five percentiles from
   assert.equal(bandTipText(ROWS[1], parameters),
     "2025-07\nInput tokens\n90th: 9,500\n75th: 2,100\nMedian: 320\n25th: 50\n10th: 12");
 });
+
+test("an x's tooltip writes its x after the x axis's title where the axis has one", () => {
+  const xAxis = { label: "Trace month", tickFormat: String };
+  const parameters = { x: xAxis, valueLabel: "Input tokens", valueFormat: String };
+  const row = { x: 8, p10: 1, p25: 2, p50: 3, p75: 4, p90: 5 };
+  assert.match(bandTipText(row, parameters), /^Trace month: 8\nInput tokens\n/);
+});

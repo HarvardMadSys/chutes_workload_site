@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  chartFrame, chartName, chartWidth, colourScale, columnTotal, logColumns, panelRows, positiveRows, sequentialColour,
-  titledFrame,
+  chartFrame, chartName, chartWidth, colourScale, columnTotal, DASH, logColumns, panelRows, positiveRows,
+  sequentialColour, titledFrame,
 } from "../site/js/shared/charts.js";
 import { assignColours } from "../site/js/theme/colours.js";
 
@@ -76,6 +76,17 @@ test("a sequential colour scale takes the card's scheme and type, a log one wher
   const clipped = sequentialColour({ colourDomain: [36, 80], valueLabel: "Requests" }, "Blues");
   assert.deepEqual([clipped.domain, clipped.clamp], [[36, 80], true]);
   assert.equal(sequentialColour({ valueLabel: "Requests" }, "Blues").domain, undefined);
+});
+
+test("a sequential colour legend is ticked where given, else at Plot's own ticks", () => {
+  const ticked = sequentialColour({ colourLog: true, valueLabel: "Users" }, "Blues", [1, 10, 100]);
+  assert.deepEqual(ticked.ticks, [1, 10, 100]);
+  assert.equal(Object.hasOwn(sequentialColour({ colourLog: true, valueLabel: "Users" }, "Blues"), "ticks"), false);
+});
+
+test("a dashed line is dashes of four pixels and gaps of three", () => {
+  assert.deepEqual(DASH, [4, 3]);
+  assert.ok(Object.isFrozen(DASH));
 });
 
 test("a panel's rows are those naming it; every row when no panel is asked for", () => {

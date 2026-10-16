@@ -160,12 +160,21 @@ export async function drawFigureChart(body, card) {
     const answers = [readAnswer(`${FIGURE_ANSWERS}${card.figure}`), legendAnswer(card), endpointOrder(card)];
     const [rows, legendRows, endpointMixRows] = await Promise.all(answers);
     const colours = cardColours(card, rows, legendRows, endpointMixRows);
-    const legend = seriesLegend(rows, SERIES_COLUMN, colours, card.chart.labels);
+    const legend = figureLegend(card, rows, colours);
     const drawChart = (hidden) => drawFigure(rows, body, card, { series: colours }, hidden);
     await drawWithLegend(body, legend, drawChart, CHART_KINDS[card.kind].swatch);
   } catch (error) {
     showError(body, error);
   }
+}
+
+/**
+ * The legend of `card` over its answer's `rows`: `{ series, colours, dashed }` (as `explore/legend.js` takes one), the
+ * series `colours` names that the rows hold, labelled by the card's `chart.labels`, and its `chart.dashed`, the
+ * series drawn dashed, whose swatches are dashed too.
+ */
+export function figureLegend(card, rows, colours) {
+  return { ...seriesLegend(rows, SERIES_COLUMN, colours, card.chart.labels), dashed: card.chart.dashed ?? [] };
 }
 
 /**

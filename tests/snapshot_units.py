@@ -5,7 +5,9 @@ Text units hold one line per entry, whitespace collapsed: a card's texts as `lab
 | pressed=… | mark`, a control's choice as `field: choice | selected=…`, an axis as `x-axis: label | label …`. An
 Overview chart's SVG is written one element per line with Plot's numbered ids made plain, so `git diff` shows which
 element changed; an Insights card's chart, which may hold thousands of cells, is written as its accessible name
-(`name: …`) and its axes' tick labels. Colours are recorded as the CSS tokens the page names (`var(--series-5)`), so a
+(`name: …`) and, for each place it draws in, the card's body or each of its panels, the panel's title (`panel: …`),
+its colour legend's title and labelled ticks (`colour-legend: Models: 1 | 10 | 100`), its axes' tick labels and its
+axes' titles (`x-axis title: …`). Colours are recorded as the CSS tokens the page names (`var(--series-5)`), so a
 series moved to another colour slot is caught. Every reading function takes a Playwright page or locator and reads it
 as it is now; this module imports no Playwright itself.
 """
@@ -55,6 +57,19 @@ NAMED_CHART = '.figure-body svg[role="img"]'
 
 # A chart's tick labels along one axis: Plot labels the group "x-axis tick label" or "y-axis tick label".
 AXIS_TICK_LABELS = 'g[aria-label$="axis tick label"]'
+
+# A chart's axis titles: Plot labels the group of each "x-axis label" or "y-axis label".
+AXIS_TITLES = 'g[aria-label="x-axis label"], g[aria-label="y-axis label"]'
+
+# The colour legend Plot draws above a chart that shades a value: an SVG whose class ends in "-ramp", its title the one
+# text outside its ticks, and its ticks' labels, an unlabelled tick's empty.
+COLOUR_LEGEND = 'svg[class$="-ramp"]'
+COLOUR_LEGEND_TITLE = ":scope > text"
+COLOUR_LEGEND_TICK_LABELS = "g.tick text"
+
+# A panel of a multi-panel card, holding its title and its chart.
+PANEL = ".chart-panel"
+PANEL_TITLE = ".chart-panel-title"
 
 TRAFFIC = "#traffic-explorer"  # the Traffic Explorer: its controls, then its card of tiles, legend and bars
 TRAFFIC_CARD = "#traffic-explorer .traffic-card"
@@ -123,6 +138,52 @@ def axis_lines(scope) -> str:
     return "\n".join(lines)
 
 
+def axis_title_lines(scope) -> list[str]:
+    """One line per chart axis title inside `scope`: its axis, "x-axis" or "y-axis", and its title."""
+    lines = []
+    for axis in scope.locator(AXIS_TITLES).all():
+        name = axis.get_attribute("aria-label").removesuffix(" label")
+        lines.append(f"{name} title: " + plain_text(" ".join(axis.locator("text").all_text_contents())))
+    return lines
+
+
+def colour_legend_lines(scope) -> list[str]:
+    """One line per colour legend inside `scope`: its title and the labels of its labelled ticks, in order."""
+    lines = []
+    for legend in scope.locator(COLOUR_LEGEND).all():
+        title = plain_text(" ".join(legend.locator(COLOUR_LEGEND_TITLE).all_text_contents()))
+        ticks = []
+        for label in legend.locator(COLOUR_LEGEND_TICK_LABELS).all_text_contents():
+            if label.strip():
+                ticks.append(plain_text(label))
+        lines.append(f"colour-legend: {title}: " + " | ".join(ticks))
+    return lines
+
+
+def chart_place_lines(place) -> list[str]:
+    """The lines of one place a card draws a chart in, its body or one of its panels: the panel's title where it is
+    one, then its colour legend, its axes' tick labels and its axes' titles."""
+    lines = [f"panel: {plain_text(title)}" for title in place.locator(PANEL_TITLE).all_text_contents()]
+    lines.extend(colour_legend_lines(place))
+    axes = axis_lines(place)
+    if axes:
+        lines.append(axes)
+    lines.extend(axis_title_lines(place))
+    return lines
+
+
+def figure_chart_lines(scope) -> str:
+    """An Insights card's chart: its accessible name, then the lines of each place it draws in, each of its panels in
+    order, or its body where it has none."""
+    lines = [chart_name_lines(scope)]
+    places = scope.locator(PANEL)
+    if places.count() == 0:
+        places = scope.locator(".figure-body")
+    for place in places.all():
+        lines.extend(chart_place_lines(place))
+    return "\n".join(lines)
+
+
 def figure_units(scope, name: str) -> dict[str, str]:
     """An Overview figure's units under `name`: its texts, and where it has them its legend and its charts' SVG."""
     units = {f"{name}.texts": labelled_texts(scope, CARD_TEXTS)}
@@ -137,12 +198,12 @@ def figure_units(scope, name: str) -> dict[str, str]:
 
 def figure_card_units(scope, name: str) -> dict[str, str]:
     """An Insights card's units under `name`: its texts, its legend where it has one (its series' names), and its
-    chart: the chart's accessible name, then its axes' tick labels."""
+    chart (`figure_chart_lines`)."""
     units = {f"{name}.texts": labelled_texts(scope, CARD_TEXTS)}
     legend = legend_lines(scope)
     if legend:
         units[f"{name}.legend"] = legend
-    units[f"{name}.chart"] = chart_name_lines(scope) + "\n" + axis_lines(scope)
+    units[f"{name}.chart"] = figure_chart_lines(scope)
     return units
 
 

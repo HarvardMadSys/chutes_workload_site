@@ -1,3 +1,5 @@
 name: Token share: Traffic spreads across more models over time.
 x-axis: 1 | 4 | 7 | 10 | 13
 y-axis: 0% | 20% | 40% | 60% | 80% | 100%
+x-axis title: Trace month (1 = April 2025)
+y-axis title: Share of total tokens

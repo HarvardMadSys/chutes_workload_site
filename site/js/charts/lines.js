@@ -7,13 +7,12 @@
  * their `panel`.
  */
 
-import { colourScale, logColumns, positiveRows, titledFrame } from "../shared/charts.js";
+import { colourScale, DASH, logColumns, positiveRows, titledFrame } from "../shared/charts.js";
 import { formatPercent, formatShare } from "../shared/format.js";
-import { axisMark, axisScale, axisText, axisTicks, gridMark } from "../axes/ticks.js";
+import { axisMark, axisScale, axisTicks, axisValueText, gridMark } from "../axes/ticks.js";
 import { SERIES_COLUMN, seriesLabel, shownSeriesRows } from "../shared/series.js";
 
 const CDF_COLUMN = "cdf"; // the column of a CDF answer holding the share at or below each value
-const DASH = "4,3"; // the dash and gap, in pixels, of a series drawn dashed
 
 /**
  * Draw `rows` into `body`, one line per series of `colours.series` (a Map from series name to colour, in legend order)
@@ -23,6 +22,8 @@ const DASH = "4,3"; // the dash and gap, in pixels, of a series drawn dashed
  * - `cdf`: true for a CDF answer, its `cdf` column drawn as y from 0 to 1, stepped, the axis in percent.
  * - `markers`: true to mark each point with a dot.
  * - `dashed`: the names of the series drawn dashed, a list.
+ * - `gap`: the largest step in x a line is drawn across; a series' line is broken between two points farther apart,
+ *   where the answer has no row, as hours missing from an hourly line. Every step is drawn when not given.
  * - `valueLabel`, `valueFormat`: what a value is and how it is written in the tooltip, "Requests: 4.9M"; a CDF's value
  *   is its x.
  * - `labels`: each series' label in the tooltip where it is written otherwise than its name.
@@ -30,7 +31,7 @@ const DASH = "4,3"; // the dash and gap, in pixels, of a series drawn dashed
  * Required: `valueLabel` and `valueFormat`.
  */
 export async function drawLines(rows, body, colours, parameters, hidden) {
-  const { x: xAxis = {}, cdf = false, markers = false, dashed = [], margins } = parameters;
+  const { x: xAxis = {}, cdf = false, markers = false, dashed = [], gap, margins } = parameters;
   const yAxis = lineYAxis(parameters);
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
@@ -39,7 +40,8 @@ export async function drawLines(rows, body, colours, parameters, hidden) {
   const xValues = drawn.map((row) => row.x);
   const xTicks = axisTicks(xAxis, xValues);
   const yTicks = axisTicks(yAxis, drawn.map((row) => row[yColumn(cdf)]));
-  const lines = names.map((name) => Plot.line(drawn.filter((row) => row[SERIES_COLUMN] === name), {
+  const broken = brokenAtGaps(drawn, gap, yColumn(cdf));
+  const lines = names.map((name) => Plot.line(broken.filter((row) => row[SERIES_COLUMN] === name), {
     x: "x",
     y: yColumn(cdf),
     stroke: SERIES_COLUMN,
@@ -79,7 +81,7 @@ export function lineYAxis({ y: yAxis = {}, cdf = false }) {
 
 /** The dash pattern of the series `name`: `DASH` where `dashed`, a list of names, holds it, else none, a solid line. */
 export function seriesDash(name, dashed) {
-  return dashed.includes(name) ? DASH : undefined;
+  return dashed.includes(name) ? DASH.join(",") : undefined;
 }
 
 /** The column a lines answer holds its y in: `cdf` for a CDF answer, else `y`. */
@@ -97,6 +99,27 @@ export function drawnPoints(rows, colours, { panel, x: xAxis = {}, y: yAxis = {}
   return positiveRows(shown, logColumns({ x: xAxis, y: yAxis }, ["x"], [yColumn(cdf)]));
 }
 
+/**
+ * The `points` with, between two neighbouring points of one series whose x values are more than `gap` apart, a point
+ * of the first's series and x whose `yName` is NaN, where Plot breaks the line; `points` as they are when `gap` is not
+ * given. The points are read in their order, each series' in order of x, as an answer holds them.
+ */
+export function brokenAtGaps(points, gap, yName) {
+  if (gap === undefined) {
+    return points;
+  }
+  const broken = [];
+  for (const [index, point] of points.entries()) {
+    const previous = points[index - 1];
+    const isSameSeries = previous !== undefined && previous[SERIES_COLUMN] === point[SERIES_COLUMN];
+    if (isSameSeries && point.x - previous.x > gap) {
+      broken.push({ [SERIES_COLUMN]: previous[SERIES_COLUMN], x: previous.x, [yName]: NaN });
+    }
+    broken.push(point);
+  }
+  return broken;
+}
+
 /** The series of `colours` (a Map from series name to colour, in legend order) that `points` hold, in that order. */
 export function drawnSeries(points, colours) {
   const present = new Set(points.map((point) => point[SERIES_COLUMN]));
@@ -105,13 +128,13 @@ export function drawnSeries(points, colours) {
 
 /**
  * A point's tooltip, three lines: its series' label (from `labels` where it has one there, else its name), then its x
- * as the x axis writes it and its value, "Requests: 4.9M"; for a CDF, its value and the share at or below it,
- * "Input tokens: 1.2k", "45.0% at or below".
+ * as the x axis writes it, after the axis's title, and its value, "Requests: 4.9M"; for a CDF, its value and the share
+ * at or below it, "Input tokens: 1.2k", "45.0% at or below".
  */
 export function lineTipText(row, { x: xAxis = {}, cdf = false, valueLabel, valueFormat, labels = {} }) {
   const series = seriesLabel(labels, row[SERIES_COLUMN]);
   if (cdf) {
     return `${series}\n${valueLabel}: ${valueFormat(row.x)}\n${formatShare(row[CDF_COLUMN])} at or below`;
   }
-  return `${series}\n${axisText(xAxis, row.x)}\n${valueLabel}: ${valueFormat(row.y)}`;
+  return `${series}\n${axisValueText(xAxis, row.x)}\n${valueLabel}: ${valueFormat(row.y)}`;
 }

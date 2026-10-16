@@ -30,4 +30,6 @@ test("a bar's tooltip gives its x as the axis writes it and its value", () => {
     valueFormat: (share) => `${(share * 100).toFixed(1)}%`,
   };
   assert.equal(barTipText(ROWS[0], parameters), "User 1\nShare of requests: 30.0%");
+  const titled = { ...parameters, x: { label: "Instance index", tickFormat: String } };
+  assert.equal(barTipText(ROWS[0], titled), "Instance index: 1\nShare of requests: 30.0%");
 });

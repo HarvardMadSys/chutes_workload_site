@@ -6,12 +6,13 @@
  * `value`. An axis of named categories has integer edges, the cell from i to i + 1 being the category i.
  */
 
-import { logColumns, positiveRows, sequentialColour, titledFrame } from "../shared/charts.js";
-import { afterAxisTitle, axisMark, axisScale, axisText, axisTicks, extent } from "../axes/ticks.js";
+import { DASH, logColumns, positiveRows, sequentialColour, titledFrame } from "../shared/charts.js";
+import {
+  afterAxisTitle, axisMark, axisScale, axisText, axisTicks, colourLegendTicks, extent,
+} from "../axes/ticks.js";
 
 const DEFAULT_SCHEME = "YlOrRd"; // the paper's heatmaps' colour scheme, low values light
 const CATEGORY_CENTRE = 0.5; // a category's tick sits halfway between its cell's integer edges
-const DIAGONAL_DASH = "4,3"; // the dash and gap, in pixels, of the line where y equals x
 
 /**
  * Draw `rows` into `body` as one rectangle per row, filled by its value, and return the chart. It has no series:
@@ -43,17 +44,18 @@ export async function drawCells(rows, body, colours, parameters) {
   const ySpan = yAxis.domain ?? extent(yEdges);
   const diagonal = parameters.diagonal ? diagonalEnds(xSpan, ySpan) : [];
   const tipParameters = { ...parameters, x: xAxis, y: yAxis };
+  const legendTicks = colourLegendTicks(parameters, drawn.map((cell) => cell.value));
   const chart = Plot.plot({
     ...titledFrame(body, yAxis.label ?? null, margins),
     x: axisScale(xAxis),
     y: axisScale(yAxis),
-    color: sequentialColour(parameters, DEFAULT_SCHEME),
+    color: sequentialColour(parameters, DEFAULT_SCHEME, legendTicks),
     marks: [
       Plot.rect(drawn, {
         x1: "x_low", x2: "x_high", y1: "y_low", y2: "y_high", fill: "value",
         shapeRendering: "crispEdges", // neighbouring cells meet without a seam of the card's colour between them
       }),
-      Plot.line(diagonal, { x: "x", y: "y", stroke: "currentColor", strokeDasharray: DIAGONAL_DASH, clip: true }),
+      Plot.line(diagonal, { x: "x", y: "y", stroke: "currentColor", strokeDasharray: DASH.join(","), clip: true }),
       axisMark(Plot, "x", xAxis, axisTicks(xAxis, xEdges)),
       axisMark(Plot, "y", yAxis, axisTicks(yAxis, yEdges)),
       Plot.tip(drawn, Plot.pointer({

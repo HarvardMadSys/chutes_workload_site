@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  drawWithLegend, hasLegend, isEverySeriesHidden, legendIndexForKey, mountLegend, toggledSeries,
+  dashedBackground, drawWithLegend, hasLegend, isEverySeriesHidden, legendIndexForKey, mountLegend, toggledSeries,
 } from "../site/js/explore/legend.js";
 
 /**
@@ -109,6 +109,34 @@ test("the legend is one button per series", (context) => {
   const container = new FakeElement("div");
   mountLegend(container, LEGEND.series, LEGEND.colours, () => undefined);
   assert.deepEqual(container.children.map((button) => button.tag), ["button", "button"]);
+});
+
+test("a line's swatch is dashed for a series the legend names dashed, solid for the others", (context) => {
+  useFakeDocument(context);
+  const container = new FakeElement("div");
+  mountLegend(container, LEGEND.series, LEGEND.colours, () => undefined, "line", ["pi"]);
+  const [solid, dashed] = container.children.map((button) => button.children[0]);
+  assert.deepEqual([solid.className, solid.style.background], ["legend-swatch is-line", "var(--series-1)"]);
+  assert.deepEqual([dashed.className, dashed.style.background],
+    ["legend-swatch is-line", dashedBackground("var(--series-2)")]);
+});
+
+test("a square swatch is never dashed, and a legend without a dashed list draws every line solid", async (context) => {
+  useFakeDocument(context);
+  const container = new FakeElement("div");
+  mountLegend(container, LEGEND.series, LEGEND.colours, () => undefined, "square", ["pi"]);
+  assert.equal(container.children[1].children[0].style.background, "var(--series-2)");
+  const body = new FakeElement("div");
+  await drawWithLegend(body, LEGEND, () => undefined, "line");
+  assert.equal(body.legendSlot.children[1].children[0].style.background, "var(--series-2)");
+  const dashedBody = new FakeElement("div");
+  await drawWithLegend(dashedBody, { ...LEGEND, dashed: ["hermes"] }, () => undefined, "line");
+  assert.equal(dashedBody.legendSlot.children[0].children[0].style.background, dashedBackground("var(--series-1)"));
+});
+
+test("a dashed swatch is its colour in dashes of four pixels and gaps of three", () => {
+  assert.equal(dashedBackground("var(--series-3)"),
+    "repeating-linear-gradient(to right, var(--series-3) 0 4px, transparent 4px 7px)");
 });
 
 test("a click on a legend button names its series and flips the button", (context) => {

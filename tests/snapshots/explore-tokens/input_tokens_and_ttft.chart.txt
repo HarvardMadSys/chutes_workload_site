@@ -1,3 +1,6 @@
 name: Input tokens and TTFT: Time to first token grows primarily with input length.
+colour-legend: Median TTFT: 1 s | 2 s | 3 s
 x-axis: 0 | 10k | 20k | 30k
 y-axis: 0 | 2k | 4k | 6k | 8k
+x-axis title: Input tokens
+y-axis title: Output tokens

@@ -1,3 +1,6 @@
 name: Models: input and output: Token shape varies substantially across models and users.
+colour-legend: Models: 1 | 10 | 100
 x-axis: 1 | 10 | 100 | 1k | 10k | 100k
 y-axis: 1 | 10 | 100 | 1k | 10k | 100k
+x-axis title: Median model input
+y-axis title: Median model output

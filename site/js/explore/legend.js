@@ -3,15 +3,16 @@
  * and the chart is drawn anew from the rows it already has, with no query. A hidden series' button is struck through
  * and not pressed.
  *
- * A legend is `{ series, colours }`: the series it lists, `[{ name, label }]`, `name` being the series' value in the
- * rows and `label` the text its button shows, and their colours, a Map from name to colour. The hidden series are a
- * Set of names; it lives as long as one drawing of the chart, and it is never written to the URL.
+ * A legend is `{ series, colours, dashed? }`: the series it lists, `[{ name, label }]`, `name` being the series' value
+ * in the rows and `label` the text its button shows, their colours, a Map from name to colour, and, for a chart of
+ * lines, the names of the series drawn dashed, whose swatches are dashed lines. The hidden series are a Set of names;
+ * it lives as long as one drawing of the chart, and it is never written to the URL.
  *
  * From the keyboard a legend is one tab stop, a group of buttons: Tab reaches the last button focused in it, the first
  * at first, ArrowLeft and ArrowRight move between its buttons, and Enter or Space toggles one, as a click does.
  */
 
-import { legendPlace, showError, showNote } from "../shared/charts.js";
+import { DASH, legendPlace, showError, showNote } from "../shared/charts.js";
 
 // The note in place of a chart whose every series is hidden.
 const EVERY_SERIES_HIDDEN_NOTE = "Every series is hidden: click one in the legend to show it.";
@@ -24,18 +25,20 @@ const LEGEND_GROUP_NAME = "Series";
 
 /**
  * Fill `container` with one button per series of `series` (`[{ name, label }]`), each with its colour from `colours`
- * (a Map from name to colour) in a swatch shaped as the chart draws it, `swatch` ("square" or "line"), each pressed,
- * the whole one tab stop with the arrow keys inside it. A click flips the button between pressed and struck through
- * and calls `onToggle(name)`. Fewer than two series leave `container` empty.
+ * (a Map from name to colour) in a swatch shaped as the chart draws it, `swatch` ("square" or "line"), a dashed line
+ * for a line of `dashed` (the names of the series drawn dashed), each pressed, the whole one tab stop with the arrow
+ * keys inside it. A click flips the button between pressed and struck through and calls `onToggle(name)`. Fewer than
+ * two series leave `container` empty.
  */
-export function mountLegend(container, series, colours, onToggle, swatch = "square") {
+export function mountLegend(container, series, colours, onToggle, swatch = "square", dashed = []) {
   if (!hasLegend(series)) {
     container.replaceChildren();
     return;
   }
   const buttons = [];
   for (const { name, label } of series) {
-    buttons.push(legendButton({ label, colour: colours.get(name), swatch }, () => onToggle(name)));
+    const entry = { label, colour: colours.get(name), swatch, isDashed: swatch === "line" && dashed.includes(name) };
+    buttons.push(legendButton(entry, () => onToggle(name)));
   }
   for (const [index, button] of buttons.entries()) {
     button.tabIndex = index === 0 ? 0 : -1;
@@ -78,10 +81,10 @@ export function hasLegend(series) {
 
 /**
  * Place `legend`'s buttons in the legend's place above `body` (`legendPlace`), their swatches shaped `swatch` ("square"
- * or "line"), and draw the chart into `body` with `drawChart(hidden)`, nothing hidden at first. Each click on a button
- * hides or shows its series and calls `drawChart` again with the new hidden set; a chart whose every series is hidden
- * shows a note instead, and a drawing after a click that fails shows its error in `body`. A legend of fewer than two
- * series is not placed. Settles when the first drawing has.
+ * or "line", dashed for the legend's `dashed` series), and draw the chart into `body` with `drawChart(hidden)`,
+ * nothing hidden at first. Each click on a button hides or shows its series and calls `drawChart` again with the new
+ * hidden set; a chart whose every series is hidden shows a note instead, and a drawing after a click that fails shows
+ * its error in `body`. A legend of fewer than two series is not placed. Settles when the first drawing has.
  */
 export async function drawWithLegend(body, legend, drawChart, swatch = "square") {
   let hidden = new Set();
@@ -98,13 +101,22 @@ export async function drawWithLegend(body, legend, drawChart, swatch = "square")
       showError(body, error);
     }
   }
-  mountLegend(legendPlace(body), legend.series, legend.colours, onToggle, swatch);
+  mountLegend(legendPlace(body), legend.series, legend.colours, onToggle, swatch, legend.dashed ?? []);
   await drawShownSeries(body, legend, hidden, drawChart);
 }
 
 /** True when `series` (`[{ name }]`) has a series and every one is in `hidden`, so nothing is left to draw. */
 export function isEverySeriesHidden(series, hidden) {
   return series.length > 0 && series.every((one) => hidden.has(one.name));
+}
+
+/**
+ * The background of a dashed line's swatch in `colour`: dashes and gaps of the lengths a dashed series is drawn with
+ * (`DASH`), across the swatch.
+ */
+export function dashedBackground(colour) {
+  const [dash, gap] = DASH;
+  return `repeating-linear-gradient(to right, ${colour} 0 ${dash}px, transparent ${dash}px ${dash + gap}px)`;
 }
 
 async function drawShownSeries(body, legend, hidden, drawChart) {
@@ -115,7 +127,8 @@ async function drawShownSeries(body, legend, hidden, drawChart) {
   await drawChart(hidden);
 }
 
-// A legend button for `entry`, `{ label, colour, swatch }`, its swatch a square or a short line, pressed.
+// A legend button for `entry`, `{ label, colour, swatch, isDashed }`, its swatch a square, a short line or a short
+// dashed line, pressed.
 function legendButton(entry, onClick) {
   const button = document.createElement("button");
   button.type = "button";
@@ -124,7 +137,7 @@ function legendButton(entry, onClick) {
   button.setAttribute("aria-pressed", "true");
   const swatch = document.createElement("span");
   swatch.className = entry.swatch === "line" ? "legend-swatch is-line" : "legend-swatch";
-  swatch.style.background = entry.colour;
+  swatch.style.background = entry.isDashed ? dashedBackground(entry.colour) : entry.colour;
   button.append(swatch, entry.label);
   button.addEventListener("click", () => flipAndCall(button, onClick));
   return button;

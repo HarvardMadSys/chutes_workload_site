@@ -10,6 +10,8 @@ Traffic Explorer, cite, team and footer.
     .venv/bin/python tests/snapshot.py           # compare: fails naming each unit that changed (make test)
     .venv/bin/python tests/snapshot.py --write   # rewrite every file (make snapshots)
 
+Each state also checks that the page, opened at a topic, requested no other topic's figure answers.
+
 Regenerate with `make snapshots` when a change is meant to alter a chart or a text, and review the diff of
 `tests/snapshots/` like code: it is what a visitor will see differently. A data rebuild changes it too. Compare skips,
 saying so, where Chromium is not installed (`make setup-browser`). Plot, from jsDelivr, and the fonts, from Google, are
@@ -61,6 +63,10 @@ CHARTS_DRAWN = """(counts) => Object.entries(counts).every(([section, count]) =>
 TILE_VALUE = "#traffic-explorer .traffic-tiles li strong"  # the value of each of the Traffic Explorer's tiles
 A_DIGIT = re.compile(r"\d")  # a tile showing a number, not its loading or missing text
 MONTH_COUNT = re.compile(r"\d+ months? of")  # the hero's lede and the footer's line, once the totals give the months
+FIGURE_ANSWER = re.compile(r"/data/all/figures/(?P<figure>[^/?#]+)\.json$")  # the address of a figure's answer
+# A card names its figure's plot-ready table behind its Definition control, `data/paper/plotdata/<figure>.parquet`.
+CARD_TABLE = ".figure-rows code"
+PLOTDATA_TABLE = re.compile(r"data/paper/plotdata/(?P<figure>[^/]+)\.parquet$")
 SKIP_MESSAGE = "snapshots skipped: Chromium could not start ({reason}). `make setup-browser` installs it."
 
 
@@ -113,6 +119,36 @@ def record_failed_request(errors: list[str], request) -> None:
     errors.append(f"request failed: {request.url} ({request.failure})")
 
 
+def answered_figure(address: str) -> str | None:
+    """The figure whose answer `address` is, `fig_seasonality` for `.../data/all/figures/fig_seasonality.json`; None
+    for any other file."""
+    match = FIGURE_ANSWER.search(address)
+    return match["figure"] if match else None
+
+
+def record_figure_answer(requested: list[str], request) -> None:
+    """Append to `requested` the figure whose answer `request` asks for, when it asks for one."""
+    figure = answered_figure(request.url)
+    if figure is not None:
+        requested.append(figure)
+
+
+def topic_figures(page, topic: str) -> set[str]:
+    """The figures of the cards of the topic section `topic` (its id), as their Definition controls name them."""
+    tables = page.locator(f"#{topic} {CARD_TABLE}").all_text_contents()
+    return {PLOTDATA_TABLE.search(table)["figure"] for table in tables}
+
+
+def other_topics_answers(page, topic: str, requested: list[str]) -> list[str]:
+    """The figures of `requested` that are the cards' of a topic other than `topic`: none, when a topic shown reads
+    only its own answers."""
+    others = set()
+    for other in snapshot_units.EXPLORE_STATES.values():
+        if other != topic:
+            others |= topic_figures(page, other)
+    return sorted(set(requested) & others)
+
+
 def wait_until_drawn(page, topic: str) -> None:
     """Wait until the topic section `topic` (its id) is the one shown and every unit the state reads has drawn: no
     loading line is visible, the hero and the footer count the months, every chart of the Overview and the Traffic
@@ -131,9 +167,14 @@ def wait_until_drawn(page, topic: str) -> None:
 
 def read_state(page, address: str, topic: str, with_page_units: bool) -> dict[str, str]:
     """The units of the Explore page opened at the topic `topic` (its anchor), once drawn; with `with_page_units`, also
-    the page's units that no topic changes."""
+    the page's units that no topic changes. Raises a PageError when the page requested another topic's answers."""
+    requested = []
+    page.on("request", functools.partial(record_figure_answer, requested))
     page.goto(f"{address}/index.html#{topic}", wait_until="networkidle")
     wait_until_drawn(page, topic)
+    strays = other_topics_answers(page, topic, requested)
+    if strays:
+        raise PageError(f"opened at #{topic}, the page requested other topics' answers: {', '.join(strays)}")
     units = snapshot_units.topic_units(page, topic)
     if with_page_units:
         page_units = snapshot_units.explore_page_units(page)

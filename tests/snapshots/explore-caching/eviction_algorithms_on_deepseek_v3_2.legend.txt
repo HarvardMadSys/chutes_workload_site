@@ -4,4 +4,4 @@ ARC | pressed=true | legend-swatch is-line background: var(--series-3);
 LRB | pressed=true | legend-swatch is-line background: var(--series-4);
 GDSF | pressed=true | legend-swatch is-line background: var(--series-5);
 Sieve | pressed=true | legend-swatch is-line background: var(--series-6);
-Belady (size-aware) | pressed=true | legend-swatch is-line background: var(--color-text);
+Belady (size-aware) | pressed=true | legend-swatch is-line background: repeating-linear-gradient(to right, var(--color-text) 0 4px, transparent 4px 7px);

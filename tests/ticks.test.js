@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  afterAxisTitle, axisMark, axisScale, axisText, axisTicks, axisWithTicks, bandAxisMark, decadeTicks, extent, gridMark,
-  logAxisTicks, MAX_LOG_TICKS, TICK_COUNT,
+  afterAxisTitle, axisMark, axisScale, axisText, axisTicks, axisValueText, axisWithTicks, bandAxisMark,
+  colourLegendTicks, decadeTicks, extent, gridMark, logAxisTicks, MAX_LOG_TICKS, TICK_COUNT,
 } from "../site/js/axes/ticks.js";
 
 test("an axis given its ticks writes each as its text, so a log axis blanks none; without ticks Plot chooses them", () => {
@@ -86,6 +86,19 @@ test("grid lines fall on the given ticks, or on Plot's own at the tick count", (
 test("a value follows its axis's title where the axis has one", () => {
   assert.equal(afterAxisTitle({ label: "Requests" }, "1.2k"), "Requests: 1.2k");
   assert.equal(afterAxisTitle({}, "1.2k"), "1.2k");
+});
+
+test("a tooltip writes a value as its axis does, after the axis's title where it has one", () => {
+  assert.equal(axisValueText({ label: "Day of the trace" }, 1200), "Day of the trace: 1,200");
+  assert.equal(axisValueText({ label: "Month", tickFormat: (month) => `M${month}` }, 8), "Month: M8");
+  assert.equal(axisValueText({}, 3), "3");
+});
+
+test("a log colour legend is ticked at the powers of ten of its domain or its values; any other at Plot's own", () => {
+  assert.deepEqual(colourLegendTicks({ colourLog: true }, [1, 40, 13851]), [1, 10, 100, 1000, 10000]);
+  assert.deepEqual(colourLegendTicks({ colourLog: true, colourDomain: [1.1, 153] }, [0.5, 900]), [10, 100]);
+  assert.equal(colourLegendTicks({ colourLog: true, colourDomain: [36, 80] }, [4, 119]), undefined);
+  assert.equal(colourLegendTicks({}, [1, 13851]), undefined);
 });
 
 test("a band axis ticks every band, or the card's ticks, written by the given format and slanted where asked", () => {

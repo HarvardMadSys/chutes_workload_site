@@ -1,3 +1,5 @@
 name: Median input by cohort: Newer user cohorts are more input-heavy.
 x-axis: 1 | 4 | 7 | 10 | 13
 y-axis: 0 | 20k | 40k | 60k
+x-axis title: Release cohort (1 = April 2025)
+y-axis title: Median input

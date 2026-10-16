@@ -1,3 +1,6 @@
 name: Model exploration: A single user may use multiple models concurrently, either steadily or in short bursts.
+colour-legend: Requests per hour: 1 | 10 | 100 | 1k
 x-axis: 0 | 6 | 12 | 18 | 24 | 30
 y-axis: 0 | 5 | 10 | 15 | 20
+x-axis title: Day of the window
+y-axis title: Model (by first request)

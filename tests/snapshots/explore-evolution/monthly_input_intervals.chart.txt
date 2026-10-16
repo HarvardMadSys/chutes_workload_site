@@ -1,3 +1,5 @@
 name: Monthly input intervals: Inputs stay stable while outputs shrink.
 x-axis: 1 | 4 | 7 | 10 | 13
 y-axis: 100 | 1k | 10k
+x-axis title: Trace month (1 = April 2025)
+y-axis title: Input tokens
