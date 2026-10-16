@@ -6,12 +6,43 @@
  * A card's kind and chart say how its figure is drawn from its answer, as `insights/figure_card.js` defines them.
  */
 
-import { formatCount, formatCountTick } from "../shared/format.js";
+import { formatCount, formatWholeCountTick } from "../shared/format.js";
 import { URLS } from "../shared/layout.js";
 import { frozenCard } from "./figure_card.js";
 
 // The artifact's README of these figures, which says how each is computed.
 const SECTION_README = `${URLS.code}/blob/main/paper/06_users_models/README.md`;
+
+// The colour of a count, of models, users or requests, as the paper's: viridis on a log scale. It starts a quarter of
+// the way along viridis, whose first colour, a near-black purple, would vanish into the dark scheme's card.
+const COUNT_COLOUR = Object.freeze({ scheme: "viridis", schemeStart: 0.25, colourLog: true });
+
+// The token-shape figures' axes, as the paper's: the users' medians up to 10⁶ input and 10⁵ output tokens, the
+// models' up to 10⁵ on both axes, so that the line of equal input and output is the diagonal.
+const USER_INPUT_DOMAIN = Object.freeze([1, 1e6]);
+const USER_OUTPUT_DOMAIN = Object.freeze([1, 1e5]);
+const MODEL_TOKENS_DOMAIN = Object.freeze([1, 1e5]);
+
+// The burstiness figures' two axes, the same on both cards, over every model's point; requests per hour labelled at
+// 100 and 10k, as the paper's.
+const REQUESTS_PER_HOUR_AXIS = Object.freeze({
+  label: "Requests/hour", log: true, domain: [10, 2e5], ticks: [100, 1e4], tickFormat: formatWholeCountTick,
+});
+const IAT_CV_AXIS = Object.freeze({ label: "Mean CV(IAT)", log: true, domain: [0.02, 30], tickFormat: formatCount });
+
+// The hours of a raster's 31-day window ticked, every sixth day from its first, as the paper's.
+const HOURS_PER_DAY = 24;
+const RASTER_DAY_TICKS = Object.freeze([0, 6, 12, 18, 24, 30].map((day) => day * HOURS_PER_DAY));
+
+// A raster's x axis: the hours of its window, written as days.
+const RASTER_DAYS_AXIS = Object.freeze({
+  label: "Day of the window", ticks: RASTER_DAY_TICKS, tickFormat: formatDayTick,
+});
+
+/** An hour of a raster's window, from its first request, as its axis writes it, the day it falls in: 144 → "6". */
+function formatDayTick(hour) {
+  return String(hour / HOURS_PER_DAY);
+}
 
 /** The Users and models topic. */
 export const USERS_TOPIC = Object.freeze({
@@ -27,8 +58,9 @@ export const USERS_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "cells",
       chart: {
-        x: { label: "Requests", log: true, tickFormat: formatCountTick },
-        y: { label: "Users", log: true, tickFormat: formatCountTick },
+        x: { label: "Requests per model", log: true, tickFormat: formatWholeCountTick },
+        y: { label: "Distinct users", log: true, tickFormat: formatWholeCountTick },
+        ...COUNT_COLOUR,
         valueLabel: "Models",
         valueFormat: formatCount,
       },
@@ -43,8 +75,9 @@ export const USERS_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "cells",
       chart: {
-        x: { label: "Requests", log: true, tickFormat: formatCountTick },
-        y: { label: "Models", log: true, tickFormat: formatCountTick },
+        x: { label: "Requests per user", log: true, tickFormat: formatWholeCountTick },
+        y: { label: "Distinct models", log: true, tickFormat: formatWholeCountTick },
+        ...COUNT_COLOUR,
         valueLabel: "Users",
         valueFormat: formatCount,
       },
@@ -58,8 +91,10 @@ export const USERS_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "cells",
       chart: {
-        x: { label: "Median input tokens", log: true, tickFormat: formatCountTick },
-        y: { label: "Median output tokens", log: true, tickFormat: formatCountTick },
+        x: { label: "Median model input", log: true, domain: MODEL_TOKENS_DOMAIN, tickFormat: formatWholeCountTick },
+        y: { label: "Median model output", log: true, domain: MODEL_TOKENS_DOMAIN, tickFormat: formatWholeCountTick },
+        diagonal: true,
+        ...COUNT_COLOUR,
         valueLabel: "Models",
         valueFormat: formatCount,
       },
@@ -74,8 +109,10 @@ export const USERS_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "cells",
       chart: {
-        x: { label: "Median input tokens", log: true, tickFormat: formatCountTick },
-        y: { label: "Median output tokens", log: true, tickFormat: formatCountTick },
+        x: { label: "Median user input", log: true, domain: USER_INPUT_DOMAIN, tickFormat: formatWholeCountTick },
+        y: { label: "Median user output", log: true, domain: USER_OUTPUT_DOMAIN, tickFormat: formatWholeCountTick },
+        diagonal: true,
+        ...COUNT_COLOUR,
         valueLabel: "Users",
         valueFormat: formatCount,
       },
@@ -88,7 +125,12 @@ export const USERS_TOPIC = Object.freeze({
       definition: "Thirty-one days of Qwen3-Next-80B-A3B-Instruct: one row per user, a mark for each request. At most 800 of the model's users are shown, picked by a seeded shuffle.",
       source: SECTION_README,
       kind: "raster",
-      chart: { x: { label: "Hour of the window" }, y: { label: "User" }, scheme: "YlGnBu", valueLabel: "Requests" },
+      chart: {
+        x: RASTER_DAYS_AXIS,
+        y: { label: "User (by first request)" },
+        ...COUNT_COLOUR,
+        valueLabel: "Requests per hour",
+      },
     }),
     frozenCard({
       figure: "fig_model_raster_gpt_oss_20b",
@@ -99,7 +141,12 @@ export const USERS_TOPIC = Object.freeze({
       definition: "Thirty-one days of gpt-oss-20b: one row per user, a mark for each request. At most 800 of the model's users are shown, picked by a seeded shuffle.",
       source: SECTION_README,
       kind: "raster",
-      chart: { x: { label: "Hour of the window" }, y: { label: "User" }, scheme: "YlGnBu", valueLabel: "Requests" },
+      chart: {
+        x: RASTER_DAYS_AXIS,
+        y: { label: "User (by first request)" },
+        ...COUNT_COLOUR,
+        valueLabel: "Requests per hour",
+      },
     }),
     frozenCard({
       figure: "fig_user_raster_periodic",
@@ -109,7 +156,12 @@ export const USERS_TOPIC = Object.freeze({
       definition: "Thirty-one days of one heavy user, the 190th by requests in the window: one row per model, a mark for each request.",
       source: SECTION_README,
       kind: "raster",
-      chart: { x: { label: "Hour of the window" }, y: { label: "Model" }, scheme: "YlGnBu", valueLabel: "Requests" },
+      chart: {
+        x: RASTER_DAYS_AXIS,
+        y: { label: "Model (by first request)" },
+        ...COUNT_COLOUR,
+        valueLabel: "Requests per hour",
+      },
     }),
     frozenCard({
       figure: "fig_user_raster_explore",
@@ -120,7 +172,12 @@ export const USERS_TOPIC = Object.freeze({
       definition: "Thirty-one days of one heavy user, the 134th by requests in the window: one row per model, a mark for each request.",
       source: SECTION_README,
       kind: "raster",
-      chart: { x: { label: "Hour of the window" }, y: { label: "Model" }, scheme: "YlGnBu", valueLabel: "Requests" },
+      chart: {
+        x: RASTER_DAYS_AXIS,
+        y: { label: "Model (by first request)" },
+        ...COUNT_COLOUR,
+        valueLabel: "Requests per hour",
+      },
     }),
     frozenCard({
       figure: "fig_model_heatmap_fixedxy_density",
@@ -131,8 +188,9 @@ export const USERS_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "cells",
       chart: {
-        x: { label: "Requests per active hour", log: true, tickFormat: formatCountTick },
-        y: { label: "IAT coefficient of variation", log: true, tickFormat: String },
+        x: REQUESTS_PER_HOUR_AXIS,
+        y: IAT_CV_AXIS,
+        ...COUNT_COLOUR,
         valueLabel: "Models",
         valueFormat: formatCount,
       },
@@ -147,8 +205,10 @@ export const USERS_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "scatter",
       chart: {
-        x: { label: "Requests per active hour", log: true, tickFormat: formatCountTick },
-        y: { label: "IAT coefficient of variation", log: true, tickFormat: String },
+        x: REQUESTS_PER_HOUR_AXIS,
+        y: IAT_CV_AXIS,
+        // The paper's coolwarm: blue for -1, red for 1.
+        scheme: "BuRd",
         colourDomain: [-1, 1],
         valueLabel: "Lag-1 autocorrelation",
         valueFormat: formatCount,

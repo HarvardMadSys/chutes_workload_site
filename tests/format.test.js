@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import {
   dateSpanText, formatCompactCount, formatCount, formatCountTick, formatPercent, formatQuantity, formatSeconds,
-  formatSecondsTick, formatShare, formatThousandsTick, formatWholeCount,
+  formatSecondsTick, formatShare, formatThousandsTick, formatWholeCount, formatWholeCountTick,
 } from "../site/js/shared/format.js";
 
 test("a count gets thousands separators", () => {
@@ -23,6 +23,12 @@ test("an axis writes a duration in seconds without a decimal it does not need", 
   assert.equal(formatSecondsTick(100), "100 s");
   assert.equal(formatSecondsTick(2.5), "2.5 s");
   assert.equal(formatSecondsTick(0.05), "0.05 s");
+});
+
+test("an axis of cells between whole counts writes an edge rounded to a whole count", () => {
+  assert.equal(formatWholeCountTick(696.658), "697");
+  assert.equal(formatWholeCountTick(1286.5), "1.3k");
+  assert.equal(formatWholeCountTick(101.00000000000001), "101");
 });
 
 test("an axis writes a count given in thousands as the count itself", () => {

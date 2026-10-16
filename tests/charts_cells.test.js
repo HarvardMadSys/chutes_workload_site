@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { categoryAxis, cellTipText, drawnCells } from "../site/js/charts/cells.js";
+import { categoryAxis, cellTipText, diagonalEnds, drawnCells } from "../site/js/charts/cells.js";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 // Three cells of a log-grid density: the first starts at zero, the third holds no rows.
@@ -61,4 +61,9 @@ test("a cell of a category axis is named by its category in the tooltip", () => 
     valueFormat: (value) => value.toLocaleString("en-US"),
   };
   assert.equal(cellTipText(cell, parameters), "Hour: 13–14\nThu\nRequests per hour: 738,900");
+});
+
+test("the line where y equals x runs from the higher of the axes' lows to the lower of their highs", () => {
+  assert.deepEqual(diagonalEnds([1, 1e6], [1, 1e5]), [{ x: 1, y: 1 }, { x: 1e5, y: 1e5 }]);
+  assert.deepEqual(diagonalEnds([10, 500], [2, 1e3]), [{ x: 10, y: 10 }, { x: 500, y: 500 }]);
 });

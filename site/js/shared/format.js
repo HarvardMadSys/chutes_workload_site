@@ -1,7 +1,7 @@
 /**
  * Numbers and dates as the page shows them, a value with one decimal kept and an axis's tick with none it does not
- * need: counts, compact counts and their ticks (a count given in thousands among them), durations in seconds and their
- * ticks, shares and whole percentages, and a span of days.
+ * need: counts, compact counts and their ticks (a count given in thousands, or rounded to a whole one, among them),
+ * durations in seconds and their ticks, shares and whole percentages, and a span of days.
  */
 
 // A compact count is shown in the largest of these units it reaches.
@@ -63,6 +63,14 @@ export function formatCountTick(count) {
     }
   }
   return formatCount(count);
+}
+
+/**
+ * A count as an axis writes it, rounded to a whole count first, for an axis whose cells' edges fall between whole
+ * counts: 696.658 → "697", 1286.5 → "1.3k".
+ */
+export function formatWholeCountTick(count) {
+  return formatCountTick(Math.round(count));
 }
 
 /** A count given in thousands as an axis writes it, an input-token bucket's edge: 0 → "0", 10 → "10k", 0.5 → "500". */

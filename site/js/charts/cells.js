@@ -7,10 +7,11 @@
  */
 
 import { logColumns, positiveRows, sequentialColour, titledFrame } from "../shared/charts.js";
-import { afterAxisTitle, axisMark, axisScale, axisText, axisTicks } from "../axes/ticks.js";
+import { afterAxisTitle, axisMark, axisScale, axisText, axisTicks, extent } from "../axes/ticks.js";
 
 const DEFAULT_SCHEME = "YlOrRd"; // the paper's heatmaps' colour scheme, low values light
 const CATEGORY_CENTRE = 0.5; // a category's tick sits halfway between its cell's integer edges
+const DIAGONAL_DASH = "4,3"; // the dash and gap, in pixels, of the line where y equals x
 
 /**
  * Draw `rows` into `body` as one rectangle per row, filled by its value, and return the chart. It has no series:
@@ -19,8 +20,11 @@ const CATEGORY_CENTRE = 0.5; // a category's tick sits halfway between its cell'
  *   at or below zero is not drawn.
  * - `xTicks`, `yTicks`: an axis's category names, in place of its ticks and their format, the cell from i to i + 1
  *   named by the i-th, "Mon"; every category is labelled, or, where the axis gives `ticks`, those of its indices.
- * - `scheme`: the colour scheme, "YlOrRd" when not given; `colourLog`: true for a log colour scale, on which a cell of
- *   value zero is not drawn; `colourScale`: Plot's colour scale type otherwise, linear when not given.
+ * - `scheme`: the colour scheme, "YlOrRd" when not given; `schemeStart`: the point of it, from 0 to 1, the lowest
+ *   value takes, its first colour when not given; `colourLog`: true for a log colour scale, on which a cell of value
+ *   zero is not drawn; `colourScale`: Plot's colour scale type otherwise, linear when not given.
+ * - `diagonal`: true to draw a dashed line where y equals x, as a figure of input against output tokens marks them
+ *   equal.
  * - `valueLabel`: what a value is, the colour legend's title and the tooltip's; `valueFormat`: how it is written there.
  * - `margins`: Plot margins in place of the frame's.
  * Required: `valueLabel` and `valueFormat`.
@@ -32,8 +36,11 @@ export async function drawCells(rows, body, colours, parameters) {
   const xAxis = categoryAxis(parameters.x ?? {}, parameters.xTicks);
   const yAxis = categoryAxis(parameters.y ?? {}, parameters.yTicks);
   const drawn = drawnCells(rows, { ...parameters, x: xAxis, y: yAxis });
-  const xTicks = axisTicks(xAxis, [...drawn.map((cell) => cell.x_low), ...drawn.map((cell) => cell.x_high)]);
-  const yTicks = axisTicks(yAxis, [...drawn.map((cell) => cell.y_low), ...drawn.map((cell) => cell.y_high)]);
+  const xEdges = [...drawn.map((cell) => cell.x_low), ...drawn.map((cell) => cell.x_high)];
+  const yEdges = [...drawn.map((cell) => cell.y_low), ...drawn.map((cell) => cell.y_high)];
+  const xSpan = xAxis.domain ?? extent(xEdges);
+  const ySpan = yAxis.domain ?? extent(yEdges);
+  const diagonal = parameters.diagonal ? diagonalEnds(xSpan, ySpan) : [];
   const tipParameters = { ...parameters, x: xAxis, y: yAxis };
   const chart = Plot.plot({
     ...titledFrame(body, yAxis.label ?? null, margins),
@@ -45,8 +52,9 @@ export async function drawCells(rows, body, colours, parameters) {
         x1: "x_low", x2: "x_high", y1: "y_low", y2: "y_high", fill: "value",
         shapeRendering: "crispEdges", // neighbouring cells meet without a seam of the card's colour between them
       }),
-      axisMark(Plot, "x", xAxis, xTicks),
-      axisMark(Plot, "y", yAxis, yTicks),
+      Plot.line(diagonal, { x: "x", y: "y", stroke: "currentColor", strokeDasharray: DIAGONAL_DASH, clip: true }),
+      axisMark(Plot, "x", xAxis, axisTicks(xAxis, xEdges)),
+      axisMark(Plot, "y", yAxis, axisTicks(yAxis, yEdges)),
       Plot.tip(drawn, Plot.pointer({
         x1: "x_low", x2: "x_high", y1: "y_low", y2: "y_high", title: (cell) => cellTipText(cell, tipParameters),
       })),
@@ -68,6 +76,16 @@ export function categoryAxis(axis, names) {
   const labelled = axis.ticks ?? names.map((name, index) => index);
   const ticks = labelled.map((index) => index + CATEGORY_CENTRE);
   return { ...axis, names, ticks, tickFormat: (tick) => names[Math.floor(tick)] };
+}
+
+/**
+ * The ends of the line where y equals x over an x axis spanning `[xLow, xHigh]` and a y axis spanning `[yLow, yHigh]`:
+ * `[{ x, y }, { x, y }]`, from the higher of the two lows to the lower of the two highs.
+ */
+export function diagonalEnds([xLow, xHigh], [yLow, yHigh]) {
+  const low = Math.max(xLow, yLow);
+  const high = Math.min(xHigh, yHigh);
+  return [{ x: low, y: low }, { x: high, y: high }];
 }
 
 /**

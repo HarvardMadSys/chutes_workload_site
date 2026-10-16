@@ -16,7 +16,8 @@ const DEFAULT_SCHEME = "Blues"; // a raster's colour scheme when the card names 
  * series: `colours` and `hidden` are not read. Its named parameters:
  * - `x`, `y`: the card's axis options `{ label, ticks, tickFormat }`; the x axis's `tickFormat` writes a column, an
  *   hour of the window, as a day, and `y.label` names what a row is, "User".
- * - `scheme`: the colour scheme, "Blues" when not given; `colourLog`: true for a log colour scale.
+ * - `scheme`: the colour scheme, "Blues" when not given; `schemeStart`: the point of it, from 0 to 1, the lowest
+ *   value takes, its first colour when not given; `colourLog`: true for a log colour scale.
  * - `valueLabel`: what a value is, the colour legend's title. `margins`: Plot margins in place of the frame's.
  * Required: `valueLabel`.
  */

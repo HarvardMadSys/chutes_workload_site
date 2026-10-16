@@ -166,18 +166,24 @@ export function colourScale(colours, shown) {
 
 /**
  * Plot's colour scale of a chart shading a value on a sequential scheme, with its legend titled `valueLabel`: the
- * scheme `scheme`, else `defaultScheme`; a log scale where `colourLog`, its legend's ticks Plot's own, which label
- * only the powers of ten; else the scale type `colourScale`, else linear, its ticks written by `valueFormat`.
+ * scheme `scheme`, else `defaultScheme`, from the point `schemeStart` of it (0 to 1, its first colour when not given)
+ * to its last colour; a log scale where `colourLog`, its legend's ticks Plot's own, which label only the powers of
+ * ten; else the scale type `colourScale`, else linear, its ticks written by `valueFormat`.
  */
 export function sequentialColour(parameters, defaultScheme) {
   const { scheme = defaultScheme, colourScale: scaleType = "linear", colourLog = false, valueLabel } = parameters;
-  return {
+  const colour = {
     type: colourLog ? "log" : scaleType,
     scheme,
     legend: true,
     label: valueLabel,
     tickFormat: colourLog ? undefined : parameters.valueFormat,
   };
+  if (parameters.schemeStart !== undefined) {
+    // With a scheme, Plot reads a range of two numbers as the part of the scheme the values span.
+    colour.range = [parameters.schemeStart, 1];
+  }
+  return colour;
 }
 
 /** The rows of the panel `panel`, by their `panel` column; every row when `panel` is not given. */

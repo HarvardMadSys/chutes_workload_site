@@ -169,6 +169,18 @@ gives the same bytes):
   images included.
 
 
+### Measured: the Users and models topic's draw
+
+With the topic's final cards (six density grids on a log colour scale, four
+rasters, the scatter of 6,232 points), served locally by `python3 -m
+http.server`, in Playwright's headless Chromium at 1280 px: the page opened
+at the Workload overview and drawn, then the time from the click on the
+Users and models tab to every one of its ten cards holding its named chart
+SVG, each run in a new browser context, so the topic's ten answers are
+fetched every time: 775, 824, 892, 819 and 824 ms over five runs, a median
+of 824 ms, under the two seconds the task allows. Nothing is cached or
+precomputed for it.
+
 ### Measured: the artifact's plotdata
 
 At the artifact's commit `3871e3b` (the documentation commit that follows

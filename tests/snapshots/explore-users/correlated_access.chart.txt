@@ -1,3 +1,3 @@
 name: Correlated access: Requests from different users arrive at similar times, rather than spread independently across the window.
-x-axis: 0 | 200 | 400 | 600
+x-axis: 0 | 6 | 12 | 18 | 24 | 30
 y-axis: 0 | 100 | 200 | 300 | 400 | 500
