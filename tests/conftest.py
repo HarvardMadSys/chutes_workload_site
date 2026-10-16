@@ -11,7 +11,7 @@ import pytest
 
 import fixture_artifact
 from repository_root import ROOT
-from site_data import figure_images, loading, site_database
+from site_data import figure_answers, loading, site_database
 
 
 @pytest.fixture(scope="session")
@@ -39,8 +39,8 @@ def artifact_checkout() -> pathlib.Path:
     if named == "":
         pytest.skip("ARTIFACT is not set; run `make test`, or set it to the artifact's checkout, to compare with it")
     checkout = ROOT / named
-    if not (checkout / figure_images.FIGURE_LIST_FILE).is_file():
-        pytest.skip(f"no {figure_images.FIGURE_LIST_FILE} under ARTIFACT={named}; set it to the artifact's checkout")
+    if not (checkout / figure_answers.FIGURE_LIST_FILE).is_file():
+        pytest.skip(f"no {figure_answers.FIGURE_LIST_FILE} under ARTIFACT={named}; set it to the artifact's checkout")
     return checkout
 
 

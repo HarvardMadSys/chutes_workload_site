@@ -1,6 +1,6 @@
 """The deployment settings: `wrangler.jsonc` names the Worker and serves `site/` as its static assets, and every path
 the deploy workflow asks the published site for is a file of `site/`, among them the page, the daily by-family answer
-and one figure image."""
+and one figure answer."""
 
 import json
 import pathlib
@@ -11,17 +11,17 @@ from repository_root import ROOT
 WRANGLER_SETTINGS = ROOT / "wrangler.jsonc"
 DEPLOY_WORKFLOW = ROOT / ".github" / "workflows" / "deploy.yml"
 WORKER_NAME = "chutes-trace-site"  # the Worker the site is deployed to, and its workers.dev hostname
-ASSETS_DIRECTORY = "./site"  # the folder deployed as is, its data and figures included
+ASSETS_DIRECTORY = "./site"  # the folder deployed as is, its data included
 PAGE_FILE = "index.html"  # the file `/` answers with
 
-# The paths the deploy workflow must check after each deploy: the page, the daily by-family answer and one figure image.
-REQUIRED_CHECKED_PATHS = {"/", "/data/all/explore/daily_by_family.json", "/figures/fig_request_rate_day.png"}
+# The paths the deploy workflow must check after each deploy: the page, the daily by-family answer, one figure answer.
+REQUIRED_CHECKED_PATHS = {"/", "/data/all/explore/daily_by_family.json", "/data/all/figures/fig_request_rate_day.json"}
 
 # A check of the workflow's last step: `check_answer "<path>" "<content type>"`.
 CHECK_ANSWER_LINE = re.compile(r'^\s*check_answer\s+"(?P<path>/[^"]*)"\s+"(?P<content_type>[^"]+)"\s*$')
 
 # The content type each checked file's suffix is served with.
-CONTENT_TYPE_BY_SUFFIX = {".html": "text/html", ".json": "application/json", ".png": "image/png"}
+CONTENT_TYPE_BY_SUFFIX = {".html": "text/html", ".json": "application/json"}
 
 
 def wrangler_settings() -> dict:

@@ -1,5 +1,5 @@
-"""The data step's command: it writes the answers, the figure answers and the figure images from an artifact, and
-writes nothing when the artifact or one of its files is missing, or a figure does not render."""
+"""The data step's command: it writes the answers and the figure answers from an artifact, and writes nothing when
+the artifact or one of its files is missing."""
 
 import pathlib
 import re
@@ -11,13 +11,13 @@ from site_data import __main__, answers, figure_answers, paths
 
 
 def command(artifact: pathlib.Path, output: pathlib.Path) -> list[str]:
-    """The command line of a build from `artifact` into `output`'s data and figures folders."""
-    return ["--artifact", str(artifact), "--out", str(output / "data"), "--figures", str(output / "figures")]
+    """The command line of a build from `artifact` into `output`'s data folder."""
+    return ["--artifact", str(artifact), "--out", str(output / "data")]
 
 
-def test_the_step_writes_every_answer_and_image_and_prints_its_size(artifact: pathlib.Path, tmp_path: pathlib.Path,
-                                                                    capsys: pytest.CaptureFixture) -> None:
-    """The query answers, the figure answers with their index, and the images, each printed with its size."""
+def test_the_step_writes_every_answer_and_prints_its_size(artifact: pathlib.Path, tmp_path: pathlib.Path,
+                                                           capsys: pytest.CaptureFixture) -> None:
+    """The query answers and the figure answers with their index, each printed with its size."""
     __main__.main(command(artifact, tmp_path))
     printed = capsys.readouterr().out
     for name in answers.single_answer_query_names():
@@ -30,9 +30,6 @@ def test_the_step_writes_every_answer_and_image_and_prints_its_size(artifact: pa
     assert f"{figure_answer}  {figure_answer.stat().st_size:,} bytes" in printed
     assert re.search(r"^10 figure answers, [\d,]+ bytes$", printed, re.MULTILINE)  # one per chart kind
     assert (tmp_path / "data" / paths.ANSWERS_FOLDER / paths.FIGURE_INDEX_FILE).is_file()
-    image = tmp_path / "figures" / "fig_seasonality.png"
-    assert f"{image}  {image.stat().st_size:,} bytes" in printed
-    assert re.search(r"^10 figure images, [\d,]+ bytes$", printed, re.MULTILINE)
 
 
 def test_a_missing_artifact_folder_stops_before_writing(tmp_path: pathlib.Path, capsys: pytest.CaptureFixture) -> None:
@@ -58,33 +55,4 @@ def test_a_missing_plotdata_stops_before_writing(tmp_path: pathlib.Path) -> None
     with pytest.raises(SystemExit, match=re.escape(str(missing))):
         __main__.main(command(artifact, tmp_path))
     assert not (tmp_path / "data").exists()
-    assert not (tmp_path / "figures").exists()
 
-
-def test_a_missing_figure_stops_before_writing(tmp_path: pathlib.Path) -> None:
-    artifact = fixture_artifact.write_fixture_artifact(tmp_path / "artifact")
-    (artifact / fixture_artifact.EXTERNAL_FIGURE).unlink()
-    with pytest.raises(SystemExit, match=fixture_artifact.EXTERNAL_FIGURE.name):
-        __main__.main(command(artifact, tmp_path))
-    assert not (tmp_path / "data").exists()
-    assert not (tmp_path / "figures").exists()
-
-
-def test_a_figure_of_two_pages_stops_before_writing(tmp_path: pathlib.Path) -> None:
-    artifact = fixture_artifact.write_fixture_artifact(tmp_path / "artifact")
-    two_pages = fixture_artifact.pdf_bytes(fixture_artifact.FIGURE_WIDTH_POINTS, fixture_artifact.FIGURE_HEIGHT_POINTS,
-                                           pages=2)
-    (artifact / fixture_artifact.SECTION_FIGURE).write_bytes(two_pages)
-    with pytest.raises(SystemExit, match="has 2 pages"):
-        __main__.main(command(artifact, tmp_path))
-    assert not (tmp_path / "data").exists()
-    assert not (tmp_path / "figures").exists()
-
-
-def test_a_figure_that_does_not_render_stops_before_writing(tmp_path: pathlib.Path) -> None:
-    artifact = fixture_artifact.write_fixture_artifact(tmp_path / "artifact")
-    (artifact / fixture_artifact.EXTERNAL_FIGURE).write_bytes(fixture_artifact.unrenderable_pdf_bytes())
-    with pytest.raises(SystemExit, match=re.escape(f"{fixture_artifact.EXTERNAL_FIGURE.name} does not render")):
-        __main__.main(command(artifact, tmp_path))
-    assert not (tmp_path / "data").exists()
-    assert not (tmp_path / "figures").exists()

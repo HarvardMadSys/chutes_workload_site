@@ -75,9 +75,8 @@ make data:  the artifact's caches, chute_models.csv and model_families.csv  → 
               query's data/all/explore/<query>/<family>.json, once per family) and data/all/queries.json
             the artifact's config/figures.json and data/paper/plotdata/<figure>.parquet  →  data/all/figures/<figure>.json
               and data/all/figures.json
-            the artifact's config/figures.json and figure PDFs  →  figures/<name>.png and figures/index.json
 The page:   index.html  →  js/pages/explore.js  →  js/explore/start.js, the section modules and js/shared/
-              →  data/all/explore/<query>.json and figures/
+              →  data/all/explore/<query>.json and data/all/figures/<figure>.json
 ```
 
 README's Layout maps every folder and module, and `tests/test_readme.py`
@@ -103,8 +102,8 @@ checks that each path it names exists.
 - `shared/answers.js` reads a query's answer by name:
   `readAnswer("explore/trace_totals")` reads
   `data/all/explore/trace_totals.json`, which `make data` wrote by running
-  `queries/explore/trace_totals.sql`; `readFigureIndex` reads
-  `figures/index.json`, each image's size. The page runs no query.
+  `queries/explore/trace_totals.sql`; `readAnswer("figures/<figure>")`
+  reads a figure's plot-ready rows. The page runs no query.
 - The Insights' six topics are tabs (`explore/topic_tabs.js`), following
   the ARIA tabs pattern (one tab stop, the arrow keys, Home and End, each
   topic a tab panel): one is shown and the others hidden, the shown one
@@ -117,7 +116,7 @@ checks that each path it names exists.
   `FIGURE_SECTIONS`, one module each in `js/insights/`, and `index.html`
   holds, under the Insights heading and its `#topic-tabs` row, a section
   with a heading and a card grid for each, its id the topic's anchor. A
-  topic's images are fetched the first time it is shown, so a topic never
+  topic's answers are fetched the first time it is shown, so a topic never
   shown requests none.
 - **The Traffic Explorer's URL keys.** The explorer's choice is the URL's
   `family` (a family's slug, `daily_by_family`'s `family_slug`), `model`
@@ -221,65 +220,82 @@ with a comment, helpers below the exports, and a `node --test` file with one
 frozen dataclass for anything that crosses a boundary, and functions that
 each do one job.
 
-**A figure card.** Every figure of the Insights is the paper's own image,
-shown by one frozen card object of the fields below, and of no other:
+**A figure card.** Every figure of the Insights is drawn by the site from
+its answer, the artifact's plot-ready table, by one frozen card object of
+the fields below, and of no other:
 `CARD_FIELDS` and `OPTIONAL_CARD_FIELDS` in
 `tests/insights_figure_sections.test.js` list them. A topic is `{ selector,
 takeaway, cards }`, its `takeaway` the topic's finding in one sentence of
 at most twenty words, written under its heading.
 
-- `image`: the figure's name, its file name in the artifact's
-  `config/figures.json` without `.pdf`; the card shows
-  `figures/<image>.png`.
+- `figure`: the figure's name, its file name in the artifact's
+  `config/figures.json` without `.pdf`; the card draws
+  `data/all/figures/<figure>.json`.
 - `title`: the card's heading.
 - `insight`: the card's point, under its title: one sentence of at most
-  twenty words, the paper's lead-in for the figure. It is also the image's
-  alternative text, after the title.
-- `caption`: evidence for the insight, under the image, in up to three
+  twenty words, the paper's lead-in for the figure. It is also the chart's
+  accessible name, after the title.
+- `caption`: evidence for the insight, under the chart, in up to three
   short sentences and at most forty words: the paper's caption.
 - `definition`: what is drawn, in plain words, in up to three short
   sentences and at most sixty words, behind the Definition control: the
   artifact's README's account of the figure.
-- `cache`: the artifact's cache the figure is drawn from, and whether it
-  ships; written behind the Definition control.
 - `source`: the address of the artifact's README, or folder, that says how
-  the figure is computed; linked behind the Definition control.
-- `legendImage` (optional): the name of a legend image shown above the
-  figure, where the paper draws one legend for several panels.
+  the figure is computed; linked behind the Definition control, after the
+  link to the figure's plot-ready table.
+- `kind`: the chart kind that draws it, a key of `CHART_KINDS` in
+  `insights/figure_card.js` (`cdf` is the lines kind with a share axis).
+- `chart`: the parameters handed to the kind's draw function: its axes,
+  `valueLabel`, `valueFormat` and the kind's own (`js/charts/<kind>.js`).
+- `panels` (optional): `[{ panel, title, chart }]`, one chart per panel of
+  a multi-panel figure, from the rows of its `panel`, under its title.
+- `legend` (optional): the name of a legend answer, rows `{ series, rank }`,
+  whose order the card's series take.
 - `isWide` (optional): true for a card that takes its topic's whole width.
 
 A line of words that is not the paper's own carries a `// placeholder:`
 comment above it, for the authors to review.
-`insights/figure_card.js` draws the card: the image at half its pixel size,
-with `width` and `height` so the page does not jump while it loads, on a
-white panel in the dark scheme, linked to itself at full size; nothing on
-it is interactive.
+`insights/figure_card.js` draws the card: it reads the answer, colours the
+series (the global series and the three highlighted models in fixed
+colours, `FIXED_SERIES_COLOURS` of `shared/series.js`, the others the free
+series slots in the answer's order), places a legend of buttons where there
+is more than one series, and draws the chart by its kind at the card's
+width.
 
 ```js
 Object.freeze({
-  image: "fig_request_rate_day",
+  figure: "fig_request_rate_day",
   title: "Daily request rate",
   insight: "Aggregate demand is non-stationary.",
   caption: "Daily request volume rises through mid-2025, peaks around late summer and fall, and then declines into early 2026.",
   definition: "Requests per day over the trace's year.",
-  cache: "daily_requests.parquet, shipped in data/paper/cache/",
   source: SECTION_README,
+  kind: "lines",
+  chart: {
+    x: { label: "Day of the trace" },
+    y: { label: "Requests per day", tickFormat: formatCountTick },
+    valueLabel: "Requests",
+    valueFormat: formatCompactCount,
+  },
 }),
 ```
 
-**Adding a figure.** A figure is the artifact's: it ends at its PDF and the
-card's words.
+**Adding a figure.** A figure is the artifact's: it ends at its plot-ready
+table and the card's words.
 
-1. **The PDF.** The artifact lists it in its `config/figures.json`; run
-   `make data ARTIFACT=<the artifact's checkout>`, which renders it to
-   `site/figures/<name>.png` and lists it in `site/figures/index.json`, and
-   commit `site/figures` with the change.
+1. **The table.** The artifact lists the figure in its `config/figures.json`
+   and commits its `data/paper/plotdata/<figure>.parquet`; run `make data
+   ARTIFACT=<the artifact's checkout>`, which writes its answer to
+   `site/data/all/figures/<figure>.json` and lists it in
+   `site/data/all/figures.json`, and commit `site/data` with the change.
 2. **The card**, in its topic's module of `js/insights/`, in the paper's
    order. Raise its topic's count in `CARD_COUNTS` of
    `tests/insights_figure_sections.test.js`, which also checks that the
-   cards show every image of the index once (the shared legend twice); `tests/figure_words.test.js` counts the
-   words of its insight, caption and definition; and, with `ARTIFACT`,
-   `tests/test_figures_registry.py` checks that the cards show every figure
+   cards draw every answer of the index once (the shared legend is named by
+   two cards); `tests/insights_figure_cards.test.js` checks that its answer
+   has its kind's columns; `tests/figure_words.test.js` counts the words of
+   its insight, caption and definition; and, with `ARTIFACT`,
+   `tests/test_figures_registry.py` checks that the cards draw every figure
    the artifact lists, and no other.
 3. **The snapshots.** Run `make snapshots` and commit `tests/snapshots`
    with the change: a new card adds units; no other unit may move.
@@ -319,8 +335,8 @@ or axis setting (the bars' `margins`, `inset` and `xTickRotate`).
 
 ## Charts
 
-The Overview's and the Traffic Explorer's charts are drawn with Observable
-Plot, the donuts as plain SVG; the Insights' figures are the paper's images.
+Every chart is drawn with Observable Plot, the donuts as plain SVG; the
+Insights' figures are drawn from their plot-ready tables.
 
 - **Colour.** Series colours are the tokens `--series-1` to `--series-8` in
   `style.css`, assigned in that order to a chart's series and never cycled;
@@ -383,8 +399,9 @@ make serve      # then open http://localhost:8000
 
 `make test` ends with the snapshot test (`tests/snapshot.py`): it opens
 six states of the page in headless Chromium (the page opened at each
-Insights topic's anchor) and compares every chart, legend, block of text
-and figure image (its source and size) they show with its text file in
+Insights topic's anchor) and compares every chart (an Insights card's as
+its accessible name and tick labels), legend and block of text they show
+with its text file in
 `tests/snapshots/`, failing with the name of each unit that changed. A
 change that is meant to alter a chart or a text, a data rebuild among
 them, runs `make snapshots` to rewrite the files and commits them with the
@@ -397,7 +414,7 @@ The test reads each state once, when it has drawn, and it waits on
 conditions, never on time (`wait_until_drawn`): the topic's tab selected,
 no loading line visible, the hero and the footer counting the months,
 every chart of the Overview and the Traffic Explorer drawn and named (as
-many as `CHART_COUNTS` says), every image of the topic loaded and the first
+many as `CHART_COUNTS` says), every card of the topic drawn and the first
 tile showing a number. A part of the page that is drawn later than
 these adds its own condition there. Without Chromium (`make
 setup-browser`) the snapshot test skips, saying so. It needs the network,

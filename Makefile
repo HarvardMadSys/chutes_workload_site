@@ -1,7 +1,7 @@
 PYTHON = .venv/bin/python
 
-# The paper's artifact repository, a sibling folder: the caches and figures the data step reads. Override to build
-# from another checkout:  make data ARTIFACT=~/chutes_workload
+# The paper's artifact repository, a sibling folder: the caches and plot-ready tables the data step reads. Override to
+# build from another checkout:  make data ARTIFACT=~/chutes_workload
 ARTIFACT ?= ../2027_chutes_repo_artifact
 
 .PHONY: setup setup-browser data serve test snapshots deploy
@@ -17,9 +17,9 @@ setup:
 setup-browser:
 	$(PYTHON) -m playwright install chromium
 
-# Build site/data and site/figures from the artifact.
+# Build site/data from the artifact.
 data:
-	$(PYTHON) -m site_data --artifact $(ARTIFACT) --out site/data --figures site/figures
+	$(PYTHON) -m site_data --artifact $(ARTIFACT) --out site/data
 
 # Serve the site locally at http://localhost:8000 with Python's own file server.
 serve:

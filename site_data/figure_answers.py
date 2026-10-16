@@ -2,7 +2,9 @@
 plot-ready table, `data/paper/plotdata/<figure>.parquet` in the artifact, written as `all/figures/<figure>.json`, and
 `all/figures.json`, `{"<figure>": <row count>, ...}` in the list's order.
 
-A figure is named by its file name in the list without `.pdf`. A plot-ready table's columns are those of one chart
+The list names each figure by its PDF's file name: under `sections`, a list of names per paper section, and under
+`external`, one key per name; `count` says how many names it holds. A figure is named by its file name without
+`.pdf`. A plot-ready table's columns are those of one chart
 kind (`lines`: `series`, `x`, `y` and an optional `panel`; `cdf`: `series`, `x`, `cdf`; `bands`, `cells`, `raster`,
 `scatter`, `boxes`, `bars`, `stacked_bars`, `legend`); the step copies them as they are, with no query, rounding or
 renaming, and does not check the kind. An answer is written as a query's answer is (`answers.answer_text`): a JSON
@@ -20,8 +22,9 @@ import shutil
 
 import pyarrow.parquet
 
-from site_data import answers, figure_images, loading, paths
+from site_data import answers, loading, paths
 
+FIGURE_LIST_FILE = pathlib.Path("config") / "figures.json"  # in the artifact: the figures the paper includes
 PLOTDATA_FOLDER = pathlib.Path("data") / "paper" / "plotdata"  # in the artifact: one plot-ready table per figure
 
 
@@ -36,9 +39,17 @@ class FigureTable:
 
 def listed_figures(artifact: pathlib.Path) -> list[str]:
     """The name of every figure the artifact's figure list names, without `.pdf`: each section's, in the file's order,
-    then the external ones."""
+    then the external ones; stops if they are not as many as the list's `count`."""
+    figure_list_path = loading.required_file(artifact / FIGURE_LIST_FILE)
+    figure_list = json.loads(figure_list_path.read_text())
+    file_names = []
+    for section_names in figure_list["sections"].values():
+        file_names.extend(section_names)
+    file_names.extend(figure_list["external"])
+    if len(file_names) != figure_list["count"]:
+        raise SystemExit(f"{figure_list_path} names {len(file_names)} figures but counts {figure_list['count']}")
     names = []
-    for file_name in figure_images.listed_figure_names(artifact):
+    for file_name in file_names:
         names.append(file_name.removesuffix(".pdf"))
     return names
 

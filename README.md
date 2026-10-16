@@ -4,13 +4,13 @@ A static website for the Chutes production trace, the dataset of the paper
 *A Year in LLM Serving: Workload Evolution, Caching and Load-Balancing*: a
 year of LLM serving on Chutes, request by request. The site shows the
 trace's totals, its model and endpoint mixes and monthly trends, a Traffic
-Explorer of requests per day, and the paper's 48 figure images in six
-topics.
+Explorer of requests per day, and the paper's figures in six topics, drawn
+from their plot-ready tables.
 
 The site is one HTML page, ES modules, a stylesheet, the JSON answers of
 eight queries (the query that takes a family is answered once per family,
-one file per family) and 48 PNG images, with Observable Plot drawing the
-Overview's and the Traffic Explorer's charts in the browser. There is no
+one file per family) and of the paper's 48 plot-ready tables, with
+Observable Plot drawing every chart in the browser. There is no
 server code, no bundler and no database in the browser.
 
 ## What the site shows
@@ -47,13 +47,13 @@ The one page, `index.html`, holds, in order:
   and latency (`#insights-tokens`), Users and models (`#insights-users`),
   Workload evolution (`#insights-evolution`), Prefix caching
   (`#insights-caching`) and Load balancing (`#insights-balancing`). Each of
-  the 47 cards shows one panel of a paper figure as the paper drew it, as
-  an image, with a title, an insight and a caption, and, behind a
-  Definition control, its definition, the artifact cache it rests on and a
-  link to the artifact's account of how it is computed. The two monthly
-  share panels show the paper's shared legend above them, so the 47 cards
-  show 48 images. An image links to itself at full size; a figure has no
-  tooltip, no legend button and no redrawing.
+  the 47 cards draws one of the paper's figures from its plot-ready table,
+  with a title, an insight and a caption, a tooltip, and, where it has more
+  than one series, a legend whose buttons hide and show them; behind a
+  Definition control are its definition, a link to its plot-ready table in
+  the artifact and a link to the artifact's account of how it is computed.
+  The two monthly share cards take their series' order from the paper's
+  shared legend, the 48th table.
 - **Cite** (`#cite`) and **Team**: the paper's citation as BibTeX with a
   copy button, and the lab, its collaborators and the paper's authors.
 
@@ -62,7 +62,7 @@ The one page, `index.html`, holds, in order:
 Every number is read from the paper's artifact repository
 ([HarvardMadSys/chutes_workload](https://github.com/HarvardMadSys/chutes_workload)),
 never from the trace. `make data` reads the artifact's committed query
-caches, plot-ready tables and figure PDFs and writes the site's data ahead
+caches and plot-ready tables and writes the site's data ahead
 of time; the browser runs no query, it fetches the answers and draws them.
 
 - **The answers** come from four caches under the artifact's
@@ -127,15 +127,10 @@ of time; the browser runs no query, it fetches the answers and draws them.
   draws its figure from its answer with the chart kind it names
   (`site/js/insights/figure_card.js`), the series of the global rows and
   of the three highlighted models in one colour on every card.
-- **The figure images** are the artifact's own PDFs, every one its
-  `config/figures.json` lists, rendered to PNG by
-  `site_data/figure_images.py` at about twice the width a card shows them,
-  and listed with their sizes in `site/figures/index.json`. In the dark
-  scheme an image sits on a white panel, as a printed figure would. A
-  card's words are the paper's: its insight the paper's lead-in for that
-  figure, its caption the paper's caption, its definition the artifact's
-  README's or plotting script's; a line its module marks "placeholder" is
-  not the paper's own.
+- **The figure cards' words** are the paper's: a card's insight the
+  paper's lead-in for that figure, its caption the paper's caption, its
+  definition the artifact's README's or plotting script's; a line its
+  module marks "placeholder" is not the paper's own.
 
 The queries filter, group, count and sum; none restates a definition the
 artifact owns (a user, a model's name, an endpoint group, a trace month).
@@ -169,7 +164,7 @@ repository, named with `ARTIFACT=`; the default is a checkout beside this
 repository, `../2027_chutes_repo_artifact`:
 
 ```bash
-make data ARTIFACT=<the artifact's checkout>   # site/data/ and site/figures/
+make data ARTIFACT=<the artifact's checkout>   # site/data/
 make snapshots                                 # the page as the new data draws it
 make test
 ```
@@ -180,8 +175,8 @@ family for the query that takes a family), `site/data/all/queries.json`
 (the hash of the text of each query the answers depend on, which `make
 test` compares with the queries, so that an answer older than its query
 fails),
-the 48 figure answers and their index, the 48 images and their index, and
-prints each answer and image with its size. A rebuild from the same artifact writes the same bytes, so git sees
+the 48 figure answers and their index, and prints each answer with its
+size. A rebuild from the same artifact writes the same bytes, so git sees
 only what changed. The rebuilt data and snapshots are committed with the
 change that needed them.
 
@@ -199,7 +194,7 @@ under the repository's Settings > Secrets and variables > Actions:
 
 With the repository variable `CLOUDFLARE_ACCOUNT_SUBDOMAIN` set there too,
 the workflow then asks the published site for the page (`/`), the daily
-by-family answer and one figure image, and fails unless each answers 200 with
+by-family answer and one figure answer, and fails unless each answers 200 with
 its content type; without it, the run shows a warning that the site was
 not checked. `make deploy` publishes the same way from a machine with `npm
 ci` done and the token in `CLOUDFLARE_API_TOKEN`; run `make test` first.
@@ -214,7 +209,7 @@ not list, taking its DNS record with it.
 Static assets allow 25 MiB per file; the largest file here is the daily
 by-family answer, `site/data/all/explore/daily_by_family.json`, about
 3.4 MB.
-`make test` fails on a tracked file over the limit, or an image over 4 MiB.
+`make test` fails on a tracked file over the limit.
 
 ## Layout
 
@@ -227,8 +222,7 @@ README.md            this file
 CONTRIBUTING.md      the rules, how the pieces fit, the patterns to copy, and how to verify a change
 CLAUDE.md            a pointer to the two files above and the git rules
 Makefile             setup · setup-browser · data · serve · test · snapshots · deploy
-pyproject.toml       Python 3.12; pyarrow, pandas, duckdb, and pypdfium2 and Pillow (pinned); pytest and
-                     Playwright (pinned) for the tests
+pyproject.toml       Python 3.12; pyarrow, pandas and duckdb; pytest and Playwright (pinned) for the tests
 package.json         sets ES modules for node --test; wrangler, the one dev dependency, deploys the site
 package-lock.json    wrangler's exact version and its dependencies', which npm ci installs
 .nvmrc               the Node version the deploy workflow installs
@@ -236,11 +230,9 @@ wrangler.jsonc       the Cloudflare Worker that serves site/ as static assets: i
 .gitignore           what git leaves out: installed and generated folders, the tools' own folders, local secrets
 .github/workflows/deploy.yml
                      deploys site/ on every push to main, then asks the published site for three files
-site_data/           builds site/data/ and site/figures/ from the artifact's caches, plot-ready tables and figure
-                     PDFs (make data)
+site_data/           builds site/data/ from the artifact's caches and plot-ready tables (make data)
   __init__.py        the package's summary
-  __main__.py        the command make data runs: reads the artifact, writes the answers, the figure answers and the
-                     images
+  __main__.py        the command make data runs: reads the artifact, writes the answers and the figure answers
   loading.py         reads the four caches, the model names and the family table into frames; a missing file stops
                      the step
   months.py          the trace's start date, and the calendar of its trace days and trace months
@@ -249,7 +241,6 @@ site_data/           builds site/data/ and site/figures/ from the artifact's cac
   answers.py         runs every query of site/queries/explore/, a family's query once per family, writes its
                      answers and the queries' hashes
   figure_answers.py  writes the plot-ready table of every figure the artifact lists as its answer, and their index
-  figure_images.py   renders every figure PDF the artifact lists to PNG, and writes the images' index
   paths.py           the names of the files the step writes into site/data/
 site/                exactly the files that are deployed
   index.html         the one page: header, hero, Overview, Traffic Explorer, Insights, Cite, Team, footer
@@ -311,13 +302,12 @@ site/                exactly the files that are deployed
   data/all/          built by make data and tracked: the answers, explore/<query>.json and
                      explore/daily_by_model/<family>.json, and queries.json; the figure answers,
                      figures/<figure>.json, and figures.json
-  figures/           built by make data and tracked: one PNG per figure PDF the artifact lists, and index.json
 tests/               what make test runs
   conftest.py, fixture_artifact.py, fixture_plotdata.py, repository_root.py
                      the fixture artifact (a few rows of each cache, the model names, a figure list of ten figures,
-                     one per chart kind, with their PDFs and plot-ready tables),
+                     one per chart kind, with their plot-ready tables),
                      the database over it, the artifact's checkout as ARTIFACT, the tracked files, the root folder
-  test_loading.py, test_months.py, test_site_database.py, test_figure_images.py, test_main.py
+  test_loading.py, test_months.py, test_site_database.py, test_main.py
                      the data step on the fixture artifact, against values counted by hand
   test_queries.py    every .sql file run over the fixture: its columns, the tables it reads, its numbers
   test_answers.py    every answer written for the fixture equals its query run live; an edited query is stale
@@ -325,9 +315,8 @@ tests/               what make test runs
                      every figure answer written for the fixture equals its plot-ready table; a missing table stops
                      the step
   test_built_data.py
-                     the shipped data: tracked, the figure answers and the images their indexes list, every
-                     answer current, and with ARTIFACT the answers, the figure answers, the images and their
-                     indexes the same bytes as a rebuild
+                     the shipped data: tracked, the figure answers its index lists, every answer current, and
+                     with ARTIFACT the answers, the figure answers and their index the same bytes as a rebuild
   test_figures_registry.py
                      with ARTIFACT, every figure the artifact lists is one card's, or the share cards' legend
   test_repository.py

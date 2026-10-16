@@ -1,5 +1,6 @@
 """The figure answers over the fixture artifact: every listed figure is answered, in the list's order, each answer
-holds its plot-ready table's rows column for column, the index holds each answer's row count, a missing table stops
+holds its plot-ready table's rows column for column, a missing figure list or one whose count disagrees stops the
+step, the index holds each answer's row count, a missing table stops
 the step naming it before anything is written, and a rebuild writes the same bytes."""
 
 import hashlib
@@ -31,10 +32,27 @@ def file_hashes(folder: pathlib.Path) -> dict[str, str]:
 
 
 def test_every_listed_figure_is_named_in_the_list_s_order(artifact: pathlib.Path) -> None:
-    expected = [figure.stem for figure in fixture_artifact.figure_files()]
+    expected = fixture_artifact.figure_names()
     assert figure_answers.listed_figures(artifact) == expected
     assert sorted(expected) == sorted(fixture_plotdata.plotdata_tables())
 
+
+
+def test_a_missing_figure_list_stops_naming_it(tmp_path: pathlib.Path) -> None:
+    artifact = fixture_artifact.write_fixture_artifact(tmp_path)
+    (artifact / figure_answers.FIGURE_LIST_FILE).unlink()
+    with pytest.raises(SystemExit, match=re.escape(str(artifact / figure_answers.FIGURE_LIST_FILE))):
+        figure_answers.listed_figures(artifact)
+
+
+def test_a_list_whose_count_disagrees_stops_naming_both_numbers(tmp_path: pathlib.Path) -> None:
+    artifact = fixture_artifact.write_fixture_artifact(tmp_path)
+    figure_list_path = artifact / figure_answers.FIGURE_LIST_FILE
+    figure_list = json.loads(figure_list_path.read_text())
+    figure_list["count"] = 11
+    figure_list_path.write_text(json.dumps(figure_list))
+    with pytest.raises(SystemExit, match="names 10 figures but counts 11"):
+        figure_answers.listed_figures(artifact)
 
 def test_every_listed_figure_is_answered(artifact: pathlib.Path, tmp_path: pathlib.Path) -> None:
     written = figure_answers.write_figure_answers(figure_answers.read_figure_tables(artifact), tmp_path)
@@ -90,4 +108,4 @@ def test_a_rebuild_writes_the_same_bytes(artifact: pathlib.Path, tmp_path: pathl
     figure_answers.write_figure_answers(figure_answers.read_figure_tables(artifact), tmp_path / "first")
     figure_answers.write_figure_answers(figure_answers.read_figure_tables(artifact), tmp_path / "second")
     assert file_hashes(tmp_path / "first") == file_hashes(tmp_path / "second")
-    assert len(file_hashes(tmp_path / "first")) == len(fixture_artifact.figure_files()) + 1  # and the index
+    assert len(file_hashes(tmp_path / "first")) == len(fixture_artifact.figure_names()) + 1  # and the index

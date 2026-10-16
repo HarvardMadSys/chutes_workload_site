@@ -27,7 +27,7 @@ ROOT_FILES = {
 }
 
 # The suffixes the files of each folder may have; a file takes its deepest listed folder's. A file in no listed folder,
-# or of another suffix (a Parquet file of rows, a figure's PDF), is not part of the site.
+# or of another suffix (a Parquet file of rows, a figure's PDF or image), is not part of the site.
 TRACKED_SUFFIXES_BY_FOLDER = {
     ".github/workflows": {".yml"},
     "openspec": {".md", ".yaml"},
@@ -35,7 +35,6 @@ TRACKED_SUFFIXES_BY_FOLDER = {
     "site/js": {".js"},
     "site/queries": {".sql"},
     "site/data": {".json"},
-    "site/figures": {".png", ".json"},
     "site_data": {".py"},
     "tests": {".py", ".js"},
     "tests/snapshots": {".txt"},
@@ -200,10 +199,10 @@ def test_tracked_files_are_the_expected_set(tracked_files: set[str]) -> None:
 
 def test_a_file_outside_the_expected_set_is_named() -> None:
     planted = {
-        "README.md", "site/js/start.js", "site/figures/a.pdf", "site/data/rows.parquet", "notes.txt",
+        "README.md", "site/js/start.js", "site/figures/a.png", "site/data/rows.parquet", "notes.txt",
         "tests/node_modules/x.js", "site/data/all/figures/fig_seasonality.json", "site/data/all/figures.json",
     }
-    expected = ["notes.txt", "site/data/rows.parquet", "site/figures/a.pdf", "tests/node_modules/x.js"]
+    expected = ["notes.txt", "site/data/rows.parquet", "site/figures/a.png", "tests/node_modules/x.js"]
     assert unexpected_files(planted) == expected
 
 

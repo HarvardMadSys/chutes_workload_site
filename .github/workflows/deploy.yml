@@ -56,7 +56,7 @@ jobs:
         shell: bash
         run: |
           # The Worker answers at its workers.dev address until a custom domain is set in wrangler.jsonc. The check is
-          # that the page, the daily by-family answer and one figure image are served, each with its content type.
+          # that the page, the daily by-family answer and one figure answer are served, each with its content type.
           host="chutes-trace-site.${CLOUDFLARE_ACCOUNT_SUBDOMAIN:-}.workers.dev"
           if [ -z "${CLOUDFLARE_ACCOUNT_SUBDOMAIN:-}" ]; then
             echo "::warning::The deployed site was not checked: set the CLOUDFLARE_ACCOUNT_SUBDOMAIN repository variable to check it."
@@ -80,6 +80,6 @@ jobs:
           }
           check_answer "/" "text/html"
           check_answer "/data/all/explore/daily_by_family.json" "application/json"
-          check_answer "/figures/fig_request_rate_day.png" "image/png"
+          check_answer "/data/all/figures/fig_request_rate_day.json" "application/json"
         env:
           CLOUDFLARE_ACCOUNT_SUBDOMAIN: ${{ vars.CLOUDFLARE_ACCOUNT_SUBDOMAIN }}

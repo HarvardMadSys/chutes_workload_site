@@ -1,5 +1,5 @@
 """A small artifact checkout for the tests, written into a folder: the four caches the site reads, a few rows each, the
-model names, the family table, the figure list, a PDF of each figure it lists and each one's plot-ready table.
+model names, the family table, the figure list and the plot-ready table of each figure it lists.
 
 Its rows, in the artifact's column types:
 
@@ -10,8 +10,8 @@ Its rows, in the artifact's column types:
   the totals count too; the monthly cache's counts are its own;
 - three families in the daily rollup: DeepSeek, 95 requests (`chute-01` 70, `chute-02` 15 and its rest 10), gpt-oss,
   20 (`chute-03`), and Other, 25 (`chute-04` 5 and the unnamed models 20); the family table lists DeepSeek and gpt-oss;
-- ten figures, one per chart kind, nine listed under `sections` and one under `external`, each a PDF page
-  `FIGURE_WIDTH_POINTS` wide and a plot-ready table (`fixture_plotdata.py`).
+- ten figures, one per chart kind, nine listed under `sections` and one under `external`, each with a plot-ready
+  table (`fixture_plotdata.py`).
 """
 
 import datetime
@@ -23,10 +23,8 @@ import pyarrow.parquet
 
 import fixture_plotdata
 
-FIGURE_WIDTH_POINTS = 250  # the fixture figure's page width: 1,100 px at the render scale
-FIGURE_HEIGHT_POINTS = 125  # 550 px at the render scale
 # The figures the fixture's figure list names under `sections`, by paper section, each with a table of
-# `fixture_plotdata.py`; their PDFs are under `figures/paper/<section>/`.
+# `fixture_plotdata.py`.
 SECTION_FIGURES = {
     "section2_background": ["fig_seasonality"],
     "section3_global": ["fig_token_length_input_cdf_by_model"],
@@ -35,8 +33,7 @@ SECTION_FIGURES = {
     "section5_evolution": ["fig_monthly_input_token_intervals", "fig_per_user_iat_p50_by_model"],
     "section7_casestudy": ["fig_lb_user_zoom_top"],
 }
-SECTION_FIGURE = pathlib.Path("figures") / "paper" / "section2_background" / "fig_seasonality.pdf"  # listed first
-EXTERNAL_FIGURE = pathlib.Path("figures") / "routing" / "fig_routing_tradeoff.pdf"  # the one listed under `external`
+EXTERNAL_FIGURE = "fig_routing_tradeoff.pdf"  # the one figure the list names under `external`
 TOTAL_REQUESTS = 140  # every request of the totals, the daily rollup and the daily endpoint counts
 
 
@@ -55,7 +52,7 @@ def write_fixture_artifact(folder: pathlib.Path) -> pathlib.Path:
     pyarrow.parquet.write_table(function_name_daily_requests(), cache / "function_name_daily_requests.parquet")
     write_model_names(folder / "data" / "paper" / "chute_models.csv")
     write_model_families(folder / "data" / "paper" / "model_families.csv")
-    write_figures(folder)
+    write_figure_list(folder)
     write_plotdata(folder / "data" / "paper" / "plotdata")
     return folder
 
@@ -141,32 +138,28 @@ def write_model_families(path: pathlib.Path) -> None:
     path.write_text("\n".join(lines) + "\n")
 
 
-def figure_files() -> list[pathlib.Path]:
-    """The PDF of every figure the fixture lists, in the list's order: each section's, then the external one."""
-    files = []
-    for section, names in SECTION_FIGURES.items():
-        for name in names:
-            files.append(pathlib.Path("figures") / "paper" / section / f"{name}.pdf")
-    files.append(EXTERNAL_FIGURE)
-    return files
+def figure_names() -> list[str]:
+    """The name of every figure the fixture lists, in the list's order: each section's, then the external one."""
+    names = []
+    for section_names in SECTION_FIGURES.values():
+        names.extend(section_names)
+    names.append(EXTERNAL_FIGURE.removesuffix(".pdf"))
+    return names
 
 
-def write_figures(folder: pathlib.Path) -> None:
-    """Write the figure list and its PDFs."""
+def write_figure_list(folder: pathlib.Path) -> None:
+    """Write the figure list, which names each figure by its PDF's file name."""
     sections = {}
     for section, names in SECTION_FIGURES.items():
         sections[section] = [f"{name}.pdf" for name in names]
     figure_list = {
         "note": "The fixture's figures.",
         "sections": sections,
-        "external": {EXTERNAL_FIGURE.name: {"section": "section7_casestudy", "generator": "plot.py"}},
-        "count": len(figure_files()),
+        "external": {EXTERNAL_FIGURE: {"section": "section7_casestudy", "generator": "plot.py"}},
+        "count": len(figure_names()),
     }
     (folder / "config").mkdir()
     (folder / "config" / "figures.json").write_text(json.dumps(figure_list, indent=2))
-    for figure in figure_files():
-        (folder / figure).parent.mkdir(parents=True, exist_ok=True)
-        (folder / figure).write_bytes(pdf_bytes(FIGURE_WIDTH_POINTS, FIGURE_HEIGHT_POINTS))
 
 
 def write_plotdata(folder: pathlib.Path) -> None:
@@ -175,37 +168,3 @@ def write_plotdata(folder: pathlib.Path) -> None:
     for name, table in fixture_plotdata.plotdata_tables().items():
         pyarrow.parquet.write_table(table, folder / f"{name}.parquet")
 
-
-def pdf_bytes(width: int, height: int, pages: int = 1) -> bytes:
-    """A PDF of `pages` pages, each `width` by `height` points holding one filled rectangle, with a correct
-    cross-reference table."""
-    content = b"0 0.4 0.8 rg 10 10 80 40 re f"
-    first_page = 4  # the object number of the first page, after the catalog, the page tree and the content
-    kids = []
-    for number in range(first_page, first_page + pages):
-        kids.append(b"%d 0 R" % number)
-    objects = [
-        b"<< /Type /Catalog /Pages 2 0 R >>",
-        b"<< /Type /Pages /Kids [%s] /Count %d >>" % (b" ".join(kids), pages),
-        b"<< /Length %d >>\nstream\n%s\nendstream" % (len(content), content),
-    ]
-    for _ in range(pages):
-        objects.append(b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 %d %d] /Contents 3 0 R >>" % (width, height))
-    document = bytearray(b"%PDF-1.4\n")
-    offsets = []
-    for number, body in enumerate(objects, start=1):
-        offsets.append(len(document))
-        document += b"%d 0 obj\n%s\nendobj\n" % (number, body)
-    cross_reference_start = len(document)
-    document += b"xref\n0 %d\n0000000000 65535 f \n" % (len(objects) + 1)
-    for offset in offsets:
-        document += b"%010d 00000 n \n" % offset
-    document += b"trailer\n<< /Size %d /Root 1 0 R >>\n" % (len(objects) + 1)
-    document += b"startxref\n%d\n%%%%EOF\n" % cross_reference_start
-    return bytes(document)
-
-
-def unrenderable_pdf_bytes() -> bytes:
-    """A PDF that counts one page but cannot render it: its page tree names a page object the file does not hold."""
-    missing_page = b"9 0 R"  # no object 9: the fixture's PDF holds four
-    return pdf_bytes(FIGURE_WIDTH_POINTS, FIGURE_HEIGHT_POINTS).replace(b"/Kids [4 0 R]", b"/Kids [%s]" % missing_page)
