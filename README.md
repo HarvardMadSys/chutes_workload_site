@@ -254,10 +254,13 @@ site/                exactly the files that are deployed
     series.js        a chart's shown rows and its legend; the models, the endpoint groups and the families as series
     scrolling_row.js
                      a row that scrolls sideways, as the Insights' tabs do on a phone
-  js/charts/         the two chart kinds
+  js/charts/         the chart kinds
     stacked_bars.js  the trends' and the Traffic Explorer's bars
     donut.js         the model and endpoint mixes
-  js/axes/ticks.js   how many ticks an axis asks for, and an axis that labels the ticks it is given
+    lines.js         a line per series, a CDF among them
+    bands.js         a value's median and its two percentile bands
+  js/axes/ticks.js   how many ticks an axis asks for, a log axis's powers of ten, a card's axis as Plot's scale and
+                     marks
   js/theme/colours.js
                      the series colours as the style tokens give them, from one model order and one endpoint
                      order, and the families' ten

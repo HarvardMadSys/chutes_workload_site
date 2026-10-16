@@ -1,12 +1,14 @@
 /**
- * What every chart shares: its frame and ink, loading and error states, and the figure card and its places;
- * the chart kinds are in `js/charts/`. The colours a chart draws in come from `theme/colours.js`. Its functions
+ * What every chart shares: its frame and ink, loading and error states, the figure card and its places, the rows a
+ * chart draws (a panel's, and those a log axis has a place for) and its colour scales; the chart kinds are in
+ * `js/charts/`. The colours a chart draws in come from `theme/colours.js`. Its functions
  * that need no page are tested with `node --test`.
  */
 
 // Every chart's height, so a grid of figures lines up.
 const CHART_HEIGHT = 240;
 const FALLBACK_WIDTH = 480; // the width drawn when the body has not been laid out yet
+const UNTITLED_MARGIN_TOP = 12; // pixels above a chart whose y axis has no title: room for half its top tick's label
 /** Pixels taken off each side of a bar: a 2px gap between neighbouring bars and segments. */
 export const BAR_INSET = 1;
 
@@ -24,6 +26,18 @@ export const AXIS_STYLE = Object.freeze({ stroke: "var(--chart-axis)", labelArro
 /** The Plot options every chart starts from: its margins, its height, the width of `body`, and its ink. */
 export function chartFrame(body) {
   return { ...PLOT_MARGINS, width: chartWidth(body), height: CHART_HEIGHT, style: PLOT_STYLE };
+}
+
+/**
+ * The frame of a chart whose y axis is titled `yLabel` (null for none): `chartFrame`, then `margins` where given, and a
+ * small top margin where the y axis has no title.
+ */
+export function titledFrame(body, yLabel, margins) {
+  const frame = { ...chartFrame(body), ...margins };
+  if (yLabel === null) {
+    frame.marginTop = UNTITLED_MARGIN_TOP;
+  }
+  return frame;
 }
 
 /** Replace `container`'s content with the loading state. */
@@ -144,6 +158,34 @@ export function colourScale(colours, shown) {
     domain: shown,
     range: shown.map((name) => colours.get(name)),
   };
+}
+
+/** The rows of the panel `panel`, by their `panel` column; every row when `panel` is not given. */
+export function panelRows(rows, panel) {
+  if (panel === undefined) {
+    return rows;
+  }
+  return rows.filter((row) => row.panel === panel);
+}
+
+/**
+ * The columns a chart draws on a log axis: `xColumns` where the card's `x.log`, `yColumns` where its `y.log`; none
+ * where neither axis is a log one.
+ */
+export function logColumns({ x: xAxis = {}, y: yAxis = {} }, xColumns, yColumns) {
+  const columns = [];
+  if (xAxis.log) {
+    columns.push(...xColumns);
+  }
+  if (yAxis.log) {
+    columns.push(...yColumns);
+  }
+  return columns;
+}
+
+/** The rows whose value in each of `columns` is above zero: the rows a log axis over those columns has a place for. */
+export function positiveRows(rows, columns) {
+  return rows.filter((row) => columns.every((column) => row[column] > 0));
 }
 
 // An element of `tagName` with the class `className` holding `text`.

@@ -6,12 +6,11 @@
  * three named by the figure; a series may have several rows in one bar, which are summed once folded.
  */
 
-import { AXIS_STYLE, BAR_INSET, chartFrame, colourScale, distinct, GRID_STYLE } from "../shared/charts.js";
+import { AXIS_STYLE, BAR_INSET, colourScale, distinct, GRID_STYLE, titledFrame } from "../shared/charts.js";
 import { axisWithTicks, TICK_COUNT } from "../axes/ticks.js";
 import { OTHER_NAME } from "../theme/colours.js";
 import { seriesLegend, shownRows } from "../shared/series.js";
 
-const UNTITLED_MARGIN_TOP = 12; // pixels above a chart whose y axis has no title: room for half its top tick's label
 // Joins a bar's x value and series name into one key when summing folded rows.
 const KEY_SEPARATOR = "\u0000";
 
@@ -46,7 +45,7 @@ export async function drawStackedBars(rows, body, colours, parameters, hidden) {
   const shown = shownRows(folded, seriesColumn, hidden);
   const stacked = [...colours.series.keys()].filter((name) => shown.some((row) => row[seriesColumn] === name));
   const chart = Plot.plot({
-    ...barsFrame(body, yLabel, margins),
+    ...titledFrame(body, yLabel, margins),
     x: { type: "band", domain: xDomain ?? distinct(shown.map((row) => row[xColumn])) },
     color: colourScale(colours.series, stacked),
     marks: [
@@ -114,15 +113,6 @@ export function sumFolded(rows, { xColumn, seriesColumn, valueColumn }) {
     }
   }
   return [...sums.values()];
-}
-
-// The frame of the bars: `margins` in place of the frame's where given, and a small top margin under no axis title.
-function barsFrame(body, yLabel, margins) {
-  const frame = { ...chartFrame(body), ...margins };
-  if (yLabel === null) {
-    frame.marginTop = UNTITLED_MARGIN_TOP;
-  }
-  return frame;
 }
 
 /**

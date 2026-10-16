@@ -1,7 +1,13 @@
 /**
- * The ticks of a chart's axes: how many a linear axis asks Plot for, and an axis mark that labels each tick it is given,
- * a plain function tested with `node --test`. The chart kinds give both to Plot.
+ * A chart's axes: how many ticks a linear axis asks Plot for, the powers of ten a log axis is ticked at, Plot's scale
+ * options for a card's axis, its axis and grid marks, and a value written as its axis writes it. A card's axis options
+ * are `{ label, log, domain, ticks, tickFormat }`, each optional: its title, whether it is a log axis, its
+ * `[low, high]`, the values it ticks and how a tick is written. All but the two marks are plain functions, tested
+ * with `node --test`.
  */
+
+import { AXIS_STYLE, GRID_STYLE } from "../shared/charts.js";
+import { formatCount } from "../shared/format.js";
 
 /**
  * The tick count a linear axis asks Plot for: Plot rounds a count to steps of 1, 2 or 5, which gives up to about twice
@@ -9,6 +15,9 @@
  * on a phone.
  */
 export const TICK_COUNT = 4;
+
+/** The most powers of ten a log axis labels: over a wider range it labels every second, third or more. */
+export const MAX_LOG_TICKS = 6;
 
 /**
  * An axis mark made by `makeAxis` (`Plot.axisX` or `Plot.axisY`) with `options`, labelling each of `ticks` when given,
@@ -23,4 +32,96 @@ export function axisWithTicks(makeAxis, ticks, { tickFormat, ...options }) {
   }
   // Through `text`, each given tick is written by `tickFormat` itself, whatever Plot's scale would make of it.
   return makeAxis(ticks, { ...options, text: (tick) => tickFormat(tick) });
+}
+
+/** The powers of ten from `low` to `high`, both included where they are powers of ten. */
+export function decadeTicks([low, high]) {
+  const ticks = [];
+  for (let exponent = Math.ceil(Math.log10(low)); 10 ** exponent <= high; exponent += 1) {
+    ticks.push(10 ** exponent);
+  }
+  return ticks;
+}
+
+/**
+ * The ticks of a log axis over `[low, high]`: its powers of ten, every second, third or more of them when there are
+ * more than `MAX_LOG_TICKS`, so the labels never crowd; undefined, for Plot's own, when the range holds fewer than two.
+ */
+export function logAxisTicks([low, high]) {
+  const powers = decadeTicks([low, high]);
+  if (powers.length < 2) {
+    return undefined;
+  }
+  const step = Math.ceil(powers.length / MAX_LOG_TICKS);
+  return powers.filter((power, index) => index % step === 0);
+}
+
+/** The smallest and largest of `values`: `[low, high]`. */
+export function extent(values) {
+  let low = Infinity;
+  let high = -Infinity;
+  for (const value of values) {
+    low = Math.min(low, value);
+    high = Math.max(high, value);
+  }
+  return [low, high];
+}
+
+/**
+ * The ticks an axis of the card's options `axis` labels over the drawn `values`: `axis.ticks` when given; else, on a
+ * log axis, the powers of ten over `axis.domain` or the values' extent; else undefined, for Plot's own.
+ */
+export function axisTicks(axis, values) {
+  if (axis.ticks !== undefined) {
+    return axis.ticks;
+  }
+  if (axis.log) {
+    return logAxisTicks(axis.domain ?? extent(values));
+  }
+  return undefined;
+}
+
+/**
+ * Plot's options for the scale of the card's axis options `axis` over the drawn `values`: a log scale where `axis.log`,
+ * a point scale where the values are labels (text, such as a month, "2025-06"), and `axis.domain` where given.
+ */
+export function axisScale(axis, values = []) {
+  const scale = {};
+  if (axis.log) {
+    scale.type = "log";
+  } else if (values.some((value) => typeof value === "string")) {
+    // Plot would read a month's label as a date; it is a label, its points evenly apart.
+    scale.type = "point";
+  }
+  if (axis.domain !== undefined) {
+    scale.domain = axis.domain;
+  }
+  return scale;
+}
+
+/** A value as the card's axis options `axis` write it: by `axis.tickFormat` where given, else with separators. */
+export function axisText(axis, value) {
+  return axis.tickFormat === undefined ? formatCount(value) : axis.tickFormat(value);
+}
+
+/**
+ * The axis mark of `dimension` ("x" or "y") for the card's axis options `axis`: ticked at `ticks`, or at Plot's own
+ * `TICK_COUNT` when undefined, titled by `axis.label` (none when not given) and written by `axis.tickFormat`.
+ */
+export function axisMark(Plot, dimension, axis, ticks) {
+  const makeAxis = dimension === "x" ? Plot.axisX : Plot.axisY;
+  const options = { ...AXIS_STYLE, label: axis.label ?? null, tickFormat: axis.tickFormat };
+  if (ticks === undefined) {
+    options.ticks = TICK_COUNT;
+  }
+  return axisWithTicks(makeAxis, ticks, options);
+}
+
+/** The grid lines across `dimension` ("x" or "y"), at `ticks`, or at Plot's own `TICK_COUNT` when undefined. */
+export function gridMark(Plot, dimension, ticks) {
+  const makeGrid = dimension === "x" ? Plot.gridX : Plot.gridY;
+  if (ticks === undefined) {
+    return makeGrid({ ...GRID_STYLE, ticks: TICK_COUNT });
+  }
+  return makeGrid(ticks, GRID_STYLE);
 }

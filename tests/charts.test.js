@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { chartFrame, chartName, chartWidth, colourScale, columnTotal } from "../site/js/shared/charts.js";
+import {
+  chartFrame, chartName, chartWidth, colourScale, columnTotal, logColumns, panelRows, positiveRows, titledFrame,
+} from "../site/js/shared/charts.js";
 import { assignColours } from "../site/js/theme/colours.js";
 
 test("every chart starts from the same frame, as wide as its body", () => {
@@ -51,4 +53,28 @@ test("a chart is named by its card's title and insight, or its caption where the
   assert.equal(chartName(withInsight), "Tokens per request: Each request adds little to a large context.");
   const withCaption = bodyOfFigure({ ".figure-title": title, ".figure-caption": caption });
   assert.equal(chartName(withCaption), "Tokens per request: Input, uncached input and output tokens of each request.");
+});
+
+test("a chart whose y axis has no title has a small top margin, and a card's margins are kept", () => {
+  assert.equal(titledFrame({ clientWidth: 600 }, "Requests", undefined).marginTop, 32);
+  assert.equal(titledFrame({ clientWidth: 600 }, null, undefined).marginTop, 12);
+  assert.equal(titledFrame({ clientWidth: 600 }, "Requests", { marginLeft: 40 }).marginLeft, 40);
+});
+
+test("a panel's rows are those naming it; every row when no panel is asked for", () => {
+  const rows = [{ panel: "request_share", x: 1 }, { panel: "token_hit", x: 1 }];
+  assert.deepEqual(panelRows(rows, "token_hit"), [{ panel: "token_hit", x: 1 }]);
+  assert.equal(panelRows(rows, undefined), rows);
+});
+
+test("the columns on a log axis are the x columns where x is log and the y columns where y is log", () => {
+  assert.deepEqual(logColumns({ x: { log: true }, y: {} }, ["x"], ["y"]), ["x"]);
+  assert.deepEqual(logColumns({ x: { log: true }, y: { log: true } }, ["x_low", "x_high"], ["y"]), ["x_low", "x_high", "y"]);
+  assert.deepEqual(logColumns({}, ["x"], ["y"]), []);
+});
+
+test("a log axis drops the rows at or below zero in its columns, an output-token CDF's first point among them", () => {
+  const rows = [{ x: 0, cdf: 0 }, { x: 2, cdf: 0.01 }, { x: -1, cdf: 0.5 }];
+  assert.deepEqual(positiveRows(rows, ["x"]), [{ x: 2, cdf: 0.01 }]);
+  assert.equal(positiveRows(rows, []).length, 3);
 });
