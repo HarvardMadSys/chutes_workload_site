@@ -147,3 +147,23 @@ The answers' total size and the largest answer (expected under 3 MB and
 under 1 MB), the plotdata files' total size in the artifact, the time of
 `make data`, and the time to draw the Users and models topic, the one
 with the rasters.
+
+### Measured
+
+`make data` against the artifact's commit `ae12362`, which holds a
+plot-ready table for each of the 48 figures (its next commit, `3871e3b`,
+gives the same bytes):
+
+- **Figure answers:** 48 files under `site/data/all/figures/`, 3,554,319
+  bytes in all (3.4 MiB), with `figures.json`. The five largest:
+  `fig_lb_concurrency` 1,391,803 bytes (23,088 cells),
+  `fig_model_heatmap_fixedxy_scatter_colored_metrics` 449,375 (6,232
+  points), `fig_model_raster_qwen3_next_80b` 176,846,
+  `fig_model_raster_gpt_oss_20b` 142,933 and `fig_iat_pair_ttl_coverage`
+  136,663. Both expectations above are exceeded: the total by about half
+  a megabyte and the largest answer, the concurrency heatmap rather than
+  the Qwen raster, by about 0.4 MB. Every answer is far below the 25 MiB
+  a static asset may be, and a topic fetches only its own answers.
+- **Plotdata in the artifact:** 48 Parquet files, 610,376 bytes.
+- **`make data`:** 4.3 s of wall time, the same on two rebuilds, figure
+  images included.

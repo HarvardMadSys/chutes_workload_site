@@ -201,7 +201,7 @@ def test_tracked_files_are_the_expected_set(tracked_files: set[str]) -> None:
 def test_a_file_outside_the_expected_set_is_named() -> None:
     planted = {
         "README.md", "site/js/start.js", "site/figures/a.pdf", "site/data/rows.parquet", "notes.txt",
-        "tests/node_modules/x.js",
+        "tests/node_modules/x.js", "site/data/all/figures/fig_seasonality.json", "site/data/all/figures.json",
     }
     expected = ["notes.txt", "site/data/rows.parquet", "site/figures/a.pdf", "tests/node_modules/x.js"]
     assert unexpected_files(planted) == expected

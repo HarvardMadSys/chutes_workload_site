@@ -73,6 +73,8 @@ binding, and `make test` checks the countable ones.
 make data:  the artifact's caches, chute_models.csv and model_families.csv  →  tables in DuckDB, with trace_calendar,
               top_models and family_models  →  queries/explore/<query>.sql  →  data/all/explore/<query>.json (a family
               query's data/all/explore/<query>/<family>.json, once per family) and data/all/queries.json
+            the artifact's config/figures.json and data/paper/plotdata/<figure>.parquet  →  data/all/figures/<figure>.json
+              and data/all/figures.json
             the artifact's config/figures.json and figure PDFs  →  figures/<name>.png and figures/index.json
 The page:   index.html  →  js/pages/explore.js  →  js/explore/start.js, the section modules and js/shared/
               →  data/all/explore/<query>.json and figures/

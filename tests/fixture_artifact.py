@@ -1,5 +1,5 @@
 """A small artifact checkout for the tests, written into a folder: the four caches the site reads, a few rows each, the
-model names, the family table, the figure list and two figure PDFs.
+model names, the family table, the figure list, a PDF of each figure it lists and each one's plot-ready table.
 
 Its rows, in the artifact's column types:
 
@@ -10,7 +10,8 @@ Its rows, in the artifact's column types:
   the totals count too; the monthly cache's counts are its own;
 - three families in the daily rollup: DeepSeek, 95 requests (`chute-01` 70, `chute-02` 15 and its rest 10), gpt-oss,
   20 (`chute-03`), and Other, 25 (`chute-04` 5 and the unnamed models 20); the family table lists DeepSeek and gpt-oss;
-- one PDF page `FIGURE_WIDTH_POINTS` wide, listed once under `sections` and once under `external`.
+- ten figures, one per chart kind, nine listed under `sections` and one under `external`, each a PDF page
+  `FIGURE_WIDTH_POINTS` wide and a plot-ready table (`fixture_plotdata.py`).
 """
 
 import datetime
@@ -20,10 +21,22 @@ import pathlib
 import pyarrow
 import pyarrow.parquet
 
+import fixture_plotdata
+
 FIGURE_WIDTH_POINTS = 250  # the fixture figure's page width: 1,100 px at the render scale
 FIGURE_HEIGHT_POINTS = 125  # 550 px at the render scale
-SECTION_FIGURE = pathlib.Path("figures") / "paper" / "01_workload_overview" / "fig_panel.pdf"
-EXTERNAL_FIGURE = pathlib.Path("figures") / "routing" / "fig_tradeoff.pdf"
+# The figures the fixture's figure list names under `sections`, by paper section, each with a table of
+# `fixture_plotdata.py`; their PDFs are under `figures/paper/<section>/`.
+SECTION_FIGURES = {
+    "section2_background": ["fig_seasonality"],
+    "section3_global": ["fig_token_length_input_cdf_by_model"],
+    "section4_user_models": ["fig_model_raster_qwen3_next_80b", "fig_model_heatmap_fixedxy_scatter_colored_metrics",
+                             "fig_top10_model_monthly_share_legend", "fig_top10_model_monthly_request_share"],
+    "section5_evolution": ["fig_monthly_input_token_intervals", "fig_per_user_iat_p50_by_model"],
+    "section7_casestudy": ["fig_lb_user_zoom_top"],
+}
+SECTION_FIGURE = pathlib.Path("figures") / "paper" / "section2_background" / "fig_seasonality.pdf"  # listed first
+EXTERNAL_FIGURE = pathlib.Path("figures") / "routing" / "fig_routing_tradeoff.pdf"  # the one listed under `external`
 TOTAL_REQUESTS = 140  # every request of the totals, the daily rollup and the daily endpoint counts
 
 
@@ -43,6 +56,7 @@ def write_fixture_artifact(folder: pathlib.Path) -> pathlib.Path:
     write_model_names(folder / "data" / "paper" / "chute_models.csv")
     write_model_families(folder / "data" / "paper" / "model_families.csv")
     write_figures(folder)
+    write_plotdata(folder / "data" / "paper" / "plotdata")
     return folder
 
 
@@ -127,19 +141,39 @@ def write_model_families(path: pathlib.Path) -> None:
     path.write_text("\n".join(lines) + "\n")
 
 
+def figure_files() -> list[pathlib.Path]:
+    """The PDF of every figure the fixture lists, in the list's order: each section's, then the external one."""
+    files = []
+    for section, names in SECTION_FIGURES.items():
+        for name in names:
+            files.append(pathlib.Path("figures") / "paper" / section / f"{name}.pdf")
+    files.append(EXTERNAL_FIGURE)
+    return files
+
+
 def write_figures(folder: pathlib.Path) -> None:
-    """Write the figure list and its two PDFs."""
+    """Write the figure list and its PDFs."""
+    sections = {}
+    for section, names in SECTION_FIGURES.items():
+        sections[section] = [f"{name}.pdf" for name in names]
     figure_list = {
         "note": "The fixture's figures.",
-        "sections": {"section2_background": [SECTION_FIGURE.name]},
+        "sections": sections,
         "external": {EXTERNAL_FIGURE.name: {"section": "section7_casestudy", "generator": "plot.py"}},
-        "count": 2,
+        "count": len(figure_files()),
     }
     (folder / "config").mkdir()
     (folder / "config" / "figures.json").write_text(json.dumps(figure_list, indent=2))
-    for figure in [SECTION_FIGURE, EXTERNAL_FIGURE]:
-        (folder / figure).parent.mkdir(parents=True)
+    for figure in figure_files():
+        (folder / figure).parent.mkdir(parents=True, exist_ok=True)
         (folder / figure).write_bytes(pdf_bytes(FIGURE_WIDTH_POINTS, FIGURE_HEIGHT_POINTS))
+
+
+def write_plotdata(folder: pathlib.Path) -> None:
+    """Write each figure's plot-ready table as `<figure>.parquet` into `folder`."""
+    folder.mkdir(parents=True)
+    for name, table in fixture_plotdata.plotdata_tables().items():
+        pyarrow.parquet.write_table(table, folder / f"{name}.parquet")
 
 
 def pdf_bytes(width: int, height: int, pages: int = 1) -> bytes:

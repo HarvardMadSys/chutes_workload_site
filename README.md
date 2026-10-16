@@ -62,8 +62,8 @@ The one page, `index.html`, holds, in order:
 Every number is read from the paper's artifact repository
 ([HarvardMadSys/chutes_workload](https://github.com/HarvardMadSys/chutes_workload)),
 never from the trace. `make data` reads the artifact's committed query
-caches and figure PDFs and writes the site's data ahead of time; the
-browser runs no query, it fetches the answers and draws them.
+caches, plot-ready tables and figure PDFs and writes the site's data ahead
+of time; the browser runs no query, it fetches the answers and draws them.
 
 - **The answers** come from four caches under the artifact's
   `data/paper/cache/`, its model names, `data/paper/chute_models.csv`, and
@@ -118,6 +118,13 @@ browser runs no query, it fetches the answers and draws them.
 - **User ids.** The stats strip says "User ids", not users: the release's
   anonymous user ids rotate every quarter, so one person can hold several,
   and the strip's count of ids exceeds the paper's count of people.
+- **The figure answers** are the artifact's plot-ready tables, one per
+  figure its `config/figures.json` lists,
+  `data/paper/plotdata/<figure>.parquet`, each written by
+  `site_data/figure_answers.py` as `site/data/all/figures/<figure>.json`
+  column for column, with no query, rounding or renaming, and each one's
+  row count in `site/data/all/figures.json`. The cards do not draw them
+  yet; they show the images below.
 - **The figure images** are the artifact's own PDFs, every one its
   `config/figures.json` lists, rendered to PNG by
   `site_data/figure_images.py` at about twice the width a card shows them,
@@ -171,8 +178,8 @@ family for the query that takes a family), `site/data/all/queries.json`
 (the hash of the text of each query the answers depend on, which `make
 test` compares with the queries, so that an answer older than its query
 fails),
-the 48 images and their index, and prints each answer and image with its
-size. A rebuild from the same artifact writes the same bytes, so git sees
+the 48 figure answers and their index, the 48 images and their index, and
+prints each answer and image with its size. A rebuild from the same artifact writes the same bytes, so git sees
 only what changed. The rebuilt data and snapshots are committed with the
 change that needed them.
 
@@ -227,9 +234,11 @@ wrangler.jsonc       the Cloudflare Worker that serves site/ as static assets: i
 .gitignore           what git leaves out: installed and generated folders, the tools' own folders, local secrets
 .github/workflows/deploy.yml
                      deploys site/ on every push to main, then asks the published site for three files
-site_data/           builds site/data/ and site/figures/ from the artifact's caches and figure PDFs (make data)
+site_data/           builds site/data/ and site/figures/ from the artifact's caches, plot-ready tables and figure
+                     PDFs (make data)
   __init__.py        the package's summary
-  __main__.py        the command make data runs: reads the artifact, writes the answers and the images
+  __main__.py        the command make data runs: reads the artifact, writes the answers, the figure answers and the
+                     images
   loading.py         reads the four caches, the model names and the family table into frames; a missing file stops
                      the step
   months.py          the trace's start date, and the calendar of its trace days and trace months
@@ -237,6 +246,7 @@ site_data/           builds site/data/ and site/figures/ from the artifact's cac
                      trace_calendar, top_models and family_models
   answers.py         runs every query of site/queries/explore/, a family's query once per family, writes its
                      answers and the queries' hashes
+  figure_answers.py  writes the plot-ready table of every figure the artifact lists as its answer, and their index
   figure_images.py   renders every figure PDF the artifact lists to PNG, and writes the images' index
   paths.py           the names of the files the step writes into site/data/
 site/                exactly the files that are deployed
@@ -295,19 +305,25 @@ site/                exactly the files that are deployed
     setup/family_models.sql
                      the daily rollup's named models ranked within their family, held as the table family_models
   data/all/          built by make data and tracked: the answers, explore/<query>.json and
-                     explore/daily_by_model/<family>.json, and queries.json
+                     explore/daily_by_model/<family>.json, and queries.json; the figure answers,
+                     figures/<figure>.json, and figures.json
   figures/           built by make data and tracked: one PNG per figure PDF the artifact lists, and index.json
 tests/               what make test runs
-  conftest.py, fixture_artifact.py, repository_root.py
-                     the fixture artifact (a few rows of each cache, the model names, a figure list and two PDFs),
+  conftest.py, fixture_artifact.py, fixture_plotdata.py, repository_root.py
+                     the fixture artifact (a few rows of each cache, the model names, a figure list of ten figures,
+                     one per chart kind, with their PDFs and plot-ready tables),
                      the database over it, the artifact's checkout as ARTIFACT, the tracked files, the root folder
   test_loading.py, test_months.py, test_site_database.py, test_figure_images.py, test_main.py
                      the data step on the fixture artifact, against values counted by hand
   test_queries.py    every .sql file run over the fixture: its columns, the tables it reads, its numbers
   test_answers.py    every answer written for the fixture equals its query run live; an edited query is stale
+  test_figure_answers.py
+                     every figure answer written for the fixture equals its plot-ready table; a missing table stops
+                     the step
   test_built_data.py
-                     the shipped data: tracked, the images the index lists, every answer current, and with
-                     ARTIFACT the answers, the images and their index the same bytes as a rebuild
+                     the shipped data: tracked, the figure answers and the images their indexes list, every
+                     answer current, and with ARTIFACT the answers, the figure answers, the images and their
+                     indexes the same bytes as a rebuild
   test_figures_registry.py
                      with ARTIFACT, the Insights' cards show every figure the artifact lists, and no other
   test_repository.py
