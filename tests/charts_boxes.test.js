@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { boxTipText, drawnBoxes, seriesLabel, STATISTICS } from "../site/js/charts/boxes.js";
+import { boxTipText, drawnBoxes, STATISTICS } from "../site/js/charts/boxes.js";
 import { assignColours } from "../site/js/theme/colours.js";
 
 const COLOURS = assignColours(["DeepSeek V3.2", "DeepSeek R1", "MiniMax M2.5"]);
@@ -26,11 +26,6 @@ test("one box per coloured series, in the colours' order, a hidden series left o
 test("on a log y axis a box with a statistic at zero is not drawn", () => {
   const boxes = drawnBoxes(ROWS, COLOURS, { y: { log: true } }, new Set());
   assert.deepEqual(boxes.map((box) => box.series), ["DeepSeek V3.2", "MiniMax M2.5"]);
-});
-
-test("a series is labelled by its label where it has one, else by its name", () => {
-  assert.equal(seriesLabel("deepseek-r1", { "deepseek-r1": "DeepSeek R1" }), "DeepSeek R1");
-  assert.equal(seriesLabel("Global", {}), "Global");
 });
 
 test("a box's tooltip gives its series, what a value is, its five statistics and its count", () => {

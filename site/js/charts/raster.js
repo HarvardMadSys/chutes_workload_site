@@ -33,6 +33,7 @@ export async function drawRaster(rows, body, colours, parameters) {
     y: { domain: [0, height] },
     color: sequentialColour(parameters, DEFAULT_SCHEME),
     marks: [
+      // Row 0 is drawn at the bottom: y rises with the row index, as the paper's rasters draw a rank.
       Plot.raster(values, {
         width, height, x1: 0, x2: width, y1: 0, y2: height, fill: Plot.identity, imageRendering: "pixelated",
       }),

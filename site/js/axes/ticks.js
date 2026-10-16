@@ -34,8 +34,14 @@ export function axisWithTicks(makeAxis, ticks, { tickFormat, ...options }) {
   return makeAxis(ticks, { ...options, text: (tick) => tickFormat(tick) });
 }
 
-/** The powers of ten from `low` to `high`, both included where they are powers of ten. */
+/**
+ * The powers of ten from `low` to `high`, both included where they are powers of ten. Throws a RangeError when `low`
+ * is not above zero: a log axis has no place for it, and no power of ten is the first one above it.
+ */
 export function decadeTicks([low, high]) {
+  if (!(low > 0)) {
+    throw new RangeError(`a log axis's range must start above zero, not at ${low} (range [${low}, ${high}])`);
+  }
   const ticks = [];
   for (let exponent = Math.ceil(Math.log10(low)); 10 ** exponent <= high; exponent += 1) {
     ticks.push(10 ** exponent);
@@ -69,9 +75,15 @@ export function extent(values) {
 
 /**
  * The ticks an axis of the card's options `axis` labels over the drawn `values`: `axis.ticks` when given; else, on a
- * log axis, the powers of ten over `axis.domain` or the values' extent; else undefined, for Plot's own.
+ * log axis, the powers of ten over `axis.domain` or the values' extent; else undefined, for Plot's own. Throws a
+ * RangeError naming the axis when a log axis's domain does not start above zero, a card's mistake.
  */
 export function axisTicks(axis, values) {
+  if (axis.log && axis.domain !== undefined && !(axis.domain[0] > 0)) {
+    const name = axis.label ?? "untitled";
+    const domain = `[${axis.domain.join(", ")}]`;
+    throw new RangeError(`the log axis "${name}" has the domain ${domain}, which must start above 0`);
+  }
   if (axis.ticks !== undefined) {
     return axis.ticks;
   }

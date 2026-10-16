@@ -11,6 +11,7 @@
 
 import { chartName, columnTotal } from "../shared/charts.js";
 import { formatCount, formatShare } from "../shared/format.js";
+import { seriesLabel } from "../shared/series.js";
 import { OTHER_NAME, SERIES_SLOTS } from "../theme/colours.js";
 
 const FULL_TURN = 2 * Math.PI;
@@ -44,7 +45,7 @@ export function drawDonut(rows, body, colours, parameters, hidden) {
   svg.setAttribute("role", "img");
   let total = 0;
   for (const arc of donutArcs(shown, OUTER_RADIUS, INNER_RADIUS)) {
-    svg.append(slicePath(arc, colours.series, sliceName(arc.name, labels), centre));
+    svg.append(slicePath(arc, colours.series, seriesLabel(labels, arc.name), centre));
     total += arc.count;
   }
   // Named by its card's title and caption, as every chart is; the total in the centre is read as its text.
@@ -100,14 +101,9 @@ export function legendSeries(slices, labels = {}) {
   const total = columnTotal(slices, "count");
   const entries = [];
   for (const slice of slices) {
-    entries.push({ name: slice.name, label: `${sliceName(slice.name, labels)} ${formatShare(slice.count / total)}` });
+    entries.push({ name: slice.name, label: `${seriesLabel(labels, slice.name)} ${formatShare(slice.count / total)}` });
   }
   return entries;
-}
-
-/** A slice's name as the donut writes it: its label where `labels` gives one, else as its rows name it. */
-function sliceName(name, labels) {
-  return Object.hasOwn(labels, name) ? labels[name] : name;
 }
 
 /** The line under the donut's total: what it counts, "requests", or "shown requests" while `hiddenCount` are hidden. */

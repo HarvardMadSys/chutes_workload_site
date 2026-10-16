@@ -6,11 +6,9 @@
  * `value`; a multi-panel figure's rows also name their `panel`.
  */
 
-import { AXIS_STYLE, BAR_INSET, colourScale, distinct, panelRows, titledFrame } from "../shared/charts.js";
+import { AXIS_STYLE, BAR_INSET, colourScale, distinct, titledFrame } from "../shared/charts.js";
 import { axisMark, axisText, bandAxisMark, gridMark } from "../axes/ticks.js";
-import { shownRows } from "../shared/series.js";
-
-const SERIES_COLUMN = "series"; // the column of a bars answer naming each bar's series
+import { SERIES_COLUMN, shownSeriesRows } from "../shared/series.js";
 
 /**
  * Draw `rows` into `body`, one bar per row of the series of `colours.series` (a Map from series name to colour, in
@@ -51,8 +49,7 @@ export async function drawBars(rows, body, colours, parameters, hidden) {
  * (a Map from series name to colour) that are not in `hidden`.
  */
 export function drawnBars(rows, colours, { panel }, hidden) {
-  const coloured = panelRows(rows, panel).filter((row) => colours.has(row[SERIES_COLUMN]));
-  return shownRows(coloured, SERIES_COLUMN, hidden);
+  return shownSeriesRows(rows, colours, panel, hidden);
 }
 
 /** A bar's tooltip: its x as the x axis writes it, and its value, "Share of requests: 12.4%". */

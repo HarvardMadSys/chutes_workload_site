@@ -9,9 +9,8 @@
 import { colourScale, logColumns, positiveRows, titledFrame } from "../shared/charts.js";
 import { axisMark, axisScale, axisTicks, bandAxisMark, gridMark } from "../axes/ticks.js";
 import { formatCount } from "../shared/format.js";
-import { shownRows } from "../shared/series.js";
+import { SERIES_COLUMN, seriesLabel, shownRows } from "../shared/series.js";
 
-const SERIES_COLUMN = "series"; // the column of a boxes answer naming each box's series
 /** The statistics of a box, high to low, with the name the tooltip gives each. */
 export const STATISTICS = Object.freeze([
   Object.freeze({ column: "high", label: "High" }),
@@ -49,7 +48,7 @@ export async function drawBoxes(rows, body, colours, parameters, hidden) {
     color: colourScale(colours.series, names),
     marks: [
       gridMark(Plot, "y", yTicks),
-      bandAxisMark(Plot, xAxis, (name) => seriesLabel(name, labels)),
+      bandAxisMark(Plot, xAxis, (name) => seriesLabel(labels, name)),
       axisMark(Plot, "y", yAxis, yTicks),
       Plot.ruleX(boxes, { x: SERIES_COLUMN, y1: "low", y2: "high", stroke: SERIES_COLUMN }),
       Plot.barY(boxes, { x: SERIES_COLUMN, y1: "q1", y2: "q3", fill: SERIES_COLUMN, fillOpacity: BOX_OPACITY }),
@@ -75,14 +74,9 @@ export function drawnBoxes(rows, colours, { y: yAxis = {} }, hidden) {
   return boxes;
 }
 
-/** A series' label: `labels[name]` where it has one there, else its name. */
-export function seriesLabel(name, labels) {
-  return Object.hasOwn(labels, name) ? labels[name] : name;
-}
-
 /** A box's tooltip: its series' label, `valueLabel`, its five statistics from the high whisker down, and its count. */
 export function boxTipText(box, { valueLabel, valueFormat, labels = {} }) {
-  const lines = [seriesLabel(box[SERIES_COLUMN], labels), valueLabel];
+  const lines = [seriesLabel(labels, box[SERIES_COLUMN]), valueLabel];
   for (const { column, label } of STATISTICS) {
     lines.push(`${label}: ${valueFormat(box[column])}`);
   }

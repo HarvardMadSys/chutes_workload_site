@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  ENDPOINT_LABELS, ENDPOINT_SERIES, FAMILY_SERIES, MODEL_SERIES, seriesLegend, shownRows,
+  ENDPOINT_LABELS, ENDPOINT_SERIES, FAMILY_SERIES, MODEL_SERIES, SERIES_COLUMN, seriesLabel, seriesLegend, shownRows,
+  shownSeriesRows,
 } from "../site/js/shared/series.js";
+import { assignColours } from "../site/js/theme/colours.js";
 import { endpointColours, familyColours, modelColours } from "../site/js/theme/colours.js";
 
 // Two models of a monthly answer, two months each.
@@ -46,4 +48,22 @@ test("each endpoint group is labelled in words", () => {
     completion_stream: "Completion stream",
     other: "Other",
   });
+});
+
+test("a series is labelled by its label where it has one, else by its name", () => {
+  assert.equal(seriesLabel({ "deepseek-r1": "DeepSeek R1" }, "deepseek-r1"), "DeepSeek R1");
+  assert.equal(seriesLabel({}, "Global"), "Global");
+});
+
+test("a figure's shown rows are its panel's, of the coloured series not hidden, in their order", () => {
+  const colours = assignColours(["Global", "DeepSeek R1"]);
+  const rows = [
+    { series: "Global", x: 1, panel: "a" },
+    { series: "DeepSeek R1", x: 1, panel: "a" },
+    { series: "Unlisted", x: 1, panel: "a" },
+    { series: "Global", x: 1, panel: "b" },
+  ];
+  assert.equal(SERIES_COLUMN, "series");
+  assert.deepEqual(shownSeriesRows(rows, colours, "a", new Set(["DeepSeek R1"])), [rows[0]]);
+  assert.deepEqual(shownSeriesRows(rows, colours, undefined, new Set()), [rows[0], rows[1], rows[3]]);
 });

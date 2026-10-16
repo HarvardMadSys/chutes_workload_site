@@ -1,7 +1,8 @@
 /**
- * A chart's series: the rows of the series its legend does not hide, and the legend itself, `{ series, colours }`, the
- * series it lists, each `{ name, label }`, and their colours, a Map from name to colour. These are plain functions,
- * tested with `node --test`.
+ * A chart's series: the column naming a row's series, a series' label, the rows of the series its legend does not hide
+ * (of one panel, for a figure's answer), and the legend itself, `{ series, colours }`, the series it lists, each
+ * `{ name, label }`, and their colours, a Map from name to colour. These are plain functions, tested with
+ * `node --test`.
  *
  * And the kinds of series the Overview and the Traffic Explorer draw, the models, the endpoint groups and the
  * families, each `{ order, column, colours, labels? }`: `order`, the key of the orders (the page's `context.orders`,
@@ -11,7 +12,11 @@
  * `ENDPOINT_LABELS`).
  */
 
+import { panelRows } from "./charts.js";
 import { endpointColours, familyColours, modelColours } from "../theme/colours.js";
+
+/** The column of a figure's answer naming each row's series. */
+export const SERIES_COLUMN = "series";
 
 /** The models as a chart's series, each written by its name. */
 export const MODEL_SERIES = Object.freeze({
@@ -44,6 +49,20 @@ export const ENDPOINT_SERIES = Object.freeze({
   labels: ENDPOINT_LABELS,
 });
 
+/** A series' label: `labels[name]` where `labels` gives one, else its name. */
+export function seriesLabel(labels, name) {
+  return Object.hasOwn(labels, name) ? labels[name] : name;
+}
+
+/**
+ * The rows a figure's answer draws, in their order: those of the panel `panel` (every row when not given) whose series,
+ * `row.series`, is one `colours` names (a Map from series name to colour) and is not in `hidden`.
+ */
+export function shownSeriesRows(rows, colours, panel, hidden) {
+  const coloured = panelRows(rows, panel).filter((row) => colours.has(row[SERIES_COLUMN]));
+  return shownRows(coloured, SERIES_COLUMN, hidden);
+}
+
 /** The rows whose series, `row[seriesColumn]`, is not in `hidden`, in their order. */
 export function shownRows(rows, seriesColumn, hidden) {
   return rows.filter((row) => !hidden.has(row[seriesColumn]));
@@ -59,7 +78,7 @@ export function seriesLegend(rows, seriesColumn, colours, labels = {}) {
   const series = [];
   for (const name of colours.keys()) {
     if (present.has(name)) {
-      series.push({ name, label: Object.hasOwn(labels, name) ? labels[name] : name });
+      series.push({ name, label: seriesLabel(labels, name) });
     }
   }
   return { series, colours };

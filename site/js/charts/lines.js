@@ -7,12 +7,11 @@
  * their `panel`.
  */
 
-import { colourScale, logColumns, panelRows, positiveRows, titledFrame } from "../shared/charts.js";
+import { colourScale, logColumns, positiveRows, titledFrame } from "../shared/charts.js";
 import { formatPercent, formatShare } from "../shared/format.js";
 import { axisMark, axisScale, axisText, axisTicks, gridMark } from "../axes/ticks.js";
-import { shownRows } from "../shared/series.js";
+import { SERIES_COLUMN, seriesLabel, shownSeriesRows } from "../shared/series.js";
 
-const SERIES_COLUMN = "series"; // the column of a lines answer naming each point's series
 const CDF_COLUMN = "cdf"; // the column of a CDF answer holding the share at or below each value
 const DASH = "4,3"; // the dash and gap, in pixels, of a series drawn dashed
 
@@ -32,7 +31,7 @@ const DASH = "4,3"; // the dash and gap, in pixels, of a series drawn dashed
  */
 export async function drawLines(rows, body, colours, parameters, hidden) {
   const { x: xAxis = {}, cdf = false, markers = false, dashed = new Set(), margins } = parameters;
-  const yAxis = cdf ? { tickFormat: formatPercent, ...parameters.y, domain: [0, 1] } : parameters.y ?? {};
+  const yAxis = lineYAxis(parameters);
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
   const drawn = drawnPoints(rows, colours.series, { ...parameters, x: xAxis, y: yAxis }, hidden);
@@ -67,6 +66,17 @@ export async function drawLines(rows, body, colours, parameters, hidden) {
   return chart;
 }
 
+/**
+ * The y axis options a lines chart draws: the card's `y`; for a CDF (`cdf`), a share from 0 to 1, its ticks in percent
+ * unless the card writes them otherwise.
+ */
+export function lineYAxis({ y: yAxis = {}, cdf = false }) {
+  if (!cdf) {
+    return yAxis;
+  }
+  return { tickFormat: formatPercent, ...yAxis, domain: [0, 1] };
+}
+
 /** The column a lines answer holds its y in: `cdf` for a CDF answer, else `y`. */
 export function yColumn(cdf) {
   return cdf ? CDF_COLUMN : "y";
@@ -78,8 +88,7 @@ export function yColumn(cdf) {
  * where `parameters.x.log`, the y column where `parameters.y.log`).
  */
 export function drawnPoints(rows, colours, { panel, x: xAxis = {}, y: yAxis = {}, cdf = false }, hidden) {
-  const coloured = panelRows(rows, panel).filter((row) => colours.has(row[SERIES_COLUMN]));
-  const shown = shownRows(coloured, SERIES_COLUMN, hidden);
+  const shown = shownSeriesRows(rows, colours, panel, hidden);
   return positiveRows(shown, logColumns({ x: xAxis, y: yAxis }, ["x"], [yColumn(cdf)]));
 }
 
@@ -95,8 +104,7 @@ export function drawnSeries(points, colours) {
  * "Input tokens: 1.2k", "45.0% at or below".
  */
 export function lineTipText(row, { x: xAxis = {}, cdf = false, valueLabel, valueFormat, labels = {} }) {
-  const name = row[SERIES_COLUMN];
-  const series = Object.hasOwn(labels, name) ? labels[name] : name;
+  const series = seriesLabel(labels, row[SERIES_COLUMN]);
   if (cdf) {
     return `${series}\n${valueLabel}: ${valueFormat(row.x)}\n${formatShare(row[CDF_COLUMN])} at or below`;
   }

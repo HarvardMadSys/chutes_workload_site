@@ -9,7 +9,7 @@
 import { AXIS_STYLE, BAR_INSET, colourScale, distinct, GRID_STYLE, titledFrame } from "../shared/charts.js";
 import { axisWithTicks, TICK_COUNT } from "../axes/ticks.js";
 import { OTHER_NAME } from "../theme/colours.js";
-import { seriesLegend, shownRows } from "../shared/series.js";
+import { seriesLabel, seriesLegend, shownRows } from "../shared/series.js";
 
 // Joins a bar's x value and series name into one key when summing folded rows.
 const KEY_SEPARATOR = "\u0000";
@@ -120,7 +120,6 @@ export function sumFolded(rows, { xColumn, seriesColumn, valueColumn }) {
  * its value, "Requests: 412".
  */
 export function barTipText(row, { xColumn, seriesColumn, valueColumn, valueLabel, valueFormat, labels = {} }) {
-  const name = row[seriesColumn];
-  const series = Object.hasOwn(labels, name) ? labels[name] : name;
+  const series = seriesLabel(labels, row[seriesColumn]);
   return `${series}\n${row[xColumn]}\n${valueLabel}: ${valueFormat(row[valueColumn])}`;
 }

@@ -100,3 +100,11 @@ test("a band axis ticks every band, or the card's ticks, written by the given fo
   assert.equal(tickOptions.label, null);
   assert.equal(tickOptions.tickRotate, 0);
 });
+
+test("a log axis that starts at or below zero fails, naming the axis and its domain, rather than never ending", () => {
+  assert.throws(() => axisTicks({ log: true, label: "Output tokens", domain: [0, 1000] }, []),
+    { name: "RangeError", message: /"Output tokens" has the domain \[0, 1000\]/ });
+  assert.throws(() => decadeTicks([0, 1000]), RangeError);
+  assert.throws(() => logAxisTicks([-1, 10]), RangeError);
+  assert.deepEqual(axisTicks({ log: true }, []), undefined); // no rows drawn: no range, Plot's own ticks
+});
