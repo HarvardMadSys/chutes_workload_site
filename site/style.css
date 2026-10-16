@@ -693,7 +693,8 @@ section[id] {
   background: var(--color-border);
 }
 
-.stats-grid li {
+.stats-grid li,
+.traffic-tiles li {
   min-width: 0;
   padding: 0.75rem 0.6rem;
   background: var(--color-surface);
@@ -705,11 +706,14 @@ section[id] {
 }
 
 .stats-grid strong,
-.stats-grid span {
+.stats-grid span,
+.traffic-tiles strong,
+.traffic-tiles span {
   display: block;
 }
 
-.stats-grid strong {
+.stats-grid strong,
+.traffic-tiles strong {
   font-family: var(--font-serif);
   font-size: 1.75rem;
   font-variant-numeric: tabular-nums;
@@ -718,7 +722,8 @@ section[id] {
   color: var(--color-accent);
 }
 
-.stats-grid span {
+.stats-grid span,
+.traffic-tiles span {
   margin-top: 0.2rem;
   font-size: var(--font-size-smallest);
   color: var(--color-text-faint);
@@ -885,6 +890,79 @@ section[id] {
 /* On a phone a donut's legend is one column, so a long model's name and its share keep one line. */
 @media (max-width: 30rem) {
   .donut-card .figure-legend {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------- Traffic Explorer ---------- */
+
+/* The explorer: its row of controls above its one wide card. */
+.traffic-explorer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+/* The period field is as wide as its buttons, and the drop-downs share the rest of the row. */
+.control-field.period-field {
+  flex: 0 0 auto;
+}
+
+/* The period buttons in one row, the chosen one in the accent. */
+.period-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+/* As tall as the drop-downs beside them, so the row of controls lines up. */
+.period-button {
+  box-sizing: border-box;
+  height: 2.375rem;
+}
+
+.period-button[aria-pressed="true"] {
+  color: var(--color-accent);
+  background: var(--color-accent-wash);
+  border-color: var(--color-accent);
+}
+
+/* The four tiles above the chart, parted by hairlines as the stats strip's numbers are: two a row on a narrower screen,
+   one under the other on a phone (below). */
+.traffic-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+  background: var(--color-border);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+}
+
+@media (max-width: 50rem) {
+  .traffic-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* On a phone the period field takes a row of its own, its buttons sharing it, closer to their text so all five fit. */
+@media (max-width: 40rem) {
+  .control-field.period-field {
+    flex: 1 1 100%;
+  }
+
+  .period-button {
+    flex: 1 1 auto;
+    padding-inline: 0.375rem;
+  }
+}
+
+@media (max-width: 30rem) {
+  .traffic-tiles {
     grid-template-columns: minmax(0, 1fr);
   }
 }

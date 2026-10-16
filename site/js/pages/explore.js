@@ -4,6 +4,7 @@
  */
 
 import { startPage } from "../explore/start.js";
+import { runTraffic } from "../explore/traffic.js";
 import { runTrends } from "../explore/trends.js";
 import { runMixes } from "../landing/donuts.js";
 import { mountCopyButtons, renderCiteLine } from "../landing/cite.js";
@@ -16,6 +17,7 @@ const SECTIONS = Object.freeze([
   Object.freeze({ id: "stats", run: runStats }),
   Object.freeze({ id: "mixes", run: runMixes }),
   Object.freeze({ id: "trends", run: runTrends }),
+  Object.freeze({ id: "traffic-explorer", run: runTraffic }),
 ]);
 
 renderTeam(document.querySelector("#team"));

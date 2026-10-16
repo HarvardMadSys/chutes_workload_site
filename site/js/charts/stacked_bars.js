@@ -7,7 +7,7 @@
  */
 
 import { AXIS_STYLE, BAR_INSET, chartFrame, colourScale, distinct, GRID_STYLE } from "../shared/charts.js";
-import { TICK_COUNT } from "../axes/ticks.js";
+import { axisWithTicks, TICK_COUNT } from "../axes/ticks.js";
 import { OTHER_NAME, SERIES_SLOTS } from "../theme/colours.js";
 import { seriesLegend, shownRows } from "../shared/series.js";
 
@@ -27,6 +27,10 @@ const KEY_SEPARATOR = "\u0000";
  * - `xLabel`: the x axis's title, none when null or not given; `xTickFormat`: how a tick is written, "" for an
  *   unlabelled one; `xTickRotate`: the angle of its ticks' labels in degrees, 0 (level) when not given, so that a
  *   label at every bar keeps clear of its neighbours.
+ * - `xDomain`: every bar's x value, in order, each keeping its place even where no shown row falls on it; the shown
+ *   rows' own x values when not given. `xTicks`: the x values ticked, every bar's when not given.
+ * - `inset`: the pixels taken off each side of a bar, `BAR_INSET` when not given; 0 where a bar is a pixel or two wide,
+ *   as a day's is over a year.
  * - `margins`: Plot margins in place of the frame's, where the bars should take more of the card's width.
  * - `labels`: each series' label in the tooltip where it is written otherwise than its name, as the legend's `labels`.
  * Required: the three columns, `valueLabel` and `valueFormat`.
@@ -35,6 +39,7 @@ const KEY_SEPARATOR = "\u0000";
 export async function drawStackedBars(rows, body, colours, parameters, hidden) {
   const { xColumn, seriesColumn, valueColumn, valueLabel, valueFormat } = parameters;
   const { xLabel = null, yLabel = null, xTickFormat, xTickRotate = 0, yTickFormat, margins, labels = {} } = parameters;
+  const { xDomain, xTicks, inset = BAR_INSET } = parameters;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
   const folded = foldedRows(rows, colours.series, { xColumn, seriesColumn, valueColumn });
@@ -42,18 +47,20 @@ export async function drawStackedBars(rows, body, colours, parameters, hidden) {
   const stacked = [...colours.series.keys()].filter((name) => shown.some((row) => row[seriesColumn] === name));
   const chart = Plot.plot({
     ...barsFrame(body, yLabel, margins),
-    x: { type: "band", domain: distinct(shown.map((row) => row[xColumn])) },
+    x: { type: "band", domain: xDomain ?? distinct(shown.map((row) => row[xColumn])) },
     color: colourScale(colours.series, stacked),
     marks: [
       Plot.gridY({ ...GRID_STYLE, ticks: TICK_COUNT }),
-      Plot.axisX({ ...AXIS_STYLE, tickFormat: xTickFormat, tickRotate: xTickRotate, label: xLabel }),
+      axisWithTicks(Plot.axisX, xTicks, {
+        ...AXIS_STYLE, tickFormat: xTickFormat, tickRotate: xTickRotate, label: xLabel,
+      }),
       Plot.axisY({ ...AXIS_STYLE, ticks: TICK_COUNT, tickFormat: yTickFormat, label: yLabel }),
       Plot.barY(shown, {
         x: xColumn,
         y: valueColumn,
         fill: seriesColumn,
         order: stacked, // the stacking order, bottom up
-        inset: BAR_INSET,
+        inset,
         title: (row) => barTipText(row, { xColumn, seriesColumn, valueColumn, valueLabel, valueFormat, labels }),
         tip: true,
       }),

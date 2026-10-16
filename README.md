@@ -170,11 +170,13 @@ site/              exactly the files that are deployed
   js/theme/        colours, the site's colours as the style tokens give them, and the colours every figure shares
   js/axes/         ticks, the ticks of every chart's axes: how many, and where a log, duration or week axis ticks
   js/pages/        one module per page: explore, session
-  js/explore/      the Explore page's start and sections: start (the page's start), trends,
-                   figure_sections (the figure runner), figure_rows (the row rules it applies to every figure: thin
-                   bins hidden, the line of rows), topic_tabs (the Insights' tabs, one topic shown at a time),
-                   legend (the legend of buttons that hides and shows a series), sessions_table, sessions_table_state
-                   (its columns and its state in the URL), and sessions_filter (its month and harness filter)
+  js/explore/      the Explore page's start and sections: start (the page's start), trends, traffic (the Traffic
+                   Explorer's controls, tiles and bars per day), traffic_filter (its choice in the URL, the rows it
+                   keeps and their sums), figure_sections (the figure runner), figure_rows (the row rules it applies
+                   to every figure: thin bins hidden, the line of rows), topic_tabs (the Insights' tabs, one topic
+                   shown at a time), legend (the legend of buttons that hides and shows a series), sessions_table,
+                   sessions_table_state (its columns and its state in the URL), and sessions_filter (its month and
+                   harness filter)
   js/figures/      one module per figure section (sessions, tokens, latency, tools, caching), the modules they take
                    figures from (sessions_ranked, tools_batching, caching_gaps, caching_cdfs)
   js/simulation/   the Prefix-caching section's figures of the cache simulation: prefill and costs
