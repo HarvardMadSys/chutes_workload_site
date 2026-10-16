@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chutes Production Trace</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+  <main class="page">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-grid">
+        <div id="hero" class="hero-copy"></div>
+        <div id="stats" class="stats-card"></div>
+      </div>
+    </section>
+    <section id="overview" class="overview" aria-labelledby="overview-title">
+      <div class="section-heading">
+        <h2 id="overview-title">Overview</h2>
+      </div>
+      <div id="mixes" class="donut-grid"></div>
+      <div id="trends" class="trend-grid"></div>
+    </section>
+    <section id="traffic" class="figure-section" aria-labelledby="traffic-heading">
+      <div class="section-heading">
+        <h2 id="traffic-heading">Traffic Explorer</h2>
+      </div>
+    </section>
+    <section id="insights" class="figure-sections" aria-labelledby="insights-title">
+      <div class="section-heading">
+        <h2 id="insights-title">Insights</h2>
+      </div>
+      <div id="topic-tabs" class="topic-tabs" role="tablist" aria-label="Topics"></div>
+      <section id="insights-overview" class="figure-section" role="tabpanel" aria-labelledby="tab-insights-overview">
+        <h2 id="overview-heading"><span class="topic-number" aria-hidden="true">01</span> Workload overview</h2>
+        <div class="card-grid"></div>
+      </section>
+      <section id="insights-tokens" class="figure-section" role="tabpanel" aria-labelledby="tab-insights-tokens">
+        <h2 id="tokens-heading"><span class="topic-number" aria-hidden="true">02</span> Token shape and latency</h2>
+        <div class="card-grid"></div>
+      </section>
+      <section id="insights-users" class="figure-section" role="tabpanel" aria-labelledby="tab-insights-users">
+        <h2 id="users-heading"><span class="topic-number" aria-hidden="true">03</span> Users and models</h2>
+        <div class="card-grid"></div>
+      </section>
+      <section id="insights-evolution" class="figure-section" role="tabpanel" aria-labelledby="tab-insights-evolution">
+        <h2 id="evolution-heading"><span class="topic-number" aria-hidden="true">04</span> Workload evolution</h2>
+        <div class="card-grid"></div>
+      </section>
+      <section id="insights-caching" class="figure-section" role="tabpanel" aria-labelledby="tab-insights-caching">
+        <h2 id="caching-heading"><span class="topic-number" aria-hidden="true">05</span> Prefix caching</h2>
+        <div class="card-grid"></div>
+      </section>
+      <section id="insights-balancing" class="figure-section" role="tabpanel" aria-labelledby="tab-insights-balancing">
+        <h2 id="balancing-heading"><span class="topic-number" aria-hidden="true">06</span> Load balancing</h2>
+        <div class="card-grid"></div>
+      </section>
+    </section>
+    <section id="cite" class="section cite" aria-labelledby="cite-title">
+      <div>
+        <h2 id="cite-title">Cite</h2>
+      </div>
+      <div class="cite-copy-column">
+        <p id="cite-line">If the trace supports your work, please cite the paper that introduces it.</p>
+        <figure class="cite-block">
+          <figcaption>
+            <span>BibTeX · Chutes Production Trace</span>
+            <button class="cite-copy" type="button" data-copy="bibtex" hidden>Copy</button>
+          </figcaption>
+          <pre id="bibtex"><code>@misc{nixon2026year,
+  title        = {A Year in LLM Serving: Workload Evolution, Caching
+                  and Load-Balancing},
+  author       = {Nixon, William and Tian, Muxin and Zheng, Yunjia
+                  and Gunawi, Haryadi S. and Yang, Juncheng},
+  year         = {2026},
+  eprint       = {2608.13573},
+  howpublished = {\url{https://arxiv.org/abs/2608.13573}}
+}</code></pre>
+        </figure>
+      </div>
+    </section>
+    <section id="team" class="section team" aria-labelledby="team-title"></section>
+  </main>
+  <footer id="site-footer" class="site-footer"></footer>
+  <script type="module" src="js/pages/explore.js"></script>
+</body>
+</html>

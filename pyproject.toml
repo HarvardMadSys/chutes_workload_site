@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chutes-site"
+version = "0.1.0"
+description = "The Chutes production trace, visualized: a static site that draws a year of LLM serving and the paper's figures."
+requires-python = ">=3.12"
+dependencies = [
+    "pyarrow>=25",       # the artifact's caches are Parquet, read by site_data/loading.py
+    "pandas>=3",         # the caches are read into data frames
+    "duckdb>=1.3",       # runs the site's queries over the caches' rows, for make data's answers and for the tests
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=9",
+    "playwright==1.63.0",  # the Chromium the snapshots are written with; make setup-browser installs it
+]
+
+[tool.setuptools.packages.find]
+include = ["site_data*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

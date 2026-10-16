@@ -1,6 +1,10 @@
 .venv/
 node_modules/
 __pycache__/
+*.egg-info/
+.pytest_cache/
+.claude/
+.wrangler/
 .superpowers/
 .worktrees/
 .env
