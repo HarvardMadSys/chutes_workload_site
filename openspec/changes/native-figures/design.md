@@ -1,0 +1,149 @@
+# Design: Native, interactive figures
+
+## The engineering rules
+
+Binding, as `openspec/config.yaml` and the `site` spec state them: simple,
+readable and maintainable first; no optimisation without a recorded
+measurement; plain HTML, CSS and ES modules with CDN libraries at pinned
+versions; names that are words; a function at most 50 lines, a module at
+most 300, a folder at most nine modules; SQL as one literal per `.sql`
+file; every module tested and `make test` green at every commit. The
+artifact repository keeps its own pattern: one `reproduce.py` per paper
+section, query results cached as Parquet under a name, committed when
+small.
+
+## Decisions
+
+### D1. The artifact owns a plot-ready table per figure
+
+Each `paper/<section>/reproduce.py` gains, for every figure it draws, one
+function that builds the figure's plotdata and caches it as
+`plotdata/<figure>.parquet` through a `cached_frame(name, build)` helper
+in `paper/_common.py`, beside `cached_query`; the figure's draw function
+takes that frame. The three external figures' generators do the same.
+`paper/_paths.py` gains `PLOTDATA_DIR` (`output/paper/plotdata/`, seeded
+from the committed `data/paper/plotdata/` as the caches are), and
+`check_figures.py` also lists every figure of `config/figures.json`
+without a plotdata file. Every plotdata file is committed: the largest,
+the Qwen raster, is expected under 1 MB (measured below).
+
+The plotdata is the plotted frame: for a line, its points; for a CDF, its
+steps; for a band, the month and its five quantiles; for a heatmap, its
+cells. Where the script computed the frame at draw time (the seasonality's
+division by days per weekday, the top-ten share with its TEE merge, the
+cohort quantiles, the hourly resamples, the boxplot statistics, the
+routing panel (d)'s imbalance), that computation moves into the plotdata
+function and the draw function only draws. A figure of a point cloud (the
+seven hexbins, the two load-balancing P90 hexbins, the four rasters) gets
+the cloud binned: the hexbins on a log grid of the paper's cell count per
+axis with the paper's extent and `mincnt`, each cell its count or its P90;
+the rasters as one row per (row index, hour of the window) with the
+requests in that hour. The paper's PDF of a hexbin keeps matplotlib's
+hexagons from the points; the plotdata is the same points on square
+cells. The share legend's plotdata is the eleven series in order.
+
+*Alternative rejected:* the site re-deriving the frames from the caches in
+SQL. Half the figures compute something at draw time, so the site would
+hold a second copy of each definition, with nothing to say when the two
+drift; sixteen figures have no committed cache at all. One table per
+figure, written by the figure's own script, is the one home.
+
+*Alternative rejected:* hexagon cells computed by matplotlib's `hexbin`
+on a throwaway axes. It preserves the paper's picture but depends on a
+drawing call for data, and the site would draw hexagons as sized dots
+whose radius follows the chart's pixel width. Square log-grid cells are a
+plain `GROUP BY` and draw as rectangles.
+
+### D2. One column contract per chart kind
+
+A plotdata file's columns say what kind of chart it is; the site's data
+step copies them to JSON unchanged, and a node test checks every card's
+answer against its kind. The kinds and their columns:
+
+| Kind | Columns | Figures |
+|---|---|---|
+| `lines` | `series`, `x`, `y`; optional `panel` | the daily lines (4), the hourly load-balancing lines (3), the two cache-size sweeps, the TTL coverage, the routing panels (a)–(d) |
+| `cdf` | `series`, `x`, `cdf` | the eight CDFs less the TTL coverage |
+| `bands` | `x`, `p10`, `p25`, `p50`, `p75`, `p90` | the two monthly token bands, the two cohort bands, the monthly IAT band |
+| `cells` | `x_low`, `x_high`, `y_low`, `y_high`, `value` | the seasonality (hour × weekday), the three latency grids, the six density hexbins, the two P90 hexbins, the concurrency heatmap |
+| `raster` | `x`, `y`, `value` (integer grid positions) | the four access rasters |
+| `scatter` | `x`, `y`, `value` | the burstiness autocorrelation |
+| `boxes` | `series`, `low`, `q1`, `median`, `q3`, `high`, `count` | the per-user IAT boxplot |
+| `bars` | `series`, `x`, `value`; optional `panel` | the two user zooms (panels `request_share`, `token_hit`) |
+| `stacked_bars` | `series`, `x`, `value` | the two monthly shares |
+| `legend` | `series`, `rank` | the share legend |
+
+A categorical axis (weekday, instance index, month) is carried as its
+label or integer; a numeric axis as its value, and the card says whether
+the scale is log. A `panel` column splits one answer into the panels of a
+multi-panel figure.
+
+### D3. Nine chart modules
+
+`site/js/charts/` holds one module per kind that draws: `donut` and
+`stacked_bars` (existing), `lines` (also the CDFs: a `cdf` answer is a
+`lines` draw with the y axis as a share), `bands`, `cells`, `raster`,
+`scatter`, `boxes` and `bars`: nine, the folder's ceiling. `lines` and
+`bands` start from the agentic site's `cdf.js` and `ranges.js` (in that
+repository's history), adapted. Every module takes the answer's rows, the
+card's axes and the colour scale, and returns a Plot figure with a
+tooltip (`Plot.tip` on the pointer) on every mark but the raster, which
+is drawn with `Plot.raster` on a canvas and takes no tooltip. Axes use
+the site's tick helpers; a log axis is Plot's `type: "log"` with the
+paper's limits where the card gives them.
+
+### D4. A card names its figure, kind and axes
+
+A card in `site/js/insights/<topic>.js` keeps its copy fields and
+replaces `image` and `cache` with `figure` (the answer's name), `kind`,
+and `axes` (`x` and `y`: label, `log` where the paper's axis is, and
+`format` for the tick labels), plus `panels` (the panel values in order
+with each panel's axes) for a multi-panel figure. The two share cards
+name the legend answer as their series order. The Definition control
+shows the definition, a link to the plotdata file in the artifact on
+GitHub and the section README link. `figure_card.js` and
+`figure_sections.js` move to `js/insights/`, where they belong and where
+there is room; `js/explore/` keeps the start, the tabs, the trends, the
+legend and the explorer.
+
+### D5. The data step converts plotdata to answers
+
+`site_data/figure_answers.py` reads, for every figure of
+`config/figures.json`, `data/paper/plotdata/<figure>.parquet` and writes
+`site/data/all/figures/<figure>.json` as rows, plus `all/figures.json`
+listing each figure's row count, as the repository test's record of what
+is whole. It stops naming the first missing plotdata file and writes
+nothing. No query runs: the answer is the table. `figure_images.py`,
+pypdfium2, Pillow, `site/figures/`, the images' index, `readFigureIndex`
+and the white figure panel are deleted.
+
+### D6. Drawing
+
+A topic's answers are fetched and its cards drawn when the topic is
+first shown, as today; a card shows the loading mark until its answer
+arrives and its error in its place when the answer cannot be fetched. A
+card's chart is drawn at the card's width. Series colours come from the
+theme: the three highlighted models (DeepSeek V3.2, DeepSeek R1, MiniMax
+M2.5) and "Global" get fixed entries in `shared/series.js`, so they look
+the same on every card; other series take the palette in the answer's
+order. Legends with more than one series toggle, as the Overview's do.
+
+### D7. Tests
+
+Python: a fixture artifact with one plotdata per kind; `figure_answers`
+writes the fixture's answers and a test compares each answer with its
+Parquet rows; a missing plotdata stops the step. Node: every card's
+`kind` is one of the nine and its shipped answer has the kind's columns
+(read from `site/data`); every chart module draws its fixture rows; the
+word-count test unchanged. Snapshot: each card's unit is the chart's
+series names, legend texts and tick labels instead of the image's source
+and size. The repository test checks `all/figures.json` against the
+tracked answers and, when `ARTIFACT` is set, every answer against a
+rebuild. The deploy workflow fetches one figure answer instead of a PNG.
+
+## Measurements to record when the data is first built
+
+The answers' total size and the largest answer (expected under 3 MB and
+under 1 MB), the plotdata files' total size in the artifact, the time of
+`make data`, and the time to draw the Users and models topic, the one
+with the rasters.
