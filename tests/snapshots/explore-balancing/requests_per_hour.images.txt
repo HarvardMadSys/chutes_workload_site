@@ -1,1 +1,0 @@
-figures/fig_lb_request_rate.png | width=524 | height=445

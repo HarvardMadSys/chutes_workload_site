@@ -1,0 +1,3 @@
+name: Popularity and burstiness: Most models are bursty and persistently so.
+x-axis: 10 | 100 | 1k | 10k | 100k
+y-axis: 0.1 | 1 | 10

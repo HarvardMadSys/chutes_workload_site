@@ -1,1 +1,0 @@
-figures/fig_request_token_hit_rate_cdf_by_model.png | width=564 | height=485

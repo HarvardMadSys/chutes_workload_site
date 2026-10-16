@@ -1,1 +1,0 @@
-figures/fig_monthly_input_token_intervals.png | width=565 | height=485

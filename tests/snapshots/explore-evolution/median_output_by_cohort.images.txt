@@ -1,1 +1,0 @@
-figures/fig_user_release_cohort_output_band.png | width=564 | height=485

@@ -1,10 +1,11 @@
 """The states of a snapshot, and the units read from each in the browser: each unit is one block a visitor sees (a
-chart, a legend, a block of text, a card's images), returned as the text written to its file, `<state>/<unit>.txt`.
+chart, a legend, a block of text), returned as the text written to its file, `<state>/<unit>.txt`.
 
 Text units hold one line per entry, whitespace collapsed: a card's texts as `label: text`, a legend's entries as `text
-| pressed=… | mark`, an image as `src | width=… | height=…`, a control's choice as `field: choice | selected=…`, an axis
-as `x-axis: label | label …`. A chart's SVG is written one element per line with Plot's numbered ids made plain, so
-`git diff` shows which element changed. Colours are recorded as the CSS tokens the page names (`var(--series-5)`), so a
+| pressed=… | mark`, a control's choice as `field: choice | selected=…`, an axis as `x-axis: label | label …`. An
+Overview chart's SVG is written one element per line with Plot's numbered ids made plain, so `git diff` shows which
+element changed; an Insights card's chart, which may hold thousands of cells, is written as its accessible name
+(`name: …`) and its axes' tick labels. Colours are recorded as the CSS tokens the page names (`var(--series-5)`), so a
 series moved to another colour slot is caught. Every reading function takes a Playwright page or locator and reads it
 as it is now; this module imports no Playwright itself.
 """
@@ -49,7 +50,8 @@ LEGEND_MARK = ".legend-swatch"  # the colour mark inside a legend entry
 # A chart is an SVG element drawn in a figure's body that is not inside another SVG.
 CHART = ".figure-body svg:not(svg svg)"
 
-FIGURE_IMAGES = ".figure-body img"  # an Insights card's figure image, and its legend image where it has one
+# A chart the page has named for a screen reader: an Insights card's, or each of its panels'.
+NAMED_CHART = '.figure-body svg[role="img"]'
 
 # A chart's tick labels along one axis: Plot labels the group "x-axis tick label" or "y-axis tick label".
 AXIS_TICK_LABELS = 'g[aria-label$="axis tick label"]'
@@ -105,14 +107,10 @@ def legend_lines(scope) -> str:
     return "\n".join(lines)
 
 
-def image_lines(scope) -> str:
-    """One line per figure image inside `scope`: its source and the width and height it is shown at."""
-    lines = []
-    for image in scope.locator(FIGURE_IMAGES).all():
-        width = image.get_attribute("width")
-        height = image.get_attribute("height")
-        lines.append(f"{image.get_attribute('src')} | width={width} | height={height}")
-    return "\n".join(lines)
+def chart_name_lines(scope) -> str:
+    """One line per named chart inside `scope`: its accessible name, `name: Title: insight`."""
+    names = scope.locator(NAMED_CHART).evaluate_all("charts => charts.map((chart) => chart.getAttribute('aria-label'))")
+    return "\n".join(f"name: {plain_text(name)}" for name in names)
 
 
 def axis_lines(scope) -> str:
@@ -126,7 +124,7 @@ def axis_lines(scope) -> str:
 
 
 def figure_units(scope, name: str) -> dict[str, str]:
-    """A figure's units under `name`: its texts, and where it has them its legend, its charts and its images."""
+    """An Overview figure's units under `name`: its texts, and where it has them its legend and its charts' SVG."""
     units = {f"{name}.texts": labelled_texts(scope, CARD_TEXTS)}
     legend = legend_lines(scope)
     if legend:
@@ -134,21 +132,30 @@ def figure_units(scope, name: str) -> dict[str, str]:
     charts = scope.locator(CHART).evaluate_all("charts => charts.map((chart) => chart.outerHTML)")
     if charts:
         units[f"{name}.chart"] = "\n".join(markup_lines(chart) for chart in charts)
-    images = image_lines(scope)
-    if images:
-        units[f"{name}.images"] = images
     return units
 
 
-def cards_units(cards) -> dict[str, str]:
-    """The units of every card `cards` matches, each card's under its title's name; two cards may not share a title."""
+def figure_card_units(scope, name: str) -> dict[str, str]:
+    """An Insights card's units under `name`: its texts, its legend where it has one (its series' names), and its
+    chart: the chart's accessible name, then its axes' tick labels."""
+    units = {f"{name}.texts": labelled_texts(scope, CARD_TEXTS)}
+    legend = legend_lines(scope)
+    if legend:
+        units[f"{name}.legend"] = legend
+    units[f"{name}.chart"] = chart_name_lines(scope) + "\n" + axis_lines(scope)
+    return units
+
+
+def cards_units(cards, card_units) -> dict[str, str]:
+    """The units of every card `cards` matches, each card's read by `card_units` under its title's name; two cards may
+    not share a title."""
     units = {}
     for card in cards.all():
         title = card.locator(".figure-title").inner_text()
         name = unit_name(title)
         if f"{name}.texts" in units:
             raise SharedTitleError(f"two cards are titled {title!r}; their units would share files")
-        units.update(figure_units(card, name))
+        units.update(card_units(card, name))
     return units
 
 
@@ -160,7 +167,7 @@ def topic_units(page, topic: str) -> dict[str, str]:
     section = page.locator(f"#{topic}")
     heading = labelled_texts(section, (("heading", "h2"), ("takeaway", ".topic-takeaway")))
     units = {"topic.texts": "\n".join(tabs) + "\n" + heading}
-    units.update(cards_units(section.locator(".card-grid > .card")))
+    units.update(cards_units(section.locator(".card-grid > .card"), figure_card_units))
     return units
 
 
@@ -217,6 +224,6 @@ def explore_page_units(page) -> dict[str, str]:
         "team": "\n".join(text_lines(page.locator("#team"))),
         "footer": "\n".join(text_lines(page.locator("#site-footer"))),
     }
-    units.update(cards_units(page.locator("#mixes > .card, #trends > .card")))
+    units.update(cards_units(page.locator("#mixes > .card, #trends > .card"), figure_units))
     units.update(traffic_units(page))
     return units

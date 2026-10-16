@@ -2,4 +2,4 @@ title: Monthly output intervals
 insight: Output lengths show a clearer downward trend than input lengths.
 caption: The median falls from a few hundred tokens early in the trace to below one hundred near the end, and wider bands show greater variation.
 definition: Output tokens per request in each month: the median, and bands from the 25th to the 75th and from the 10th to the 90th percentile.
-rows: Cache: monthly_token_percentiles.parquet, shipped in data/paper/cache/
+rows: The plot-ready table · data/paper/plotdata/fig_monthly_output_token_intervals.parquet — How it is computed · the artifact on GitHub

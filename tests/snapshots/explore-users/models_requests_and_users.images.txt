@@ -1,1 +1,0 @@
-figures/fig_model_requests_vs_users_density.png | width=618 | height=483

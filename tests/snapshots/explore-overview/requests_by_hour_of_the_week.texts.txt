@@ -2,4 +2,4 @@ title: Requests by hour of the week
 insight: Weekly and diurnal patterns persist throughout.
 caption: Traffic is highest during UTC afternoon and evening hours, especially on weekdays, and lower during overnight hours and weekends.
 definition: Average requests in each hour of the week, by weekday and hour of day, in millions. Each weekday's total is divided by the number of days that fall on that weekday.
-rows: Cache: hour_of_week_requests.parquet, with daily_requests.parquet for the weekdays' day counts, both shipped in data/paper/cache/
+rows: The plot-ready table · data/paper/plotdata/fig_seasonality.parquet — How it is computed · the artifact on GitHub

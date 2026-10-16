@@ -123,8 +123,10 @@ of time; the browser runs no query, it fetches the answers and draws them.
   `data/paper/plotdata/<figure>.parquet`, each written by
   `site_data/figure_answers.py` as `site/data/all/figures/<figure>.json`
   column for column, with no query, rounding or renaming, and each one's
-  row count in `site/data/all/figures.json`. The cards do not draw them
-  yet; they show the images below.
+  row count in `site/data/all/figures.json`. Each card of the Insights
+  draws its figure from its answer with the chart kind it names
+  (`site/js/insights/figure_card.js`), the series of the global rows and
+  of the three highlighted models in one colour on every card.
 - **The figure images** are the artifact's own PDFs, every one its
   `config/figures.json` lists, rendered to PNG by
   `site_data/figure_images.py` at about twice the width a card shows them,
@@ -256,12 +258,13 @@ site/                exactly the files that are deployed
   js/pages/explore.js
                      the page's module: it names the page's sections and starts the page
   js/shared/         what the page's parts share
-    answers.js       reads an answer by its query's name, and the figure images' index
+    answers.js       reads an answer by its query's name, a figure's among them
     libraries.js     the one module that names a library URL: Observable Plot, at a pinned version
     charts.js        a chart's frame and ink, the loading and error states, the figure card's layout
     format.js        numbers and dates as the page writes them
     layout.js        the header and the footer
-    series.js        a chart's shown rows and its legend; the models, the endpoint groups and the families as series
+    series.js        a chart's shown rows and its legend; the models, the endpoint groups and the families as series;
+                     the figure cards' fixed colours
     scrolling_row.js
                      a row that scrolls sideways, as the Insights' tabs do on a phone
   js/charts/         the chart kinds
@@ -294,10 +297,11 @@ site/                exactly the files that are deployed
                      choice, its URL keys and its sums
     legend.js        the legend of buttons that hides and shows a series
     topic_tabs.js    the Insights' tabs, one topic shown at a time, the shown one in the URL's hash
+  js/insights/       the figure cards and the topics
     figure_sections.js, figure_card.js
-                     the six topics in the order of their tabs; a card and its image
-  js/insights/       one module per topic: its takeaway and its cards' words
+                     the six topics in the order of their tabs; a card, its chart drawn from its answer by its kind
     overview.js, tokens.js, users.js, evolution.js, caching.js, balancing.js
+                     one module per topic: its takeaway, its cards' words, kinds and charts' parameters
   queries/           one .sql file per answer or table
     explore/         the eight queries make data answers, one answer each, daily_by_model's one per family
     setup/top_models.sql
@@ -325,7 +329,7 @@ tests/               what make test runs
                      answer current, and with ARTIFACT the answers, the figure answers, the images and their
                      indexes the same bytes as a rebuild
   test_figures_registry.py
-                     with ARTIFACT, the Insights' cards show every figure the artifact lists, and no other
+                     with ARTIFACT, every figure the artifact lists is one card's, or the share cards' legend
   test_repository.py
                      the countable rules of CONTRIBUTING.md and the files git tracks
   test_deployment.py
@@ -333,14 +337,16 @@ tests/               what make test runs
   test_readme.py     every path this layout names exists
   snapshot.py, snapshot_units.py, test_snapshot.py, test_snapshot_units.py
                      the snapshot test: the page opened at each of the six topics in headless Chromium, each
-                     unit it shows (a chart, a legend, a block of text, a card's images) read as text and
-                     compared with tests/snapshots/
+                     unit it shows (a chart, a legend, a block of text, a card's chart's name and ticks) read as
+                     text and compared with tests/snapshots/
   snapshots/         one folder per page state, one text file per unit, rewritten by make snapshots
   *.test.js          node --test: one file per JavaScript module with pure functions, named after the module it
                      tests (explore_traffic.test.js for explore/traffic.js), and the checks of the whole page
                      below
   figure_words.test.js
                      the word counts of every card's insight, caption and definition, and of each takeaway
+  insights_figure_cards.test.js
+                     every card's kind, and its shipped answer holding that kind's columns
   fake_page.js       the stand-ins for an element, the topic sections and the browser's history that the
                      node tests drive the page's modules with
   palette_contrast.test.js, palette.js

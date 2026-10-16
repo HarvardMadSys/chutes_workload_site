@@ -2,4 +2,4 @@ title: Eviction algorithms on MiniMax-M2.5
 insight: Simple eviction policies are already highly competitive for LLM prefix caching.
 caption: MiniMax-M2.5 is cache-friendly: its hit ratio increases quickly, and most policies approach the size-aware Belady oracle at moderate cache sizes.
 definition: Token hit ratio (1 minus the byte miss ratio) against cache size in tokens, for seven eviction algorithms in libCacheSim replaying MiniMax-M2.5's reconstructed sessions.
-rows: Cache: data/caching/results.txt, the libCacheSim sweep's results, committed in the artifact
+rows: The plot-ready table · data/paper/plotdata/fig_hit_ratio_minimax_m25.parquet — How it is computed · the artifact on GitHub

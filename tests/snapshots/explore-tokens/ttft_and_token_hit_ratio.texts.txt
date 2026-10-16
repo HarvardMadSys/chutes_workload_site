@@ -2,4 +2,4 @@ title: TTFT and token hit ratio
 insight: Caching cuts TTFT most aggressively on long-input requests.
 caption: For requests with similar input length, higher token hit ratios correspond to lower TTFT. For short inputs, even near-full cache hits remove little prefill work.
 definition: Median time to first token over buckets of input tokens and token hit ratio, the share of a request's input tokens served from the prefix cache.
-rows: Cache: this section's query results, every one shipped in data/paper/cache/
+rows: The plot-ready table · data/paper/plotdata/fig_ttft_heatmap_input_cached.parquet — How it is computed · the artifact on GitHub

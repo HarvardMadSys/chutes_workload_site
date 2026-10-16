@@ -2,4 +2,4 @@ title: Periodic user usage
 insight: Heavy users differ in how broadly they access models.
 caption: This user repeatedly accesses a small and stable set of models across the window; some are used throughout, others more periodically.
 definition: Thirty-one days of one heavy user, the 190th by requests in the window: one row per model, a mark for each request.
-rows: Cache: the raster tables (29 MB for the four), not shipped: built from the trace into output/paper/cache/ on the first run
+rows: The plot-ready table · data/paper/plotdata/fig_user_raster_periodic.parquet — How it is computed · the artifact on GitHub

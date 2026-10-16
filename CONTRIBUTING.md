@@ -113,7 +113,7 @@ checks that each path it names exists.
   before. `explore/start.js` is the page's one listener of `popstate`
   (`followHistory`): on Back or Forward it shows the entry's topic, draws
   the header from the entry's query and tells each section that asked
-  through `context.onReturn`. `explore/figure_sections.js` lists the topics in
+  through `context.onReturn`. `insights/figure_sections.js` lists the topics in
   `FIGURE_SECTIONS`, one module each in `js/insights/`, and `index.html`
   holds, under the Insights heading and its `#topic-tabs` row, a section
   with a heading and a card grid for each, its id the topic's anchor. A
@@ -224,7 +224,7 @@ each do one job.
 **A figure card.** Every figure of the Insights is the paper's own image,
 shown by one frozen card object of the fields below, and of no other:
 `CARD_FIELDS` and `OPTIONAL_CARD_FIELDS` in
-`tests/explore_figure_sections.test.js` list them. A topic is `{ selector,
+`tests/insights_figure_sections.test.js` list them. A topic is `{ selector,
 takeaway, cards }`, its `takeaway` the topic's finding in one sentence of
 at most twenty words, written under its heading.
 
@@ -250,7 +250,7 @@ at most twenty words, written under its heading.
 
 A line of words that is not the paper's own carries a `// placeholder:`
 comment above it, for the authors to review.
-`explore/figure_card.js` draws the card: the image at half its pixel size,
+`insights/figure_card.js` draws the card: the image at half its pixel size,
 with `width` and `height` so the page does not jump while it loads, on a
 white panel in the dark scheme, linked to itself at full size; nothing on
 it is interactive.
@@ -276,7 +276,7 @@ card's words.
    commit `site/figures` with the change.
 2. **The card**, in its topic's module of `js/insights/`, in the paper's
    order. Raise its topic's count in `CARD_COUNTS` of
-   `tests/explore_figure_sections.test.js`, which also checks that the
+   `tests/insights_figure_sections.test.js`, which also checks that the
    cards show every image of the index once (the shared legend twice); `tests/figure_words.test.js` counts the
    words of its insight, caption and definition; and, with `ARTIFACT`,
    `tests/test_figures_registry.py` checks that the cards show every figure

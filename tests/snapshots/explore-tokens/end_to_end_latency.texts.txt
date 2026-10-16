@@ -2,4 +2,4 @@ title: End-to-end latency
 insight: Models can be latency-bound for different reasons.
 caption: End-to-end latency spans several orders of magnitude, from sub-second requests to requests lasting tens of seconds. DeepSeek R1 has the longest, consistent with its long outputs.
 definition: Share of requests whose end-to-end latency is at most this many seconds, over all requests and for the three highlighted models.
-rows: Cache: this section's query results, every one shipped in data/paper/cache/
+rows: The plot-ready table · data/paper/plotdata/fig_latency_e2e_cdf_by_model.parquet — How it is computed · the artifact on GitHub

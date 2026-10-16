@@ -2,4 +2,4 @@ title: Eviction algorithms on DeepSeek V3.2
 insight: Cache effectiveness is workload-dependent.
 caption: DeepSeek V3.2 is more cache-constrained: its hit ratio increases gradually with cache size, and practical policies remain below the Belady oracle even at large capacities.
 definition: Token hit ratio (1 minus the byte miss ratio) against cache size in tokens, for seven eviction algorithms in libCacheSim replaying DeepSeek V3.2's reconstructed sessions.
-rows: Cache: data/caching/results.txt, the libCacheSim sweep's results, committed in the artifact
+rows: The plot-ready table · data/paper/plotdata/fig_hit_ratio_deepseek_v32.parquet — How it is computed · the artifact on GitHub

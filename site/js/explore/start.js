@@ -1,8 +1,8 @@
 /**
  * The Explore page's start: it places the Insights' cards and draws their topic tabs, draws the header and the footer,
- * then runs the page's sections, once, from their answer files. The topics (`explore/figure_sections.js`) are shown
- * one at a time behind the tabs of the `#topic-tabs` row (`explore/topic_tabs.js`); a topic's figure images are drawn
- * the first time it is shown, so a topic never shown requests none.
+ * then runs the page's sections, once, from their answer files. The topics (`insights/figure_sections.js`) are shown
+ * one at a time behind the tabs of the `#topic-tabs` row (`explore/topic_tabs.js`); a topic's figures are drawn from
+ * their answers the first time it is shown, so a topic never shown requests none.
  *
  * The page's module names its sections, each `{ id, run }`: the id of its place in `index.html` and the function that
  * runs it, which shows its loading state at once and then draws its answer. A section runs as `run(container,
@@ -17,11 +17,10 @@
  *   show its topic and the header takes its query; this module is the page's one listener of `popstate`.
  */
 
-import { readAnswer, readFigureIndex } from "../shared/answers.js";
-import { showError } from "../shared/charts.js";
+import { readAnswer } from "../shared/answers.js";
 import { mountHeader, renderFooter, queryString } from "../shared/layout.js";
-import { drawFigureImage, newCardElement, renderFigureCard } from "./figure_card.js";
-import { FIGURE_SECTIONS } from "./figure_sections.js";
+import { drawFigureChart, newCardElement, renderFigureCard } from "../insights/figure_card.js";
+import { FIGURE_SECTIONS } from "../insights/figure_sections.js";
 import { mountTopicTabs } from "./topic_tabs.js";
 
 /**
@@ -51,22 +50,18 @@ export function followHistory(showEntryTopic) {
 }
 
 /**
- * Write each topic's takeaway and place its cards, each card's image loading, then draw the topic tabs; return the
- * tabs' `showEntryTopic`. A topic's images are drawn the first time it is shown (`drawShownTopic`), from the images'
- * index, which is read once.
+ * Write each topic's takeaway and place its cards, each card's chart loading, then draw the topic tabs; return the
+ * tabs' `showEntryTopic`. A topic's charts are drawn the first time it is shown (`drawShownTopic`).
  */
 function mountInsights() {
-  const sizes = readFigureIndex();
-  // Each card that awaits the index shows a failure in its own place, not here.
-  sizes.catch(() => undefined);
   const topics = FIGURE_SECTIONS.map(placeTopic);
   const drawnSections = new Set();
-  const drawShown = () => drawShownTopic(topics, drawnSections, sizes);
+  const drawShown = () => drawShownTopic(topics, drawnSections);
   return mountTopicTabs(document.querySelector("#topic-tabs"), FIGURE_SECTIONS, drawShown);
 }
 
 /**
- * Write `topic`'s takeaway under its heading and place its cards in its grid, each with its words and its image's place
+ * Write `topic`'s takeaway under its heading and place its cards in its grid, each with its words and its chart's place
  * loading; return `{ section, cards }`, its section element and its cards, each `{ card, body }`.
  */
 function placeTopic(topic) {
@@ -86,24 +81,17 @@ function placeTopic(topic) {
 }
 
 /**
- * Draw the images of the topic of `topics` shown now, unless `drawnSections` holds its section, which it then does;
- * `sizes` is the promised images' index. If the index cannot be read, each of the topic's cards shows the error.
+ * Draw the charts of the topic of `topics` shown now, unless `drawnSections` holds its section, which it then does;
+ * each card reads its answer and shows its own error where it cannot.
  */
-async function drawShownTopic(topics, drawnSections, sizes) {
+function drawShownTopic(topics, drawnSections) {
   const shown = topics.find((topic) => !topic.section.hidden);
   if (drawnSections.has(shown.section)) {
     return;
   }
   drawnSections.add(shown.section);
-  try {
-    const imageSizes = await sizes;
-    for (const { card, body } of shown.cards) {
-      drawFigureImage(body, card, imageSizes);
-    }
-  } catch (error) {
-    for (const { body } of shown.cards) {
-      showError(body, error);
-    }
+  for (const { card, body } of shown.cards) {
+    drawFigureChart(body, card);
   }
 }
 

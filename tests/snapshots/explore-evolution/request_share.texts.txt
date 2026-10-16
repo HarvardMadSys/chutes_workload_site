@@ -2,4 +2,4 @@ title: Request share
 insight: Dominant models turn over.
 caption: Early traffic is dominated by DeepSeek models such as DeepSeek-V3-0324 and DeepSeek-R1. Their shares decline, while newer models such as Qwen3-32B and DeepSeek-V3.2 become more prominent.
 definition: Each month's share of requests among the ten most requested models, a model and its TEE variant counted as one, and Others for the rest.
-rows: Cache: monthly_requests_tokens_by_model.parquet, shipped in data/paper/cache/
+rows: The plot-ready table · data/paper/plotdata/fig_top10_model_monthly_request_share.parquet — How it is computed · the artifact on GitHub

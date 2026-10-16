@@ -2,4 +2,4 @@ title: Output tokens
 insight: Highlighted models show distinct usage profiles.
 caption: Output sizes are more concentrated, mostly between 10¹ and 10³ tokens. DeepSeek R1 has heavier output, consistent with reasoning workloads that generate longer completions.
 definition: Share of requests with at most this many output tokens, over all requests and for the three highlighted models.
-rows: Cache: this section's query results, every one shipped in data/paper/cache/
+rows: The plot-ready table · data/paper/plotdata/fig_token_length_output_cdf_by_model.parquet — How it is computed · the artifact on GitHub

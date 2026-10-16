@@ -1,1 +1,0 @@
-figures/fig_model_median_input_output_heatmap.png | width=617 | height=482

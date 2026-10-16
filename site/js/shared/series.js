@@ -1,7 +1,8 @@
 /**
  * A chart's series: the column naming a row's series, a series' label, the rows of the series its legend does not hide
  * (of one panel, for a figure's answer), and the legend itself, `{ series, colours }`, the series it lists, each
- * `{ name, label }`, and their colours, a Map from name to colour. These are plain functions, tested with
+ * `{ name, label }`, and their colours, a Map from name to colour; and a figure card's colours, the global series and
+ * the three highlighted models in one fixed colour each on every card. These are plain functions, tested with
  * `node --test`.
  *
  * And the kinds of series the Overview and the Traffic Explorer draw, the models, the endpoint groups and the
@@ -13,7 +14,7 @@
  */
 
 import { panelRows } from "./charts.js";
-import { endpointColours, familyColours, modelColours } from "../theme/colours.js";
+import { endpointColours, familyColours, modelColours, OTHER_SERIES, SERIES_SLOTS } from "../theme/colours.js";
 
 /** The column of a figure's answer naming each row's series. */
 export const SERIES_COLUMN = "series";
@@ -48,6 +49,39 @@ export const ENDPOINT_SERIES = Object.freeze({
   colours: endpointColours,
   labels: ENDPOINT_LABELS,
 });
+
+/**
+ * The series every figure card draws in one colour, by their names in the figure answers: the global series in the
+ * text's ink, as the paper draws it in black, and the three highlighted models in the first three series slots.
+ */
+export const FIXED_SERIES_COLOURS = Object.freeze({
+  Global: "var(--color-text)",
+  "DeepSeek V3.2": SERIES_SLOTS[0],
+  "Deepseek R1": SERIES_SLOTS[1],
+  "Minimax M2.5": SERIES_SLOTS[2],
+});
+
+/**
+ * A figure card's colours: a Map from each of `names`, in their order, to its colour, `FIXED_SERIES_COLOURS`' where it
+ * has one there, else the next series slot that no fixed series of `names` takes, and `OTHER_SERIES` once the slots
+ * run out.
+ */
+export function figureColours(names) {
+  const fixed = names.filter((name) => Object.hasOwn(FIXED_SERIES_COLOURS, name));
+  const takenSlots = new Set(fixed.map((name) => FIXED_SERIES_COLOURS[name]));
+  const freeSlots = SERIES_SLOTS.filter((slot) => !takenSlots.has(slot));
+  const colours = new Map();
+  let nextFreeSlot = 0;
+  for (const name of names) {
+    if (Object.hasOwn(FIXED_SERIES_COLOURS, name)) {
+      colours.set(name, FIXED_SERIES_COLOURS[name]);
+    } else {
+      colours.set(name, nextFreeSlot < freeSlots.length ? freeSlots[nextFreeSlot] : OTHER_SERIES);
+      nextFreeSlot += 1;
+    }
+  }
+  return colours;
+}
 
 /** A series' label: `labels[name]` where `labels` gives one, else its name. */
 export function seriesLabel(labels, name) {

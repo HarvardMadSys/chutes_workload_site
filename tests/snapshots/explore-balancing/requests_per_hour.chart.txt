@@ -1,0 +1,3 @@
+name: Requests per hour: Request rate stays roughly stationary.
+x-axis: 320 | 340 | 360
+y-axis: 0 | 50k | 100k | 150k

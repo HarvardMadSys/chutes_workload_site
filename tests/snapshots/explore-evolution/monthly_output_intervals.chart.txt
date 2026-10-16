@@ -1,0 +1,3 @@
+name: Monthly output intervals: Output lengths show a clearer downward trend than input lengths.
+x-axis: 2 | 4 | 6 | 8 | 10 | 12
+y-axis: 200 | 400 | 600 | 800 | 1k | 1.2k

@@ -1,0 +1,3 @@
+name: Median output by cohort: Change in the median output is less pronounced across cohorts.
+x-axis: 2 | 4 | 6 | 8 | 10 | 12
+y-axis: 1k | 2k | 3k

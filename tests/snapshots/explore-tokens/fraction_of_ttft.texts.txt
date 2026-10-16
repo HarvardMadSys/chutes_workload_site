@@ -2,4 +2,4 @@ title: Fraction of TTFT
 insight: End-to-end latency is dominated by decode.
 caption: Time to first token is usually only a fraction of a request's duration. MiniMax-M2.5 completes faster overall, but a larger share of its latency comes from it.
 definition: Share of requests whose time to first token (TTFT, the prefill) is at most this fraction of the request's whole duration, over all requests and for the three highlighted models.
-rows: Cache: this section's query results, every one shipped in data/paper/cache/
+rows: The plot-ready table · data/paper/plotdata/fig_prefill_fraction_cdf_by_model.parquet — How it is computed · the artifact on GitHub

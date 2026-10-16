@@ -113,12 +113,16 @@ export function chartName(body) {
   return `${figure.querySelector(".figure-title").textContent}: ${point.textContent}`;
 }
 
+// A chart's own SVG: one inside no other SVG, and not the colour legend Plot draws above a chart that shades a value,
+// whose SVG's class ends in "-ramp".
+const CHART_SVG = 'svg:not(svg svg):not([class$="-ramp"])';
+
 /**
- * Name every chart drawn in a figure's `body` for a screen reader, as one image named by `chartName`; called after
- * each drawing, since a drawing replaces the chart. A body holding a note has no chart to name.
+ * Name every chart drawn in a figure's `body` for a screen reader, as one image named by `chartName`, its colour legend
+ * left out; called after each drawing, since a drawing replaces the chart. A body holding a note has no chart to name.
  */
 export function nameChart(body) {
-  for (const chart of body.querySelectorAll("svg:not(svg svg)")) {
+  for (const chart of body.querySelectorAll(CHART_SVG)) {
     chart.setAttribute("role", "img");
     chart.setAttribute("aria-label", chartName(body));
   }

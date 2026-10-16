@@ -1,0 +1,3 @@
+name: Per-user IAT across models: The recurrence pattern also varies significantly by model.
+x-axis: DeepSeek V3.2 | Deepseek R1 | Minimax M2.5
+y-axis: 100 | 200 | 300 | 400 | 500

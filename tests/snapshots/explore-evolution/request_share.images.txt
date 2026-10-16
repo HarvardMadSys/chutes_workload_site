@@ -1,2 +1,0 @@
-figures/fig_top10_model_monthly_share_legend.png | width=1081 | height=154
-figures/fig_top10_model_monthly_request_share.png | width=517 | height=485

@@ -1,1 +1,0 @@
-figures/fig_per_user_iat_p50_by_model.png | width=565 | height=486

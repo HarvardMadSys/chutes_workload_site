@@ -2,4 +2,4 @@ title: Monthly input intervals
 insight: Inputs stay stable while outputs shrink.
 caption: Input lengths remain broadly stable over the year, with the monthly median staying in the thousands of tokens.
 definition: Input tokens per request in each month: the median, and bands from the 25th to the 75th and from the 10th to the 90th percentile.
-rows: Cache: monthly_token_percentiles.parquet, shipped in data/paper/cache/
+rows: The plot-ready table · data/paper/plotdata/fig_monthly_input_token_intervals.parquet — How it is computed · the artifact on GitHub

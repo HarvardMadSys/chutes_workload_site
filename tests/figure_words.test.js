@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { FIGURE_SECTIONS } from "../site/js/explore/figure_sections.js";
+import { FIGURE_SECTIONS } from "../site/js/insights/figure_sections.js";
 
 // Every card of every topic.
 function everyCard() {
@@ -54,19 +54,19 @@ test("a word is a whitespace-separated token", () => {
 
 test("every card has an insight of one sentence, at most twenty words", () => {
   for (const card of everyCard()) {
-    assertWords(card.insight, card.image, "insight", { sentences: 1, words: MAX_INSIGHT_WORDS });
+    assertWords(card.insight, card.figure, "insight", { sentences: 1, words: MAX_INSIGHT_WORDS });
   }
 });
 
 test("every card has a caption of at most three sentences and forty words", () => {
   for (const card of everyCard()) {
-    assertWords(card.caption, card.image, "caption", { sentences: MAX_SENTENCES, words: MAX_CAPTION_WORDS });
+    assertWords(card.caption, card.figure, "caption", { sentences: MAX_SENTENCES, words: MAX_CAPTION_WORDS });
   }
 });
 
 test("every card has a definition of at most three sentences and sixty words", () => {
   for (const card of everyCard()) {
-    assertWords(card.definition, card.image, "definition", { sentences: MAX_SENTENCES, words: MAX_DEFINITION_WORDS });
+    assertWords(card.definition, card.figure, "definition", { sentences: MAX_SENTENCES, words: MAX_DEFINITION_WORDS });
   }
 });
 

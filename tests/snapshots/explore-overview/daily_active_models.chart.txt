@@ -1,0 +1,3 @@
+name: Daily active models: Active models and API mix shift over the year.
+x-axis: 0 | 100 | 200 | 300
+y-axis: 100 | 200 | 300 | 400

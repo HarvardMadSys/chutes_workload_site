@@ -1,0 +1,3 @@
+name: Per-instance occupancy: Load is balanced in aggregate, but not perfectly balanced at every instant.
+x-axis: 0 | 500 | 1,000
+y-axis: 0 | 5 | 10 | 15

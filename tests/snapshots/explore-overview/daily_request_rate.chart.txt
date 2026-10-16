@@ -1,0 +1,3 @@
+name: Daily request rate: Aggregate demand is non-stationary.
+x-axis: 0 | 100 | 200 | 300
+y-axis: 10M | 20M | 30M

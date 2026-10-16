@@ -1,0 +1,3 @@
+name: Input tokens and TTFT: Time to first token grows primarily with input length.
+x-axis: 0 | 10 | 20 | 30
+y-axis: 0 | 2,000 | 4,000 | 6,000 | 8,000

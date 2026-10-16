@@ -1,0 +1,3 @@
+name: Per-model cache profile: Request volume alone does not determine a model's reuse.
+x-axis: 1k | 10k | 100k | 1M | 10M | 100M
+y-axis: 0% | 20% | 40% | 60% | 80%

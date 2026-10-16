@@ -2,4 +2,4 @@ title: Load balance simulation
 insight: Cache-aware routing unlocks fleet-wide KV capacity.
 caption: Cache-aware routing turns larger KV caches into higher hit ratios and less replication, while cache-blind policies remain highly replicated. Cache-first routing pays a modest load imbalance.
 definition: A simulated fleet of LRU caches replaying DeepSeek V3.2 (top) and MiniMax-M2.5 (bottom) under four routing policies: hit ratio (a) and replication (b) against cache size on 20 instances; replication (c) and load imbalance (d) against the number of instances.
-rows: Cache: data/routing/figure20_sweep.csv, the routing sweep's results, committed in the artifact
+rows: The plot-ready table · data/paper/plotdata/fig_routing_tradeoff.parquet — How it is computed · the artifact on GitHub

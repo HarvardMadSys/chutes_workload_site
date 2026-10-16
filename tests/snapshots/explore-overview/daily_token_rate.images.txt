@@ -1,1 +1,0 @@
-figures/fig_token_rate_day.png | width=565 | height=485

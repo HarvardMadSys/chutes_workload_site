@@ -2,4 +2,4 @@ title: Daily request rate
 insight: Aggregate demand is non-stationary.
 caption: Daily request volume rises through mid-2025, peaks around late summer and fall, and then declines into early 2026.
 definition: Requests per day over the trace's year.
-rows: Cache: daily_requests.parquet, shipped in data/paper/cache/
+rows: The plot-ready table · data/paper/plotdata/fig_request_rate_day.parquet — How it is computed · the artifact on GitHub

@@ -2,10 +2,10 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  ENDPOINT_LABELS, ENDPOINT_SERIES, FAMILY_SERIES, MODEL_SERIES, SERIES_COLUMN, seriesLabel, seriesLegend, shownRows,
-  shownSeriesRows,
+  ENDPOINT_LABELS, ENDPOINT_SERIES, FAMILY_SERIES, figureColours, FIXED_SERIES_COLOURS, MODEL_SERIES, SERIES_COLUMN,
+  seriesLabel, seriesLegend, shownRows, shownSeriesRows,
 } from "../site/js/shared/series.js";
-import { assignColours } from "../site/js/theme/colours.js";
+import { assignColours, OTHER_SERIES, SERIES_SLOTS } from "../site/js/theme/colours.js";
 import { endpointColours, familyColours, modelColours } from "../site/js/theme/colours.js";
 
 // Two models of a monthly answer, two months each.
@@ -66,4 +66,22 @@ test("a figure's shown rows are its panel's, of the coloured series not hidden, 
   assert.equal(SERIES_COLUMN, "series");
   assert.deepEqual(shownSeriesRows(rows, colours, "a", new Set(["DeepSeek R1"])), [rows[0]]);
   assert.deepEqual(shownSeriesRows(rows, colours, undefined, new Set()), [rows[0], rows[1], rows[3]]);
+});
+
+test("a figure card's global series and highlighted models keep their fixed colours, the others the free slots", () => {
+  const colours = figureColours(["Global", "Minimax M2.5", "Other A", "DeepSeek V3.2", "Other B"]);
+  assert.deepEqual([...colours], [
+    ["Global", "var(--color-text)"],
+    ["Minimax M2.5", SERIES_SLOTS[2]],
+    ["Other A", SERIES_SLOTS[1]],
+    ["DeepSeek V3.2", SERIES_SLOTS[0]],
+    ["Other B", SERIES_SLOTS[3]],
+  ]);
+  assert.equal(FIXED_SERIES_COLOURS["Deepseek R1"], SERIES_SLOTS[1]);
+});
+
+test("a figure card's series past the free slots are drawn in the Other grey", () => {
+  const names = ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9"];
+  const colours = figureColours(names);
+  assert.deepEqual([...colours.values()], [...SERIES_SLOTS, OTHER_SERIES]);
 });

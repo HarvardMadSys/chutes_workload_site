@@ -2,4 +2,4 @@ title: Output-to-input ratio
 insight: Most requests generate fewer output tokens than input tokens.
 caption: MiniMax-M2.5 has the lowest output-to-input ratio, consistent with coding and agentic workloads; DeepSeek R1 has the highest.
 definition: Share of requests whose output tokens divided by their input tokens is at most this ratio, over all requests and for the three highlighted models.
-rows: Cache: this section's query results, every one shipped in data/paper/cache/
+rows: The plot-ready table · data/paper/plotdata/fig_output_input_ratio_cdf_by_model.parquet — How it is computed · the artifact on GitHub

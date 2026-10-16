@@ -1,1 +1,0 @@
-figures/fig_seasonality.png | width=530 | height=453

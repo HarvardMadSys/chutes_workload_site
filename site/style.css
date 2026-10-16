@@ -1317,42 +1317,28 @@ section[id] {
   --plot-background: var(--color-surface);
 }
 
-/* A figure image of the Insights, with its legend image above it when it has one: each at its own width, half its
-   pixels, and never wider than its card. The image links to itself at full size; only the image is the link. */
-.figure-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+/* A chart drawn with a colour legend is a figure holding the legend and the chart: it takes the body's width, without
+   the browser's margins around a figure, so the chart is drawn at the width it was measured for. */
+.figure-body figure {
+  margin: 0;
 }
 
-.figure-panel a {
-  display: block;
-  width: fit-content;
-  max-width: 100%;
+/* A figure card of several panels: a chart per panel under its small title, side by side where the card is wide
+   enough for two of at least 16rem, one under the other on a phone. */
+.chart-panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+  gap: 0.75rem 1.5rem;
 }
 
-/* The image opens itself in a new tab without leaving the site, so it takes no arrow under it. */
-.figure-panel a::after {
-  content: none;
+.chart-panel {
+  min-width: 0;
 }
 
-.figure-panel img {
-  display: block;
-  max-width: 100%;
-  height: auto;
-}
-
-/* In the dark scheme the figure and its legend sit on one white panel, as a printed figure would: the images are
-   matplotlib's black ink on white, which would otherwise be a white block with no margin on the dark card. In the
-   light scheme the card is the panel. The white is the paper's, not a token of the site's palette. */
-@media (prefers-color-scheme: dark) {
-  .figure-panel {
-    width: fit-content;
-    max-width: 100%;
-    padding: 0.5rem;
-    border-radius: var(--radius-small);
-    background: #fff;
-  }
+.chart-panel-title {
+  margin: 0 0 0.25rem;
+  font-size: var(--font-size-smallest);
+  color: var(--color-text-muted);
 }
 
 .legend {

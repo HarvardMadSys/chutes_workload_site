@@ -1,1 +1,0 @@
-figures/fig_iat_monthly_per_user_band.png | width=565 | height=485

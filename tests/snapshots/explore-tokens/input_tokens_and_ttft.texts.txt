@@ -2,4 +2,4 @@ title: Input tokens and TTFT
 insight: Time to first token grows primarily with input length.
 caption: Duration is governed by output length, and TTFT by input length.
 definition: Median time to first token of the requests in each bucket of input tokens and output tokens.
-rows: Cache: this section's query results, every one shipped in data/paper/cache/
+rows: The plot-ready table · data/paper/plotdata/fig_ttft_p50_heatmap_input_output.parquet — How it is computed · the artifact on GitHub

@@ -1,1 +1,0 @@
-figures/fig_ttft_p50_heatmap_input_output.png | width=569 | height=485

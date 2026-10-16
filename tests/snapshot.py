@@ -1,10 +1,11 @@
 """The snapshot test: what a visitor sees on six states of the site, kept as text in `tests/snapshots/` and compared.
 
 A snapshot is one folder per page state, `tests/snapshots/<state>/`, holding one text file per unit the state shows:
-each chart's SVG, each legend's entries, each card's texts and images, the stats strip. `snapshot_units.py`
-names the states and says what each file holds. The states are the Explore page opened at each of its six Insights
-topics' anchors (`index.html#insights-tokens`), each in a fresh page. A unit that is the same in every state is written
-once, with the first state: the Explore page's hero, stats strip, Overview, Traffic Explorer, cite, team and footer.
+each chart's SVG, or an Insights card's chart's name and tick labels, each legend's entries, each card's texts, the
+stats strip. `snapshot_units.py` names the states and says what each file holds. The states are the Explore page
+opened at each of its six Insights topics' anchors (`index.html#insights-tokens`), each in a fresh page. A unit that
+is the same in every state is written once, with the first state: the Explore page's hero, stats strip, Overview,
+Traffic Explorer, cite, team and footer.
 
     .venv/bin/python tests/snapshot.py           # compare: fails naming each unit that changed (make test)
     .venv/bin/python tests/snapshot.py --write   # rewrite every file (make snapshots)
@@ -43,11 +44,11 @@ TIME_ZONE = "UTC"  # and in its time zone
 COLOUR_SCHEME = "light"  # the scheme the pages are read in; colours are recorded as tokens, which both schemes share
 DRAW_TIMEOUT_MS = 60_000  # the longest a state may take to draw: a topic fetches its answers, and Plot from the CDN
 DIFF_LINES_SHOWN = 12  # the lines of each changed unit's diff printed; `git diff` after `make snapshots` shows the rest
-# True once the topic section the argument names holds images and every one has loaded; an image that failed to load
-# is complete with no width, and so is never counted loaded.
-IMAGES_LOADED = """(topic) => {
-  const images = [...document.querySelectorAll(`#${topic} img`)];
-  return images.length > 0 && images.every((image) => image.complete && image.naturalWidth > 0);
+# True once every card of the topic section the argument names has drawn its chart and named it, the last step of a
+# card's drawing; a card that shows an error has no named chart, and so is never counted drawn.
+TOPIC_CHARTS_DRAWN = """(topic) => {
+  const bodies = [...document.querySelectorAll(`#${topic} .figure-body`)];
+  return bodies.length > 0 && bodies.every((body) => body.querySelector('svg[role="img"]') !== null);
 }"""
 # The charts each state draws outside the Insights, by the selector of the section that holds them.
 CHART_COUNTS = {"#overview": 5, "#traffic": 1}  # the two donuts and three trends; the Traffic Explorer's bars
@@ -115,8 +116,8 @@ def record_failed_request(errors: list[str], request) -> None:
 def wait_until_drawn(page, topic: str) -> None:
     """Wait until the topic section `topic` (its id) is the one shown and every unit the state reads has drawn: no
     loading line is visible, the hero and the footer count the months, every chart of the Overview and the Traffic
-    Explorer (`CHART_COUNTS`) is drawn and named, every image of the topic has loaded, and the Traffic Explorer's first
-    tile shows a number. Nothing is drawn after these, so the state is read once."""
+    Explorer (`CHART_COUNTS`) is drawn and named, every card of the topic has drawn its chart, and the Traffic
+    Explorer's first tile shows a number. Nothing is drawn after these, so the state is read once."""
     expect = playwright.sync_api.expect
     expect(page.locator(f"#tab-{topic}")).to_have_attribute("aria-selected", "true", timeout=DRAW_TIMEOUT_MS)
     expect(page.locator(f"#{topic}")).to_be_visible(timeout=DRAW_TIMEOUT_MS)
@@ -124,7 +125,7 @@ def wait_until_drawn(page, topic: str) -> None:
     expect(page.locator("#hero .hero-lede")).to_contain_text(MONTH_COUNT, timeout=DRAW_TIMEOUT_MS)
     expect(page.locator("#site-footer")).to_contain_text(MONTH_COUNT, timeout=DRAW_TIMEOUT_MS)
     page.wait_for_function(CHARTS_DRAWN, arg=CHART_COUNTS, timeout=DRAW_TIMEOUT_MS)
-    page.wait_for_function(IMAGES_LOADED, arg=topic, timeout=DRAW_TIMEOUT_MS)
+    page.wait_for_function(TOPIC_CHARTS_DRAWN, arg=topic, timeout=DRAW_TIMEOUT_MS)
     expect(page.locator(TILE_VALUE).first).to_have_text(A_DIGIT, timeout=DRAW_TIMEOUT_MS)
 
 

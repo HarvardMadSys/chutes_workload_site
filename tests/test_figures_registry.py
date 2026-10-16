@@ -1,35 +1,45 @@
-"""The Insights' cards against the artifact's figure list: every figure `config/figures.json` names is shown by the cards,
-as a card's image or as a legend, and the cards show no other. It reads the artifact the environment variable
-`ARTIFACT` names, as `make test` passes it (the fixture `artifact_checkout`), and skips, saying why, without one."""
+"""The Insights' cards against the artifact's figure list: every figure `config/figures.json` names is the figure of
+exactly one card, or the legend named by the two share cards, and the cards name no other. It reads the artifact the
+environment variable `ARTIFACT` names, as `make test` passes it (the fixture `artifact_checkout`), and skips, saying
+why, without one."""
 
+import collections
 import json
 import pathlib
 import subprocess
 
 from repository_root import ROOT
-from site_data import figure_images
+from site_data import figure_answers
 
-FIGURE_SECTIONS_MODULE = ROOT / "site" / "js" / "explore" / "figure_sections.js"
+FIGURE_SECTIONS_MODULE = ROOT / "site" / "js" / "insights" / "figure_sections.js"
+SHARE_LEGEND = "fig_top10_model_monthly_share_legend"  # the legend answer whose order the two share cards take
+SHARE_CARD_COUNT = 2  # the monthly request share and the monthly token share
 
-# A node script that prints the name of every image the cards show, a card's image and its legend's, as JSON.
-SHOWN_IMAGES_SCRIPT = """
+# A node script that prints, as JSON, `{"figures": [...], "legends": [...]}`: every card's figure, and the legend each
+# card naming one names.
+CARD_FIGURES_SCRIPT = """
 const { FIGURE_SECTIONS } = await import(process.argv[1]);
-const names = FIGURE_SECTIONS.flatMap((topic) => topic.cards.flatMap((card) => [card.image, card.legendImage]));
-console.log(JSON.stringify(names.filter((name) => name !== undefined)));
+const cards = FIGURE_SECTIONS.flatMap((topic) => topic.cards);
+const legends = cards.filter((card) => card.legend !== undefined).map((card) => card.legend);
+console.log(JSON.stringify({ figures: cards.map((card) => card.figure), legends }));
 """
 
 
-def shown_images() -> set[str]:
-    """The name of every image the Insights' cards show, as their module lists them."""
+def card_figures() -> dict[str, list[str]]:
+    """Every card's figure and every legend a card names, as the cards' module lists them."""
     shown = subprocess.run(
-        ["node", "--input-type=module", "--eval", SHOWN_IMAGES_SCRIPT, FIGURE_SECTIONS_MODULE.as_uri()],
+        ["node", "--input-type=module", "--eval", CARD_FIGURES_SCRIPT, FIGURE_SECTIONS_MODULE.as_uri()],
         capture_output=True, text=True, check=True,
     )
-    return set(json.loads(shown.stdout))
+    return json.loads(shown.stdout)
 
 
-def test_the_cards_show_every_figure_the_artifact_lists_and_no_other(artifact_checkout: pathlib.Path) -> None:
-    listed = {name.removesuffix(".pdf") for name in figure_images.listed_figure_names(artifact_checkout)}
-    shown = shown_images()
-    assert sorted(listed - shown) == [], "the artifact lists figures no card shows"
-    assert sorted(shown - listed) == [], "cards show figures the artifact does not list"
+def test_every_listed_figure_is_one_card_s_figure_or_the_share_legend(artifact_checkout: pathlib.Path) -> None:
+    listed = set(figure_answers.listed_figures(artifact_checkout))
+    named = card_figures()
+    figure_counts = collections.Counter(named["figures"])
+    assert [name for name, count in figure_counts.items() if count > 1] == [], "two cards draw one figure"
+    assert named["legends"] == [SHARE_LEGEND] * SHARE_CARD_COUNT, "only the two share cards name the share legend"
+    shown = set(figure_counts) | set(named["legends"])
+    assert sorted(listed - shown) == [], "the artifact lists figures no card draws"
+    assert sorted(shown - listed) == [], "cards draw figures the artifact does not list"

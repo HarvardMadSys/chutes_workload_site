@@ -1,1 +1,0 @@
-figures/fig_duration_p50_heatmap.png | width=574 | height=485

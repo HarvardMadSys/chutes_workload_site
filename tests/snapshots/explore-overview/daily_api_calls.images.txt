@@ -1,1 +1,0 @@
-figures/fig_function_name_daily_requests.png | width=565 | height=485

@@ -1,0 +1,3 @@
+name: Load and TTFT: P90 TTFT rises sharply once an instance exceeds a high tokens-per-second threshold.
+x-axis: 10 | 100 | 1k | 10k | 100k | 1M
+y-axis: 1 | 100 | 10k | 1M
