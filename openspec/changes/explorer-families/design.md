@@ -117,3 +117,38 @@ with the default choice shows families.
 The rollup's rows and bytes in the artifact; each family's share of
 requests (the check of the pattern table); the by-family answer's size
 and the largest family's answer.
+
+### Measured: the artifact's rollup (task 0.1)
+
+`daily_rollup.parquet`: 43,052 rows, 1,634,623 bytes (was 18,912 rows and
+781,123 bytes with the top 20 models); 367 days. Its requests sum to
+6,122,413,756, equal to `trace_totals.requests`; its token sums equal the
+totals' too. The query ran in 16 s on the full trace.
+
+The pattern table has 15 rows: D1's 12 plus `r1t` and `mai-ds` for
+DeepSeek (after `deepseek`) and `qwq-` for Qwen (after `qwen`), so that
+derivatives whose names lack their base's name land in its family.
+
+| Family | Share of requests | Named models with requests | Kept in the rollup |
+|---|---|---|---|
+| DeepSeek | 54.95 % | 32 | 8 |
+| Qwen | 15.04 % | 65 | 8 |
+| Other | 11.14 % | 3,756 (and 5,252 unnamed) | 8 |
+| Gemma | 5.58 % | 5 | 5 |
+| Mistral | 4.20 % | 10 | 8 |
+| GLM | 3.61 % | 25 | 8 |
+| Hermes | 2.73 % | 7 | 7 |
+| gpt-oss | 1.12 % | 5 | 5 |
+| Kimi | 0.75 % | 9 | 8 |
+| Llama | 0.61 % | 4 | 4 |
+| MiniMax | 0.27 % | 4 | 4 |
+
+Other's rest (unnamed models and named models past its eighth) is
+9.96 % of requests; its eight named models are 1.18 %. The three added
+patterns moved eight named models out of Other: seven into DeepSeek
+(the TNG R1T and R1T2 Chimeras whose names lack "deepseek", and
+`microsoft/MAI-DS-R1-FP8`; 0.30 % of requests together) and
+`ArliAI/QwQ-32B-ArliAI-RpR-v1` into Qwen (0.13 %). Neither family's top
+eight changed. The Qwen pattern is `qwq-`, not `qwq`: "qwq" also occurs
+inside five hash-like named models (one of them otherwise GLM), which
+the hyphen excludes.
