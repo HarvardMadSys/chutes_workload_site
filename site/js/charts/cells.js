@@ -7,7 +7,7 @@
  */
 
 import { logColumns, positiveRows, sequentialColour, titledFrame } from "../shared/charts.js";
-import { axisMark, axisScale, axisText, axisTicks } from "../axes/ticks.js";
+import { afterAxisTitle, axisMark, axisScale, axisText, axisTicks } from "../axes/ticks.js";
 
 const DEFAULT_SCHEME = "YlOrRd"; // the paper's heatmaps' colour scheme, low values light
 const CATEGORY_CENTRE = 0.5; // a category's tick sits halfway between its cell's integer edges
@@ -15,8 +15,8 @@ const CATEGORY_CENTRE = 0.5; // a category's tick sits halfway between its cell'
 /**
  * Draw `rows` into `body` as one rectangle per row, filled by its value, and return the chart. It has no series:
  * `colours` and `hidden` are not read. Its named parameters:
- * - `x`, `y`: the card's axis options `{ label, log, domain, ticks, tickFormat }`; on a log axis, a cell with an edge at
- *   or below zero is not drawn.
+ * - `x`, `y`: the card's axis options `{ label, log, domain, ticks, tickFormat }`; on a log axis, a cell with an edge
+ *   at or below zero is not drawn.
  * - `xTicks`, `yTicks`: an axis's category names, in place of its ticks and their format, the cell from i to i + 1
  *   named by the i-th, "Mon".
  * - `scheme`: the colour scheme, "YlOrRd" when not given; `colourLog`: true for a log colour scale, on which a cell of
@@ -90,8 +90,8 @@ export function cellTipText(cell, { x: xAxis = {}, y: yAxis = {}, valueLabel, va
   return `${xText}\n${yText}\n${valueLabel}: ${valueFormat(cell.value)}`;
 }
 
-// An axis's part of a cell's tooltip: the category's name, or the cell's range, after the axis's title where it has one.
+// An axis's part of a cell's tooltip: the category's name or the cell's range, after the axis's title where it has one.
 function edgesText(axis, low, high) {
   const text = axis.names === undefined ? `${axisText(axis, low)}–${axisText(axis, high)}` : axis.names[low];
-  return axis.label ? `${axis.label}: ${text}` : text;
+  return afterAxisTitle(axis, text);
 }

@@ -261,6 +261,9 @@ site/                exactly the files that are deployed
     bands.js         a value's median and its two percentile bands
     cells.js         a grid of rectangles shaded by their values
     raster.js        a dense grid of cells drawn as one image, as hours by users
+    scatter.js       a dot per point, shaded on a scale diverging from zero
+    boxes.js         a box per series from its five statistics
+    bars.js          a bar per x of a panel
   js/axes/ticks.js   how many ticks an axis asks for, a log axis's powers of ten, a card's axis as Plot's scale and
                      marks
   js/theme/colours.js

@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  axisMark, axisScale, axisText, axisTicks, axisWithTicks, decadeTicks, extent, gridMark, logAxisTicks, MAX_LOG_TICKS,
-  TICK_COUNT,
+  afterAxisTitle, axisMark, axisScale, axisText, axisTicks, axisWithTicks, bandAxisMark, decadeTicks, extent, gridMark,
+  logAxisTicks, MAX_LOG_TICKS, TICK_COUNT,
 } from "../site/js/axes/ticks.js";
 
 test("an axis given its ticks writes each as its text, so a log axis blanks none; without ticks Plot chooses them", () => {
@@ -81,4 +81,22 @@ test("grid lines fall on the given ticks, or on Plot's own at the tick count", (
   const [name, options] = gridMark(FAKE_PLOT, "y", undefined);
   assert.equal(name, "gridY");
   assert.equal(options.ticks, TICK_COUNT);
+});
+
+test("a value follows its axis's title where the axis has one", () => {
+  assert.equal(afterAxisTitle({ label: "Requests" }, "1.2k"), "Requests: 1.2k");
+  assert.equal(afterAxisTitle({}, "1.2k"), "1.2k");
+});
+
+test("a band axis ticks every band, or the card's ticks, written by the given format and slanted where asked", () => {
+  const label = (name) => name.toUpperCase();
+  const [name, options] = bandAxisMark(FAKE_PLOT, { label: "Model", tickRotate: -25 }, label);
+  assert.equal(name, "axisX");
+  assert.deepEqual([options.label, options.tickRotate, options.tickFormat], ["Model", -25, label]);
+  assert.equal(options.ticks, undefined); // a band axis labels each band, not a tick count
+  const [, ticks, tickOptions] = bandAxisMark(FAKE_PLOT, { ticks: [1, 5], tickFormat: (rank) => `#${rank}` });
+  assert.deepEqual(ticks, [1, 5]);
+  assert.equal(tickOptions.text(5), "#5");
+  assert.equal(tickOptions.label, null);
+  assert.equal(tickOptions.tickRotate, 0);
 });

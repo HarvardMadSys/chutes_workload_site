@@ -1,9 +1,9 @@
 /**
  * A chart's axes: how many ticks a linear axis asks Plot for, the powers of ten a log axis is ticked at, Plot's scale
- * options for a card's axis, its axis and grid marks, and a value written as its axis writes it. A card's axis options
- * are `{ label, log, domain, ticks, tickFormat }`, each optional: its title, whether it is a log axis, its
- * `[low, high]`, the values it ticks and how a tick is written. All but the two marks are plain functions, tested
- * with `node --test`.
+ * options for a card's axis, its axis and grid marks (a band axis's among them), and a value written as its axis
+ * writes it. A card's axis options are `{ label, log, domain, ticks, tickFormat }`, each optional: its title, whether
+ * it is a log axis, its `[low, high]`, the values it ticks and how a tick is written. All are plain functions, tested
+ * with `node --test`; a mark's is given Plot.
  */
 
 import { AXIS_STYLE, GRID_STYLE } from "../shared/charts.js";
@@ -104,6 +104,11 @@ export function axisText(axis, value) {
   return axis.tickFormat === undefined ? formatCount(value) : axis.tickFormat(value);
 }
 
+/** `text`, a value of the card's axis options `axis`, after the axis's title where it has one: "Requests: 1.2k". */
+export function afterAxisTitle(axis, text) {
+  return axis.label ? `${axis.label}: ${text}` : text;
+}
+
 /**
  * The axis mark of `dimension` ("x" or "y") for the card's axis options `axis`: ticked at `ticks`, or at Plot's own
  * `TICK_COUNT` when undefined, titled by `axis.label` (none when not given) and written by `axis.tickFormat`.
@@ -124,4 +129,15 @@ export function gridMark(Plot, dimension, ticks) {
     return makeGrid({ ...GRID_STYLE, ticks: TICK_COUNT });
   }
   return makeGrid(ticks, GRID_STYLE);
+}
+
+/**
+ * The axis mark of a band x axis, a box's or a bar's, for the card's axis options `axis`: a tick at each band, or at
+ * `axis.ticks` where given, written by `tickFormat` (the card's `axis.tickFormat` when not given), its labels slanted
+ * by `axis.tickRotate` degrees (level when not given), so that long names keep clear of one another, and titled by
+ * `axis.label`, none when not given.
+ */
+export function bandAxisMark(Plot, axis, tickFormat = axis.tickFormat) {
+  const { label = null, tickRotate = 0 } = axis;
+  return axisWithTicks(Plot.axisX, axis.ticks, { ...AXIS_STYLE, label, tickRotate, tickFormat });
 }
