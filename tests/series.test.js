@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  ENDPOINT_LABELS, ENDPOINT_SERIES, FAMILY_SERIES, figureColours, FIXED_SERIES_COLOURS, HIGHLIGHTED_LABELS,
+  endpointFigureColours, ENDPOINT_LABELS, ENDPOINT_SERIES, FAMILY_SERIES, figureColours, FIXED_SERIES_COLOURS, HIGHLIGHTED_LABELS,
   HIGHLIGHTED_SERIES, MODEL_SERIES, SERIES_COLUMN, seriesLabel, seriesLegend, shownRows, shownSeriesRows,
 } from "../site/js/shared/series.js";
 import { assignColours, FAMILY_SLOTS, OTHER_SERIES, SERIES_SLOTS } from "../site/js/theme/colours.js";
@@ -96,4 +96,25 @@ test("the highlighted series are the fixed ones, the global series first, and on
   assert.deepEqual([...HIGHLIGHTED_SERIES].sort(), Object.keys(FIXED_SERIES_COLOURS).sort());
   assert.equal(HIGHLIGHTED_SERIES[0], "Global");
   assert.ok(Object.keys(HIGHLIGHTED_LABELS).every((name) => HIGHLIGHTED_SERIES.includes(name)));
+});
+
+// The rows of `explore/endpoint_mix`, most requested first, as the page reads them.
+const ENDPOINT_MIX_ROWS = [
+  { endpoint_group: "chat", requests: 50 },
+  { endpoint_group: "chat_stream", requests: 40 },
+  { endpoint_group: "other", requests: 30 },
+  { endpoint_group: "completion", requests: 20 },
+];
+
+test("a figure's endpoint groups, written by their labels, take the endpoint groups' colours, Other its grey", () => {
+  const groupColours = endpointColours(ENDPOINT_MIX_ROWS);
+  const names = ["Chat Stream", "Completion", "Chat", "Other"];
+  const colours = endpointFigureColours(names, { "Chat Stream": "Chat stream" }, ENDPOINT_MIX_ROWS);
+  assert.deepEqual([...colours], [
+    ["Chat Stream", groupColours.get("chat_stream")],
+    ["Completion", groupColours.get("completion")],
+    ["Chat", groupColours.get("chat")],
+    ["Other", OTHER_SERIES],
+  ]);
+  assert.throws(() => endpointFigureColours(["Batch"], {}, ENDPOINT_MIX_ROWS), /"Batch"/);
 });

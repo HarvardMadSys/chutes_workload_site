@@ -16,7 +16,9 @@ const KEY_SEPARATOR = "\u0000";
 
 /**
  * Draw `rows` into `body` as one stacked bar per x value of the series not in `hidden`, bottom up in the order of their
- * legend's colours, `colours.series` (a Map from series name to colour). Its named parameters:
+ * legend's colours, `colours.series` (a Map from series name to colour). A series `colours.series` does not name is
+ * not dropped but folded into "Other" (`foldedRows`), so a figure card's `series` cannot leave one out of its bars; a
+ * figure whose legend names every series, as the monthly shares' does, folds none. Its named parameters:
  * - `xColumn`, `seriesColumn` and `valueColumn`: the columns holding a row's bar, its series and its value, a
  *   segment's height.
  * - `valueLabel`: what a value is, named in the tooltip, "Requests: 412".

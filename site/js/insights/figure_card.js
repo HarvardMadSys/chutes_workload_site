@@ -7,10 +7,10 @@
  * decides); `panels`, for a figure of several panels, `[{ panel, title, chart }]`, one chart per entry drawn from the
  * rows whose `panel` column is `panel`, under its title, with the card's `chart` and then the entry's own as its
  * parameters; `legend`, the name of a legend answer, rows `{ series, rank }`, whose order the card's series take;
- * `series`, the names of the series drawn, in the order they are drawn and listed, the answer's others left out;
- * `palette`, the colour slots its series take, a key of `PALETTES`, "series" when not given; `source` the address of
- * the artifact's README, or folder, that says how the figure is computed; `isWide` true for a card that takes its
- * topic's width.
+ * `series`, the names of the series drawn, in the order they are drawn and listed, the answer's others left out (the
+ * stacked bars fold them into "Other"); `palette`, the colours its series take, a key of `PALETTES`, "series" when
+ * not given; `source` the address of the artifact's README, or folder, that says how the figure is computed; `isWide`
+ * true for a card that takes its topic's width.
  *
  * A card's words are placed at once (`renderFigureCard`), its chart only when its topic is first shown
  * (`drawFigureChart`), with a legend of buttons above it where it has more than one series.
@@ -19,7 +19,7 @@
 import { distinct, nameChart, renderFigure, showError, showLoading } from "../shared/charts.js";
 import { readAnswer } from "../shared/answers.js";
 import { URLS } from "../shared/layout.js";
-import { figureColours, SERIES_COLUMN, seriesLegend } from "../shared/series.js";
+import { endpointFigureColours, figureColours, SERIES_COLUMN, seriesLegend } from "../shared/series.js";
 import { FAMILY_SLOTS, SERIES_SLOTS } from "../theme/colours.js";
 import { drawBands } from "../charts/bands.js";
 import { drawBars } from "../charts/bars.js";
@@ -53,13 +53,23 @@ export const CHART_KINDS = Object.freeze({
 });
 
 /**
- * The colour slots a card's series may take, by the card's `palette`: the eight series slots, or the ten of the
- * families, for a card of more series than eight.
+ * The colours a card's series may take, by the card's `palette`, each a function of the series' names, in order, the
+ * card's series labels and the rows of `explore/endpoint_mix`, to a Map from name to colour: "series", the eight
+ * series slots; "families", the ten of the families, for a card of more series than eight; "endpoints", the endpoint
+ * groups' colours as the Overview's, for series that are endpoint groups written by their labels.
  */
-export const PALETTES = Object.freeze({ series: SERIES_SLOTS, families: FAMILY_SLOTS });
+export const PALETTES = Object.freeze({
+  series: (names) => figureColours(names, SERIES_SLOTS),
+  families: (names) => figureColours(names, FAMILY_SLOTS),
+  endpoints: (names, labels, endpointMixRows) => endpointFigureColours(names, labels, endpointMixRows),
+});
 
 // The palette of a card that names none.
 const DEFAULT_PALETTE = "series";
+
+// The palette of the endpoint groups, whose card reads their colour order, the answer `ENDPOINT_ORDER`.
+const ENDPOINT_PALETTE = "endpoints";
+const ENDPOINT_ORDER = "explore/endpoint_mix";
 
 // The folder of the figure answers, under the answers' folder: the figure `name`'s answer is `figures/<name>`.
 const FIGURE_ANSWERS = "figures/";
@@ -116,14 +126,15 @@ export function plotdataAddress(figure) {
 }
 
 /**
- * Read `card`'s answer, and its legend answer where it names one, and draw its chart into `body` by its kind, with a
- * legend of buttons above it where its rows hold more than one series; each click redraws the chart from the rows
- * already read. An answer that cannot be read, or a chart that fails to draw, shows its error in `body`.
+ * Read `card`'s answer, its legend answer where it names one and the endpoint groups' order where its palette is
+ * theirs, and draw its chart into `body` by its kind, with a legend of buttons above it where its rows hold more than
+ * one series; each click redraws the chart from the rows already read. An answer that cannot be read, or a chart that fails to draw, shows its error in `body`.
  */
 export async function drawFigureChart(body, card) {
   try {
-    const [rows, legendRows] = await Promise.all([readAnswer(`${FIGURE_ANSWERS}${card.figure}`), legendAnswer(card)]);
-    const colours = cardColours(card, rows, legendRows);
+    const answers = [readAnswer(`${FIGURE_ANSWERS}${card.figure}`), legendAnswer(card), endpointOrder(card)];
+    const [rows, legendRows, endpointMixRows] = await Promise.all(answers);
+    const colours = cardColours(card, rows, legendRows, endpointMixRows);
     const legend = seriesLegend(rows, SERIES_COLUMN, colours, card.chart.labels);
     const drawChart = (hidden) => drawFigure(rows, body, card, { series: colours }, hidden);
     await drawWithLegend(body, legend, drawChart, CHART_KINDS[card.kind].swatch);
@@ -147,16 +158,18 @@ export function seriesOrder(rows, legendRows) {
 }
 
 /**
- * The colours of `card`'s series, a Map from each series it draws, in the order drawn, to its colour
- * (`figureColours`): its `series` where it gives them, else those of `seriesOrder`, coloured from the slots of its
- * `palette`. Throws a RangeError naming the card when its palette is not one of `PALETTES`.
+ * The colours of `card`'s series, a Map from each series it draws, in the order drawn, to its colour: its `series`
+ * where it gives them, else those of `seriesOrder`, coloured by its `palette` of `PALETTES`, the endpoint groups' from
+ * `endpointMixRows`, the rows of `explore/endpoint_mix`. Throws a RangeError naming the card when its palette is not
+ * one of `PALETTES`.
  */
-export function cardColours(card, rows, legendRows) {
+export function cardColours(card, rows, legendRows, endpointMixRows = null) {
   const palette = card.palette ?? DEFAULT_PALETTE;
   if (!Object.hasOwn(PALETTES, palette)) {
     throw new RangeError(`the card ${card.figure} names the palette "${palette}", which is not one of PALETTES`);
   }
-  return figureColours(card.series ?? seriesOrder(rows, legendRows), PALETTES[palette]);
+  const names = card.series ?? seriesOrder(rows, legendRows);
+  return PALETTES[palette](names, card.chart.labels ?? {}, endpointMixRows);
 }
 
 /**
@@ -197,6 +210,11 @@ async function legendAnswer(card) {
     return null;
   }
   return readAnswer(`${FIGURE_ANSWERS}${card.legend}`);
+}
+
+// The rows of `explore/endpoint_mix`, the endpoint groups' colour order, for a card of their palette; else null.
+async function endpointOrder(card) {
+  return card.palette === ENDPOINT_PALETTE ? readAnswer(ENDPOINT_ORDER) : null;
 }
 
 // Draw the chart of `card` into `body`, or one chart per panel under the panels' titles, of the series not in

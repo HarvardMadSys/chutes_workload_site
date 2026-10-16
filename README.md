@@ -336,6 +336,8 @@ tests/               what make test runs
                      the word counts of every card's insight, caption and definition, and of each takeaway
   insights_figure_cards.test.js
                      every card's kind, and its shipped answer holding that kind's columns
+  insights_figure_card_colours.test.js
+                     a card's series' order and the colours each palette gives them
   fake_page.js       the stand-ins for an element, the topic sections and the browser's history that the
                      node tests drive the page's modules with
   palette_contrast.test.js, palette.js

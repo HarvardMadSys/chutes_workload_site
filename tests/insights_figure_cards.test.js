@@ -3,13 +3,11 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
-  cardColours, CHART_KINDS, chartParameters, drawFigureChart, frozenCard, newCardElement, PALETTES, plotdataAddress,
-  renderFigureCard, seriesOrder,
+  CHART_KINDS, chartParameters, drawFigureChart, frozenCard, newCardElement, PALETTES, plotdataAddress,
+  renderFigureCard,
 } from "../site/js/insights/figure_card.js";
 import { FIGURE_SECTIONS } from "../site/js/insights/figure_sections.js";
 import { URLS } from "../site/js/shared/layout.js";
-import { FIXED_SERIES_COLOURS } from "../site/js/shared/series.js";
-import { FAMILY_SLOTS, OTHER_SERIES, SERIES_SLOTS } from "../site/js/theme/colours.js";
 
 // The columns a figure answer of each chart kind holds: the plot-ready tables' contract.
 const KIND_COLUMNS = Object.freeze({
@@ -154,7 +152,7 @@ test("a card listing its series names only series its answer holds, each once", 
 });
 
 test("a card naming a palette names one of the palettes", () => {
-  assert.deepEqual(PALETTES, { series: SERIES_SLOTS, families: FAMILY_SLOTS });
+  assert.deepEqual(Object.keys(PALETTES), ["series", "families", "endpoints"]);
   for (const card of everyCard().filter((one) => one.palette !== undefined)) {
     assert.ok(Object.hasOwn(PALETTES, card.palette), `${card.figure}: ${card.palette}`);
   }
@@ -221,42 +219,15 @@ test("a plot-ready table is linked in the artifact's repository on GitHub", () =
   assert.equal(plotdataAddress("fig_seasonality"), `${URLS.code}/blob/main/data/paper/plotdata/fig_seasonality.parquet`);
 });
 
-test("the series take their order from the rows, or from a legend answer's ranks", () => {
-  const rows = [{ series: "B", x: 0 }, { series: "A", x: 0 }, { series: "B", x: 1 }];
-  assert.deepEqual(seriesOrder(rows, null), ["B", "A"]);
-  assert.deepEqual(seriesOrder(rows, [{ series: "A", rank: 2 }, { series: "B", rank: 1 }]), ["B", "A"]);
-  assert.deepEqual(seriesOrder([{ x_low: 0, value: 1 }], null), []);
-});
-
-// A CDF answer's rows: four series, in the order the answer holds them.
-const CDF_ROWS = [
-  { series: "DeepSeek V3.2", x: 1, cdf: 0 },
-  { series: "Unlisted", x: 1, cdf: 0 },
-  { series: "Global", x: 1, cdf: 0 },
-  { series: "Deepseek R1", x: 1, cdf: 0 },
-];
-
-test("a card's series are drawn in the answer's order, or in its own list, which leaves the others out", () => {
-  const plain = cardColours(CARD, CDF_ROWS, null);
-  assert.deepEqual([...plain.keys()], ["DeepSeek V3.2", "Unlisted", "Global", "Deepseek R1"]);
-  const listed = cardColours({ ...CARD, series: ["Global", "DeepSeek V3.2", "Deepseek R1"] }, CDF_ROWS, null);
-  assert.deepEqual([...listed], [
-    ["Global", FIXED_SERIES_COLOURS.Global],
-    ["DeepSeek V3.2", FIXED_SERIES_COLOURS["DeepSeek V3.2"]],
-    ["Deepseek R1", FIXED_SERIES_COLOURS["Deepseek R1"]],
-  ]);
-  const legendRows = [{ series: "Global", rank: 2 }, { series: "Unlisted", rank: 1 }];
-  assert.deepEqual([...cardColours({ ...CARD, series: ["Global"] }, CDF_ROWS, legendRows).keys()], ["Global"]);
-});
-
-test("a card of the families' palette colours ten series before the Other grey; an unknown palette throws", () => {
-  const names = ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "Others"];
-  const rows = names.map((name) => ({ series: name, x: 1, value: 1 }));
-  const eight = [...cardColours(CARD, rows, null).values()];
-  assert.deepEqual(eight, [...SERIES_SLOTS, OTHER_SERIES, OTHER_SERIES, OTHER_SERIES]);
-  const ten = [...cardColours({ ...CARD, palette: "families" }, rows, null).values()];
-  assert.deepEqual(ten, [...FAMILY_SLOTS, OTHER_SERIES]);
-  assert.throws(() => cardColours({ ...CARD, palette: "pastel" }, rows, null), /fig_a .*"pastel"/);
+test("a card of the endpoints' palette reads the endpoint groups' order with its answer", async (context) => {
+  useFakeDocument(context);
+  const read = [];
+  context.mock.method(globalThis, "fetch", async (file) => {
+    read.push(file);
+    return { ok: false, status: 404, statusText: "Not Found" };
+  });
+  await drawFigureChart(new FakeElement("div"), { ...CARD, palette: "endpoints" });
+  assert.deepEqual(read, ["data/all/figures/fig_a.json", "data/all/explore/endpoint_mix.json"]);
 });
 
 test("a frozen card holds only frozen objects and lists, and its functions as they were", () => {

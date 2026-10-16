@@ -87,6 +87,7 @@ export const OVERVIEW_TOPIC = Object.freeze({
       definition: "Requests per day by API function: chat, chat stream, completion, completion stream, and Other for every other function.",
       source: SECTION_README,
       kind: "lines",
+      palette: "endpoints",
       chart: {
         x: { label: "Day of the trace" },
         // The paper's limits: the busiest function's busiest day, 21.1M requests, sits under its top.

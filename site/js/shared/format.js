@@ -1,7 +1,7 @@
 /**
  * Numbers and dates as the page shows them, a value with one decimal kept and an axis's tick with none it does not
- * need: counts, compact counts and their ticks, durations in seconds and their ticks, shares and whole percentages,
- * and a span of days.
+ * need: counts, compact counts and their ticks (a count given in thousands among them), durations in seconds and their
+ * ticks, shares and whole percentages, and a span of days.
  */
 
 // A compact count is shown in the largest of these units it reaches.
@@ -63,6 +63,11 @@ export function formatCountTick(count) {
     }
   }
   return formatCount(count);
+}
+
+/** A count given in thousands as an axis writes it, an input-token bucket's edge: 0 → "0", 10 → "10k", 0.5 → "500". */
+export function formatThousandsTick(thousands) {
+  return formatCountTick(thousands * 1000);
 }
 
 /** A duration in seconds with one decimal kept, "4.3 s", "42.0 s"; under a tenth of a second, two, "0.04 s". */

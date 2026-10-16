@@ -7,7 +7,8 @@
  */
 
 import {
-  formatCount, formatCountTick, formatPercent, formatSeconds, formatSecondsTick, formatShare, formatWholeCount,
+  formatCount, formatCountTick, formatPercent, formatSeconds, formatSecondsTick, formatShare, formatThousandsTick,
+  formatWholeCount,
 } from "../shared/format.js";
 import { URLS } from "../shared/layout.js";
 import { HIGHLIGHTED_LABELS, HIGHLIGHTED_SERIES } from "../shared/series.js";
@@ -27,10 +28,9 @@ const OUTPUT_DOMAIN = Object.freeze([0, 8200]);
 const HIT_RATIO_DOMAIN = Object.freeze([0, 1.1]);
 const HIT_RATIO_TICKS = Object.freeze([0, 0.2, 0.4, 0.6, 0.8, 1]);
 
-/** An input-token bucket's edge, given in thousands of tokens, as an axis writes it: 0 → "0", 10 → "10k". */
-function formatThousandsTick(thousands) {
-  return formatCountTick(thousands * 1000);
-}
+// How the latency grids write seconds: the cells kind gives their colour legend's ticks and their tooltips one format,
+// and the ticks' "50 s" reads better there than "50.0 s".
+const GRID_SECONDS = formatSecondsTick;
 
 /** The Token shape and latency topic. */
 export const TOKENS_TOPIC = Object.freeze({
@@ -48,7 +48,8 @@ export const TOKENS_TOPIC = Object.freeze({
       kind: "cdf",
       series: HIGHLIGHTED_SERIES,
       chart: {
-        x: { label: "Input tokens", log: true, domain: [1, 4e5], tickFormat: formatCountTick },
+        // Every second power of ten: every one crowds a phone's axis ("10k100k").
+        x: { label: "Input tokens", log: true, domain: [1, 4e5], ticks: [1, 100, 1e4], tickFormat: formatCountTick },
         y: SHARE_OF_REQUESTS,
         dashed: ["Global"],
         labels: HIGHLIGHTED_LABELS,
@@ -146,7 +147,7 @@ export const TOKENS_TOPIC = Object.freeze({
         y: { label: "Output tokens", domain: OUTPUT_DOMAIN, tickFormat: formatCountTick },
         scheme: "YlOrRd",
         valueLabel: "Median duration",
-        valueFormat: formatSeconds,
+        valueFormat: GRID_SECONDS,
       },
     }),
     frozenCard({
@@ -163,7 +164,7 @@ export const TOKENS_TOPIC = Object.freeze({
         y: { label: "Output tokens", domain: OUTPUT_DOMAIN, tickFormat: formatCountTick },
         scheme: "YlOrRd",
         valueLabel: "Median TTFT",
-        valueFormat: formatSeconds,
+        valueFormat: GRID_SECONDS,
       },
     }),
     frozenCard({
@@ -180,7 +181,7 @@ export const TOKENS_TOPIC = Object.freeze({
         y: { label: "Token hit ratio", domain: HIT_RATIO_DOMAIN, ticks: HIT_RATIO_TICKS, tickFormat: String },
         scheme: "YlOrRd",
         valueLabel: "Median TTFT",
-        valueFormat: formatSeconds,
+        valueFormat: GRID_SECONDS,
       },
     }),
   ]),

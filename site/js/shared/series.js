@@ -14,7 +14,9 @@
  */
 
 import { panelRows } from "./charts.js";
-import { endpointColours, familyColours, modelColours, OTHER_SERIES, SERIES_SLOTS } from "../theme/colours.js";
+import {
+  endpointColours, familyColours, modelColours, OTHER_NAME, OTHER_SERIES, SERIES_SLOTS,
+} from "../theme/colours.js";
 
 /** The column of a figure's answer naming each row's series. */
 export const SERIES_COLUMN = "series";
@@ -85,6 +87,26 @@ export function figureColours(names, slots = SERIES_SLOTS) {
       colours.set(name, nextFreeSlot < freeSlots.length ? freeSlots[nextFreeSlot] : OTHER_SERIES);
       nextFreeSlot += 1;
     }
+  }
+  return colours;
+}
+
+/**
+ * A figure card's colours where its series are the endpoint groups, as the Overview colours them: a Map from each of
+ * `names`, in order, to the colour `endpointColours(endpointMixRows)` gives the group whose label in `ENDPOINT_LABELS`
+ * is the series' label (`labels[name]`, else its name), "Other"'s grey for a group that folds into "Other". Throws a
+ * RangeError naming a series whose label is no group's.
+ */
+export function endpointFigureColours(names, labels, endpointMixRows) {
+  const groupColours = endpointColours(endpointMixRows);
+  const groupsByLabel = new Map(Object.entries(ENDPOINT_LABELS).map(([group, label]) => [label, group]));
+  const colours = new Map();
+  for (const name of names) {
+    const group = groupsByLabel.get(seriesLabel(labels, name));
+    if (group === undefined) {
+      throw new RangeError(`the series "${name}" is labelled as no endpoint group is`);
+    }
+    colours.set(name, groupColours.get(group) ?? groupColours.get(OTHER_NAME));
   }
   return colours;
 }

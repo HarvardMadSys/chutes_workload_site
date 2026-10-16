@@ -252,7 +252,8 @@ at most twenty words, written under its heading.
 - `legend` (optional): the name of a legend answer, rows `{ series, rank }`,
   whose order the card's series take.
 - `series` (optional): the names of the series drawn, in the order they are
-  drawn and listed in the legend; the answer's other series are left out.
+  drawn and listed in the legend; the answer's other series are left out
+  (the stacked bars fold them into "Other").
 - `palette` (optional): the colour slots the series take, a key of
   `PALETTES` in `insights/figure_card.js`: `"series"`, the eight series
   slots, when not given, or `"families"`, the ten, for more than eight.
