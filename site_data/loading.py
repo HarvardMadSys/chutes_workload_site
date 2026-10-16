@@ -45,15 +45,15 @@ class ArtifactFrames:
 
 def load_artifact(artifact: pathlib.Path) -> ArtifactFrames:
     """The frames of the artifact checkout `artifact`; stops naming the first of its files that is missing."""
-    paths = {}
+    cache_paths = {}
     for name in CACHE_NAMES:
-        paths[name] = required_file(artifact / CACHE_FOLDER / f"{name}.parquet")
+        cache_paths[name] = required_file(artifact / CACHE_FOLDER / f"{name}.parquet")
     model_names_path = required_file(artifact / MODEL_NAMES_FILE)
     return ArtifactFrames(
-        trace_totals=read_cache(paths["trace_totals"]),
-        daily_rollup=read_cache(paths["daily_rollup"]),
-        monthly_requests_tokens_by_model=read_cache(paths["monthly_requests_tokens_by_model"]),
-        function_name_daily_requests=read_cache(paths["function_name_daily_requests"]),
+        trace_totals=read_cache(cache_paths["trace_totals"]),
+        daily_rollup=read_cache(cache_paths["daily_rollup"]),
+        monthly_requests_tokens_by_model=read_cache(cache_paths["monthly_requests_tokens_by_model"]),
+        function_name_daily_requests=read_cache(cache_paths["function_name_daily_requests"]),
         chute_models=read_model_names(model_names_path),
     )
 
