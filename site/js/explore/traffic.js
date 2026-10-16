@@ -57,13 +57,18 @@ const NO_REQUESTS_NOTE = "No requests in this choice.";
 const CHART_TITLE = "Requests per day";
 const CHART_CAPTIONS = Object.freeze({
   families: "Requests each day, by model family: the models in no family as Other.",
-  models: "Requests each day of the chosen family, by model: its eight most requested, and the rest as Other.",
-  endpoints: "Requests each day of the chosen model, by endpoint group.",
+  // placeholder: worded so that it holds for a family of fewer than eight models and no others, for the authors.
+  models: "Requests each day of the chosen family, by model: its most requested named models, and its other models "
+    + "where it has any.",
+  // placeholder: the choice may be the family's other models rather than one model, for the authors.
+  endpoints: "Requests each day of the chosen model, or of the family's other models, by endpoint group.",
 });
+// placeholder: the stacking by model reworded as the models caption is, for the authors.
 const CHART_DEFINITION = "Requests per calendar day of the chosen family, model, endpoint group and period, stacked "
-  + "by family while no family is chosen, by model once one is (the family's eight most requested models, its other "
-  + "models as Other), and by the endpoint group they were sent to once a model is. A model's family is the "
-  + "artifact's, by its name. An average in the tiles divides by the requests that record its value.";
+  + "by family while no family is chosen, by model once one is (up to eight of the family's most requested named "
+  + "models, and its other models where it has any), and by the endpoint group they were sent to once a model is. A "
+  + "model's family is the artifact's, by its name. An average in the tiles divides by the requests that record its "
+  + "value.";
 
 /** Show the loading state in `container`, then draw the explorer into it from the daily answers, or the error. */
 export async function runTraffic(container, context) {
@@ -139,13 +144,25 @@ async function drawExplorer(container, context) {
   };
   const controls = document.createElement("div");
   controls.className = "controls traffic-controls";
-  container.replaceChildren(controls, explorerCard(view));
+  // The controls are placed once they show the URL's choice: until its family's answer is read, the section loads.
   const choice = await mountTrafficControls(controls, familyChoices(view.families), context, {
-    modelsOf: async (family) => (await familyAnswer(view, family)).models,
+    modelsOf: async (family) => (await familyAnswerShowingLoading(view, family)).models,
     onChange: (chosen) => drawChange(view, chosen),
     onError: (error) => showError(view.figure, error),
   });
-  await drawChoice(view, choice);
+  container.replaceChildren(controls, explorerCard(view));
+  if (choice !== null) {
+    await drawChoice(view, choice);
+  }
+}
+
+// The answer of the family whose slug is `family`, as `familyAnswer` gives it, the chart showing the loading state
+// while a family not read before is read.
+function familyAnswerShowingLoading(view, family) {
+  if (!view.familyAnswers.has(family)) {
+    showLoading(view.figure);
+  }
+  return familyAnswer(view, family);
 }
 
 /**

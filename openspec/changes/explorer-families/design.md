@@ -14,8 +14,9 @@ rule that places a model in a family has one home, the artifact.
 
 ### D1. The family rule is a table in the artifact
 
-`data/paper/model_families.csv` has two columns, `family` and `pattern`,
-one row per pattern, in order. A named model (one in
+`data/paper/model_families.csv` has three columns, `match_order`,
+`family` and `pattern`, one row per pattern, `match_order` giving the
+order the patterns are tried in. A named model (one in
 `data/paper/chute_models.csv`) belongs to the family of the first pattern
 its name contains, case-insensitively; a named model that matches no
 pattern, and every unnamed model, is `Other`. The first table:
@@ -38,8 +39,9 @@ pattern, and every unnamed model, is `Other`. The first table:
 Hermes precedes Mistral and Llama because the Hermes fine-tunes carry
 their base's name; DeepSeek precedes Qwen and Llama for its distills.
 The rule is applied in one place, the artifact's rollup query, by a join
-on `LIKE` over the patterns in table order; the site reads the family
-from the cache and never matches a name. Task 0 records each family's
+on `contains` (the name holding the pattern, both lower-cased) that keeps the
+match of the lowest `match_order`; the site reads the family from the
+cache and never matches a name. Task 0 records each family's
 share of requests, which is how the table is checked by eye.
 
 *Alternative rejected:* the organisation prefix of the model name. No
@@ -86,7 +88,10 @@ requests, so the answers' "eight of the family" are the cache's eight.
 
 The controls row: a family drop-down ("All families", the families in
 order of requests, "Other"), a model drop-down ("All <family> models",
-the family's eight by requests, "Other <family>"; disabled with "Choose a
+the family's eight by requests, and "Other <family>" only where the
+family has other models, so that no entry draws an empty chart: Gemma,
+Hermes, gpt-oss, Llama and MiniMax have none; the family Other's rest is
+"Rest of Other" rather than "Other Other"; disabled with "Choose a
 family" while no family is chosen), the endpoint drop-down and the
 period buttons as today. The chart stacks by family, then by model, then
 by endpoint group as the choice narrows; the legend toggles; the tiles

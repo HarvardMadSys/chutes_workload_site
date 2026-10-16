@@ -22,20 +22,27 @@ const PERIOD_NAME_ID = "traffic-period-name";
  * Draw the controls into `row` showing the URL's choice, `families` being the family drop-down's entries
  * (`familyChoices`'), and resolve to that choice once its family's models are read. A key of the URL the choice does
  * not keep, such as a model with no family or not among the family's, is then rewritten with `context.replaceQuery`.
+ * If the URL's family cannot be read, the controls show the choice without it, as a failed choice of a family leaves
+ * them, the error goes to `explorer.onError` and the promise resolves to null: there is no choice to draw.
  * A change writes the new choice to the URL the same way and calls `explorer.onChange(choice)`; a return to a history
  * entry (`context.onReturn`) whose URL holds another choice than the one shown draws the controls again showing it and
  * calls `explorer.onChange(choice)`.
  */
 export async function mountTrafficControls(row, families, context, explorer) {
   const params = new URLSearchParams(window.location.search);
-  const opened = await urlChoice(params, families, explorer.modelsOf);
+  const opened = await openedChoice(params, families, explorer.modelsOf);
   const controls = { row, families, context, explorer, shown: opened.choice, models: opened.models };
   const written = writeTrafficChoice(params, opened.choice);
-  if (written.toString() !== params.toString()) {
+  // A family that could not be read stays in the URL, so that a reload tries it again.
+  if (opened.error === null && written.toString() !== params.toString()) {
     context.replaceQuery(written);
   }
   context.onReturn(() => showReturnedChoice(controls).catch(explorer.onError));
   drawControls(controls);
+  if (opened.error !== null) {
+    explorer.onError(opened.error);
+    return null;
+  }
   return opened.choice;
 }
 
@@ -70,6 +77,21 @@ async function urlChoice(params, families, modelsOf) {
   const models = await familyModels(modelsOf, family);
   const choice = readTrafficChoice(params, familyValues, models.map((entry) => entry.value));
   return { choice, models };
+}
+
+/**
+ * The choice the URL's keys `params` name when the page opens, `{ choice, models, error }`, as `urlChoice` gives it with
+ * `error` null; if the URL's family's models cannot be read, the choice without the family, the model drop-down's
+ * "Choose a family", and the error.
+ */
+async function openedChoice(params, families, modelsOf) {
+  try {
+    return { ...(await urlChoice(params, families, modelsOf)), error: null };
+  } catch (error) {
+    const familyValues = families.map((entry) => entry.value);
+    const choice = { ...readTrafficChoice(params, familyValues, []), family: "" };
+    return { choice, models: NO_FAMILY_MODEL_CHOICES, error };
+  }
 }
 
 // The model drop-down's entries for the family whose slug is `family`; with none chosen, its one "Choose a family".

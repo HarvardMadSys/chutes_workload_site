@@ -8,8 +8,8 @@ Explorer of requests per day, and the paper's 48 figure images in six
 topics.
 
 The site is one HTML page, ES modules, a stylesheet, the JSON answers of
-eight queries (eighteen files: the query that takes a family is answered
-once per family) and 48 PNG images, with Observable Plot drawing the
+eight queries (the query that takes a family is answered once per family,
+one file per family) and 48 PNG images, with Observable Plot drawing the
 Overview's and the Traffic Explorer's charts in the browser. There is no
 server code, no bundler and no database in the browser.
 
@@ -166,10 +166,11 @@ make test
 ```
 
 `make data` checks that every file it reads is there before it writes
-anything. It writes the answers (eighteen files),
-`site/data/all/queries.json` (the hash of the text of each query the
-answers depend on, which `make test` compares with the queries, so that an
-answer older than its query fails),
+anything. It writes the answers (one file per query, and one file per
+family for the query that takes a family), `site/data/all/queries.json`
+(the hash of the text of each query the answers depend on, which `make
+test` compares with the queries, so that an answer older than its query
+fails),
 the 48 images and their index, and prints each answer and image with its
 size. A rebuild from the same artifact writes the same bytes, so git sees
 only what changed. The rebuilt data and snapshots are committed with the

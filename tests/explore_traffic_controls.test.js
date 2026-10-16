@@ -237,3 +237,23 @@ test("a return whose family is still being read when the URL moves on is left fo
   assert.equal(controlsOf(row).family.value, "");
   assert.equal(controlsOf(row).model.disabled, true);
 });
+
+test("a URL's family that cannot be read opens the controls without it, hands on the error and draws none",
+  async (context) => {
+    useFakeDocument(context);
+    const page = useFakeWindow(context, "?family=kin&endpoint=chat");
+    const errors = [];
+    const failing = {
+      ...page.explorer,
+      modelsOf: async () => Promise.reject(new Error("no kin")),
+      onError: (error) => errors.push(error),
+    };
+    const row = new FakeElement("div");
+    const opened = await mountTrafficControls(row, FAMILIES, page.context, failing);
+    assert.equal(opened, null);
+    assert.deepEqual(errors.map((error) => error.message), ["no kin"]);
+    assert.equal(controlsOf(row).family.value, "");
+    assert.equal(controlsOf(row).model.disabled, true);
+    assert.equal(controlsOf(row).endpoint.value, "chat");
+    assert.deepEqual(page.replaced, [], "the URL keeps the family, so that a reload reads it again");
+  });
