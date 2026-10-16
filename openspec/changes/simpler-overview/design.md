@@ -51,8 +51,8 @@ The sentence is a placeholder for the authors.
 
 ## D5. Tests
 
-- `test_queries`: `family_mix` returns `family`, `family_slug`,
-  `requests`, Other last, and sums to `trace_totals`.
+- `test_queries`: `family_mix` returns `family` and `requests`, Other
+  last, and sums to `trace_totals`.
 - `landing_donuts.test.js`: the family mix's legend is the families in
   the family colours, Other in its grey.
 - `insights_figure_cards.test.js`: the Definition control holds the

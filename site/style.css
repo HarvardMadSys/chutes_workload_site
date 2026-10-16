@@ -1258,8 +1258,8 @@ section[id] {
   min-height: 12rem;
 }
 
-/* The Definition control of every figure, at the foot of a card: a muted line that opens on the definition and the
-   rows. */
+/* The Definition control of every figure, at the foot of a card: a muted line that opens on the definition, alone on an
+   Insights card, followed by the line of rows in the two Overview mixes and the Traffic Explorer's card. */
 .figure-definition {
   font-size: var(--font-size-smallest);
   color: var(--color-text-muted);

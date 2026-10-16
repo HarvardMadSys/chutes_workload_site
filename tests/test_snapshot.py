@@ -53,7 +53,7 @@ class FakeCard:
         self.figure = figure
 
     def get_attribute(self, name: str) -> str | None:
-        return self.figure if name == "data-figure" else None
+        return self.figure if name == snapshot.CARD_FIGURE else None
 
 
 class FakeCards:

@@ -4,7 +4,7 @@ Every task ends with `make test` green and one commit.
 
 ## 1. The family mix and the trends' removal (data step)
 
-- [ ] 1.1 `queries/explore/family_mix.sql` of design D1; delete
+- [x] 1.1 `queries/explore/family_mix.sql` of design D1; delete
       `model_mix.sql`, the three monthly queries, `setup/top_models.sql`;
       `site_database.py` registers no `top_models` and no monthly cache;
       `loading.py` and the fixture artifact drop
@@ -16,7 +16,7 @@ Every task ends with `make test` green and one commit.
 
 ## 2. The Overview (page)
 
-- [ ] 2.1 `landing/donuts.js` draws the family mix from
+- [x] 2.1 `landing/donuts.js` draws the family mix from
       `context.orders.families` with `FAMILY_SERIES`; `explore/start.js`
       gives `orders = { families, endpoints }`; delete
       `explore/trends.js`, its test, the `#trends` grid and
@@ -29,7 +29,7 @@ Every task ends with `make test` green and one commit.
 
 ## 3. The Definition control and the see-also line (page)
 
-- [ ] 3.1 `insights/figure_card.js` of design D3: the control holds the
+- [x] 3.1 `insights/figure_card.js` of design D3: the control holds the
       definition alone, the card's article carries `data-figure`, the
       cards' `source` fields and the topics' `SECTION_README` go;
       `tests/snapshot.py` and `snapshot_units.py` read the figure from
@@ -41,7 +41,7 @@ Every task ends with `make test` green and one commit.
 
 ## 4. Docs and close
 
-- [ ] 4.1 README (the Overview, the Definition control, the see-also
+- [x] 4.1 README (the Overview, the Definition control, the see-also
       line), CONTRIBUTING (the queries, the tables, the donut pattern),
       the spec's layout line of `js/explore/`; the tasks ticked.
       *Verify:* `make test` green; `openspec validate simpler-overview

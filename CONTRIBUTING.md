@@ -35,7 +35,7 @@ binding, and `make test` checks the countable ones.
   No SQL is written in JavaScript or in the data step, and no query is
   assembled from strings. A query takes at most one parameter, the family
   (`$family`), bound by name by DuckDB and never written into the text. A
-  query reads the site's tables and nothing else (`SITE_TABLES` in
+  query reads the site's seven tables and nothing else (`SITE_TABLES` in
   `tests/test_queries.py`):
   - the artifact's three caches, each the table of its file's name:
     `trace_totals`, `daily_rollup` and `function_name_daily_requests`;
@@ -234,8 +234,8 @@ at most twenty words, written under its heading.
   short sentences and at most forty words: the paper's caption.
 - `definition`: what is drawn, in plain words, in up to three short
   sentences and at most sixty words, alone behind the Definition control:
-  the artifact's README's account of the figure, naming no cut-off, count
-  or bin width.
+  the artifact's README's account of the figure, naming no cut-off used to
+  pick its rows and no bin width.
 - `kind`: the chart kind that draws it, a key of `CHART_KINDS` in
   `insights/figure_card.js` (`cdf` is the lines kind with a share axis).
 - `chart`: the parameters handed to the kind's draw function: its axes,
@@ -344,7 +344,8 @@ figures' `lines` (a CDF among them), `bands`, `cells`, `raster`, `scatter`,
 `boxes` and `bars`, the stacked bars drawing the two monthly shares too.
 These nine chart modules are not quite a card's nine kinds: `CHART_KINDS`
 of `insights/figure_card.js` names `cdf`, drawn by `lines`, and no
-`donut`, which only the Overview draws. Each module exports one draw
+`donut`, which only the Overview draws, for its two mixes, by family and by
+endpoint. Each module exports one draw
 function of one interface,
 `draw<Kind>(rows, body, colours, parameters, hidden)`: the rows of its
 answer, the place to draw into, `colours.series` (the Map of its series'
@@ -432,7 +433,9 @@ Insights' figures are drawn from their plot-ready tables.
 - **One axis.** Two measures of different scale are two charts.
 - **The card.** A chart's card shows its title, its caption, its legend
   above the chart (none where it has a single series), and a Definition
-  control that opens on its definition and the line of rows it rests on.
+  control that opens on its definition: alone on a figure card of the
+  Insights; with the line of rows it rests on in the two Overview mixes
+  and the Traffic Explorer's card.
   A legend names only what is drawn. After each drawing the chart is named
   for a screen reader by its title and caption, `nameChart` in
   `shared/charts.js`.

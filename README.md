@@ -272,7 +272,7 @@ site/                exactly the files that are deployed
     libraries.js     the one module that names a library URL: Observable Plot, at a pinned version
     charts.js        a chart's frame and ink, the loading and error states, the figure card's layout
     format.js        numbers and dates as the page writes them
-    layout.js        the header and the footer
+    layout.js        the header and the footer, every address off the site, and the markup of a link to one
     series.js        a chart's shown rows and its legend; the models, the endpoint groups and the families as series;
                      the figure cards' fixed colours
     scrolling_row.js
@@ -297,7 +297,7 @@ site/                exactly the files that are deployed
                      the title, lede and buttons; the stats strip of the trace's totals
     donuts.js        the Overview's family and endpoint mixes
     cite.js, team.js
-                     the citation's sentence and copy buttons; the lab and the authors
+                     the citation's sentence, its see-also line and copy buttons; the lab and the authors
   js/explore/        the page's start and its sections
     start.js         places the Insights' cards and tabs, draws the header and footer, runs the sections, and
                      follows Back and Forward

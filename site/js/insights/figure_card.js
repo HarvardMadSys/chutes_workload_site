@@ -2,11 +2,11 @@
  * A card of the Insights: one of the paper's figures, drawn by the site from the figure's answer, its plot-ready rows.
  * A card is `{ figure, title, insight, caption, definition, kind, chart, panels?, legend?, series?, palette?,
  * isWide? }` (`insights/figure_sections.js` lists the topics, each card made by `frozenCard`): `figure` the figure's
- * name, its answer being `data/all/figures/<figure>.json`; `kind` the chart kind that draws it, a key of `CHART_KINDS`; `chart`
- * the parameters handed to the kind's draw function (`js/charts/<kind>.js` says what each decides); `panels`, for a
- * figure of several panels, `[{ panel, title, chart }]`, one chart per entry drawn from the rows whose `panel` column
- * is `panel`, under its title, with the card's `chart` and then the entry's own as its parameters (the card has one
- * legend for all its panels, so only the card's `chart.labels` relabel the legend; a panel's own relabel only its
+ * name, its answer being `data/all/figures/<figure>.json`; `kind` the chart kind that draws it, a key of `CHART_KINDS`;
+ * `chart` the parameters handed to the kind's draw function (`js/charts/<kind>.js` says what each decides); `panels`,
+ * for a figure of several panels, `[{ panel, title, chart }]`, one chart per entry drawn from the rows whose `panel`
+ * column is `panel`, under its title, with the card's `chart` and then the entry's own as its parameters (the card has
+ * one legend for all its panels, so only the card's `chart.labels` relabel the legend; a panel's own relabel only its
  * tooltips); `legend`, the name of a legend answer, rows `{ series, rank }`, whose order the card's series take;
  * `series`, the names of the series drawn, in the order they are drawn and listed, the answer's others left out (the
  * stacked bars fold them into "Other"); `palette`, the colours its series take, a key of `PALETTES` of

@@ -109,8 +109,8 @@ site/             exactly the files that are deployed
   js/axes/        the ticks of the charts' axes
   js/theme/       the site's colours as the style tokens give them
   js/pages/       the page's module
-  js/landing/     the hero, the stats strip, the two mixes, the cite and team sections
-  js/explore/     the page's start and its sections: the legend, the traffic explorer, the topic tabs
+  js/landing/     the hero, the stats strip, the two mixes (by family and by endpoint), the cite and team sections
+  js/explore/     the page's start and its sections: the legend of buttons, the Traffic Explorer (its chart, controls and filter), the topic tabs
   js/insights/    the figure cards and the topics: one module per Insights topic with its takeaway and its cards
   queries/        one .sql file per query answer, under explore/, and under setup/ the queries of the derived tables
   data/           built by make data and tracked: the query answers, the queries' hashes, the figure answers and their index

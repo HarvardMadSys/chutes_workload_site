@@ -1,8 +1,8 @@
 /**
  * The Cite section's sentence, which names and links the paper, its see-also sentence, which names and links the blog
- * post that explores the trace in the browser, and its copy buttons. Each button ships hidden in the
- * page, `data-copy` naming the element whose text it copies, and is shown only where the browser offers a clipboard,
- * so a button that cannot copy never appears.
+ * post that explores the trace in the browser, and its copy buttons. Each button ships hidden in the page, `data-copy`
+ * naming the element whose text it copies, and is shown only where the browser offers a clipboard, so a button that
+ * cannot copy never appears.
  */
 
 import { externalLink, URLS } from "../shared/layout.js";
@@ -26,11 +26,11 @@ const FAILED_LABEL = "Select and copy";
  * paragraph of the class `cite-see-also`, the sentence naming the blog post, its title linking to the post.
  */
 export function renderCiteLine(container) {
+  const paperLink = externalLink({ title: `<em>${PAPER_TITLE}</em>`, url: URLS.paper });
   const blogLink = externalLink({ title: BLOG_TITLE, url: URLS.blog });
   // placeholder: the see-also sentence is not the authors' own, for them to review.
   container.innerHTML = `
-    <p>If the trace supports your work, please cite
-      <a href="${URLS.paper}" target="_blank" rel="noopener"><em>${PAPER_TITLE}</em></a>, the paper that introduces it.</p>
+    <p>If the trace supports your work, please cite ${paperLink}, the paper that introduces it.</p>
     <p class="cite-see-also">See also ${blogLink}, Kasi Vandanapu's interactive exploration of the same trace.</p>`;
 }
 
