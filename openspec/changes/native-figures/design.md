@@ -181,8 +181,8 @@ adds no plotdata):
   180,017 bytes, `fig_lb_concurrency` 47,188, `fig_iat_pair_ttl_coverage`
   39,723, `fig_model_raster_qwen3_next_80b` 25,226 and
   `fig_model_raster_gpt_oss_20b` 23,572.
-- **From the committed query caches only:** the 5 of section 2, the 8 of
-  section 3 (token shape), figures 1 to 5 of Workload evolution, figures 1 to 6
+- **From the committed query caches only:** the 5 of Workload overview, the 8 of
+  Token shape and latency, figures 1 to 5 of Workload evolution, figures 1 to 6
   of Prefix caching, figures 1, 2, 4, 9 and 10 of Users and models, and the
   three simulation figures (from `data/caching/results.txt` and
   `data/routing/figure20_sweep.csv`).
