@@ -3,10 +3,13 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
-  CHART_KINDS, chartParameters, drawFigureChart, newCardElement, plotdataAddress, renderFigureCard, seriesOrder,
+  cardColours, CHART_KINDS, chartParameters, drawFigureChart, frozenCard, newCardElement, PALETTES, plotdataAddress,
+  renderFigureCard, seriesOrder,
 } from "../site/js/insights/figure_card.js";
 import { FIGURE_SECTIONS } from "../site/js/insights/figure_sections.js";
 import { URLS } from "../site/js/shared/layout.js";
+import { FIXED_SERIES_COLOURS } from "../site/js/shared/series.js";
+import { FAMILY_SLOTS, OTHER_SERIES, SERIES_SLOTS } from "../site/js/theme/colours.js";
 
 // The columns a figure answer of each chart kind holds: the plot-ready tables' contract.
 const KIND_COLUMNS = Object.freeze({
@@ -138,6 +141,25 @@ test("a card of panels has an answer whose panel column holds every panel it lis
   }
 });
 
+test("a card listing its series names only series its answer holds, each once", () => {
+  const withSeries = everyCard().filter((card) => card.series !== undefined);
+  assert.ok(withSeries.length > 0);
+  for (const card of withSeries) {
+    const answerSeries = new Set(shippedAnswer(card.figure).map((row) => row.series));
+    assert.equal(new Set(card.series).size, card.series.length, card.figure);
+    for (const name of card.series) {
+      assert.ok(answerSeries.has(name), `${card.figure} lists ${name}, which its answer does not hold`);
+    }
+  }
+});
+
+test("a card naming a palette names one of the palettes", () => {
+  assert.deepEqual(PALETTES, { series: SERIES_SLOTS, families: FAMILY_SLOTS });
+  for (const card of everyCard().filter((one) => one.palette !== undefined)) {
+    assert.ok(Object.hasOwn(PALETTES, card.palette), `${card.figure}: ${card.palette}`);
+  }
+});
+
 test("a card naming a legend has a legend answer of series and ranks", () => {
   const withLegend = everyCard().filter((card) => card.legend !== undefined);
   assert.ok(withLegend.length > 0);
@@ -204,6 +226,52 @@ test("the series take their order from the rows, or from a legend answer's ranks
   assert.deepEqual(seriesOrder(rows, null), ["B", "A"]);
   assert.deepEqual(seriesOrder(rows, [{ series: "A", rank: 2 }, { series: "B", rank: 1 }]), ["B", "A"]);
   assert.deepEqual(seriesOrder([{ x_low: 0, value: 1 }], null), []);
+});
+
+// A CDF answer's rows: four series, in the order the answer holds them.
+const CDF_ROWS = [
+  { series: "DeepSeek V3.2", x: 1, cdf: 0 },
+  { series: "Unlisted", x: 1, cdf: 0 },
+  { series: "Global", x: 1, cdf: 0 },
+  { series: "Deepseek R1", x: 1, cdf: 0 },
+];
+
+test("a card's series are drawn in the answer's order, or in its own list, which leaves the others out", () => {
+  const plain = cardColours(CARD, CDF_ROWS, null);
+  assert.deepEqual([...plain.keys()], ["DeepSeek V3.2", "Unlisted", "Global", "Deepseek R1"]);
+  const listed = cardColours({ ...CARD, series: ["Global", "DeepSeek V3.2", "Deepseek R1"] }, CDF_ROWS, null);
+  assert.deepEqual([...listed], [
+    ["Global", FIXED_SERIES_COLOURS.Global],
+    ["DeepSeek V3.2", FIXED_SERIES_COLOURS["DeepSeek V3.2"]],
+    ["Deepseek R1", FIXED_SERIES_COLOURS["Deepseek R1"]],
+  ]);
+  const legendRows = [{ series: "Global", rank: 2 }, { series: "Unlisted", rank: 1 }];
+  assert.deepEqual([...cardColours({ ...CARD, series: ["Global"] }, CDF_ROWS, legendRows).keys()], ["Global"]);
+});
+
+test("a card of the families' palette colours ten series before the Other grey; an unknown palette throws", () => {
+  const names = ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "Others"];
+  const rows = names.map((name) => ({ series: name, x: 1, value: 1 }));
+  const eight = [...cardColours(CARD, rows, null).values()];
+  assert.deepEqual(eight, [...SERIES_SLOTS, OTHER_SERIES, OTHER_SERIES, OTHER_SERIES]);
+  const ten = [...cardColours({ ...CARD, palette: "families" }, rows, null).values()];
+  assert.deepEqual(ten, [...FAMILY_SLOTS, OTHER_SERIES]);
+  assert.throws(() => cardColours({ ...CARD, palette: "pastel" }, rows, null), /fig_a .*"pastel"/);
+});
+
+test("a frozen card holds only frozen objects and lists, and its functions as they were", () => {
+  const tickFormat = (value) => `${value}`;
+  const card = frozenCard({
+    ...CARD,
+    series: ["Global"],
+    chart: { x: { label: "Day", domain: [0, 1], tickFormat }, dashed: ["Global"] },
+    panels: [{ panel: "a", title: "(a)", chart: { y: { log: true } } }],
+  });
+  const parts = [card, card.series, card.chart, card.chart.x, card.chart.x.domain, card.chart.dashed, card.panels];
+  parts.push(card.panels[0], card.panels[0].chart, card.panels[0].chart.y);
+  assert.ok(parts.every((part) => Object.isFrozen(part)));
+  assert.equal(card.chart.x.tickFormat, tickFormat);
+  assert.ok(!Object.isFrozen(tickFormat));
 });
 
 test("a chart's parameters are its kind's, then the card's, then a panel's with the panel's name", () => {

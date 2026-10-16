@@ -9,6 +9,7 @@
 
 import { formatCompactCount, formatCount, formatCountTick } from "../shared/format.js";
 import { URLS } from "../shared/layout.js";
+import { frozenCard } from "./figure_card.js";
 
 // The artifact's README of the trace's load-balancing figures, which says how each is computed.
 const SECTION_README = `${URLS.code}/blob/main/paper/05_load_balancing/README.md`;
@@ -30,7 +31,7 @@ export const BALANCING_TOPIC = Object.freeze({
   selector: "#insights-balancing",
   takeaway: "LLM serving faces a fundamental tension between cache locality and load balance: stickiness preserves locality but conflicts with balancing.",
   cards: Object.freeze([
-    Object.freeze({
+    frozenCard({
       figure: "fig_lb_request_rate",
       title: "Requests per hour",
       // placeholder: the overview paragraph has no lead-in; this is the figure caption's line on this panel.
@@ -46,7 +47,7 @@ export const BALANCING_TOPIC = Object.freeze({
         valueFormat: formatCompactCount,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_lb_active_instances",
       title: "Active instances per hour",
       // placeholder: the overview paragraph has no lead-in; this is its sentence on this panel.
@@ -62,7 +63,7 @@ export const BALANCING_TOPIC = Object.freeze({
         valueFormat: formatCount,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_lb_maxmean_tokens",
       title: "Token max/mean ratio",
       // placeholder: the overview paragraph has no lead-in; this is its sentence on this panel.
@@ -78,7 +79,7 @@ export const BALANCING_TOPIC = Object.freeze({
         valueFormat: formatCount,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_lb_concurrency",
       title: "Per-instance occupancy",
       // placeholder: the overview paragraph has no lead-in; this is its sentence on this panel.
@@ -94,7 +95,7 @@ export const BALANCING_TOPIC = Object.freeze({
         valueFormat: formatCount,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_lb_ttft_p90_vs_load",
       title: "Load and TTFT",
       // placeholder: the overview paragraph has no lead-in; this is its sentence on this panel.
@@ -110,7 +111,7 @@ export const BALANCING_TOPIC = Object.freeze({
         valueFormat: formatCount,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_lb_decode_p90_vs_load",
       title: "Load and decode time",
       // placeholder: the overview paragraph has no lead-in; this is its sentence on this panel.
@@ -126,7 +127,7 @@ export const BALANCING_TOPIC = Object.freeze({
         valueFormat: formatCount,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_lb_user_zoom_top",
       title: "High load",
       // placeholder: the paragraph has no lead-in; this is its sentence on this panel.
@@ -138,7 +139,7 @@ export const BALANCING_TOPIC = Object.freeze({
       chart: { x: { label: "Instance" }, valueFormat: formatCount },
       panels: USER_ZOOM_PANELS,
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_lb_user_zoom_min",
       title: "Low load",
       // placeholder: the paragraph has no lead-in; this is its sentence on this panel.
@@ -150,7 +151,7 @@ export const BALANCING_TOPIC = Object.freeze({
       chart: { x: { label: "Instance" }, valueFormat: formatCount },
       panels: USER_ZOOM_PANELS,
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_routing_tradeoff",
       title: "Load balance simulation",
       insight: "Cache-aware routing unlocks fleet-wide KV capacity.",

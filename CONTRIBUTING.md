@@ -251,6 +251,11 @@ at most twenty words, written under its heading.
   a multi-panel figure, from the rows of its `panel`, under its title.
 - `legend` (optional): the name of a legend answer, rows `{ series, rank }`,
   whose order the card's series take.
+- `series` (optional): the names of the series drawn, in the order they are
+  drawn and listed in the legend; the answer's other series are left out.
+- `palette` (optional): the colour slots the series take, a key of
+  `PALETTES` in `insights/figure_card.js`: `"series"`, the eight series
+  slots, when not given, or `"families"`, the ten, for more than eight.
 - `isWide` (optional): true for a card that takes its topic's whole width.
 
 A line of words that is not the paper's own carries a `// placeholder:`
@@ -258,12 +263,13 @@ comment above it, for the authors to review.
 `insights/figure_card.js` draws the card: it reads the answer, colours the
 series (the global series and the three highlighted models in fixed
 colours, `FIXED_SERIES_COLOURS` of `shared/series.js`, the others the free
-series slots in the answer's order), places a legend of buttons where there
+slots of its palette in the order of its `series`, else the answer's), places a legend of buttons where there
 is more than one series, and draws the chart by its kind at the card's
-width.
+width. A topic makes each card with `frozenCard` of the same module, which
+freezes the card and every object it holds, its chart and panels included.
 
 ```js
-Object.freeze({
+frozenCard({
   figure: "fig_request_rate_day",
   title: "Daily request rate",
   insight: "Aggregate demand is non-stationary.",

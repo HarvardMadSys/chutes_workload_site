@@ -2,10 +2,10 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  ENDPOINT_LABELS, ENDPOINT_SERIES, FAMILY_SERIES, figureColours, FIXED_SERIES_COLOURS, MODEL_SERIES, SERIES_COLUMN,
-  seriesLabel, seriesLegend, shownRows, shownSeriesRows,
+  ENDPOINT_LABELS, ENDPOINT_SERIES, FAMILY_SERIES, figureColours, FIXED_SERIES_COLOURS, HIGHLIGHTED_LABELS,
+  HIGHLIGHTED_SERIES, MODEL_SERIES, SERIES_COLUMN, seriesLabel, seriesLegend, shownRows, shownSeriesRows,
 } from "../site/js/shared/series.js";
-import { assignColours, OTHER_SERIES, SERIES_SLOTS } from "../site/js/theme/colours.js";
+import { assignColours, FAMILY_SLOTS, OTHER_SERIES, SERIES_SLOTS } from "../site/js/theme/colours.js";
 import { endpointColours, familyColours, modelColours } from "../site/js/theme/colours.js";
 
 // Two models of a monthly answer, two months each.
@@ -84,4 +84,16 @@ test("a figure card's series past the free slots are drawn in the Other grey", (
   const names = ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9"];
   const colours = figureColours(names);
   assert.deepEqual([...colours.values()], [...SERIES_SLOTS, OTHER_SERIES]);
+});
+
+test("a figure card given the families' slots colours ten series before the Other grey", () => {
+  const names = ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "Others"];
+  const colours = figureColours(names, FAMILY_SLOTS);
+  assert.deepEqual([...colours.values()], [...FAMILY_SLOTS, OTHER_SERIES]);
+});
+
+test("the highlighted series are the fixed ones, the global series first, and only their names are relabelled", () => {
+  assert.deepEqual([...HIGHLIGHTED_SERIES].sort(), Object.keys(FIXED_SERIES_COLOURS).sort());
+  assert.equal(HIGHLIGHTED_SERIES[0], "Global");
+  assert.ok(Object.keys(HIGHLIGHTED_LABELS).every((name) => HIGHLIGHTED_SERIES.includes(name)));
 });

@@ -22,7 +22,7 @@ const DASH = "4,3"; // the dash and gap, in pixels, of a series drawn dashed
  *   on a log axis is not drawn, and a line is cut at a given domain's ends.
  * - `cdf`: true for a CDF answer, its `cdf` column drawn as y from 0 to 1, stepped, the axis in percent.
  * - `markers`: true to mark each point with a dot.
- * - `dashed`: a Set of the series drawn dashed.
+ * - `dashed`: the names of the series drawn dashed, a list.
  * - `valueLabel`, `valueFormat`: what a value is and how it is written in the tooltip, "Requests: 4.9M"; a CDF's value
  *   is its x.
  * - `labels`: each series' label in the tooltip where it is written otherwise than its name.
@@ -30,7 +30,7 @@ const DASH = "4,3"; // the dash and gap, in pixels, of a series drawn dashed
  * Required: `valueLabel` and `valueFormat`.
  */
 export async function drawLines(rows, body, colours, parameters, hidden) {
-  const { x: xAxis = {}, cdf = false, markers = false, dashed = new Set(), margins } = parameters;
+  const { x: xAxis = {}, cdf = false, markers = false, dashed = [], margins } = parameters;
   const yAxis = lineYAxis(parameters);
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
@@ -43,7 +43,7 @@ export async function drawLines(rows, body, colours, parameters, hidden) {
     x: "x",
     y: yColumn(cdf),
     stroke: SERIES_COLUMN,
-    strokeDasharray: dashed.has(name) ? DASH : undefined,
+    strokeDasharray: seriesDash(name, dashed),
     curve: cdf ? "step-after" : "linear",
     marker: markers,
     clip: xAxis.domain !== undefined || yAxis.domain !== undefined,
@@ -75,6 +75,11 @@ export function lineYAxis({ y: yAxis = {}, cdf = false }) {
     return yAxis;
   }
   return { tickFormat: formatPercent, ...yAxis, domain: [0, 1] };
+}
+
+/** The dash pattern of the series `name`: `DASH` where `dashed`, a list of names, holds it, else none, a solid line. */
+export function seriesDash(name, dashed) {
+  return dashed.includes(name) ? DASH : undefined;
 }
 
 /** The column a lines answer holds its y in: `cdf` for a CDF answer, else `y`. */

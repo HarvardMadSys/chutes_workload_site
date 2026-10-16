@@ -1,7 +1,7 @@
 /**
  * Numbers and dates as the page shows them, a value with one decimal kept and an axis's tick with none it does not
- * need: counts, compact counts and their ticks, durations in seconds, shares and whole percentages, and a span of
- * days.
+ * need: counts, compact counts and their ticks, durations in seconds and their ticks, shares and whole percentages,
+ * and a span of days.
  */
 
 // A compact count is shown in the largest of these units it reaches.
@@ -68,6 +68,11 @@ export function formatCountTick(count) {
 /** A duration in seconds with one decimal kept, "4.3 s", "42.0 s"; under a tenth of a second, two, "0.04 s". */
 export function formatSeconds(seconds) {
   return `${oneDecimal(seconds)} s`;
+}
+
+/** A duration in seconds as an axis writes it, with no decimal it does not need: 0.1 → "0.1 s", 10 → "10 s". */
+export function formatSecondsTick(seconds) {
+  return `${withoutTrailingZero(oneDecimal(seconds))} s`;
 }
 
 /** A share of one as a whole percentage, as an axis writes it: 0.632 → "63%", 1 → "100%". */

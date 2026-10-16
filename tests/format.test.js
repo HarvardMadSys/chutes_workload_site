@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import {
   dateSpanText, formatCompactCount, formatCount, formatCountTick, formatPercent, formatQuantity, formatSeconds,
-  formatShare, formatWholeCount,
+  formatSecondsTick, formatShare, formatWholeCount,
 } from "../site/js/shared/format.js";
 
 test("a count gets thousands separators", () => {
@@ -15,6 +15,14 @@ test("a duration is written in seconds with one decimal kept, two under a tenth 
   assert.equal(formatSeconds(42), "42.0 s");
   assert.equal(formatSeconds(0.04), "0.04 s");
   assert.equal(formatSeconds(0), "0.0 s");
+});
+
+test("an axis writes a duration in seconds without a decimal it does not need", () => {
+  assert.equal(formatSecondsTick(0.1), "0.1 s");
+  assert.equal(formatSecondsTick(1), "1 s");
+  assert.equal(formatSecondsTick(100), "100 s");
+  assert.equal(formatSecondsTick(2.5), "2.5 s");
+  assert.equal(formatSecondsTick(0.05), "0.05 s");
 });
 
 test("a share is a percentage with one decimal kept", () => {

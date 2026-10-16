@@ -8,6 +8,7 @@
 
 import { formatCompactCount, formatCountTick, formatPercent, formatShare } from "../shared/format.js";
 import { URLS } from "../shared/layout.js";
+import { frozenCard } from "./figure_card.js";
 
 // The artifact's README of these figures, which says how each is computed.
 const SECTION_README = `${URLS.code}/blob/main/paper/03_workload_evolution/README.md`;
@@ -20,7 +21,7 @@ export const EVOLUTION_TOPIC = Object.freeze({
   selector: "#insights-evolution",
   takeaway: "Dominant models turn over, global outputs become shorter, and newer users show larger and more variable token lengths.",
   cards: Object.freeze([
-    Object.freeze({
+    frozenCard({
       figure: "fig_top10_model_monthly_request_share",
       title: "Request share",
       insight: "Dominant models turn over.",
@@ -36,7 +37,7 @@ export const EVOLUTION_TOPIC = Object.freeze({
       },
       legend: SHARE_LEGEND,
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_top10_model_monthly_token_share",
       title: "Token share",
       insight: "Traffic spreads across more models over time.",
@@ -52,7 +53,7 @@ export const EVOLUTION_TOPIC = Object.freeze({
       },
       legend: SHARE_LEGEND,
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_monthly_input_token_intervals",
       title: "Monthly input intervals",
       insight: "Inputs stay stable while outputs shrink.",
@@ -67,7 +68,7 @@ export const EVOLUTION_TOPIC = Object.freeze({
         valueFormat: formatCompactCount,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_monthly_output_token_intervals",
       title: "Monthly output intervals",
       // placeholder: the paragraph's lead-in is on the input intervals' card; this is its sentence on this panel.
@@ -83,7 +84,7 @@ export const EVOLUTION_TOPIC = Object.freeze({
         valueFormat: formatCompactCount,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_user_release_cohort_input_band",
       title: "Median input by cohort",
       insight: "Newer user cohorts are more input-heavy.",
@@ -98,7 +99,7 @@ export const EVOLUTION_TOPIC = Object.freeze({
         valueFormat: formatCompactCount,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_user_release_cohort_output_band",
       title: "Median output by cohort",
       // placeholder: the paragraph's lead-in is on the input cohorts' card; this is its sentence on this panel.

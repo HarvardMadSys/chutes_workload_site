@@ -21,7 +21,7 @@ const CARD_COUNTS = [5, 8, 10, 6, 9, 9];
 // may also have the optional ones.
 const TOPIC_FIELDS = ["selector", "takeaway", "cards"];
 const CARD_FIELDS = ["figure", "title", "insight", "caption", "definition", "source", "kind"];
-const OPTIONAL_CARD_FIELDS = ["panels", "legend", "isWide"];
+const OPTIONAL_CARD_FIELDS = ["panels", "legend", "series", "palette", "isWide"];
 
 // The legend answer whose order the two monthly share cards' series take, and those cards.
 const SHARE_LEGEND = "fig_top10_model_monthly_share_legend";
@@ -97,10 +97,25 @@ test("every card links the artifact's README or simulation folder of its figure"
   }
 });
 
-test("the topics and their cards cannot be changed", () => {
+// The objects and lists `value` holds, itself among them, all the way down; functions and plain values left out.
+function heldObjects(value) {
+  if (typeof value !== "object" || value === null) {
+    return [];
+  }
+  const objects = [value];
+  for (const part of Object.values(value)) {
+    objects.push(...heldObjects(part));
+  }
+  return objects;
+}
+
+test("the topics and their cards cannot be changed, nor their charts, panels and the panels' charts", () => {
   assert.ok(Object.isFrozen(FIGURE_SECTIONS));
   for (const topic of FIGURE_SECTIONS) {
     assert.ok(Object.isFrozen(topic) && Object.isFrozen(topic.cards), topic.selector);
-    assert.ok(topic.cards.every((card) => Object.isFrozen(card)), topic.selector);
+    for (const card of topic.cards) {
+      const unfrozen = heldObjects(card).filter((part) => !Object.isFrozen(part));
+      assert.deepEqual(unfrozen, [], `${card.figure} holds an object that can be changed`);
+    }
   }
 });

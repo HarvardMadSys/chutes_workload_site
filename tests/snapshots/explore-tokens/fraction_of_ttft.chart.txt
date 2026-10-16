@@ -1,3 +1,3 @@
 name: Fraction of TTFT: End-to-end latency is dominated by decode.
-x-axis: 20% | 40% | 60% | 80%
+x-axis: 0% | 25% | 50% | 75% | 100%
 y-axis: 0% | 20% | 40% | 60% | 80% | 100%

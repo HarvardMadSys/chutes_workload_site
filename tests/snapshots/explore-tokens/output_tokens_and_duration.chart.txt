@@ -1,3 +1,3 @@
 name: Output tokens and duration: Output length drives duration; input length drives TTFT.
-x-axis: 0 | 10 | 20 | 30
-y-axis: 0 | 2,000 | 4,000 | 6,000 | 8,000
+x-axis: 0 | 10k | 20k | 30k
+y-axis: 0 | 2k | 4k | 6k | 8k

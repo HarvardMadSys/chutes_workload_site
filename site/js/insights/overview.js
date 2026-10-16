@@ -7,9 +7,24 @@
 
 import { formatCompactCount, formatCount, formatCountTick } from "../shared/format.js";
 import { URLS } from "../shared/layout.js";
+import { ENDPOINT_LABELS } from "../shared/series.js";
+import { frozenCard } from "./figure_card.js";
 
 // The artifact's README of these figures, which says how each is computed.
 const SECTION_README = `${URLS.code}/blob/main/paper/01_workload_overview/README.md`;
+
+// The API functions' labels where the answer writes a function's name otherwise than the site's endpoint groups.
+const FUNCTION_LABELS = Object.freeze({
+  "Chat Stream": ENDPOINT_LABELS.chat_stream,
+  "Completion Stream": ENDPOINT_LABELS.completion_stream,
+});
+
+// The seasonality's columns, the hours of the day 0..23, and the hours its axis labels, every fourth as the paper's.
+const HOURS = Object.freeze(Array.from({ length: 24 }, (unused, hour) => hour));
+const LABELLED_HOURS = Object.freeze([0, 4, 8, 12, 16, 20]);
+
+// The seasonality's rows' labels, in the order of its `y_low` 0..6, as the paper labels them.
+const WEEKDAY_LABELS = Object.freeze(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]);
 
 /** The Workload overview topic. */
 export const OVERVIEW_TOPIC = Object.freeze({
@@ -17,7 +32,7 @@ export const OVERVIEW_TOPIC = Object.freeze({
   // placeholder: the paper has no finding box for this section; this is its first figure's conclusion.
   takeaway: "Production load is non-stationary and cannot be summarized by request count alone.",
   cards: Object.freeze([
-    Object.freeze({
+    frozenCard({
       figure: "fig_request_rate_day",
       title: "Daily request rate",
       insight: "Aggregate demand is non-stationary.",
@@ -32,7 +47,7 @@ export const OVERVIEW_TOPIC = Object.freeze({
         valueFormat: formatCompactCount,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_token_rate_day",
       title: "Daily token rate",
       // placeholder: the paragraph's lead-in is on the request rate's card; this is its sentence on this panel.
@@ -48,7 +63,7 @@ export const OVERVIEW_TOPIC = Object.freeze({
         valueFormat: formatCompactCount,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_daily_unique_models",
       title: "Daily active models",
       insight: "Active models and API mix shift over the year.",
@@ -63,7 +78,7 @@ export const OVERVIEW_TOPIC = Object.freeze({
         valueFormat: formatCount,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_function_name_daily_requests",
       title: "Daily API calls",
       // placeholder: the paragraph's lead-in is on the active models' card; this is its sentence on this panel.
@@ -74,12 +89,14 @@ export const OVERVIEW_TOPIC = Object.freeze({
       kind: "lines",
       chart: {
         x: { label: "Day of the trace" },
-        y: { label: "Requests per day", tickFormat: formatCountTick },
+        // The paper's limits: the busiest function's busiest day, 21.1M requests, sits under its top.
+        y: { label: "Requests per day", domain: [0, 23e6], tickFormat: formatCountTick },
+        labels: FUNCTION_LABELS,
         valueLabel: "Requests",
         valueFormat: formatCompactCount,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_seasonality",
       title: "Requests by hour of the week",
       insight: "Weekly and diurnal patterns persist throughout.",
@@ -88,10 +105,14 @@ export const OVERVIEW_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "cells",
       chart: {
-        x: { label: "Hour of the day (UTC)" },
-        y: { label: "Weekday" },
-        valueLabel: "Requests",
-        valueFormat: formatCompactCount,
+        x: { label: "Hour of the day (UTC)", ticks: LABELLED_HOURS },
+        xTicks: HOURS,
+        // Reversed, so the first row, labelled Mon, is at the top, as the paper draws it.
+        y: { domain: [7, 0] },
+        yTicks: WEEKDAY_LABELS,
+        scheme: "YlOrRd",
+        valueLabel: "Average requests per week",
+        valueFormat: formatCountTick,
       },
     }),
   ]),

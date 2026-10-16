@@ -1,3 +1,3 @@
 name: Daily API calls: Chat-based traffic becomes more prominent, while completion-based traffic declines.
 x-axis: 0 | 100 | 200 | 300
-y-axis: 5M | 10M | 15M | 20M
+y-axis: 0 | 5M | 10M | 15M | 20M

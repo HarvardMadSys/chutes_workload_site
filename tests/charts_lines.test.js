@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { drawnPoints, drawnSeries, lineTipText, lineYAxis, yColumn } from "../site/js/charts/lines.js";
+import {
+  drawnPoints, drawnSeries, lineTipText, lineYAxis, seriesDash, yColumn,
+} from "../site/js/charts/lines.js";
 import { formatPercent } from "../site/js/shared/format.js";
 import { assignColours } from "../site/js/theme/colours.js";
 
@@ -20,6 +22,12 @@ const PANEL_ROWS = [
   { series: "Global", x: 2, y: 12, panel: "a" },
   { series: "Global", x: 1, y: 0.5, panel: "b" },
 ];
+
+test("a series the card lists as dashed is drawn dashed, every other solid", () => {
+  assert.equal(seriesDash("Global", ["Global"]), "4,3");
+  assert.equal(seriesDash("DeepSeek R1", ["Global"]), undefined);
+  assert.equal(seriesDash("Global", []), undefined);
+});
 
 test("a CDF's y is its cdf column; a lines answer's is y", () => {
   assert.equal(yColumn(true), "cdf");

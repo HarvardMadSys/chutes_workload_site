@@ -34,6 +34,14 @@ test("an axis of category names is ticked at the middle of each cell, each tick 
   assert.equal(categoryAxis(plain, undefined), plain);
 });
 
+test("an axis of category names given ticks labels only the categories of those indices", () => {
+  const hours = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+  const axis = categoryAxis({ label: "Hour", ticks: [0, 4, 8] }, hours);
+  assert.deepEqual(axis.ticks, [0.5, 4.5, 8.5]);
+  assert.deepEqual(axis.ticks.map(axis.tickFormat), [0, 4, 8]);
+  assert.deepEqual(axis.names, hours);
+});
+
 test("a cell's tooltip gives its ranges, after each axis's title, and its value", () => {
   const parameters = {
     x: { label: "Requests", tickFormat: (value) => `${value}` },

@@ -8,6 +8,7 @@
 
 import { formatCount, formatCountTick, formatPercent, formatSeconds, formatShare } from "../shared/format.js";
 import { URLS } from "../shared/layout.js";
+import { frozenCard } from "./figure_card.js";
 
 // The artifact's README of the trace's caching figures, which says how each is computed.
 const SECTION_README = `${URLS.code}/blob/main/paper/04_prefix_caching/README.md`;
@@ -20,7 +21,7 @@ export const CACHING_TOPIC = Object.freeze({
   selector: "#insights-caching",
   takeaway: "Cache reuse is common but uneven and strongly recency-driven, making simple policies such as FIFO and LRU highly competitive.",
   cards: Object.freeze([
-    Object.freeze({
+    frozenCard({
       figure: "fig_request_cached_fraction_cdf_by_input",
       title: "Prompt length and hit ratio",
       insight: "Request-level cached fractions are bimodal.",
@@ -34,7 +35,7 @@ export const CACHING_TOPIC = Object.freeze({
         valueFormat: formatShare,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_request_token_hit_rate_cdf_by_model",
       title: "Model token hit ratio",
       insight: "Cache behavior differs sharply across models.",
@@ -48,7 +49,7 @@ export const CACHING_TOPIC = Object.freeze({
         valueFormat: formatShare,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_model_nreq_vs_avg_hitratio_hexbin",
       title: "Per-model cache profile",
       // placeholder: the paragraph's lead-in, "Model and user cacheability.", names a topic, not a claim.
@@ -64,7 +65,7 @@ export const CACHING_TOPIC = Object.freeze({
         valueFormat: formatCount,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_user_nreq_vs_avg_hitratio_hexbin",
       title: "Per-user cache profile",
       // placeholder: the paragraph's lead-in, "Model and user cacheability.", names a topic, not a claim.
@@ -80,7 +81,7 @@ export const CACHING_TOPIC = Object.freeze({
         valueFormat: formatCount,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_iat_monthly_per_user_band",
       title: "Per-user IAT over time",
       insight: "User IAT trends downwards over time.",
@@ -95,7 +96,7 @@ export const CACHING_TOPIC = Object.freeze({
         valueFormat: formatSeconds,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_per_user_iat_p50_by_model",
       title: "Per-user IAT across models",
       // placeholder: the paragraph's lead-in is on the IAT over time card; this is its sentence on this panel.
@@ -106,7 +107,7 @@ export const CACHING_TOPIC = Object.freeze({
       kind: "boxes",
       chart: { y: { label: "Median IAT per user (s)" }, valueLabel: "Median IAT per user", valueFormat: formatSeconds },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_iat_pair_ttl_coverage",
       title: "Per-user-model IAT",
       insight: "A short TTL covers most repeat arrivals.",
@@ -121,7 +122,7 @@ export const CACHING_TOPIC = Object.freeze({
         valueFormat: formatShare,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_hit_ratio_minimax_m25",
       title: "Eviction algorithms on MiniMax-M2.5",
       // placeholder: the results paragraph has no lead-in; this is its first finding.
@@ -138,7 +139,7 @@ export const CACHING_TOPIC = Object.freeze({
         valueFormat: formatShare,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_hit_ratio_deepseek_v32",
       title: "Eviction algorithms on DeepSeek V3.2",
       // placeholder: the results paragraph has no lead-in; this is its second finding.

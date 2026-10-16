@@ -2,8 +2,8 @@
  * A chart's series: the column naming a row's series, a series' label, the rows of the series its legend does not hide
  * (of one panel, for a figure's answer), and the legend itself, `{ series, colours }`, the series it lists, each
  * `{ name, label }`, and their colours, a Map from name to colour; and a figure card's colours, the global series and
- * the three highlighted models in one fixed colour each on every card. These are plain functions, tested with
- * `node --test`.
+ * the three highlighted models in one fixed colour each on every card, in the paper's legend order and with their
+ * labels. These are plain functions, tested with `node --test`.
  *
  * And the kinds of series the Overview and the Traffic Explorer draw, the models, the endpoint groups and the
  * families, each `{ order, column, colours, labels? }`: `order`, the key of the orders (the page's `context.orders`,
@@ -61,15 +61,21 @@ export const FIXED_SERIES_COLOURS = Object.freeze({
   "Minimax M2.5": SERIES_SLOTS[2],
 });
 
+/** The global series and the three highlighted models, as the figure answers name them, in the paper's legend order. */
+export const HIGHLIGHTED_SERIES = Object.freeze(["Global", "DeepSeek V3.2", "Deepseek R1", "Minimax M2.5"]);
+
+/** The labels of the highlighted models whose names in the figure answers are not spelled as the models' own. */
+export const HIGHLIGHTED_LABELS = Object.freeze({ "Deepseek R1": "DeepSeek R1", "Minimax M2.5": "MiniMax M2.5" });
+
 /**
  * A figure card's colours: a Map from each of `names`, in their order, to its colour, `FIXED_SERIES_COLOURS`' where it
- * has one there, else the next series slot that no fixed series of `names` takes, and `OTHER_SERIES` once the slots
- * run out.
+ * has one there, else the next of `slots` (the eight series slots when not given) that no fixed series of `names`
+ * takes, and `OTHER_SERIES` once the slots run out.
  */
-export function figureColours(names) {
+export function figureColours(names, slots = SERIES_SLOTS) {
   const fixed = names.filter((name) => Object.hasOwn(FIXED_SERIES_COLOURS, name));
   const takenSlots = new Set(fixed.map((name) => FIXED_SERIES_COLOURS[name]));
-  const freeSlots = SERIES_SLOTS.filter((slot) => !takenSlots.has(slot));
+  const freeSlots = slots.filter((slot) => !takenSlots.has(slot));
   const colours = new Map();
   let nextFreeSlot = 0;
   for (const name of names) {

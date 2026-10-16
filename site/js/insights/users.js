@@ -8,6 +8,7 @@
 
 import { formatCount, formatCountTick } from "../shared/format.js";
 import { URLS } from "../shared/layout.js";
+import { frozenCard } from "./figure_card.js";
 
 // The artifact's README of these figures, which says how each is computed.
 const SECTION_README = `${URLS.code}/blob/main/paper/06_users_models/README.md`;
@@ -17,7 +18,7 @@ export const USERS_TOPIC = Object.freeze({
   selector: "#insights-users",
   takeaway: "Users and models exhibit distinct temporal access patterns, and model burstiness is often persistent and correlated.",
   cards: Object.freeze([
-    Object.freeze({
+    frozenCard({
       figure: "fig_model_requests_vs_users_density",
       title: "Models: requests and users",
       insight: "Models and users span wide ranges of request volume.",
@@ -32,7 +33,7 @@ export const USERS_TOPIC = Object.freeze({
         valueFormat: formatCount,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_user_requests_distinct_models_heatmap",
       title: "Users: requests and models",
       // placeholder: the paragraph's lead-in is on the models' card; this is its sentence on this panel.
@@ -48,7 +49,7 @@ export const USERS_TOPIC = Object.freeze({
         valueFormat: formatCount,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_model_median_input_output_heatmap",
       title: "Models: input and output",
       insight: "Token shape varies substantially across models and users.",
@@ -63,7 +64,7 @@ export const USERS_TOPIC = Object.freeze({
         valueFormat: formatCount,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_user_median_input_output_heatmap",
       title: "Users: input and output",
       // placeholder: the paragraph's lead-in is on the models' card; this is its sentence on this panel.
@@ -79,7 +80,7 @@ export const USERS_TOPIC = Object.freeze({
         valueFormat: formatCount,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_model_raster_qwen3_next_80b",
       title: "Periodic user access",
       insight: "Popular models can exhibit very different user-level access patterns.",
@@ -89,7 +90,7 @@ export const USERS_TOPIC = Object.freeze({
       kind: "raster",
       chart: { x: { label: "Hour of the window" }, y: { label: "User" }, scheme: "YlGnBu", valueLabel: "Requests" },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_model_raster_gpt_oss_20b",
       title: "Correlated access",
       // placeholder: the paragraph's lead-in is on the periodic access card; this is its sentence on this panel.
@@ -100,7 +101,7 @@ export const USERS_TOPIC = Object.freeze({
       kind: "raster",
       chart: { x: { label: "Hour of the window" }, y: { label: "User" }, scheme: "YlGnBu", valueLabel: "Requests" },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_user_raster_periodic",
       title: "Periodic user usage",
       insight: "Heavy users differ in how broadly they access models.",
@@ -110,7 +111,7 @@ export const USERS_TOPIC = Object.freeze({
       kind: "raster",
       chart: { x: { label: "Hour of the window" }, y: { label: "Model" }, scheme: "YlGnBu", valueLabel: "Requests" },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_user_raster_explore",
       title: "Model exploration",
       // placeholder: the paragraph's lead-in is on the periodic usage card; this is its sentence on this panel.
@@ -121,7 +122,7 @@ export const USERS_TOPIC = Object.freeze({
       kind: "raster",
       chart: { x: { label: "Hour of the window" }, y: { label: "Model" }, scheme: "YlGnBu", valueLabel: "Requests" },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_model_heatmap_fixedxy_density",
       title: "Popularity and burstiness",
       insight: "Most models are bursty and persistently so.",
@@ -136,7 +137,7 @@ export const USERS_TOPIC = Object.freeze({
         valueFormat: formatCount,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_model_heatmap_fixedxy_scatter_colored_metrics",
       title: "Lag-1 IAT autocorrelation",
       // placeholder: the paragraph's lead-in is on the burstiness card; this is its sentence on this panel.

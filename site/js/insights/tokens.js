@@ -7,12 +7,30 @@
  */
 
 import {
-  formatCompactCount, formatCount, formatCountTick, formatPercent, formatSeconds, formatShare,
+  formatCount, formatCountTick, formatPercent, formatSeconds, formatSecondsTick, formatShare, formatWholeCount,
 } from "../shared/format.js";
 import { URLS } from "../shared/layout.js";
+import { HIGHLIGHTED_LABELS, HIGHLIGHTED_SERIES } from "../shared/series.js";
+import { frozenCard } from "./figure_card.js";
 
 // The artifact's README of these figures, which says how each is computed.
 const SECTION_README = `${URLS.code}/blob/main/paper/02_token_shape_latency/README.md`;
+
+// The y axis of every CDF of this topic: the share of requests at or below a value, in percent.
+const SHARE_OF_REQUESTS = Object.freeze({ label: "Share of requests" });
+
+// The latency grids' extent, as the paper draws them: input buckets up to 34K tokens, output buckets up to 8,200.
+const INPUT_DOMAIN = Object.freeze([0, 34]);
+const OUTPUT_DOMAIN = Object.freeze([0, 8200]);
+
+// The hit-ratio grid's extent: its top row, 1.0 to 1.1, holds the requests whose input was all served from the cache.
+const HIT_RATIO_DOMAIN = Object.freeze([0, 1.1]);
+const HIT_RATIO_TICKS = Object.freeze([0, 0.2, 0.4, 0.6, 0.8, 1]);
+
+/** An input-token bucket's edge, given in thousands of tokens, as an axis writes it: 0 → "0", 10 → "10k". */
+function formatThousandsTick(thousands) {
+  return formatCountTick(thousands * 1000);
+}
 
 /** The Token shape and latency topic. */
 export const TOKENS_TOPIC = Object.freeze({
@@ -20,7 +38,7 @@ export const TOKENS_TOPIC = Object.freeze({
   // placeholder: the paper has no finding box for this section; this joins its figures' captions.
   takeaway: "Requests are often prompt-heavy while decode dominates latency, and each highlighted model has a distinctive profile.",
   cards: Object.freeze([
-    Object.freeze({
+    frozenCard({
       figure: "fig_token_length_input_cdf_by_model",
       title: "Input tokens",
       insight: "Requests are often prompt-heavy.",
@@ -28,13 +46,17 @@ export const TOKENS_TOPIC = Object.freeze({
       definition: "Share of requests with at most this many input tokens, over all requests and for three highlighted models: DeepSeek V3.2, DeepSeek R1 and MiniMax M2.5.",
       source: SECTION_README,
       kind: "cdf",
+      series: HIGHLIGHTED_SERIES,
       chart: {
-        x: { label: "Input tokens", log: true, tickFormat: formatCountTick },
+        x: { label: "Input tokens", log: true, domain: [1, 4e5], tickFormat: formatCountTick },
+        y: SHARE_OF_REQUESTS,
+        dashed: ["Global"],
+        labels: HIGHLIGHTED_LABELS,
         valueLabel: "Input tokens",
-        valueFormat: formatCompactCount,
+        valueFormat: formatWholeCount,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_token_length_output_cdf_by_model",
       title: "Output tokens",
       insight: "Highlighted models show distinct usage profiles.",
@@ -42,13 +64,17 @@ export const TOKENS_TOPIC = Object.freeze({
       definition: "Share of requests with at most this many output tokens, over all requests and for the three highlighted models.",
       source: SECTION_README,
       kind: "cdf",
+      series: HIGHLIGHTED_SERIES,
       chart: {
-        x: { label: "Output tokens", log: true, tickFormat: formatCountTick },
+        x: { label: "Output tokens", log: true, domain: [1, 2e4], tickFormat: formatCountTick },
+        y: SHARE_OF_REQUESTS,
+        dashed: ["Global"],
+        labels: HIGHLIGHTED_LABELS,
         valueLabel: "Output tokens",
-        valueFormat: formatCompactCount,
+        valueFormat: formatWholeCount,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_output_input_ratio_cdf_by_model",
       title: "Output-to-input ratio",
       // placeholder: the paragraph's lead-in is on the input tokens' card; this is its sentence on this panel.
@@ -57,13 +83,20 @@ export const TOKENS_TOPIC = Object.freeze({
       definition: "Share of requests whose output tokens divided by their input tokens is at most this ratio, over all requests and for the three highlighted models.",
       source: SECTION_README,
       kind: "cdf",
+      series: HIGHLIGHTED_SERIES,
       chart: {
-        x: { label: "Output tokens / input tokens", log: true, tickFormat: String },
+        // Every second power of ten, as the paper labels them: every one crowds a phone's axis.
+        x: {
+          label: "Output / input tokens", log: true, domain: [5e-4, 100], ticks: [0.01, 1, 100], tickFormat: String,
+        },
+        y: SHARE_OF_REQUESTS,
+        dashed: ["Global"],
+        labels: HIGHLIGHTED_LABELS,
         valueLabel: "Ratio",
         valueFormat: formatCount,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_latency_e2e_cdf_by_model",
       title: "End-to-end latency",
       insight: "Models can be latency-bound for different reasons.",
@@ -71,13 +104,17 @@ export const TOKENS_TOPIC = Object.freeze({
       definition: "Share of requests whose end-to-end latency is at most this many seconds, over all requests and for the three highlighted models.",
       source: SECTION_README,
       kind: "cdf",
+      series: HIGHLIGHTED_SERIES,
       chart: {
-        x: { label: "End-to-end latency (s)", log: true, tickFormat: String },
+        x: { label: "End-to-end latency", log: true, domain: [0.1, 300], tickFormat: formatSecondsTick },
+        y: SHARE_OF_REQUESTS,
+        dashed: ["Global"],
+        labels: HIGHLIGHTED_LABELS,
         valueLabel: "Latency",
         valueFormat: formatSeconds,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_prefill_fraction_cdf_by_model",
       title: "Fraction of TTFT",
       insight: "End-to-end latency is dominated by decode.",
@@ -85,13 +122,18 @@ export const TOKENS_TOPIC = Object.freeze({
       definition: "Share of requests whose time to first token (TTFT, the prefill) is at most this fraction of the request's whole duration, over all requests and for the three highlighted models.",
       source: SECTION_README,
       kind: "cdf",
+      series: HIGHLIGHTED_SERIES,
       chart: {
-        x: { label: "TTFT / duration", tickFormat: formatPercent },
+        // Quarters rather than the paper's fifths: six percentages crowd a phone's axis.
+        x: { label: "TTFT / duration", domain: [0, 1], ticks: [0, 0.25, 0.5, 0.75, 1], tickFormat: formatPercent },
+        y: SHARE_OF_REQUESTS,
+        dashed: ["Global"],
+        labels: HIGHLIGHTED_LABELS,
         valueLabel: "Fraction of the duration",
         valueFormat: formatShare,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_duration_p50_heatmap",
       title: "Output tokens and duration",
       insight: "Output length drives duration; input length drives TTFT.",
@@ -100,13 +142,14 @@ export const TOKENS_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "cells",
       chart: {
-        x: { label: "Input tokens (thousands)" },
-        y: { label: "Output tokens" },
+        x: { label: "Input tokens", domain: INPUT_DOMAIN, tickFormat: formatThousandsTick },
+        y: { label: "Output tokens", domain: OUTPUT_DOMAIN, tickFormat: formatCountTick },
+        scheme: "YlOrRd",
         valueLabel: "Median duration",
         valueFormat: formatSeconds,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_ttft_p50_heatmap_input_output",
       title: "Input tokens and TTFT",
       // placeholder: the paragraph's lead-in is on the duration's card; this is its sentence on this panel.
@@ -116,13 +159,14 @@ export const TOKENS_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "cells",
       chart: {
-        x: { label: "Input tokens (thousands)" },
-        y: { label: "Output tokens" },
+        x: { label: "Input tokens", domain: INPUT_DOMAIN, tickFormat: formatThousandsTick },
+        y: { label: "Output tokens", domain: OUTPUT_DOMAIN, tickFormat: formatCountTick },
+        scheme: "YlOrRd",
         valueLabel: "Median TTFT",
         valueFormat: formatSeconds,
       },
     }),
-    Object.freeze({
+    frozenCard({
       figure: "fig_ttft_heatmap_input_cached",
       title: "TTFT and token hit ratio",
       // placeholder: the paragraph's lead-in is on the duration's card; this is the figure caption's claim.
@@ -132,8 +176,9 @@ export const TOKENS_TOPIC = Object.freeze({
       source: SECTION_README,
       kind: "cells",
       chart: {
-        x: { label: "Input tokens (thousands)" },
-        y: { label: "Token hit ratio" },
+        x: { label: "Input tokens", domain: INPUT_DOMAIN, tickFormat: formatThousandsTick },
+        y: { label: "Token hit ratio", domain: HIT_RATIO_DOMAIN, ticks: HIT_RATIO_TICKS, tickFormat: String },
+        scheme: "YlOrRd",
         valueLabel: "Median TTFT",
         valueFormat: formatSeconds,
       },

@@ -18,7 +18,7 @@ const CATEGORY_CENTRE = 0.5; // a category's tick sits halfway between its cell'
  * - `x`, `y`: the card's axis options `{ label, log, domain, ticks, tickFormat }`; on a log axis, a cell with an edge
  *   at or below zero is not drawn.
  * - `xTicks`, `yTicks`: an axis's category names, in place of its ticks and their format, the cell from i to i + 1
- *   named by the i-th, "Mon".
+ *   named by the i-th, "Mon"; every category is labelled, or, where the axis gives `ticks`, those of its indices.
  * - `scheme`: the colour scheme, "YlOrRd" when not given; `colourLog`: true for a log colour scale, on which a cell of
  *   value zero is not drawn; `colourScale`: Plot's colour scale type otherwise, linear when not given.
  * - `valueLabel`: what a value is, the colour legend's title and the tooltip's; `valueFormat`: how it is written there.
@@ -58,13 +58,15 @@ export async function drawCells(rows, body, colours, parameters) {
 
 /**
  * The card's axis options `axis`, or, given category names `names`, an axis ticked at the middle of each category's
- * cell, each tick written by its category's name; `names` as the axis's `names`, for the tooltip.
+ * cell, of every category or of those whose indices `axis.ticks` lists, each tick written by its category's name;
+ * `names` as the axis's `names`, for the tooltip.
  */
 export function categoryAxis(axis, names) {
   if (names === undefined) {
     return axis;
   }
-  const ticks = names.map((name, index) => index + CATEGORY_CENTRE);
+  const labelled = axis.ticks ?? names.map((name, index) => index);
+  const ticks = labelled.map((index) => index + CATEGORY_CENTRE);
   return { ...axis, names, ticks, tickFormat: (tick) => names[Math.floor(tick)] };
 }
 
