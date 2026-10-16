@@ -5,7 +5,7 @@ artifact repository and comes first; task 1 reads what it writes.
 
 ## 0. The family table and the rollup (artifact repository)
 
-- [ ] 0.1 `data/paper/model_families.csv` with the families and patterns
+- [x] 0.1 `data/paper/model_families.csv` with the families and patterns
       of design D1; the `daily_rollup.parquet` query in
       `paper/01_workload_overview/reproduce.py` joins each named model to
       the first pattern its name contains, keeps `chute_id` for the eight
@@ -19,7 +19,7 @@ artifact repository and comes first; task 1 reads what it writes.
 
 ## 1. The answers
 
-- [ ] 1.1 `site_data/loading.py` reads `model_families.csv`;
+- [x] 1.1 `site_data/loading.py` reads `model_families.csv`;
       `site/queries/setup/family_models.sql` ranks the named models
       within their family from the rollup; `queries/explore/daily_by_family.sql`;
       `queries/explore/daily_by_model.sql` with the `$family` parameter;
@@ -32,7 +32,7 @@ artifact repository and comes first; task 1 reads what it writes.
 
 ## 2. The explorer
 
-- [ ] 2.1 `traffic_filter.js`: the family in the choice, the URL keys,
+- [x] 2.1 `traffic_filter.js`: the family in the choice, the URL keys,
       the series column by choice, the model drop-down's entries from a
       family's answer; `traffic_controls.js`: the family drop-down and
       the disabled model drop-down; `traffic.js`: fetch a family's answer
@@ -43,7 +43,7 @@ artifact repository and comes first; task 1 reads what it writes.
 
 ## 3. Tests and documentation
 
-- [ ] 3.1 Rewrite the explorer's snapshot unit; the deploy workflow
+- [x] 3.1 Rewrite the explorer's snapshot unit; the deploy workflow
       fetches the by-family answer; README (the two answers, the family
       table), CONTRIBUTING (the parameterised query pattern), the
       explorer's guide line (the user's words) and the spec's Scenario
