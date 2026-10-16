@@ -1,15 +1,17 @@
-"""The site's database in DuckDB over the site's frames in memory, in which `make data` and the tests run the site's
+"""The site's database in DuckDB over the artifact's frames in memory, in which `make data` and the tests run the site's
 queries.
 
-It is opened by registering each frame as the table of its name. A query's name is its path under `site/queries/`
-without `.sql`.
+It is opened by registering each frame of `loading.ArtifactFrames` as the table of its name: `trace_totals`,
+`daily_rollup`, `monthly_requests_tokens_by_model`, `function_name_daily_requests` and `chute_models`. A query's
+name is its path under `site/queries/` without `.sql`; `run_query` gives its result as `QueryRows`.
 """
 
 import dataclasses
 import pathlib
 
 import duckdb
-import pandas
+
+from site_data import loading
 
 QUERIES_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "site" / "queries"
 # One thread, so that a sum of floats adds its rows in the same order on every run and a rebuilt answer is the same to
@@ -30,15 +32,18 @@ def statement_text(name: str) -> str:
     return (QUERIES_FOLDER / f"{name}.sql").read_text()
 
 
-def open_site_database(frames: dict[str, pandas.DataFrame]) -> duckdb.DuckDBPyConnection:
-    """A new in-memory database on `THREADS` threads, each frame of `frames` the table of its name."""
+def open_database(frames: loading.ArtifactFrames) -> duckdb.DuckDBPyConnection:
+    """A new in-memory database on `THREADS` threads, each of the artifact's frames the table of its name."""
     connection = duckdb.connect(config={"threads": THREADS})
-    for table, frame in frames.items():
-        connection.register(table, frame)
+    connection.register("trace_totals", frames.trace_totals)
+    connection.register("daily_rollup", frames.daily_rollup)
+    connection.register("monthly_requests_tokens_by_model", frames.monthly_requests_tokens_by_model)
+    connection.register("function_name_daily_requests", frames.function_name_daily_requests)
+    connection.register("chute_models", frames.chute_models)
     return connection
 
 
-def query_rows(connection: duckdb.DuckDBPyConnection, name: str) -> QueryRows:
+def run_query(connection: duckdb.DuckDBPyConnection, name: str) -> QueryRows:
     """The rows of the query `name`, its columns and each row's values in their order."""
     result = connection.execute(statement_text(name))
     columns = [column[0] for column in result.description]

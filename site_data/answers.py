@@ -84,7 +84,7 @@ def query_text_hash(queries_folder: pathlib.Path, name: str) -> str:
 
 def answer_rows(connection: duckdb.DuckDBPyConnection, query_name: str) -> list[dict]:
     """The rows of the query, each a dict from the query's column names, in its order, to the row's JSON values."""
-    result = site_database.query_rows(connection, query_name)
+    result = site_database.run_query(connection, query_name)
     rows = []
     for row in result.rows:
         values = [json_value(value) for value in row]
