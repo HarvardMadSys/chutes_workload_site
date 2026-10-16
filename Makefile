@@ -25,10 +25,11 @@ data:
 serve:
 	python3 -m http.server -d site -b 127.0.0.1 8000
 
-# The Python tests, then the JavaScript modules' tests.
+# The Python tests, then the JavaScript modules' tests. The Python tests are given the artifact's checkout, against
+# whose figure list they compare the Insights' cards; without it that test skips, saying so.
 # Task 6 adds the snapshot step, tests/snapshot.py, once tests/snapshots/ holds this site's snapshots.
 test:
-	$(PYTHON) -m pytest
+	ARTIFACT=$(ARTIFACT) $(PYTHON) -m pytest
 	node --test "tests/*.test.js"
 
 # Rewrite tests/snapshots/ from the pages as they are now, when a change is meant to alter what a page shows.

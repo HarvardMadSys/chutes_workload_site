@@ -1,7 +1,8 @@
 /**
- * The Explore page's start: it draws the Insights' topic tabs, draws the header and the footer, then runs the page's
- * sections, once, from their answer files. The topics are shown one at a time behind the tabs of the `#topic-tabs`
- * row (`explore/topic_tabs.js`).
+ * The Explore page's start: it places the Insights' cards and draws their topic tabs, draws the header and the footer,
+ * then runs the page's sections, once, from their answer files. The topics (`explore/figure_sections.js`) are shown
+ * one at a time behind the tabs of the `#topic-tabs` row (`explore/topic_tabs.js`); a topic's figure images are drawn
+ * the first time it is shown, so a topic never shown requests none.
  *
  * The page's module names its sections, each `{ id, run }`: the id of its place in `index.html` and the function that
  * runs it, which shows its loading state at once and then draws its answer. A section runs as `run(container,
@@ -14,33 +15,81 @@
  * - `replaceQuery(params)`, which writes `params` to the address bar and the header's links.
  */
 
-import { readAnswer } from "../shared/answers.js";
+import { readAnswer, readFigureIndex } from "../shared/answers.js";
+import { showError } from "../shared/charts.js";
 import { EXPLORE_FILE, mountHeader, renderFooter, queryString } from "../shared/layout.js";
+import { drawFigureImage, newCardElement, renderFigureCard } from "./figure_card.js";
+import { FIGURE_SECTIONS } from "./figure_sections.js";
 import { mountTopicTabs } from "./topic_tabs.js";
-
-// The Insights' topics, each by the selector of its section in `index.html`, in the order of their tabs.
-const TOPIC_SECTIONS = Object.freeze([
-  Object.freeze({ selector: "#insights-overview" }),
-  Object.freeze({ selector: "#insights-tokens" }),
-  Object.freeze({ selector: "#insights-users" }),
-  Object.freeze({ selector: "#insights-evolution" }),
-  Object.freeze({ selector: "#insights-caching" }),
-  Object.freeze({ selector: "#insights-balancing" }),
-]);
 
 /**
  * Start the Explore page: draw its topic tabs, header and footer and its `sections`, and call `showMonthCount` with the
  * number of months the trace spans, null until the trace totals give it. Settles once the sections have drawn.
  */
 export async function startPage({ sections, showMonthCount }) {
-  // The topics hold nothing that is drawn when a topic is shown.
-  mountTopicTabs(document.querySelector("#topic-tabs"), TOPIC_SECTIONS, () => undefined);
+  mountInsights();
   renderFooter(document.querySelector("#site-footer"), EXPLORE_FILE, new URLSearchParams(), null);
   showMonthCount(null);
   renderPageHeader();
   const context = sectionContext();
   await Promise.all([showMonths(context.totals, showMonthCount), runEverySection(sections, context)]);
   scrollToAnchor();
+}
+
+/**
+ * Write each topic's takeaway and place its cards, each card's image loading, then draw the topic tabs. A topic's
+ * images are drawn the first time it is shown (`drawShownTopic`), from the images' index, which is read once.
+ */
+function mountInsights() {
+  const sizes = readFigureIndex();
+  // Each card that awaits the index shows a failure in its own place, not here.
+  sizes.catch(() => undefined);
+  const topics = FIGURE_SECTIONS.map(placeTopic);
+  const drawnSections = new Set();
+  const drawShown = () => drawShownTopic(topics, drawnSections, sizes);
+  mountTopicTabs(document.querySelector("#topic-tabs"), FIGURE_SECTIONS, drawShown);
+}
+
+/**
+ * Write `topic`'s takeaway under its heading and place its cards in its grid, each with its words and its image's place
+ * loading; return `{ section, cards }`, its section element and its cards, each `{ card, body }`.
+ */
+function placeTopic(topic) {
+  const section = document.querySelector(topic.selector);
+  const takeaway = document.createElement("p");
+  takeaway.className = "topic-takeaway";
+  takeaway.textContent = topic.takeaway;
+  section.querySelector("h2").after(takeaway);
+  const grid = section.querySelector(".card-grid");
+  const cards = [];
+  for (const card of topic.cards) {
+    const element = newCardElement(card);
+    grid.append(element);
+    cards.push({ card, body: renderFigureCard(element, card) });
+  }
+  return { section, cards };
+}
+
+/**
+ * Draw the images of the topic of `topics` shown now, unless `drawnSections` holds its section, which it then does;
+ * `sizes` is the promised images' index. If the index cannot be read, each of the topic's cards shows the error.
+ */
+async function drawShownTopic(topics, drawnSections, sizes) {
+  const shown = topics.find((topic) => !topic.section.hidden);
+  if (drawnSections.has(shown.section)) {
+    return;
+  }
+  drawnSections.add(shown.section);
+  try {
+    const imageSizes = await sizes;
+    for (const { card, body } of shown.cards) {
+      drawFigureImage(body, card, imageSizes);
+    }
+  } catch (error) {
+    for (const { body } of shown.cards) {
+      showError(body, error);
+    }
+  }
 }
 
 /** What every section is given; see the module's comment. */
@@ -87,7 +136,7 @@ function scrollToAnchor() {
   if (window.location.hash === "" || target === null) {
     return;
   }
-  const isTopic = TOPIC_SECTIONS.some((section) => section.selector === window.location.hash);
+  const isTopic = FIGURE_SECTIONS.some((section) => section.selector === window.location.hash);
   const scrolled = isTopic ? target.parentElement : target;
   scrolled.scrollIntoView();
 }

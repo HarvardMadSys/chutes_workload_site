@@ -1404,6 +1404,26 @@ section[id] {
   --plot-background: var(--color-surface);
 }
 
+/* A figure image of the Insights, with its legend image above it when it has one: each at its own width, half its
+   pixels, and never wider than its card. The image links to itself at full size; only the image is the link. */
+.figure-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.figure-panel a {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.figure-panel img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
 .legend {
   display: flex;
   flex-wrap: wrap;
