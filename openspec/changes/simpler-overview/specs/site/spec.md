@@ -56,8 +56,7 @@ it once per value and write `<query>/<value slug>.json`, the query's
 hash recorded once. The queries SHALL be `trace_totals` (one row: the
 span's first and last day, the months, requests, input tokens, output
 tokens, users, models, instances), `family_mix` (requests per family
-over the whole trace, with the family's slug, most requested first and
-Other last), `endpoint_mix` (requests per endpoint group),
+over the whole trace, most requested first and Other last), `endpoint_mix` (requests per endpoint group),
 `daily_by_family` (one row per day, family and endpoint group, with the
 request count, the input and output token sums and counts, and the TTFT
 sum and count) and `daily_by_model` (for the family given: one row per

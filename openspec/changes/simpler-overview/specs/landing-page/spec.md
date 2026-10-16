@@ -58,7 +58,7 @@ the title, the figure's chart, a caption of at most forty words in at
 most three sentences under the chart, and behind a control its
 definition (at most sixty words in at most three sentences) and nothing
 else. A definition SHALL describe what the figure shows in plain words
-and SHALL NOT name a cut-off, a count or a bin width. A card's element
+and SHALL NOT name a cut-off used to pick its rows or a bin width. A card's element
 SHALL carry its figure's name in a `data-figure` attribute. A click on
 a tab SHALL show its topic and hide the others, and SHALL write the
 topic's anchor to the URL's hash, so that a link with that hash opens

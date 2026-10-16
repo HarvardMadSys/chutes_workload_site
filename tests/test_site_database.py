@@ -5,6 +5,7 @@ import datetime
 
 import duckdb
 
+import test_queries
 from site_data import site_database
 
 
@@ -18,8 +19,8 @@ def test_every_frame_is_the_table_of_its_name(connection: duckdb.DuckDBPyConnect
 
 def test_the_database_holds_seven_tables(connection: duckdb.DuckDBPyConnection) -> None:
     tables = {row[0] for row in connection.execute("SELECT name FROM (SHOW TABLES)").fetchall()}
-    assert tables == {"trace_totals", "daily_rollup", "function_name_daily_requests", "chute_models",
-                      "model_families", "trace_calendar", "family_models"}
+    assert tables == test_queries.SITE_TABLES
+    assert len(tables) == 7
 
 
 def test_the_database_runs_on_one_thread(connection: duckdb.DuckDBPyConnection) -> None:

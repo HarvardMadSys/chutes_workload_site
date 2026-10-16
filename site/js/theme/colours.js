@@ -22,7 +22,8 @@ export const SERIES_SLOTS = Object.freeze([
 
 /**
  * The families' colours, in order: the eight series slots, then two more, as the Traffic Explorer's bars and the
- * Overview's family mix name all ten named families in one chart. No other chart takes the last two.
+ * Overview's family mix name all ten named families in one chart. The Insights' cards of more than eight series (the
+ * `families` palette, the two monthly share cards) take the ten too; no other chart takes the last two.
  */
 export const FAMILY_SLOTS = Object.freeze([...SERIES_SLOTS, "var(--series-9)", "var(--series-10)"]);
 

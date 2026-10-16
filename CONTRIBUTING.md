@@ -394,7 +394,10 @@ Insights' figures are drawn from their plot-ready tables.
   a ninth series folds into "Other" (`--series-other`). The exceptions
   are the families, in the Traffic Explorer's chart and the Overview's
   family mix alike, which name all ten named families and so take two
-  more, `--series-9` and `--series-10` (`familyColours`): the families
+  more, `--series-9` and `--series-10` (`familyColours`), and the
+  Insights' cards of more than eight series, the two monthly share cards
+  (the `families` palette of `insights/card_series.js`), which take the
+  same ten slots in their legend's order. The families
   take the slots from the first, in the order of their requests
   (`explore/family_mix`'s, and the explorer's `familyOrder`), and the
   endpoint groups from `ENDPOINT_FIRST_SLOT`, in

@@ -20,8 +20,9 @@ Every task ends with `make test` green and one commit.
       `context.orders.families` with `FAMILY_SERIES`; `explore/start.js`
       gives `orders = { families, endpoints }`; delete
       `explore/trends.js`, its test, the `#trends` grid and
-      `.trend-grid`; delete `MODEL_SERIES` and `modelColours` and their
-      tests; the snapshot's chart count of the Overview is two; the
+      `.trend-grid`; `MODEL_SERIES` and `modelColours` stay, as the
+      Traffic Explorer colours a family's models by them; the snapshot's
+      chart count of the Overview is two; the
       family mix's words marked placeholder.
       *Verify:* the Overview shows two donuts; the family donut's colours
       equal the Traffic Explorer's family colours.

@@ -3,17 +3,19 @@
 ## D1. The family mix is one query over the daily rollup
 
 `queries/explore/family_mix.sql` replaces `model_mix.sql`: one row per
-family of `daily_rollup`, its `family`, its `family_slug` (made as
-`daily_by_family` makes it) and the sum of its requests, most requested
-first and Other last. Its requests sum to `trace_totals`' requests, as
+family of `daily_rollup`, its `family` and the sum of its requests, most
+requested first and Other last. Its requests sum to `trace_totals`' requests, as
 the rollup's do. The page reads it once, as `context.orders.families`,
 and the donut's rows are its colour order, as the model mix's were.
 
 The Traffic Explorer keeps ordering the families from `daily_by_family`
 (`familyOrder`): the two orders are the same ranking by requests, and
 the explorer's answer holds every family already, so it reads nothing
-more. A tie in requests would order the two differently; none exists in
-the trace, and the ranking is by requests then name in both.
+more. A tie in requests would order the two differently: the query
+breaks it by name, while `familyOrder` keeps the families' first
+appearance in `daily_by_family`'s rows. That is harmless while no tie
+exists, and none exists in the trace; the shipped-answer test of
+`tests/landing_donuts.test.js` fails if one appears.
 
 ## D2. What the trends' removal takes with it
 
@@ -23,7 +25,8 @@ answers `requests_by_month_model`, `tokens_by_month_model`,
 `.trend-grid`; `setup/top_models.sql` and the table `top_models`, which
 only the model mix and the trends read; the cache
 `monthly_requests_tokens_by_model` from `loading.py`, the database and
-the fixture; `MODEL_SERIES` and `modelColours`. `trace_calendar` stays:
+the fixture. `MODEL_SERIES` and `modelColours` stay: the Traffic
+Explorer colours a family's models by them. `trace_calendar` stays:
 the daily answers and `trace_totals` read it. `chute_models` stays:
 `family_models` reads it. The months module keeps the trace month, which
 `trace_totals` counts.

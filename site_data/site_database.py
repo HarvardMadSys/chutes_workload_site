@@ -21,7 +21,7 @@ QUERIES_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "site" / "quer
 # One thread, so that a sum of floats adds its rows in the same order on every run and a rebuilt answer is the same to
 # the last bit.
 THREADS = 1
-FAMILY_MODELS_QUERY = "setup/family_models"  # its rows are the table `family_models`, registered when the database opens
+FAMILY_MODELS_QUERY = "setup/family_models"  # its rows are the table `family_models`, registered on opening
 
 
 @dataclasses.dataclass(frozen=True)

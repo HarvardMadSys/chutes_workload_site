@@ -4,9 +4,9 @@
  * other name is summed into "Other". Its legend lists the slices with their shares, and a hidden slice leaves the
  * donut, whose shares and total are then of the slices shown.
  *
- * Its rows hold a name and a count, in columns the figure names; one name may have many rows, as one per month. The
- * arithmetic below (shares, angles and SVG paths, clockwise from the top, the donut centred on the origin) is plain
- * functions, tested with `node --test`.
+ * Its rows hold a name and a count, in columns the figure names; one name may have many rows, each adding to its
+ * count. The arithmetic below (shares, angles and SVG paths, clockwise from the top, the donut centred on the origin)
+ * is plain functions, tested with `node --test`.
  */
 
 import { chartName, columnTotal } from "../shared/charts.js";
@@ -110,8 +110,11 @@ export function centreUnit(plural, hiddenCount) {
   return hiddenCount === 0 ? plural : `shown ${plural}`;
 }
 
-// The names of `colours` that keep a slice of their own: every one but "Other".
-function namedSeries(colours) {
+/**
+ * The names that keep a slice of their own in a donut coloured by `colours` (a Map from name to colour), in its
+ * order: every one but "Other".
+ */
+export function namedSeries(colours) {
   return [...colours.keys()].filter((name) => name !== OTHER_NAME);
 }
 

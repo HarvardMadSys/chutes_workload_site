@@ -4,12 +4,12 @@ import { test } from "node:test";
 
 import { MIXES, mixLegend } from "../site/js/landing/donuts.js";
 import { statsRows } from "../site/js/landing/stats.js";
-import { donutSlices } from "../site/js/charts/donut.js";
+import { donutSlices, namedSeries } from "../site/js/charts/donut.js";
 import { columnTotal } from "../site/js/shared/charts.js";
 import { formatCompactCount } from "../site/js/shared/format.js";
 import { familyOrder } from "../site/js/explore/traffic_filter.js";
 import {
-  ENDPOINT_FIRST_SLOT, FAMILY_SLOTS, familyColours, OTHER_NAME, OTHER_SERIES, SERIES_SLOTS,
+  ENDPOINT_FIRST_SLOT, FAMILY_SLOTS, familyColours, OTHER_SERIES, SERIES_SLOTS,
 } from "../site/js/theme/colours.js";
 
 // The rows of a shipped answer, as the page reads them.
@@ -24,7 +24,7 @@ test("the two donuts are the family mix and the endpoint mix", () => {
   ]);
 });
 
-test("the family mix's legend is the families in the family colours, in the answer's order, Other last and grey", () => {
+test("the family mix's legend is the families in the family colours, in the answer's order, Other last", () => {
   const rows = [
     { family: "DeepSeek", family_slug: "deepseek", requests: 50 },
     { family: "Qwen", family_slug: "qwen", requests: 20 },
@@ -49,7 +49,7 @@ test("the shipped family mix colours each family as the Traffic Explorer does, a
   assert.deepEqual(legend.series.map((entry) => entry.name), rows.map((row) => row.family));
 });
 
-test("the endpoint mix's legend writes each group's label, opens on another colour than the families, Other last", () => {
+test("the endpoint mix's legend labels each group, opens on another colour than the families, Other last", () => {
   const rows = [
     { endpoint_group: "chat", requests: 50 },
     { endpoint_group: "chat_stream", requests: 30 },
@@ -69,9 +69,8 @@ test("each shipped donut's centre, the sum of its slices, is its answer's total 
   const stripRequests = statsRows(totalsRow).find((stat) => stat.label === "Requests").value;
   for (const [mix, name] of [[MIXES[0], "explore/family_mix"], [MIXES[1], "explore/endpoint_mix"]]) {
     const rows = shippedAnswer(name);
-    // The names that keep a slice of their own, as the donut takes them from its colours: every one but Other.
-    const order = [...mixLegend(mix, rows).colours.keys()].filter((slice) => slice !== OTHER_NAME);
-    const centre = columnTotal(donutSlices(rows, mix.series.column, "requests", order), "count");
+    const named = namedSeries(mixLegend(mix, rows).colours);
+    const centre = columnTotal(donutSlices(rows, mix.series.column, "requests", named), "count");
     assert.equal(centre, columnTotal(rows, "requests"), mix.title);
     assert.equal(centre, totalsRow.requests, mix.title);
     assert.equal(formatCompactCount(centre), stripRequests, mix.title);
