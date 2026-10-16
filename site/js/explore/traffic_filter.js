@@ -131,7 +131,7 @@ export function trafficSummary(rows) {
     inputAverage: averageOrNull(sums.inputTokens, sums.inputCounted),
     outputAverage: averageOrNull(sums.outputTokens, sums.outputCounted),
     ttftAverage: averageOrNull(sums.ttftSum, sums.ttftCounted),
-    ttftShare: averageOrNull(sums.ttftCounted, sums.requests),
+    ttftShare: shareOrNull(sums.ttftCounted, sums.requests),
   };
 }
 
@@ -176,6 +176,10 @@ function columnSums(rows) {
 
 function averageOrNull(sum, count) {
   return count === 0 ? null : sum / count;
+}
+
+function shareOrNull(part, whole) {
+  return whole === 0 ? null : part / whole;
 }
 
 // The period whose key is `period`; every key a choice holds is one, as `readTrafficChoice` keeps no other.

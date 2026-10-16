@@ -4,9 +4,9 @@
  * it) and the chosen requests per day as stacked bars, by model while no model is chosen and by endpoint group once one
  * is, with a legend that hides and shows a series (`explore/legend.js`). A bar takes no click.
  *
- * It draws from the `explore/daily_rollup` answer alone, read once: a change filters its rows once
- * (`explore/traffic_filter.js`, which defines the choice) and draws the tiles and the bars again. The choice is read
- * from the URL when the page opens and written back on every change. `context` is the page's; see `explore/start.js`.
+ * Its rows come from the `explore/daily_rollup` answer alone, read once, its colours from the Overview's orders
+ * (`context.orders`): a change filters the rows once (`explore/traffic_filter.js`, which defines the choice) and draws
+ * the tiles and bars again. The choice is read from the URL at the start and written back on every change.
  */
 
 import { readAnswer } from "../shared/answers.js";
@@ -105,9 +105,21 @@ export function renderControls(row, choice, modelEntries, onChoose) {
   row.replaceChildren(labelledField("Model", model), labelledField("Endpoint", endpoint), period);
 }
 
-/** The days of `days` whose month is written under the bars: each that opens a month, in order. */
-export function monthTicks(days) {
-  return days.filter((day) => day.slice(DAY_OF_MONTH_START) === "01");
+/**
+ * The days of `days` (a period's, in order) whose month is written under the bars: each that opens a month, and for a
+ * quarter (`period` not "") its first day too, so a quarter that starts mid-month names its first month. All does not:
+ * on a phone the trace's first day would crowd the next month's label.
+ */
+export function monthTicks(days, period) {
+  const ticks = [];
+  for (const [index, day] of days.entries()) {
+    const opensMonth = day.slice(DAY_OF_MONTH_START) === "01";
+    const opensQuarter = index === 0 && period !== "";
+    if (opensMonth || opensQuarter) {
+      ticks.push(day);
+    }
+  }
+  return ticks;
 }
 
 /** A day's month as the bars' axis writes it: "2025-07-01" → "2025-07". */
@@ -179,18 +191,18 @@ async function drawBars(view, chosen, requests) {
   }
   const legend = stackedBarsLegend(daily, colours, { seriesColumn: series.column, labels: series.labels });
   const days = periodDays(view.days, view.choice.period);
-  const bars = { days, series, colours: legend.colours };
+  const bars = { days, period: view.choice.period, series, colours: legend.colours };
   await drawWithLegend(body, legend, (hidden) => drawDayBars(daily, body, bars, hidden));
 }
 
-// Draw the bars of the series not in `hidden`, one per day of `bars.days`, the month written at each first of a month,
-// and name the chart.
+// Draw the bars of the series not in `hidden`, one per day of `bars.days`, the months written as `monthTicks` says, and
+// name the chart.
 async function drawDayBars(daily, body, bars, hidden) {
   await drawStackedBars(daily, body, { series: bars.colours }, {
     xColumn: "day",
     xLabel: null,
     xDomain: bars.days,
-    xTicks: monthTicks(bars.days),
+    xTicks: monthTicks(bars.days, bars.period),
     xTickFormat: dayMonth,
     xTickRotate: MONTH_LABEL_ANGLE,
     seriesColumn: bars.series.column,

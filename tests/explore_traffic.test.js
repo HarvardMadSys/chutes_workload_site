@@ -134,8 +134,9 @@ test("each tile shows its value, its label and its note, if any", (context) => {
   ]);
 });
 
-test("the bars' axis writes the month at each first of a month", () => {
+test("the bars' axis writes the month at each first of a month, and at a quarter's first day", () => {
   const days = ["2025-04-29", "2025-04-30", "2025-05-01", "2025-05-02", "2025-06-01"];
-  assert.deepEqual(monthTicks(days), ["2025-05-01", "2025-06-01"]);
-  assert.deepEqual(monthTicks(days).map(dayMonth), ["2025-05", "2025-06"]);
+  assert.deepEqual(monthTicks(days, ""), ["2025-05-01", "2025-06-01"]);
+  assert.deepEqual(monthTicks(days, "2025-q2").map(dayMonth), ["2025-04", "2025-05", "2025-06"]);
+  assert.deepEqual(monthTicks(["2025-07-01", "2025-07-02", "2025-08-01"], "2025-q3"), ["2025-07-01", "2025-08-01"]);
 });

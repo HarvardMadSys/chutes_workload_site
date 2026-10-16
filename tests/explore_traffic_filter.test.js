@@ -117,6 +117,13 @@ test("a model the Overview does not name folds into Other in the bars, summed pe
   ]);
 });
 
+test("the shipped rollup's requests add up to the trace totals', so the tile equals the stats strip", () => {
+  const [totals] = JSON.parse(
+    readFileSync(new URL("../site/data/all/explore/trace_totals.json", import.meta.url), "utf8"),
+  );
+  assert.equal(trafficSummary(SHIPPED_ROWS).requests, totals.requests);
+});
+
 test("the model drop-down offers every named model by its requests, then Other; the shipped one twenty", () => {
   assert.deepEqual(modelChoices(ROWS), [
     { value: "", text: "All models" },

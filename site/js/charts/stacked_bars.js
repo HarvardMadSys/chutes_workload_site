@@ -1,6 +1,6 @@
 /**
- * The stacked-bars kind: one stacked bar per value of a named x column, a month or a bin, a segment per series, the
- * series past the eighth of the colours folded into one "Other" segment.
+ * The stacked-bars kind: one stacked bar per value of a named x column, a day, a month or a bin, a segment per series,
+ * the series past the eighth of the colours folded into one "Other" segment.
  *
  * Its rows hold a column naming the row's bar, a column naming its series and a column of the segment's value, all
  * three named by the figure; a series may have several rows in one bar, which are summed once folded.
