@@ -51,9 +51,10 @@ def answered_query_names(queries_folder: pathlib.Path = site_database.QUERIES_FO
     return sorted(names)
 
 
-def single_answer_query_names() -> list[str]:
-    """The name of every answered query that is not a family query, sorted: each has one answer file."""
-    return [name for name in answered_query_names() if name not in FAMILY_QUERIES]
+def single_answer_query_names(queries_folder: pathlib.Path = site_database.QUERIES_FOLDER) -> list[str]:
+    """The name of every answered query in `queries_folder` that is not a family query, sorted: each has one answer
+    file."""
+    return [name for name in answered_query_names(queries_folder) if name not in FAMILY_QUERIES]
 
 
 def hashed_query_names(queries_folder: pathlib.Path = site_database.QUERIES_FOLDER) -> list[str]:
@@ -81,10 +82,12 @@ def write_answers(connection: duckdb.DuckDBPyConnection, data_directory: pathlib
         shutil.rmtree(answers_directory)  # a query since removed keeps no answer
     answers_directory.mkdir(parents=True)
     written = []
+    single_answers = {}  # each single answer's rows by its query's name; the families are read from one of them
     for name in single_answer_query_names():
+        single_answers[name] = answer_rows(connection, name)
         path = answers_directory / paths.answer_file_in_folder(name)
-        written.append(write_answer(path, answer_rows(connection, name)))
-    for family in families(answer_rows(connection, FAMILIES_QUERY)):
+        written.append(write_answer(path, single_answers[name]))
+    for family in families(single_answers[FAMILIES_QUERY]):
         for name in FAMILY_QUERIES:
             path = answers_directory / paths.family_answer_file_in_folder(name, family.slug)
             written.append(write_answer(path, answer_rows(connection, name, {FAMILY_PARAMETER: family.name})))

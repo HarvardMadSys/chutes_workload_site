@@ -29,6 +29,10 @@ export const OTHER_MODEL = "other";
 const EVERY_FAMILY_TEXT = "All families";
 const EVERY_ENDPOINT_TEXT = "All endpoints";
 
+// The name of the other models of the family named Other, which the rule for every other family would name "Other
+// Other".
+const REST_OF_OTHER_TEXT = "Rest of Other";
+
 /** The model drop-down's one entry while no family is chosen, when it is disabled. */
 export const NO_FAMILY_MODEL_CHOICES = Object.freeze([Object.freeze({ value: "", text: "Choose a family" })]);
 
@@ -127,7 +131,8 @@ export function modelOrder(rows) {
 /**
  * The model drop-down's entries for the family named `familyName`, from its rows `rows`, `[{ value, text }]`: "All
  * <family> models" (value ""), each named model of `modelOrder(rows)` by its name, valued by its `chute_id`, and
- * "Other <family>" (value `other`) where the rows hold the family's other models.
+ * "Other <family>" ("Rest of Other" for the family Other; value `other`) where the rows hold the family's other
+ * models.
  */
 export function modelChoices(rows, familyName) {
   const choices = [{ value: "", text: `All ${familyName} models` }];
@@ -191,8 +196,8 @@ export function trafficSummary(rows) {
 
 /**
  * The series the bars stack by: the families (`FAMILY_SERIES`) while no family is chosen; the models of the family
- * named `familyName` once one is (`MODEL_SERIES`, its "Other" written "Other <family>"); the endpoint groups
- * (`ENDPOINT_SERIES`) once a model is.
+ * named `familyName` once one is (`MODEL_SERIES`, its "Other" written as the model drop-down names it, "Other
+ * <family>"); the endpoint groups (`ENDPOINT_SERIES`) once a model is.
  */
 export function choiceSeries(choice, familyName) {
   if (choice.family === "") {
@@ -253,8 +258,12 @@ function isDayInPeriod(day, firstDay, lastDay) {
   return (firstDay === null || day >= firstDay) && (lastDay === null || day <= lastDay);
 }
 
-// The name of a family's models past its eight named ones, as its answer writes it: "Other DeepSeek".
+// The name of a family's models past its eight named ones, "Other DeepSeek", as its answer writes it; "Rest of Other"
+// for the family Other.
 function otherModelsName(familyName) {
+  if (familyName === OTHER_NAME) {
+    return REST_OF_OTHER_TEXT;
+  }
   return `${OTHER_NAME} ${familyName}`;
 }
 

@@ -27,9 +27,9 @@ const PERIOD_NAME_ID = "traffic-period-name";
  * calls `explorer.onChange(choice)`.
  */
 export async function mountTrafficControls(row, families, context, explorer) {
-  const opened = await urlChoice(families, explorer.modelsOf);
-  const controls = { row, families, context, explorer, shown: opened.choice, models: opened.models };
   const params = new URLSearchParams(window.location.search);
+  const opened = await urlChoice(params, families, explorer.modelsOf);
+  const controls = { row, families, context, explorer, shown: opened.choice, models: opened.models };
   const written = writeTrafficChoice(params, opened.choice);
   if (written.toString() !== params.toString()) {
     context.replaceQuery(written);
@@ -61,11 +61,10 @@ export function renderControls(row, choice, entries, onChoose) {
 }
 
 /**
- * The choice the URL's keys name now, `{ choice, models }`: the choice among the family drop-down's entries `families`
- * and the models of the URL's family, which `modelsOf` gives, and those models' entries.
+ * The choice the URL's keys `params` name, `{ choice, models }`: the choice among the family drop-down's entries
+ * `families` and the models of the URL's family, which `modelsOf` gives, and those models' entries.
  */
-async function urlChoice(families, modelsOf) {
-  const params = new URLSearchParams(window.location.search);
+async function urlChoice(params, families, modelsOf) {
   const familyValues = families.map((entry) => entry.value);
   const { family } = readTrafficChoice(params, familyValues, []);
   const models = await familyModels(modelsOf, family);
@@ -89,7 +88,7 @@ function drawControls(controls) {
 // new choice is then written to the URL and handed on to be drawn.
 async function choosePart(controls, part) {
   if (Object.hasOwn(part, "family")) {
-    const models = await familyModels(controls.explorer.modelsOf, part.family);
+    const models = await chosenFamilyModels(controls, part.family);
     if (controls.selects.family.value !== part.family) {
       return; // another family was chosen while this one's models were read, and that choice is drawn instead
     }
@@ -102,10 +101,29 @@ async function choosePart(controls, part) {
   controls.explorer.onChange(controls.shown);
 }
 
+// The model drop-down's entries of `family`, just chosen in the family drop-down. If they cannot be read, the family
+// drop-down goes back to the family shown, which the URL and the model drop-down still hold, and the error is thrown
+// on; null if another family has been chosen since, as `choosePart` then leaves this one.
+async function chosenFamilyModels(controls, family) {
+  try {
+    return await familyModels(controls.explorer.modelsOf, family);
+  } catch (error) {
+    if (controls.selects.family.value !== family) {
+      return null;
+    }
+    controls.selects.family.value = controls.shown.family;
+    throw error;
+  }
+}
+
 // Back or Forward: an entry whose URL holds another choice is shown and drawn; the same choice, after a change of
 // topic, is left as drawn, so its legend keeps the series hidden in it.
 async function showReturnedChoice(controls) {
-  const returned = await urlChoice(controls.families, controls.explorer.modelsOf);
+  const search = window.location.search;
+  const returned = await urlChoice(new URLSearchParams(search), controls.families, controls.explorer.modelsOf);
+  if (window.location.search !== search) {
+    return; // the URL moved on while this entry's family was read, and the entry it moved to is shown instead
+  }
   if (isSameChoice(returned.choice, controls.shown)) {
     return;
   }

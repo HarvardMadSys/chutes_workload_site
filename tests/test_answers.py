@@ -35,6 +35,16 @@ def test_every_explore_query_has_its_answer(connection: duckdb.DuckDBPyConnectio
     assert len(expected) == 7 + 3
 
 
+def test_the_single_answers_are_a_folder_s_queries_but_the_family_ones(tmp_path: pathlib.Path) -> None:
+    queries_folder = tmp_path / "queries"
+    shutil.copytree(site_database.QUERIES_FOLDER, queries_folder)
+    (queries_folder / "explore" / "added.sql").write_text("SELECT 1 AS one;\n")
+    names = answers.single_answer_query_names(queries_folder)
+    assert "explore/added" in names
+    assert "explore/daily_by_family" in names
+    assert "explore/daily_by_model" not in names
+
+
 def test_the_families_are_ordered_by_requests_with_other_last(connection: duckdb.DuckDBPyConnection) -> None:
     family_rows = answers.answer_rows(connection, answers.FAMILIES_QUERY)
     assert answers.families(family_rows) == FIXTURE_FAMILIES

@@ -200,3 +200,40 @@ test("a return to an entry of another choice shows and draws it, its family too;
   assert.equal(controlsOf(row).family.value, "kin");
   assert.deepEqual(page.replaced, []);
 });
+
+test("a family whose models cannot be read puts the family drop-down back on the family shown", async (context) => {
+  useFakeDocument(context);
+  const page = useFakeWindow(context, "?family=kin");
+  const row = new FakeElement("div");
+  await mountTrafficControls(row, FAMILIES, page.context, page.explorer);
+  const errors = [];
+  page.explorer.onError = (error) => errors.push(error.message);
+  page.explorer.modelsOf = () => Promise.reject(new Error("Other's answer was not read"));
+  const { family } = controlsOf(row);
+  family.value = "other";
+  family.dispatch("change");
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.deepEqual(errors, ["Other's answer was not read"]);
+  assert.equal(family.value, "kin");
+  assert.deepEqual(page.replaced, []);
+  assert.deepEqual(page.drawn, []);
+});
+
+test("a return whose family is still being read when the URL moves on is left for the later return", async (context) => {
+  useFakeDocument(context);
+  const page = useFakeWindow(context, "?endpoint=chat");
+  const row = new FakeElement("div");
+  await mountTrafficControls(row, FAMILIES, page.context, page.explorer);
+  const [onReturn] = page.returns;
+  const kinModels = Promise.withResolvers();
+  page.explorer.modelsOf = () => kinModels.promise;
+  globalThis.window.location = new URL(`${PAGE_ADDRESS}?family=kin`);
+  const returnToKin = onReturn();
+  globalThis.window.location = new URL(`${PAGE_ADDRESS}?endpoint=completion`);
+  await onReturn();
+  kinModels.resolve(KIN_MODELS);
+  await returnToKin;
+  assert.deepEqual(page.drawn, [{ ...EVERYTHING, endpoint: "completion" }]);
+  assert.equal(controlsOf(row).family.value, "");
+  assert.equal(controlsOf(row).model.disabled, true);
+});

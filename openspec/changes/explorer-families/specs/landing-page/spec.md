@@ -8,10 +8,11 @@ no eyebrow, anchor `#traffic`, and under the heading one guide line of
 the user's words) SHALL hold one row of plain form controls and one wide
 card. The controls: a family drop-down ("All families", the families of
 the artifact's family table in order of their requests, "Other"), a
-model drop-down (disabled while no family is chosen; then "All <family>
-models", the family's eight most requested named models and "Other
-<family>"), an endpoint drop-down ("All endpoints" and one entry per
-endpoint group) and period buttons All, Q2 '25, Q3 '25, Q4 '25 and
+model drop-down (disabled while no family is chosen, reading "Choose a
+family"; then "All <family> models", the family's eight most requested
+named models and, where the family has other models, "Other <family>",
+"Rest of Other" for the family Other), an endpoint drop-down ("All
+endpoints" and one entry per endpoint group) and period buttons All, Q2 '25, Q3 '25, Q4 '25 and
 Q1 '26 (the calendar quarters the trace spans, by the trace months'
 labels). The card: requests per day as stacked bars over the chosen
 period, by family while no family is chosen, by model once a family is

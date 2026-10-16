@@ -163,6 +163,26 @@ series colours a chart of models has`). Every query is run by
 columns against `EXPECTED_COLUMNS`, the tables it reads against
 `SITE_TABLES`, and its numbers against values counted by hand.
 
+**A query that takes the family** (`site/queries/explore/daily_by_model.sql`):
+
+```sql
+-- One row per calendar day, model and endpoint group of the family `$family`, the query's one parameter, bound by name:
+-- ...
+LEFT JOIN family_models ON family_models.chute_id = daily_rollup.chute_id
+                       AND family_models.rank <= 8  -- the eight models a family's drop-down names
+WHERE daily_rollup.family = $family
+```
+
+A query takes at most one parameter, the family, written `$family` and
+named in the query's first line. DuckDB binds it by name
+(`site_database.run_query(connection, name, {"family": "DeepSeek"})`);
+the value is never substituted into the text, so no family's name can
+change the SQL. Listing the query in `FAMILY_QUERIES` of
+`site_data/answers.py` makes the data step answer it once per family, as
+below, and record its hash once, the text being the same for every
+family; `tests/test_queries.py` runs it with the family of
+`QUERY_PARAMETERS` bound.
+
 **One answer per query.** Every query under `queries/explore/` is answered
 by `make data`, once, over the whole trace: its rows in
 `data/all/explore/<query>.json`, and every answer is read by the page. A

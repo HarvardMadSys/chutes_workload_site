@@ -172,7 +172,7 @@ test("the families are ordered by their requests, Other last, whatever its reque
   ]);
 });
 
-test("the shipped family drop-down offers All families, the eleven families by requests, then Other", () => {
+test("the shipped family drop-down offers All families, the ten named families by requests, then Other", () => {
   const texts = familyChoices(familyOrder(SHIPPED_ROWS)).map((choice) => choice.text);
   assert.equal(texts.length, 12);
   assert.deepEqual([texts[0], texts[1], texts.at(-1)], ["All families", "DeepSeek", "Other"]);
@@ -188,6 +188,12 @@ test("a family's model drop-down offers its named models by requests, then Other
   ]);
   const named = ROWS.filter((row) => row.chute_id !== null);
   assert.deepEqual(modelChoices(named, "Kin").map((choice) => choice.text), ["All Kin models", "B", "A"]);
+});
+
+test("the family Other's other models are Rest of Other, in its drop-down and on its bars", () => {
+  const texts = modelChoices(ROWS, "Other").map((choice) => choice.text);
+  assert.deepEqual(texts, ["All Other models", "B", "A", "Rest of Other"]);
+  assert.deepEqual(choiceSeries({ ...EVERYTHING, family: "other" }, "Other").labels, { Other: "Rest of Other" });
 });
 
 test("the shipped DeepSeek drop-down offers its eight models and Other DeepSeek", () => {

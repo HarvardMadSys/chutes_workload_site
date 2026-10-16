@@ -7,10 +7,11 @@ trace's totals, its model and endpoint mixes and monthly trends, a Traffic
 Explorer of requests per day, and the paper's 48 figure images in six
 topics.
 
-The site is one HTML page, ES modules, a stylesheet, seven JSON answers and
-48 PNG images, with Observable Plot drawing the Overview's and the Traffic
-Explorer's charts in the browser. There is no server code, no bundler and
-no database in the browser.
+The site is one HTML page, ES modules, a stylesheet, the JSON answers of
+eight queries (eighteen files: the query that takes a family is answered
+once per family) and 48 PNG images, with Observable Plot drawing the
+Overview's and the Traffic Explorer's charts in the browser. There is no
+server code, no bundler and no database in the browser.
 
 ## What the site shows
 
@@ -28,8 +29,9 @@ The one page, `index.html`, holds, in order:
   endpoint group. A legend's button hides or shows a series.
 - **Traffic Explorer** (`#traffic`). A family drop-down (the model
   families by their requests, and Other), a model drop-down (once a family
-  is chosen: its eight most requested named models and its other models),
-  an endpoint drop-down and period buttons (All and the calendar quarters
+  is chosen: its eight most requested named models and, where it has any,
+  its other models, "Other DeepSeek", or "Rest of Other" in the family
+  Other), an endpoint drop-down and period buttons (All and the calendar quarters
   Q2 '25 to Q1 '26), over the chosen requests per day as stacked bars, by
   family, by model once a family is chosen and by endpoint group once a
   model is, and four tiles that follow the choice: requests, average input
@@ -70,8 +72,10 @@ browser runs no query, it fetches the answers and draws them.
   `chute_models` and the family table as `model_families`, adds three
   tables derived from them, and runs each query of `site/queries/explore/`
   once, writing its rows to `site/data/all/explore/<query>.json`; the one
-  query that takes a family, `daily_by_model`, it runs once per family,
-  writing `site/data/all/explore/daily_by_model/<family>.json`:
+  query that takes a family, `daily_by_model`, it runs once per family of
+  the `daily_by_family` answer, writing one file per family,
+  `site/data/all/explore/daily_by_model/<family slug>.json`
+  (`deepseek.json`, `gpt-oss.json`, …, `other.json`):
 
   | Cache | What it holds | The answers drawn from it |
   |---|---|---|
@@ -87,8 +91,14 @@ browser runs no query, it fetches the answers and draws them.
   from which the Overview's answers take their eight; and `family_models`,
   the daily rollup's named models ranked within their family
   (`site/queries/setup/family_models.sql`), from which a family's answer
-  takes its eight. A model's family is the artifact's: the site never
-  matches a name against the family table's patterns.
+  takes its eight.
+- **Model families.** The artifact's `data/paper/model_families.csv` is
+  the one home of the family rule: a named model belongs to the family of
+  the first pattern (by `match_order`) its name contains, case-insensitively,
+  and every other model is in Other. The artifact applies the rule when it
+  writes the daily rollup, which carries each row's family; the site never
+  matches a name against a pattern, and orders the families by their
+  requests, Other last.
 - **Trace months.** The caches count days from the trace's first request,
   written as 1970-01-01, so a cache's month is a month-long stretch of
   days from the trace's first day, not a calendar month. The site labels
@@ -98,8 +108,13 @@ browser runs no query, it fetches the answers and draws them.
   the trace's last two days.
 - **The Traffic Explorer** filters and sums the `daily_by_family` answer,
   and a family's `daily_by_model` answer once the family is chosen, in
-  the browser. An average divides by the requests that record its value,
-  not by every request.
+  the browser. The first holds one row per calendar day, family and
+  endpoint group; a family's file one row per calendar day, model (each
+  of the family's eight most requested named models, by its chute id and
+  name, and its other models as "Other <family>") and endpoint group; each
+  row holds the requests, the input and output token sums, the TTFT sum,
+  and how many requests recorded each. An average divides by the requests
+  that record its value, not by every request.
 - **User ids.** The stats strip says "User ids", not users: the release's
   anonymous user ids rotate every quarter, so one person can hold several,
   and the strip's count of ids exceeds the paper's count of people.
@@ -151,9 +166,10 @@ make test
 ```
 
 `make data` checks that every file it reads is there before it writes
-anything. It writes the seven answers, `site/data/all/queries.json` (the
-hash of the text of each query the answers depend on, which `make test`
-compares with the queries, so that an answer older than its query fails),
+anything. It writes the answers (eighteen files),
+`site/data/all/queries.json` (the hash of the text of each query the
+answers depend on, which `make test` compares with the queries, so that an
+answer older than its query fails),
 the 48 images and their index, and prints each answer and image with its
 size. A rebuild from the same artifact writes the same bytes, so git sees
 only what changed. The rebuilt data and snapshots are committed with the
