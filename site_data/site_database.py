@@ -2,11 +2,13 @@
 queries.
 
 It is opened by registering each frame of `loading.ArtifactFrames` as the table of its name: `trace_totals`,
-`daily_rollup`, `monthly_requests_tokens_by_model`, `function_name_daily_requests` and `chute_models`, and the
-calendar of `months.trace_calendar` as `trace_calendar`, to the daily rollup's last day. Then the setup query
-`setup/top_models` ranks the named models by their requests, and its rows are registered as `top_models`, the one
-definition of the most requested models every answer that names a model reads. A query's name is its path under
-`site/queries/` without `.sql`; `run_query` gives its result as `QueryRows`.
+`daily_rollup`, `monthly_requests_tokens_by_model`, `function_name_daily_requests`, `chute_models` and
+`model_families`, and the calendar of `months.trace_calendar` as `trace_calendar`, to the daily rollup's last day.
+Then the setup query `setup/top_models` ranks the named models by their requests, and its rows are registered as
+`top_models`, the one definition of the most requested models every answer that names a model reads; and
+`setup/family_models` ranks the daily rollup's named models within their family, registered as `family_models`, the
+one definition of a family's models. A query's name is its path under `site/queries/` without `.sql`; `run_query`
+gives its result as `QueryRows`, a query that takes a parameter (`$family`) being given its value by name.
 """
 
 import dataclasses
@@ -21,6 +23,7 @@ QUERIES_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "site" / "quer
 # the last bit.
 THREADS = 1
 TOP_MODELS_QUERY = "setup/top_models"  # its rows are the table `top_models`, registered when the database opens
+FAMILY_MODELS_QUERY = "setup/family_models"  # its rows are the table `family_models`, registered with `top_models`
 
 
 @dataclasses.dataclass(frozen=True)
@@ -38,21 +41,26 @@ def statement_text(name: str) -> str:
 
 def open_database(frames: loading.ArtifactFrames) -> duckdb.DuckDBPyConnection:
     """A new in-memory database on `THREADS` threads, each of the artifact's frames the table of its name, the
-    trace calendar to the last day of the daily rollup, and the rows of `TOP_MODELS_QUERY` as `top_models`."""
+    trace calendar to the last day of the daily rollup, the rows of `TOP_MODELS_QUERY` as `top_models` and those of
+    `FAMILY_MODELS_QUERY` as `family_models`."""
     connection = duckdb.connect(config={"threads": THREADS})
     connection.register("trace_totals", frames.trace_totals)
     connection.register("daily_rollup", frames.daily_rollup)
     connection.register("monthly_requests_tokens_by_model", frames.monthly_requests_tokens_by_model)
     connection.register("function_name_daily_requests", frames.function_name_daily_requests)
     connection.register("chute_models", frames.chute_models)
+    connection.register("model_families", frames.model_families)
     last_trace_day = frames.daily_rollup["day"].max().date()
     connection.register("trace_calendar", months.trace_calendar(last_trace_day))
     connection.register("top_models", connection.execute(statement_text(TOP_MODELS_QUERY)).df())
+    connection.register("family_models", connection.execute(statement_text(FAMILY_MODELS_QUERY)).df())
     return connection
 
 
-def run_query(connection: duckdb.DuckDBPyConnection, name: str) -> QueryRows:
-    """The rows of the query `name`, its columns and each row's values in their order."""
-    result = connection.execute(statement_text(name))
+def run_query(connection: duckdb.DuckDBPyConnection, name: str, parameters: dict[str, str] | None = None) -> QueryRows:
+    """The rows of the query `name`, its columns and each row's values in their order; `parameters` gives the value
+    of each parameter the query names (`{"family": "DeepSeek"}` for `$family`), bound by DuckDB, never written into
+    the text."""
+    result = connection.execute(statement_text(name), parameters)
     columns = [column[0] for column in result.description]
     return QueryRows(columns=columns, rows=[list(row) for row in result.fetchall()])

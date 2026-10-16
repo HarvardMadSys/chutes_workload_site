@@ -1,5 +1,5 @@
 """A small artifact checkout for the tests, written into a folder: the four caches the site reads, a few rows each, the
-model names, the figure list and two figure PDFs.
+model names, the family table, the figure list and two figure PDFs.
 
 Its rows, in the artifact's column types:
 
@@ -8,6 +8,8 @@ Its rows, in the artifact's column types:
   second month; and `chute-idle`, named but with no requests;
 - 140 requests on 1970-01-01, 1970-01-02 and 1970-02-02 in the daily rollup and the daily endpoint counts alike, which
   the totals count too; the monthly cache's counts are its own;
+- three families in the daily rollup: DeepSeek, 95 requests (`chute-01` 70, `chute-02` 15 and its rest 10), gpt-oss,
+  20 (`chute-03`), and Other, 25 (`chute-04` 5 and the unnamed models 20); the family table lists DeepSeek and gpt-oss;
 - one PDF page `FIGURE_WIDTH_POINTS` wide, listed once under `sections` and once under `external`.
 """
 
@@ -39,6 +41,7 @@ def write_fixture_artifact(folder: pathlib.Path) -> pathlib.Path:
     pyarrow.parquet.write_table(monthly_requests_tokens_by_model(), cache / "monthly_requests_tokens_by_model.parquet")
     pyarrow.parquet.write_table(function_name_daily_requests(), cache / "function_name_daily_requests.parquet")
     write_model_names(folder / "data" / "paper" / "chute_models.csv")
+    write_model_families(folder / "data" / "paper" / "model_families.csv")
     write_figures(folder)
     return folder
 
@@ -58,19 +61,23 @@ def trace_totals() -> pyarrow.Table:
 
 
 def daily_rollup() -> pyarrow.Table:
-    """The daily rollup: four rows over three days, one of them the other models' (a null chute id)."""
+    """The daily rollup: seven rows over three days and three families, two of them a family's rest (null chute id)."""
     return pyarrow.table({
-        "day": pyarrow.array([trace_time(1), trace_time(1), trace_time(2), trace_time(2, month=2)],
+        "day": pyarrow.array([trace_time(1)] * 4 + [trace_time(2)] * 2 + [trace_time(2, month=2)],
                              pyarrow.timestamp("us")),
-        "chute_id": pyarrow.array(["chute-01", "chute-01", None, "chute-02"], pyarrow.large_string()),
-        "function_group": pyarrow.array(["chat", "chat_stream", "chat", "completion"], pyarrow.large_string()),
-        "requests": pyarrow.array([60, 40, 25, 15], pyarrow.int64()),
-        "input_tokens": pyarrow.array([6000.0, 2000.0, 1000.0, None], pyarrow.float64()),
-        "input_counted": pyarrow.array([60, 40, 25, 0], pyarrow.int64()),
-        "output_tokens": pyarrow.array([1200.0, 500.0, 300.0, 0.0], pyarrow.float64()),
-        "output_counted": pyarrow.array([60, 40, 25, 15], pyarrow.int64()),
-        "ttft_sum": pyarrow.array([30.5, None, 12.25, 4.0], pyarrow.float64()),
-        "ttft_counted": pyarrow.array([50, 0, 25, 15], pyarrow.int64()),
+        "family": pyarrow.array(["DeepSeek", "gpt-oss", "DeepSeek", "DeepSeek", "Other", "Other", "DeepSeek"],
+                                pyarrow.large_string()),
+        "chute_id": pyarrow.array(["chute-01", "chute-03", "chute-01", None, "chute-04", None, "chute-02"],
+                                  pyarrow.large_string()),
+        "function_group": pyarrow.array(["chat", "chat", "chat_stream", "chat_stream", "chat", "chat", "completion"],
+                                        pyarrow.large_string()),
+        "requests": pyarrow.array([40, 20, 30, 10, 5, 20, 15], pyarrow.int64()),
+        "input_tokens": pyarrow.array([4000.0, 2000.0, 1500.0, 500.0, 200.0, 800.0, None], pyarrow.float64()),
+        "input_counted": pyarrow.array([40, 20, 30, 10, 5, 20, 0], pyarrow.int64()),
+        "output_tokens": pyarrow.array([800.0, 400.0, 400.0, 100.0, 60.0, 240.0, 0.0], pyarrow.float64()),
+        "output_counted": pyarrow.array([40, 20, 30, 10, 5, 20, 15], pyarrow.int64()),
+        "ttft_sum": pyarrow.array([20.5, 10.0, None, None, 2.25, 10.0, 4.0], pyarrow.float64()),
+        "ttft_counted": pyarrow.array([30, 20, 0, 0, 5, 20, 15], pyarrow.int64()),
     })
 
 
@@ -111,6 +118,12 @@ def write_model_names(path: pathlib.Path) -> None:
     for number in range(1, 11):
         lines.append(f"chute-{number:02d},model-{number:02d},{number * 7},1.5,\"['h100', 'h200']\"")
     lines.append("chute-idle,model-idle,0,2.0,['a100']")
+    path.write_text("\n".join(lines) + "\n")
+
+
+def write_model_families(path: pathlib.Path) -> None:
+    """Write the family table: DeepSeek's two patterns and gpt-oss's one, with the artifact's three columns."""
+    lines = ["match_order,family,pattern", "1,DeepSeek,deepseek", "2,DeepSeek,r1t", "3,gpt-oss,gpt-oss"]
     path.write_text("\n".join(lines) + "\n")
 
 

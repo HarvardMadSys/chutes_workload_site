@@ -61,24 +61,31 @@ caches and figure PDFs and writes the site's data ahead of time; the
 browser runs no query, it fetches the answers and draws them.
 
 - **The answers** come from four caches under the artifact's
-  `data/paper/cache/` and its model names, `data/paper/chute_models.csv`.
-  `make data` holds each cache as a DuckDB table of its name and the model
-  names as `chute_models`, adds two tables derived from them, and runs
-  each query of `site/queries/explore/` once, writing its rows to
-  `site/data/all/explore/<query>.json`:
+  `data/paper/cache/`, its model names, `data/paper/chute_models.csv`, and
+  its family table, `data/paper/model_families.csv`. `make data` holds
+  each cache as a DuckDB table of its name, the model names as
+  `chute_models` and the family table as `model_families`, adds three
+  tables derived from them, and runs each query of `site/queries/explore/`
+  once, writing its rows to `site/data/all/explore/<query>.json`; the one
+  query that takes a family, `daily_by_model`, it runs once per family,
+  writing `site/data/all/explore/daily_by_model/<family>.json`:
 
   | Cache | What it holds | The answers drawn from it |
   |---|---|---|
   | `trace_totals` | one row: the first and last request, requests, input and output tokens, user ids, models, instances | `trace_totals`: the stats strip, and the months the hero and the footer count |
-  | `daily_rollup` | one row per trace day, model (each of the twenty most requested named models, the rest together) and endpoint group: requests, token sums, the TTFT sum, and how many requests recorded each | `daily_rollup`: the Traffic Explorer |
+  | `daily_rollup` | one row per trace day, family, model (each of the family's eight most requested named models, the family's rest together) and endpoint group: requests, token sums, the TTFT sum, and how many requests recorded each | `daily_by_family` and `daily_by_model`: the Traffic Explorer |
   | `monthly_requests_tokens_by_model` | one row per trace month and model: requests and tokens | `model_mix`, `requests_by_month_model`, `tokens_by_month_model` |
   | `function_name_daily_requests` | one row per trace day and endpoint group: requests | `endpoint_mix`, `requests_by_month_endpoint` |
 
-  The two derived tables are `trace_calendar`, each trace day's calendar
-  day and each trace month's label (`site_data/months.py`), and
+  The three derived tables are `trace_calendar`, each trace day's
+  calendar day and each trace month's label (`site_data/months.py`);
   `top_models`, the named models ranked by their requests over the year,
   the sum of their monthly requests (`site/queries/setup/top_models.sql`),
-  from which every answer that names a model takes its eight or twenty.
+  from which the Overview's answers take their eight; and `family_models`,
+  the daily rollup's named models ranked within their family
+  (`site/queries/setup/family_models.sql`), from which a family's answer
+  takes its eight. A model's family is the artifact's: the site never
+  matches a name against the family table's patterns.
 - **Trace months.** The caches count days from the trace's first request,
   written as 1970-01-01, so a cache's month is a month-long stretch of
   days from the trace's first day, not a calendar month. The site labels
@@ -86,7 +93,8 @@ browser runs no query, it fetches the answers and draws them.
   the trace's start, 2025-04-11, one constant in `site_data/months.py`:
   the thirteen bars read `2025-04` to `2026-04`, and the thirteenth holds
   the trace's last two days.
-- **The Traffic Explorer** filters and sums the `daily_rollup` answer in
+- **The Traffic Explorer** filters and sums the `daily_by_family` answer,
+  and a family's `daily_by_model` answer once the family is chosen, in
   the browser. An average divides by the requests that record its value,
   not by every request.
 - **User ids.** The stats strip says "User ids", not users: the release's
@@ -162,7 +170,7 @@ under the repository's Settings > Secrets and variables > Actions:
 
 With the repository variable `CLOUDFLARE_ACCOUNT_SUBDOMAIN` set there too,
 the workflow then asks the published site for the page (`/`), the daily
-rollup answer and one figure image, and fails unless each answers 200 with
+by-family answer and one figure image, and fails unless each answers 200 with
 its content type; without it, the run shows a warning that the site was
 not checked. `make deploy` publishes the same way from a machine with `npm
 ci` done and the token in `CLOUDFLARE_API_TOKEN`; run `make test` first.
@@ -175,7 +183,8 @@ detaches any custom domain bound to the Worker that `wrangler.jsonc` does
 not list, taking its DNS record with it.
 
 Static assets allow 25 MiB per file; the largest file here is the daily
-rollup answer, `site/data/all/explore/daily_rollup.json`, about 5.5 MB.
+by-family answer, `site/data/all/explore/daily_by_family.json`, about
+3.4 MB.
 `make test` fails on a tracked file over the limit, or an image over 4 MiB.
 
 ## Layout
@@ -201,11 +210,13 @@ wrangler.jsonc       the Cloudflare Worker that serves site/ as static assets: i
 site_data/           builds site/data/ and site/figures/ from the artifact's caches and figure PDFs (make data)
   __init__.py        the package's summary
   __main__.py        the command make data runs: reads the artifact, writes the answers and the images
-  loading.py         reads the four caches and the model names into frames; a missing file stops the step
+  loading.py         reads the four caches, the model names and the family table into frames; a missing file stops
+                     the step
   months.py          the trace's start date, and the calendar of its trace days and trace months
-  site_database.py   the site's database in DuckDB: the caches and model names as tables, with trace_calendar
-                     and top_models
-  answers.py         runs every query of site/queries/explore/, writes its answer and the queries' hashes
+  site_database.py   the site's database in DuckDB: the caches, model names and family table as tables, with
+                     trace_calendar, top_models and family_models
+  answers.py         runs every query of site/queries/explore/, a family's query once per family, writes its
+                     answers and the queries' hashes
   figure_images.py   renders every figure PDF the artifact lists to PNG, and writes the images' index
   paths.py           the names of the files the step writes into site/data/
 site/                exactly the files that are deployed
@@ -250,10 +261,13 @@ site/                exactly the files that are deployed
   js/insights/       one module per topic: its takeaway and its cards' words
     overview.js, tokens.js, users.js, evolution.js, caching.js, balancing.js
   queries/           one .sql file per answer or table
-    explore/         the seven queries make data answers, one answer each
+    explore/         the eight queries make data answers, one answer each, daily_by_model's one per family
     setup/top_models.sql
                      the named models ranked by their requests, held as the table top_models
-  data/all/          built by make data and tracked: the answers, explore/<query>.json, and queries.json
+    setup/family_models.sql
+                     the daily rollup's named models ranked within their family, held as the table family_models
+  data/all/          built by make data and tracked: the answers, explore/<query>.json and
+                     explore/daily_by_model/<family>.json, and queries.json
   figures/           built by make data and tracked: one PNG per figure PDF the artifact lists, and index.json
 tests/               what make test runs
   conftest.py, fixture_artifact.py, repository_root.py

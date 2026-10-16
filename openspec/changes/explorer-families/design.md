@@ -152,3 +152,34 @@ patterns moved eight named models out of Other: seven into DeepSeek
 eight changed. The Qwen pattern is `qwq-`, not `qwq`: "qwq" also occurs
 inside five hash-like named models (one of them otherwise GLM), which
 the hyphen excludes.
+
+### Measured: the site's answers (task 1.1)
+
+`make data` over the artifact at 19d2083 wrote the by-family answer and
+eleven family files, one per family of it, in about 4 s with the figures.
+Bytes are as written; gzip is what a visitor downloads from a host that
+compresses JSON.
+
+| Answer | Rows | Bytes | Gzipped |
+|---|---|---|---|
+| `explore/daily_rollup` (removed: the top 20 models) | 18,912 | 5,461,104 | — |
+| `explore/daily_by_family` | 13,824 | 3,376,522 | 465,947 |
+| `explore/daily_by_model/deepseek` (the largest) | 8,271 | 2,363,500 | 288,459 |
+| `explore/daily_by_model/qwen` | 7,233 | 2,017,279 | |
+| `explore/daily_by_model/mistral` | 5,573 | 1,685,064 | |
+| `explore/daily_by_model/hermes` | 4,522 | 1,337,432 | |
+| `explore/daily_by_model/gemma` | 3,873 | 1,105,844 | |
+| `explore/daily_by_model/glm` | 3,677 | 1,008,313 | |
+| `explore/daily_by_model/other` | 3,653 | 974,038 | |
+| `explore/daily_by_model/llama` | 1,898 | 543,202 | |
+| `explore/daily_by_model/kimi` | 1,838 | 534,295 | |
+| `explore/daily_by_model/gpt-oss` | 1,885 | 528,011 | |
+| `explore/daily_by_model/minimax` | 629 | 179,008 | |
+
+The page opens on 3.4 MB in place of 5.5 MB; choosing DeepSeek adds
+2.4 MB. The eleven family files are 12.3 MB together, which no visitor
+fetches whole. The `family_slug` column is 311 KB of the by-family
+answer (9 %), the cost of making the slug once, in the query. Five
+families have no rest (Gemma, Hermes, gpt-oss, Llama and MiniMax: every
+named model is among their eight, and every unnamed model is Other), so
+their files hold no "Other <family>" row.

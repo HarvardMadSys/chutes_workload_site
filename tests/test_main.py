@@ -19,10 +19,12 @@ def test_the_step_writes_every_answer_and_image_and_prints_its_size(artifact: pa
                                                            capsys: pytest.CaptureFixture) -> None:
     __main__.main(command(artifact, tmp_path))
     printed = capsys.readouterr().out
-    for name in answers.answered_query_names():
+    for name in answers.single_answer_query_names():
         answer = tmp_path / "data" / paths.answer_file(name)
         assert f"{answer}  {answer.stat().st_size:,} bytes" in printed
-    assert re.search(r"^7 answers, [\d,]+ bytes$", printed, re.MULTILINE)
+    family_answer = tmp_path / "data" / paths.family_answer_file("explore/daily_by_model", "gpt-oss")
+    assert f"{family_answer}  {family_answer.stat().st_size:,} bytes" in printed
+    assert re.search(r"^10 answers, [\d,]+ bytes$", printed, re.MULTILINE)  # seven, and one per family of three
     image = tmp_path / "figures" / "fig_panel.png"
     assert f"{image}  {image.stat().st_size:,} bytes" in printed
     assert re.search(r"^2 figure images, [\d,]+ bytes$", printed, re.MULTILINE)

@@ -2,6 +2,7 @@
 tables, and counts what its definition says."""
 
 import datetime
+import re
 
 import duckdb
 import pytest
@@ -11,8 +12,10 @@ from site_data import site_database
 
 # Each query's columns, in order. A query added under `site/queries/` is added here.
 EXPECTED_COLUMNS = {
-    "explore/daily_rollup": ["day", "chute_id", "model", "endpoint_group", "requests", "input_tokens", "input_counted",
-                             "output_tokens", "output_counted", "ttft_sum", "ttft_counted"],
+    "explore/daily_by_family": ["day", "family", "family_slug", "endpoint_group", "requests", "input_tokens",
+                                "input_counted", "output_tokens", "output_counted", "ttft_sum", "ttft_counted"],
+    "explore/daily_by_model": ["day", "chute_id", "model", "endpoint_group", "requests", "input_tokens",
+                               "input_counted", "output_tokens", "output_counted", "ttft_sum", "ttft_counted"],
     "explore/endpoint_mix": ["endpoint_group", "requests"],
     "explore/model_mix": ["model", "requests"],
     "explore/requests_by_month_endpoint": ["month", "calendar_month", "endpoint_group", "requests"],
@@ -20,11 +23,16 @@ EXPECTED_COLUMNS = {
     "explore/tokens_by_month_model": ["month", "calendar_month", "model", "tokens"],
     "explore/trace_totals": ["first_day", "last_day", "months", "requests", "input_tokens", "output_tokens", "users",
                              "models", "instances"],
+    "setup/family_models": ["family", "chute_id", "name", "requests", "rank"],
     "setup/top_models": ["chute_id", "name", "rank"],
 }
 # The tables of the site's database, the only ones a query may read.
 SITE_TABLES = {"trace_totals", "daily_rollup", "monthly_requests_tokens_by_model", "function_name_daily_requests",
-               "chute_models", "trace_calendar", "top_models"}
+               "chute_models", "model_families", "trace_calendar", "top_models", "family_models"}
+# The parameters a query that takes one is run with here: a family of the fixture.
+QUERY_PARAMETERS = {"explore/daily_by_model": {"family": "DeepSeek"}}
+# A named parameter in a query's text, `$family`.
+NAMED_PARAMETER = re.compile(r"\$\w+")
 
 
 def query_names() -> list[str]:
@@ -35,9 +43,10 @@ def query_names() -> list[str]:
     return names
 
 
-def query_records(connection: duckdb.DuckDBPyConnection, name: str) -> list[dict]:
-    """The query's rows, each a dict from column to value."""
-    result = site_database.run_query(connection, name)
+def query_records(connection: duckdb.DuckDBPyConnection, name: str,
+                  parameters: dict[str, str] | None = None) -> list[dict]:
+    """The query's rows, given `parameters`, each a dict from column to value."""
+    result = site_database.run_query(connection, name, parameters)
     records = []
     for row in result.rows:
         records.append(dict(zip(result.columns, row)))
@@ -50,14 +59,16 @@ def test_every_query_has_its_columns_listed() -> None:
 
 @pytest.mark.parametrize("name", sorted(EXPECTED_COLUMNS))
 def test_a_query_returns_its_columns_and_rows(connection: duckdb.DuckDBPyConnection, name: str) -> None:
-    result = site_database.run_query(connection, name)
+    result = site_database.run_query(connection, name, QUERY_PARAMETERS.get(name))
     assert result.columns == EXPECTED_COLUMNS[name]
     assert result.rows, f"{name} has no rows over the fixture"
 
 
 @pytest.mark.parametrize("name", sorted(EXPECTED_COLUMNS))
 def test_a_query_reads_only_the_site_s_tables(name: str) -> None:
-    named_tables = duckdb.get_table_names(site_database.statement_text(name))
+    # DuckDB names a statement's tables only for a statement it can prepare whole, so a parameter is read as a string.
+    text = NAMED_PARAMETER.sub("''", site_database.statement_text(name))
+    named_tables = duckdb.get_table_names(text)
     assert named_tables <= SITE_TABLES, f"{name} reads {sorted(named_tables - SITE_TABLES)}"
 
 
@@ -103,11 +114,40 @@ def test_the_endpoint_trend_counts_each_month_s_requests(connection: duckdb.Duck
         (1, "chat", 85), (1, "chat_stream", 40), (2, "completion", 15)]
 
 
-def test_the_daily_rollup_names_the_twenty_and_counts_every_request(connection: duckdb.DuckDBPyConnection) -> None:
-    rollup = query_records(connection, "explore/daily_rollup")
-    assert sum(row["requests"] for row in rollup) == fixture_artifact.TOTAL_REQUESTS
-    others = [row for row in rollup if row["model"] == "Other"]
-    assert [(row["day"], row["chute_id"], row["requests"]) for row in others] == [
-        (datetime.date(2025, 4, 12), None, 25)]
-    assert rollup[-1]["day"] == datetime.date(2025, 5, 13)
-    assert rollup[1]["ttft_sum"] is None and rollup[1]["ttft_counted"] == 0
+def test_the_family_models_are_ranked_within_their_family(connection: duckdb.DuckDBPyConnection) -> None:
+    family_models = query_records(connection, "setup/family_models")
+    assert [(row["family"], row["chute_id"], row["requests"], row["rank"]) for row in family_models] == [
+        ("DeepSeek", "chute-01", 70, 1), ("DeepSeek", "chute-02", 15, 2), ("Other", "chute-04", 5, 1),
+        ("gpt-oss", "chute-03", 20, 1)]
+
+
+def test_the_daily_rows_by_family_count_every_request(connection: duckdb.DuckDBPyConnection) -> None:
+    by_family = query_records(connection, "explore/daily_by_family")
+    assert sum(row["requests"] for row in by_family) == fixture_artifact.TOTAL_REQUESTS
+    assert [(row["day"], row["family_slug"], row["endpoint_group"], row["requests"]) for row in by_family] == [
+        (datetime.date(2025, 4, 11), "deepseek", "chat", 40),
+        (datetime.date(2025, 4, 11), "deepseek", "chat_stream", 40),
+        (datetime.date(2025, 4, 11), "gpt-oss", "chat", 20),
+        (datetime.date(2025, 4, 12), "other", "chat", 25),
+        (datetime.date(2025, 5, 13), "deepseek", "completion", 15),
+    ]
+    assert by_family[1]["ttft_sum"] is None and by_family[1]["ttft_counted"] == 0
+
+
+def test_every_family_is_the_family_table_s_or_other(connection: duckdb.DuckDBPyConnection) -> None:
+    table_families = set(connection.table("model_families").df()["family"])
+    by_family = query_records(connection, "explore/daily_by_family")
+    assert {row["family"] for row in by_family} <= table_families | {"Other"}
+
+
+def test_a_family_s_daily_rows_name_its_models_and_its_rest(connection: duckdb.DuckDBPyConnection) -> None:
+    deepseek = query_records(connection, "explore/daily_by_model", {"family": "DeepSeek"})
+    named = [(row["day"], row["chute_id"], row["model"], row["endpoint_group"], row["requests"]) for row in deepseek]
+    assert named == [
+        (datetime.date(2025, 4, 11), None, "Other DeepSeek", "chat_stream", 10),
+        (datetime.date(2025, 4, 11), "chute-01", "model-01", "chat", 40),
+        (datetime.date(2025, 4, 11), "chute-01", "model-01", "chat_stream", 30),
+        (datetime.date(2025, 5, 13), "chute-02", "model-02", "completion", 15),
+    ]
+    other = query_records(connection, "explore/daily_by_model", {"family": "Other"})
+    assert [(row["model"], row["requests"]) for row in other] == [("Other Other", 20), ("model-04", 5)]

@@ -33,12 +33,17 @@ binding, and `make test` checks the countable ones.
   cut to reach a count.
 - **SQL is a literal.** Every query is one `.sql` file under `site/queries/`.
   No SQL is written in JavaScript or in the data step, and no query is
-  assembled from strings or takes a parameter. A query reads the site's
-  tables and nothing else (`SITE_TABLES` in `tests/test_queries.py`):
+  assembled from strings. A query takes at most one parameter, the family
+  (`$family`), bound by name by DuckDB and never written into the text. A
+  query reads the site's tables and nothing else (`SITE_TABLES` in
+  `tests/test_queries.py`):
   - the artifact's four caches, each the table of its file's name:
     `trace_totals`, `daily_rollup`, `monthly_requests_tokens_by_model` and
     `function_name_daily_requests`;
-  - `chute_models`, the artifact's model names (`chute_id`, `name`);
+  - `chute_models`, the artifact's model names (`chute_id`, `name`), and
+    `model_families`, its family table (`match_order`, `family`,
+    `pattern`), which the site never matches a name against: a row's
+    family is the daily rollup's;
   - `trace_calendar`, made by `site_data/months.py`: each trace day's
     calendar day, its trace month and the calendar month that trace month
     is labelled with. It is the one place a date is computed; a query joins
@@ -46,8 +51,10 @@ binding, and `make test` checks the countable ones.
   - `top_models`, the rows of `setup/top_models.sql`: the named models
     ranked by their requests over the year. It is the one definition of the
     most requested models; an answer that names models takes `rank <= 8`
-    (the eight series colours) or `rank <= 20` (the Traffic Explorer's
-    drop-down) from it.
+    (the eight series colours) from it;
+  - `family_models`, the rows of `setup/family_models.sql`: the daily
+    rollup's named models ranked within their family. A family's answer
+    takes its eight from it.
 - **Every definition comes from the artifact.** A query filters, groups,
   counts and sums; none restates a definition the artifact owns, and neither
   a query nor the browser decides what a user, a model's name, an endpoint
@@ -63,8 +70,9 @@ binding, and `make test` checks the countable ones.
 ## How the site is put together
 
 ```
-make data:  the artifact's caches and chute_models.csv  →  tables in DuckDB, with trace_calendar and top_models
-              →  queries/explore/<query>.sql  →  data/all/explore/<query>.json and data/all/queries.json
+make data:  the artifact's caches, chute_models.csv and model_families.csv  →  tables in DuckDB, with trace_calendar,
+              top_models and family_models  →  queries/explore/<query>.sql  →  data/all/explore/<query>.json (a family
+              query's data/all/explore/<query>/<family>.json, once per family) and data/all/queries.json
             the artifact's config/figures.json and figure PDFs  →  figures/<name>.png and figures/index.json
 The page:   index.html  →  js/pages/explore.js  →  js/explore/start.js, the section modules and js/shared/
               →  data/all/explore/<query>.json and figures/
@@ -155,9 +163,15 @@ columns against `EXPECTED_COLUMNS`, the tables it reads against
 **One answer per query.** Every query under `queries/explore/` is answered
 by `make data`, once, over the whole trace: its rows in
 `data/all/explore/<query>.json`, and every answer is read by the page. A
+query that takes the family (`FAMILY_QUERIES` of `site_data/answers.py`,
+`explore/daily_by_model`) is answered once per family of
+`explore/daily_by_family`, each family bound as `$family` and its rows
+written to `data/all/explore/<query>/<family_slug>.json`, the slug being
+`daily_by_family`'s `family_slug` column, the one place a slug is made. A
 query under `queries/setup/` makes a table of the site's database and is
 not answered. `make data` also records the hash of the text of every query
-the answers depend on, the answered ones and `setup/top_models`, in
+the answers depend on, the answered ones (a family query once) and
+`setup/top_models` and `setup/family_models`, in
 `data/all/queries.json`. **Rerun `make data` after editing a query**: the
 page reads the answers, not the queries, and `tests/test_built_data.py`
 fails while a query's text differs from the one its answer was written

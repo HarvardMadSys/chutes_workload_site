@@ -1,7 +1,7 @@
 """The built data, as `make data` wrote it and git tracks it: every file of it tracked, the images the figure index
-lists exactly the images tracked, none too large, every query's answer there and written from its current text, and
-the answers, the images and their index the same as a rebuild from the artifact's checkout (`ARTIFACT`; skipped,
-saying so, without one)."""
+lists exactly the images tracked, none too large, every query's answer there (a family query's one per family) and
+written from its current text, and the answers, the images and their index the same as a rebuild from the artifact's
+checkout (`ARTIFACT`; skipped, saying so, without one)."""
 
 import json
 import pathlib
@@ -60,8 +60,19 @@ def test_no_image_is_too_large() -> None:
 
 
 def test_every_query_has_its_answer() -> None:
-    for name in answers.answered_query_names():
+    for name in answers.single_answer_query_names():
         assert (DATA_FOLDER / paths.answer_file(name)).is_file(), f"{name} has no answer; run make data"
+
+
+def test_a_family_query_has_one_answer_per_family_and_no_other() -> None:
+    """Each family query's folder holds one file per family of the by-family answer, named by its slug."""
+    family_rows = json.loads((DATA_FOLDER / paths.answer_file(answers.FAMILIES_QUERY)).read_text())
+    families = answers.families(family_rows)
+    slugs = {family.slug for family in families}
+    assert len(slugs) == len(families), "two families share a slug, and so one answer file"
+    for name in answers.FAMILY_QUERIES:
+        written = {path.stem for path in (DATA_FOLDER / paths.ANSWERS_FOLDER / name).glob("*.json")}
+        assert written == slugs, f"{name}'s answers are not one per family; run make data"
 
 
 def test_every_answer_comes_from_its_query_s_current_text() -> None:

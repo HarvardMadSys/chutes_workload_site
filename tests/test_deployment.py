@@ -1,6 +1,6 @@
 """The deployment settings: `wrangler.jsonc` names the Worker and serves `site/` as its static assets, and every path
-the deploy workflow asks the published site for is a file of `site/`, among them the page, the daily rollup answer and
-one figure image."""
+the deploy workflow asks the published site for is a file of `site/`, among them the page, the daily by-family answer
+and one figure image."""
 
 import json
 import pathlib
@@ -14,8 +14,8 @@ WORKER_NAME = "chutes-trace-site"  # the Worker the site is deployed to, and its
 ASSETS_DIRECTORY = "./site"  # the folder deployed as is, its data and figures included
 PAGE_FILE = "index.html"  # the file `/` answers with
 
-# The paths the deploy workflow must check after each deploy: the page, the daily rollup answer and one figure image.
-REQUIRED_CHECKED_PATHS = {"/", "/data/all/explore/daily_rollup.json", "/figures/fig_request_rate_day.png"}
+# The paths the deploy workflow must check after each deploy: the page, the daily by-family answer and one figure image.
+REQUIRED_CHECKED_PATHS = {"/", "/data/all/explore/daily_by_family.json", "/figures/fig_request_rate_day.png"}
 
 # A check of the workflow's last step: `check_answer "<path>" "<content type>"`.
 CHECK_ANSWER_LINE = re.compile(r'^\s*check_answer\s+"(?P<path>/[^"]*)"\s+"(?P<content_type>[^"]+)"\s*$')
@@ -59,7 +59,7 @@ def test_the_workflow_checks_the_worker_s_hostname() -> None:
     assert f'host="{WORKER_NAME}.' in DEPLOY_WORKFLOW.read_text()
 
 
-def test_the_workflow_checks_the_page_the_rollup_and_a_figure() -> None:
+def test_the_workflow_checks_the_page_the_family_answer_and_a_figure() -> None:
     assert REQUIRED_CHECKED_PATHS <= set(checked_answers())
 
 
