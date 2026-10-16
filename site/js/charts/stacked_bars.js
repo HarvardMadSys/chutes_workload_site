@@ -25,14 +25,16 @@ const KEY_SEPARATOR = "\u0000";
  *   count.
  * - `valueFormat`: how a value is written in the tooltip; `yTickFormat`: on the value axis.
  * - `xLabel`: the x axis's title, none when null or not given; `xTickFormat`: how a tick is written, "" for an
- *   unlabelled one.
+ *   unlabelled one; `xTickRotate`: the angle of its ticks' labels in degrees, 0 (level) when not given, so that a
+ *   label at every bar keeps clear of its neighbours.
  * - `margins`: Plot margins in place of the frame's, where the bars should take more of the card's width.
+ * - `labels`: each series' label in the tooltip where it is written otherwise than its name, as the legend's `labels`.
  * Required: the three columns, `valueLabel` and `valueFormat`.
  * Needs the figure's legend: its colours are `colours.series`.
  */
 export async function drawStackedBars(rows, body, colours, parameters, hidden) {
   const { xColumn, seriesColumn, valueColumn, valueLabel, valueFormat } = parameters;
-  const { xLabel = null, yLabel = null, xTickFormat, yTickFormat, margins } = parameters;
+  const { xLabel = null, yLabel = null, xTickFormat, xTickRotate = 0, yTickFormat, margins, labels = {} } = parameters;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
   const folded = foldedRows(rows, colours.series, { xColumn, seriesColumn, valueColumn });
@@ -44,7 +46,7 @@ export async function drawStackedBars(rows, body, colours, parameters, hidden) {
     color: colourScale(colours.series, stacked),
     marks: [
       Plot.gridY({ ...GRID_STYLE, ticks: TICK_COUNT }),
-      Plot.axisX({ ...AXIS_STYLE, tickFormat: xTickFormat, label: xLabel }),
+      Plot.axisX({ ...AXIS_STYLE, tickFormat: xTickFormat, tickRotate: xTickRotate, label: xLabel }),
       Plot.axisY({ ...AXIS_STYLE, ticks: TICK_COUNT, tickFormat: yTickFormat, label: yLabel }),
       Plot.barY(shown, {
         x: xColumn,
@@ -52,7 +54,7 @@ export async function drawStackedBars(rows, body, colours, parameters, hidden) {
         fill: seriesColumn,
         order: stacked, // the stacking order, bottom up
         inset: BAR_INSET,
-        title: (row) => barTipText(row, { xColumn, seriesColumn, valueColumn, valueLabel, valueFormat }),
+        title: (row) => barTipText(row, { xColumn, seriesColumn, valueColumn, valueLabel, valueFormat, labels }),
         tip: true,
       }),
       Plot.ruleY([0], AXIS_STYLE),
@@ -114,7 +116,12 @@ function barsFrame(body, yLabel, margins) {
   return frame;
 }
 
-// A segment's tooltip: its series, its bar's x value, and its value, "Requests: 412".
-function barTipText(row, { xColumn, seriesColumn, valueColumn, valueLabel, valueFormat }) {
-  return `${row[seriesColumn]}\n${row[xColumn]}\n${valueLabel}: ${valueFormat(row[valueColumn])}`;
+/**
+ * A segment's tooltip, three lines: its series, by its label in `labels` where it has one there, its bar's x value, and
+ * its value, "Requests: 412".
+ */
+export function barTipText(row, { xColumn, seriesColumn, valueColumn, valueLabel, valueFormat, labels = {} }) {
+  const name = row[seriesColumn];
+  const series = Object.hasOwn(labels, name) ? labels[name] : name;
+  return `${series}\n${row[xColumn]}\n${valueLabel}: ${valueFormat(row[valueColumn])}`;
 }

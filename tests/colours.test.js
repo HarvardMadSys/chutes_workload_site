@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { assignColours, barColours, OTHER_SERIES, SERIES_SLOTS, slottedColours } from "../site/js/theme/colours.js";
+import {
+  assignColours, barColours, ENDPOINT_FIRST_SLOT, ENDPOINT_LABELS, endpointColours, modelColours, OTHER_SERIES,
+  SERIES_SLOTS, slottedColours,
+} from "../site/js/theme/colours.js";
 
 const NINE_MODELS = ["m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9"];
 
@@ -61,4 +64,45 @@ test("the slotted colours are the first eight names in their order, none in the 
   const slotted = slottedColours(assignColours(NINE_MODELS));
   assert.deepEqual([...slotted.keys()], NINE_MODELS.slice(0, 8));
   assert.ok(![...slotted.values()].includes(OTHER_SERIES));
+});
+
+test("the models take the series colours in the model mix's order from the first slot, and Other its grey", () => {
+  const modelMixRows = [
+    { model: "deepseek-v3", requests: 30 },
+    { model: "qwen3", requests: 20 },
+    { model: "Other", requests: 50 },
+  ];
+  assert.deepEqual([...modelColours(modelMixRows).entries()], [
+    ["deepseek-v3", "var(--series-1)"],
+    ["qwen3", "var(--series-2)"],
+    ["Other", OTHER_SERIES],
+  ]);
+});
+
+test("the endpoint groups take the series colours from their own first slot, and the group other folds into Other", () => {
+  const endpointMixRows = [
+    { endpoint_group: "chat", requests: 50 },
+    { endpoint_group: "chat_stream", requests: 40 },
+    { endpoint_group: "completion_stream", requests: 9 },
+    { endpoint_group: "other", requests: 2 },
+    { endpoint_group: "completion", requests: 1 },
+  ];
+  assert.deepEqual([...endpointColours(endpointMixRows).entries()], [
+    ["chat", SERIES_SLOTS[ENDPOINT_FIRST_SLOT]],
+    ["chat_stream", SERIES_SLOTS[ENDPOINT_FIRST_SLOT + 1]],
+    ["completion_stream", SERIES_SLOTS[ENDPOINT_FIRST_SLOT + 2]],
+    ["completion", SERIES_SLOTS[ENDPOINT_FIRST_SLOT + 3]],
+    ["Other", OTHER_SERIES],
+  ]);
+  assert.notEqual(ENDPOINT_FIRST_SLOT, 0, "the endpoint donut opens on another colour than the model donut");
+});
+
+test("each endpoint group is labelled in words", () => {
+  assert.deepEqual(ENDPOINT_LABELS, {
+    chat: "Chat",
+    chat_stream: "Chat stream",
+    completion: "Completion",
+    completion_stream: "Completion stream",
+    other: "Other",
+  });
 });

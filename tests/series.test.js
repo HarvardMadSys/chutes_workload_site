@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { partsLegend, rowsWithSeriesColour, seriesLegend, shownRows } from "../site/js/shared/series.js";
+import {
+  ENDPOINT_SERIES, MODEL_SERIES, partsLegend, rowsWithSeriesColour, seriesLegend, shownRows,
+} from "../site/js/shared/series.js";
+import { ENDPOINT_LABELS, endpointColours, modelColours } from "../site/js/theme/colours.js";
 
 // Two series of a CDF query, `requests` and `tool_steps`, two points each.
 const ROWS = [
@@ -39,4 +42,12 @@ test("the rows drawn as lines are those of a series with a series colour, never 
   const colours = new Map([["A", "var(--series-1)"], ["B", "var(--series-other)"]]);
   const rows = [{ provider: "A" }, { provider: "B" }, { provider: "C" }];
   assert.deepEqual(rowsWithSeriesColour(rows, "provider", colours), [{ provider: "A" }]);
+});
+
+test("the models and the endpoint groups are each coloured by their order's rows and named by their column", () => {
+  assert.deepEqual([MODEL_SERIES.order, MODEL_SERIES.column, MODEL_SERIES.colours], ["models", "model", modelColours]);
+  assert.deepEqual([ENDPOINT_SERIES.order, ENDPOINT_SERIES.column, ENDPOINT_SERIES.colours],
+    ["endpoints", "endpoint_group", endpointColours]);
+  assert.deepEqual(MODEL_SERIES.labels, {});
+  assert.equal(ENDPOINT_SERIES.labels, ENDPOINT_LABELS);
 });

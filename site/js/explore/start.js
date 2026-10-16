@@ -8,8 +8,9 @@
  * context)` with `context = { totals, orders, replaceQuery }`:
  * - `totals`, the promised rows of `explore/trace_totals`, one row of the whole trace's counts, asked for once for the
  *   stats strip and the months the hero and the footer count;
- * - `orders`, `{ models }`, the promised rows of `explore/model_mix`, the models most requested first, the order every
- *   chart colours them by, asked for once;
+ * - `orders`, `{ models, endpoints }`, the promised rows of `explore/model_mix` and of `explore/endpoint_mix`, each most
+ *   requested first: the orders every chart colours the models and the endpoint groups by, and the donuts' rows,
+ *   each asked for once;
  * - `replaceQuery(params)`, which writes `params` to the address bar and the header's links.
  */
 
@@ -45,7 +46,7 @@ export async function startPage({ sections, showMonthCount }) {
 /** What every section is given; see the module's comment. */
 function sectionContext() {
   const totals = promisedRows("explore/trace_totals");
-  const orders = { models: promisedRows("explore/model_mix") };
+  const orders = { models: promisedRows("explore/model_mix"), endpoints: promisedRows("explore/endpoint_mix") };
   return { totals, orders, replaceQuery };
 }
 

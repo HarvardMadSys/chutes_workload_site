@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  foldedRows, foldToOther, stackedBarsLegend, sumFolded,
+  barTipText, foldedRows, foldToOther, stackedBarsLegend, sumFolded,
 } from "../site/js/charts/stacked_bars.js";
 import { barColours } from "../site/js/theme/colours.js";
 
@@ -78,4 +78,13 @@ test("the legend lists the folded series in the colours' order, Other among them
   const legend = stackedBarsLegend(ROWS, colours, { seriesColumn: "endpoint", labels: { e1: "One" } });
   assert.deepEqual(legend.series, [{ name: "e1", label: "One" }, { name: "Other", label: "Other" }]);
   assert.equal(legend.colours, colours);
+});
+
+test("a segment's tooltip names its series by its label where it has one, its bar and its value", () => {
+  const columns = { xColumn: "month", seriesColumn: "endpoint", valueColumn: "requests", valueLabel: "Requests" };
+  const row = { month: "2025-06", endpoint: "chat_stream", requests: 4120 };
+  const valueFormat = (value) => value.toLocaleString("en-US");
+  assert.equal(barTipText(row, { ...columns, valueFormat, labels: { chat_stream: "Chat stream" } }),
+    "Chat stream\n2025-06\nRequests: 4,120");
+  assert.equal(barTipText(row, { ...columns, valueFormat }), "chat_stream\n2025-06\nRequests: 4,120");
 });
