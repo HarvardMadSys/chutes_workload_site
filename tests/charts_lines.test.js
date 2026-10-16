@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  brokenAtGaps, drawnPoints, drawnSeries, lineTipText, lineYAxis, seriesDash, yColumn,
+  brokenAtGaps, drawnPoints, framedPoints, drawnSeries, lineTipText, lineYAxis, seriesDash, yColumn,
 } from "../site/js/charts/lines.js";
 import { formatPercent } from "../site/js/shared/format.js";
 import { assignColours } from "../site/js/theme/colours.js";
@@ -95,4 +95,13 @@ test("a CDF's y axis is a share from 0 to 1 in percent, keeping the card's title
   const linear = { label: "Requests", log: true };
   assert.equal(lineYAxis({ y: linear }), linear);
   assert.deepEqual(lineYAxis({}), {});
+});
+
+test("a tooltip names only the points within the axes' domains, the part of the lines the frame shows", () => {
+  const points = [
+    { series: "Global", x: 1, y: 0.2 }, { series: "Global", x: 50, y: 0.9 }, { series: "Global", x: 9, y: 3 },
+  ];
+  assert.deepEqual(framedPoints(points, { domain: [1, 10] }, {}, "y"), [points[0], points[2]]);
+  assert.deepEqual(framedPoints(points, {}, { domain: [0, 1] }, "y"), [points[0], points[1]]);
+  assert.equal(framedPoints(points, {}, {}, "y").length, 3);
 });

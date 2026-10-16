@@ -61,7 +61,9 @@ export async function drawLines(rows, body, colours, parameters, hidden) {
       axisMark(Plot, "x", xAxis, xTicks),
       axisMark(Plot, "y", yAxis, yTicks),
       ...lines,
-      Plot.tip(drawn, Plot.pointerX({ x: "x", y: yColumn(cdf), title: (row) => lineTipText(row, parameters) })),
+      Plot.tip(framedPoints(drawn, xAxis, yAxis, yColumn(cdf)), Plot.pointerX({
+        x: "x", y: yColumn(cdf), title: (row) => lineTipText(row, parameters),
+      })),
     ],
   });
   body.replaceChildren(chart);
@@ -97,6 +99,14 @@ export function yColumn(cdf) {
 export function drawnPoints(rows, colours, { panel, x: xAxis = {}, y: yAxis = {}, cdf = false }, hidden) {
   const shown = shownSeriesRows(rows, colours, panel, hidden);
   return positiveRows(shown, logColumns({ x: xAxis, y: yAxis }, ["x"], [yColumn(cdf)]));
+}
+
+/**
+ * The points a tooltip may name: those of `points` within the x axis's `domain` and, by their `yName`, the y axis's,
+ * where the axis gives one: the part of the lines the frame shows, the rest being clipped.
+ */
+export function framedPoints(points, xAxis, yAxis, yName) {
+  return points.filter((point) => isWithin(point.x, xAxis.domain) && isWithin(point[yName], yAxis.domain));
 }
 
 /**
@@ -137,4 +147,9 @@ export function lineTipText(row, { x: xAxis = {}, cdf = false, valueLabel, value
     return `${series}\n${valueLabel}: ${valueFormat(row.x)}\n${formatShare(row[CDF_COLUMN])} at or below`;
   }
   return `${series}\n${axisValueText(xAxis, row.x)}\n${valueLabel}: ${valueFormat(row.y)}`;
+}
+
+// True when `value` lies within `domain`, `[low, high]`, both ends included, or when there is no domain.
+function isWithin(value, domain) {
+  return domain === undefined || (value >= domain[0] && value <= domain[1]);
 }

@@ -3,9 +3,10 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
-  CHART_KINDS, chartParameters, drawFigureChart, frozenCard, newCardElement, PALETTES, plotdataAddress,
+  CHART_KINDS, chartParameters, drawFigureChart, frozenCard, newCardElement, plotdataAddress,
   renderFigureCard,
 } from "../site/js/insights/figure_card.js";
+import { PALETTES } from "../site/js/insights/card_series.js";
 import { FIGURE_SECTIONS } from "../site/js/insights/figure_sections.js";
 import { URLS } from "../site/js/shared/layout.js";
 

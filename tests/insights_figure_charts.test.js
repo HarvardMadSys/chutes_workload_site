@@ -6,12 +6,13 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { brokenAtGaps, drawnPoints, lineTipText } from "../site/js/charts/lines.js";
+import { brokenAtGaps, drawnPoints, framedPoints, lineTipText, lineYAxis } from "../site/js/charts/lines.js";
 import { pooledGrid, rasterColourDomain, rasterGrid } from "../site/js/charts/raster.js";
 import { axisTicks } from "../site/js/axes/ticks.js";
 import { drawWithLegend } from "../site/js/explore/legend.js";
+import { cardColours, figureLegend } from "../site/js/insights/card_series.js";
 import {
-  cardColours, chartParameters, COUNT_COLOUR, figureLegend, TRACE_MONTH_AXIS, TRACE_MONTH_TICKS,
+  chartParameters, COUNT_COLOUR, TRACE_MONTH_AXIS, TRACE_MONTH_TICKS,
 } from "../site/js/insights/figure_card.js";
 import { FIGURE_SECTIONS } from "../site/js/insights/figure_sections.js";
 import { sequentialColour } from "../site/js/shared/charts.js";
@@ -126,4 +127,25 @@ test("the trace's month axis labels every third month from the first to the thir
   assert.equal(TRACE_MONTH_TICKS.at(-1), TRACE_MONTHS);
   assert.match(TRACE_MONTH_AXIS.label, /1 = April 2025/);
   assert.ok(Object.isFrozen(TRACE_MONTH_AXIS) && Object.isFrozen(TRACE_MONTH_TICKS));
+});
+
+test("the input-tokens card's tooltip names no point past its axis's 400,000 tokens", () => {
+  const card = cardOf("fig_token_length_input_cdf_by_model");
+  const rows = shippedAnswer(card.figure);
+  const parameters = chartParameters(card);
+  const drawn = drawnPoints(rows, cardColours(card, rows, null), parameters, new Set());
+  const tipped = framedPoints(drawn, parameters.x, lineYAxis(parameters), "cdf");
+  assert.ok(drawn.some((point) => point.x > 400000), "the answer runs past the axis");
+  assert.ok(tipped.length > 0 && tipped.every((point) => point.x >= 1 && point.x <= 400000));
+});
+
+test("the two user zooms have no legend: each of their panels holds one series, which its title names", () => {
+  for (const figure of ["fig_lb_user_zoom_top", "fig_lb_user_zoom_min"]) {
+    const card = cardOf(figure);
+    const rows = shippedAnswer(figure);
+    assert.deepEqual(figureLegend(card, rows, cardColours(card, rows, null)).series, [], figure);
+  }
+  const routing = cardOf("fig_routing_tradeoff");
+  const rows = shippedAnswer(routing.figure);
+  assert.equal(figureLegend(routing, rows, cardColours(routing, rows, null)).series.length, 8);
 });

@@ -10,7 +10,7 @@
  * panel's own relabel only its tooltips); `legend`, the name of a legend answer, rows `{ series, rank }`, whose order
  * the card's series take;
  * `series`, the names of the series drawn, in the order they are drawn and listed, the answer's others left out (the
- * stacked bars fold them into "Other"); `palette`, the colours its series take, a key of `PALETTES`, "series" when
+ * stacked bars fold them into "Other"); `palette`, the colours its series take, a key of `PALETTES` of `insights/card_series.js`, "series" when
  * not given; `source` the address of the artifact's README, or folder, that says how the figure is computed; `isWide`
  * true for a card that takes its topic's width.
  *
@@ -18,13 +18,10 @@
  * (`drawFigureChart`), with a legend of buttons above it where it has more than one series.
  */
 
-import { distinct, nameChart, renderFigure, showError, showLoading } from "../shared/charts.js";
+import { nameChart, renderFigure, showError, showLoading } from "../shared/charts.js";
 import { readAnswer } from "../shared/answers.js";
 import { URLS } from "../shared/layout.js";
-import {
-  endpointFigureColours, figureColours, policyColours, SERIES_COLUMN, seriesLegend,
-} from "../shared/series.js";
-import { FAMILY_SLOTS, SERIES_SLOTS } from "../theme/colours.js";
+import { SERIES_COLUMN } from "../shared/series.js";
 import { drawBands } from "../charts/bands.js";
 import { drawBars } from "../charts/bars.js";
 import { drawBoxes } from "../charts/boxes.js";
@@ -34,6 +31,7 @@ import { drawRaster } from "../charts/raster.js";
 import { drawScatter } from "../charts/scatter.js";
 import { drawStackedBars } from "../charts/stacked_bars.js";
 import { drawWithLegend } from "../explore/legend.js";
+import { cardColours, figureLegend } from "./card_series.js";
 
 /**
  * The chart kinds a card may name, each `{ draw, swatch, parameters }`: the function that draws it, the shape of its
@@ -57,20 +55,6 @@ export const CHART_KINDS = Object.freeze({
 });
 
 /**
- * The colours a card's series may take, by the card's `palette`, each a function of the series' names, in order, the
- * card's series labels and the rows of `explore/endpoint_mix`, to a Map from name to colour: "series", the eight
- * series slots; "families", the ten of the families, for a card of more series than eight; "endpoints", the endpoint
- * groups' colours as the Overview's, for series that are endpoint groups written by their labels; "policies", one
- * colour per routing policy, for series named "<model>, <policy>".
- */
-export const PALETTES = Object.freeze({
-  series: (names) => figureColours(names, SERIES_SLOTS),
-  families: (names) => figureColours(names, FAMILY_SLOTS),
-  endpoints: (names, labels, endpointMixRows) => endpointFigureColours(names, labels, endpointMixRows),
-  policies: (names) => policyColours(names),
-});
-
-/**
  * A card's colours for a count, of models, users, requests or instances, as the paper shades one: viridis on a log
  * scale, from a quarter of the way along it, since its first colour, a near-black purple, vanishes into the dark
  * scheme's card. A card spreads it into its `chart`.
@@ -87,9 +71,6 @@ export const TRACE_MONTH_TICKS = Object.freeze([1, 4, 7, 10, 13]);
 export const TRACE_MONTH_AXIS = Object.freeze({
   label: "Trace month (1 = April 2025)", ticks: TRACE_MONTH_TICKS, tickFormat: String,
 });
-
-// The palette of a card that names none.
-const DEFAULT_PALETTE = "series";
 
 // The palette of the endpoint groups, whose card reads their colour order, the answer `ENDPOINT_ORDER`.
 const ENDPOINT_PALETTE = "endpoints";
@@ -166,44 +147,6 @@ export async function drawFigureChart(body, card) {
   } catch (error) {
     showError(body, error);
   }
-}
-
-/**
- * The legend of `card` over its answer's `rows`: `{ series, colours, dashed }` (as `explore/legend.js` takes one), the
- * series `colours` names that the rows hold, labelled by the card's `chart.labels`, and its `chart.dashed`, the
- * series drawn dashed, whose swatches are dashed too.
- */
-export function figureLegend(card, rows, colours) {
-  return { ...seriesLegend(rows, SERIES_COLUMN, colours, card.chart.labels), dashed: card.chart.dashed ?? [] };
-}
-
-/**
- * The names of the series a card's answer `rows` draws, in the order they take their colours: the order of
- * `legendRows`, a legend answer's rows `{ series, rank }`, by rank, where the card names one; else the order the
- * series first appear in `rows`. Rows without a series, as a heatmap's, have none.
- */
-export function seriesOrder(rows, legendRows) {
-  if (legendRows !== null) {
-    const ranked = [...legendRows].sort((first, second) => first.rank - second.rank);
-    return ranked.map((row) => row[SERIES_COLUMN]);
-  }
-  const named = rows.filter((row) => Object.hasOwn(row, SERIES_COLUMN));
-  return distinct(named.map((row) => row[SERIES_COLUMN]));
-}
-
-/**
- * The colours of `card`'s series, a Map from each series it draws, in the order drawn, to its colour: its `series`
- * where it gives them, else those of `seriesOrder`, coloured by its `palette` of `PALETTES`, the endpoint groups' from
- * `endpointMixRows`, the rows of `explore/endpoint_mix`. Throws a RangeError naming the card when its palette is not
- * one of `PALETTES`.
- */
-export function cardColours(card, rows, legendRows, endpointMixRows = null) {
-  const palette = card.palette ?? DEFAULT_PALETTE;
-  if (!Object.hasOwn(PALETTES, palette)) {
-    throw new RangeError(`the card ${card.figure} names the palette "${palette}", which is not one of PALETTES`);
-  }
-  const names = card.series ?? seriesOrder(rows, legendRows);
-  return PALETTES[palette](names, card.chart.labels ?? {}, endpointMixRows);
 }
 
 /**

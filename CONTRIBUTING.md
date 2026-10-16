@@ -255,18 +255,21 @@ at most twenty words, written under its heading.
   drawn and listed in the legend; the answer's other series are left out
   (the stacked bars fold them into "Other").
 - `palette` (optional): the colour slots the series take, a key of
-  `PALETTES` in `insights/figure_card.js`: `"series"`, the eight series
-  slots, when not given, or `"families"`, the ten, for more than eight.
+  `PALETTES` in `insights/card_series.js`: `"series"`, the eight series
+  slots, when not given; `"families"`, the ten, for more than eight;
+  `"endpoints"`, the Overview's endpoint colours; `"policies"`, a colour
+  per routing policy.
 - `isWide` (optional): true for a card that takes its topic's whole width.
 
 A line of words that is not the paper's own carries a `// placeholder:`
 comment above it, for the authors to review.
 `insights/figure_card.js` draws the card: it reads the answer, colours the
-series (the global series and the three highlighted models in fixed
-colours, `FIXED_SERIES_COLOURS` of `shared/series.js`, the others the free
-slots of its palette in the order of its `series`, else the answer's), places a legend of buttons where there
-is more than one series, and draws the chart by its kind at the card's
-width. A topic makes each card with `frozenCard` of the same module, which
+series (`insights/card_series.js`: the global series and the three
+highlighted models in fixed colours, `FIXED_SERIES_COLOURS` of
+`shared/series.js`, the others the free slots of its palette in the order
+of its `series`, else the answer's), places a legend of buttons where there
+is more than one series (none where each panel holds one series, which
+its title names), and draws the chart by its kind at the card's width. A topic makes each card with `frozenCard` of the same module, which
 freezes the card and every object it holds, its chart and panels included.
 
 ```js
@@ -291,7 +294,8 @@ frozenCard({
 one chart kind, and its answer is that table, column for column; README's
 "Where the numbers come from" lists each kind's columns and its figures.
 The table is the artifact's: the figure's reproduce script writes it and
-draws the paper's PDF from it, so a number the site needs and the table
+draws the paper's PDF from it (the rasters and the density and P90 grids
+from the points it bins), so a number the site needs and the table
 lacks is added there, never computed in the browser.
 `tests/insights_figure_cards.test.js` (`KIND_COLUMNS`) checks every shipped
 answer against its card's kind.

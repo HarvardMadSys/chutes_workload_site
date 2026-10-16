@@ -1,8 +1,11 @@
-// The colours of a figure card (`insights/figure_card.js`): its series' order and the palette they are coloured from.
+// A figure card's series (`insights/card_series.js`): their order, the palette they are coloured from, and the
+// card's legend.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { cardColours, seriesOrder } from "../site/js/insights/figure_card.js";
+import {
+  cardColours, figureLegend, hasOneSeriesPerPanel, seriesOrder,
+} from "../site/js/insights/card_series.js";
 import { FIXED_SERIES_COLOURS } from "../site/js/shared/series.js";
 import { endpointColours, FAMILY_SLOTS, OTHER_SERIES, SERIES_SLOTS } from "../site/js/theme/colours.js";
 
@@ -64,3 +67,19 @@ test("a card of the endpoints' palette colours its series as the Overview colour
   ]);
 });
 
+
+test("a card whose every panel holds one series has no legend; a card of panels sharing series keeps its own", () => {
+  const rows = [
+    { panel: "request_share", series: "User request", x: 0, value: 9 },
+    { panel: "token_hit", series: "Cache hit", x: 0, value: 60 },
+  ];
+  const panels = [{ panel: "request_share" }, { panel: "token_hit" }];
+  const card = { figure: "fig_zoom", chart: {}, panels };
+  const colours = cardColours(card, rows, null);
+  assert.equal(hasOneSeriesPerPanel(card, rows), true);
+  assert.deepEqual(figureLegend(card, rows, colours).series, []);
+  const shared = [...rows, { panel: "token_hit", series: "User request", x: 0, value: 5 }];
+  assert.equal(hasOneSeriesPerPanel(card, shared), false);
+  assert.equal(figureLegend(card, shared, colours).series.length, 2);
+  assert.equal(hasOneSeriesPerPanel({ ...card, panels: undefined }, rows), false);
+});

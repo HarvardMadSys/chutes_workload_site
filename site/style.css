@@ -1323,6 +1323,12 @@ section[id] {
   margin: 0;
 }
 
+/* A colour legend Plot draws above a chart (its SVG's class ends in "-ramp"): its tick labels, set larger than Plot
+   lays them out for, reach below its box, so room is kept between them and the y axis's title under it. */
+.figure-body svg[class$="-ramp"] {
+  margin-bottom: 0.75rem;
+}
+
 /* A figure card of several panels: a chart per panel under its small title, side by side where the card is wide
    enough for two of at least 16rem, one under the other on a phone. */
 .chart-panels {

@@ -129,7 +129,9 @@ of time; the browser runs no query, it fetches the answers and draws them.
   row count in `site/data/all/figures.json`. A table is written by the
   figure's own reproduce script in the artifact, which draws the paper's
   PDF from the same table, so the paper and the site draw the same
-  numbers. Each card of the Insights draws its figure from its answer with
+  numbers; but for the four rasters and the nine density and P90 grids,
+  whose PDFs draw the points (a dot per request, matplotlib's hexagons)
+  that the table counts in cells. Each card of the Insights draws its figure from its answer with
   the chart kind it names (`site/js/insights/figure_card.js`), the series
   of the global rows and of the three highlighted models in one colour on
   every card. A table's columns are those of its kind:
@@ -310,6 +312,7 @@ site/                exactly the files that are deployed
   js/insights/       the figure cards and the topics
     figure_sections.js, figure_card.js
                      the six topics in the order of their tabs; a card, its chart drawn from its answer by its kind
+    card_series.js   a card's series: their order, each palette's colours, the card's legend
     overview.js, tokens.js, users.js, evolution.js, caching.js, balancing.js
                      one module per topic: its takeaway, its cards' words, kinds and charts' parameters
   queries/           one .sql file per answer or table
@@ -356,8 +359,8 @@ tests/               what make test runs
                      the word counts of every card's insight, caption and definition, and of each takeaway
   insights_figure_cards.test.js
                      every card's kind, and its shipped answer holding that kind's columns
-  insights_figure_card_colours.test.js
-                     a card's series' order and the colours each palette gives them
+  insights_card_series.test.js
+                     a card's series' order, the colours each palette gives them, and its legend
   insights_figure_charts.test.js
                      cards drawn from their shipped answers as the spec describes them: a tooltip, a log axis, a
                      raster, a series hidden in a CDF card, the hourly lines' gaps, the shared colour and month axis
