@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  assignColours, barColours, ENDPOINT_FIRST_SLOT, endpointColours, modelColours, OTHER_SERIES, SERIES_SLOTS,
+  assignColours, barColours, ENDPOINT_FIRST_SLOT, endpointColours, FAMILY_SLOTS, familyColours, modelColours,
+  OTHER_SERIES, SERIES_SLOTS,
 } from "../site/js/theme/colours.js";
 
 const NINE_MODELS = ["m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9"];
@@ -88,4 +89,26 @@ test("the endpoint groups take the series colours from their own first slot, and
     ["Other", OTHER_SERIES],
   ]);
   assert.notEqual(ENDPOINT_FIRST_SLOT, 0, "the endpoint donut opens on another colour than the model donut");
+});
+
+test("the ten family slots are the eight series slots, then the ninth and tenth series tokens", () => {
+  assert.deepEqual(FAMILY_SLOTS, [...SERIES_SLOTS, "var(--series-9)", "var(--series-10)"]);
+  assert.ok(Object.isFrozen(FAMILY_SLOTS));
+});
+
+test("the families take the ten family slots in their order, and Other its grey, last, wherever it is listed", () => {
+  const families = ["DeepSeek", "Qwen", "Other", "Gemma", "Mistral", "GLM", "Hermes", "gpt-oss", "Kimi", "Llama",
+    "MiniMax"];
+  const colours = familyColours(families.map((family) => ({ family })));
+  assert.deepEqual([...colours.keys()], [
+    "DeepSeek", "Qwen", "Gemma", "Mistral", "GLM", "Hermes", "gpt-oss", "Kimi", "Llama", "MiniMax", "Other",
+  ]);
+  assert.deepEqual([...colours.values()], [...FAMILY_SLOTS, OTHER_SERIES]);
+});
+
+test("an eleventh named family takes no colour, and so folds into Other", () => {
+  const families = ["f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11"];
+  const colours = familyColours(families.map((family) => ({ family })));
+  assert.equal(colours.has("f11"), false);
+  assert.equal(colours.size, 11);
 });

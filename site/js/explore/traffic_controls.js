@@ -1,70 +1,118 @@
 /**
- * The Traffic Explorer's controls, a model drop-down, an endpoint drop-down and the period buttons, kept in step with
- * the URL, which holds the explorer's choice (`explore/traffic_filter.js` defines the choice and its keys). A change
- * writes the new choice to the URL; Back or Forward to a history entry of another choice shows that one. Either then
- * hands the explorer the choice to draw, `{ model, endpoint, period }`.
+ * The Traffic Explorer's controls, a family drop-down, a model drop-down, an endpoint drop-down and the period buttons,
+ * kept in step with the URL, which holds the explorer's choice (`explore/traffic_filter.js` defines the choice and its
+ * keys). The model drop-down is disabled until a family is chosen, and then offers the family's models, which come
+ * from the family's answer. A change writes the new choice to the URL; Back or Forward to a history entry of another
+ * choice shows that one. Either then hands the explorer the choice to draw, `{ family, model, endpoint, period }`.
+ *
+ * The explorer gives the controls `{ modelsOf, onChange, onError }`: `modelsOf(family)` resolves to the model
+ * drop-down's entries (`modelChoices`') for the family whose slug is `family`; `onChange(choice)` draws a choice; and
+ * `onError(error)` shows a family's answer that cannot be read.
  */
 
-import { endpointChoices, isSameChoice, PERIODS, readTrafficChoice, writeTrafficChoice } from "./traffic_filter.js";
+import {
+  endpointChoices, isSameChoice, NO_FAMILY_MODEL_CHOICES, PERIODS, readTrafficChoice, writeTrafficChoice,
+} from "./traffic_filter.js";
 
 // The period field's name, which also names its group of buttons for a screen reader, and the id that ties the two.
 const PERIOD_FIELD_NAME = "Period";
 const PERIOD_NAME_ID = "traffic-period-name";
 
 /**
- * Draw the controls into `row` showing the URL's choice, `modelEntries` being the model drop-down's entries
- * (`modelChoices`'), and return that choice. A change writes the new choice to the URL with `context.replaceQuery` and
- * calls `onChange(choice)`; a return to a history entry (`context.onReturn`) whose URL holds another choice than the
- * one shown draws the controls again showing it and calls `onChange(choice)`.
+ * Draw the controls into `row` showing the URL's choice, `families` being the family drop-down's entries
+ * (`familyChoices`'), and resolve to that choice once its family's models are read. A key of the URL the choice does
+ * not keep, such as a model with no family or not among the family's, is then rewritten with `context.replaceQuery`.
+ * A change writes the new choice to the URL the same way and calls `explorer.onChange(choice)`; a return to a history
+ * entry (`context.onReturn`) whose URL holds another choice than the one shown draws the controls again showing it and
+ * calls `explorer.onChange(choice)`.
  */
-export function mountTrafficControls(row, modelEntries, context, onChange) {
-  const controls = { row, modelEntries, context, onChange, shown: urlChoice(modelEntries) };
-  context.onReturn(() => showReturnedChoice(controls));
+export async function mountTrafficControls(row, families, context, explorer) {
+  const opened = await urlChoice(families, explorer.modelsOf);
+  const controls = { row, families, context, explorer, shown: opened.choice, models: opened.models };
+  const params = new URLSearchParams(window.location.search);
+  const written = writeTrafficChoice(params, opened.choice);
+  if (written.toString() !== params.toString()) {
+    context.replaceQuery(written);
+  }
+  context.onReturn(() => showReturnedChoice(controls).catch(explorer.onError));
   drawControls(controls);
-  return controls.shown;
+  return opened.choice;
 }
 
 /**
- * Fill `row` with the controls showing `choice`: the model drop-down of `modelEntries` (`modelChoices`' entries), the
- * endpoint drop-down and the period buttons, the chosen one pressed. A change calls `onChoose` with the part of the
- * choice it changes, `{ model }`, `{ endpoint }` or `{ period }`.
+ * Fill `row` with the controls showing `choice`: the family drop-down of `entries.families`, the model drop-down of
+ * `entries.models` (disabled while no family is chosen), the endpoint drop-down and the period buttons, the chosen one
+ * pressed. A change calls `onChoose` with the part of the choice it changes: `{ family, model: "" }`, `{ model }`,
+ * `{ endpoint }` or `{ period }`. Returns the drop-downs of families and of models, `{ family, model }`.
  */
-export function renderControls(row, choice, modelEntries, onChoose) {
-  const model = choiceSelect(modelEntries, choice.model);
+export function renderControls(row, choice, entries, onChoose) {
+  const family = choiceSelect(entries.families, choice.family);
+  family.addEventListener("change", () => onChoose({ family: family.value, model: "" }));
+  const model = choiceSelect(entries.models, choice.model);
+  model.disabled = choice.family === "";
   model.addEventListener("change", () => onChoose({ model: model.value }));
   const endpoint = choiceSelect(endpointChoices(), choice.endpoint);
   endpoint.addEventListener("change", () => onChoose({ endpoint: endpoint.value }));
   const period = periodField(choice, onChoose);
-  row.replaceChildren(labelledField("Model", model), labelledField("Endpoint", endpoint), period);
+  row.replaceChildren(
+    labelledField("Family", family), labelledField("Model", model), labelledField("Endpoint", endpoint), period,
+  );
+  return { family, model };
 }
 
-// The choice the URL's keys name now, among the model drop-down's `modelEntries`.
-function urlChoice(modelEntries) {
-  const modelValues = modelEntries.map((entry) => entry.value);
-  return readTrafficChoice(new URLSearchParams(window.location.search), modelValues);
+/**
+ * The choice the URL's keys name now, `{ choice, models }`: the choice among the family drop-down's entries `families`
+ * and the models of the URL's family, which `modelsOf` gives, and those models' entries.
+ */
+async function urlChoice(families, modelsOf) {
+  const params = new URLSearchParams(window.location.search);
+  const familyValues = families.map((entry) => entry.value);
+  const { family } = readTrafficChoice(params, familyValues, []);
+  const models = await familyModels(modelsOf, family);
+  const choice = readTrafficChoice(params, familyValues, models.map((entry) => entry.value));
+  return { choice, models };
 }
 
+// The model drop-down's entries for the family whose slug is `family`; with none chosen, its one "Choose a family".
+async function familyModels(modelsOf, family) {
+  return family === "" ? NO_FAMILY_MODEL_CHOICES : modelsOf(family);
+}
+
+// Draw the controls showing the choice shown, and keep their drop-downs of families and of models.
 function drawControls(controls) {
-  renderControls(controls.row, controls.shown, controls.modelEntries, (part) => choosePart(controls, part));
+  const entries = { families: controls.families, models: controls.models };
+  const onChoose = (part) => choosePart(controls, part).catch(controls.explorer.onError);
+  controls.selects = renderControls(controls.row, controls.shown, entries, onChoose);
 }
 
-// A control changed `part` of the choice shown: write the new choice to the URL, then hand it on to be drawn.
-function choosePart(controls, part) {
+// A control changed `part` of the choice shown. A new family's models are read and fill the model drop-down first; the
+// new choice is then written to the URL and handed on to be drawn.
+async function choosePart(controls, part) {
+  if (Object.hasOwn(part, "family")) {
+    const models = await familyModels(controls.explorer.modelsOf, part.family);
+    if (controls.selects.family.value !== part.family) {
+      return; // another family was chosen while this one's models were read, and that choice is drawn instead
+    }
+    controls.models = models;
+    fillSelect(controls.selects.model, models, "");
+    controls.selects.model.disabled = part.family === "";
+  }
   controls.shown = { ...controls.shown, ...part };
   controls.context.replaceQuery(writeTrafficChoice(new URLSearchParams(window.location.search), controls.shown));
-  controls.onChange(controls.shown);
+  controls.explorer.onChange(controls.shown);
 }
 
 // Back or Forward: an entry whose URL holds another choice is shown and drawn; the same choice, after a change of
 // topic, is left as drawn, so its legend keeps the series hidden in it.
-function showReturnedChoice(controls) {
-  const returned = urlChoice(controls.modelEntries);
-  if (isSameChoice(returned, controls.shown)) {
+async function showReturnedChoice(controls) {
+  const returned = await urlChoice(controls.families, controls.explorer.modelsOf);
+  if (isSameChoice(returned.choice, controls.shown)) {
     return;
   }
-  controls.shown = returned;
+  controls.shown = returned.choice;
+  controls.models = returned.models;
   drawControls(controls);
-  controls.onChange(returned);
+  controls.explorer.onChange(returned.choice);
 }
 
 // The period buttons under their name, one per period, the chosen one pressed; a press presses its button alone.
@@ -104,13 +152,20 @@ function labelledField(name, control) {
 // A drop-down of `entries`, `[{ value, text }]`, showing the one whose value is `current`.
 function choiceSelect(entries, current) {
   const select = document.createElement("select");
+  fillSelect(select, entries, current);
+  return select;
+}
+
+// Make `entries`, `[{ value, text }]`, the options of `select`, showing the one whose value is `current`.
+function fillSelect(select, entries, current) {
+  const options = [];
   for (const entry of entries) {
     const option = textElement("option", "", entry.text);
     option.value = entry.value;
-    select.append(option);
+    options.push(option);
   }
+  select.replaceChildren(...options);
   select.value = current;
-  return select;
 }
 
 // An element of `tagName` with the class `className` (none when "") holding `text`.

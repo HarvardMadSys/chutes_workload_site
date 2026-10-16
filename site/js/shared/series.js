@@ -3,20 +3,28 @@
  * series it lists, each `{ name, label }`, and their colours, a Map from name to colour. These are plain functions,
  * tested with `node --test`.
  *
- * And the two kinds of series the Overview draws, the models and the endpoint groups, each `{ order, column, colours,
- * labels? }`: `order`, the key of the page's `context.orders` (`explore/start.js`) whose rows give the colour order;
+ * And the kinds of series the Overview and the Traffic Explorer draw, the models, the endpoint groups and the
+ * families, each `{ order, column, colours, labels? }`: `order`, the key of the orders (the page's `context.orders`,
+ * `explore/start.js`, and the Traffic Explorer's own) whose rows give the colour order;
  * `column`, the column of an answer naming a row's series; `colours(orderRows)`, a Map from name to colour; and, for a
  * kind whose series are not written by their names, `labels`, each series' label (the endpoint groups'
  * `ENDPOINT_LABELS`).
  */
 
-import { endpointColours, modelColours } from "../theme/colours.js";
+import { endpointColours, familyColours, modelColours } from "../theme/colours.js";
 
 /** The models as a chart's series, each written by its name. */
 export const MODEL_SERIES = Object.freeze({
   order: "models",
   column: "model",
   colours: modelColours,
+});
+
+/** The model families as a chart's series, each written by its name; the Traffic Explorer orders them by requests. */
+export const FAMILY_SERIES = Object.freeze({
+  order: "families",
+  column: "family",
+  colours: familyColours,
 });
 
 /** Each endpoint group's label, by its name in the answers. */

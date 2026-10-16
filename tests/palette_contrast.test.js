@@ -14,10 +14,12 @@ import {
 const MARK_CONTRAST = 3; // a line, bar or swatch is told from its card at 3:1, WCAG's contrast for non-text marks
 const TEXT_CONTRAST = 4.5; // text is read at 4.5:1, WCAG's AA contrast for body text
 const MAX_HUE_SHIFT = 15; // degrees of OKLCH hue a slot may move between the schemes and keep its identity
-const MIN_HUE_GAP = 30; // the fewest degrees of OKLCH hue between any two slots, so the eight spread round the wheel
+const MIN_HUE_GAP = 30; // the fewest degrees of OKLCH hue between any two slots, so the ten spread round the wheel
 const MIN_DEUTERANOPE_DISTANCE = 5; // OKLab distance (×100) any two slots keep as a deuteranope sees them
 
-const SLOTS = [1, 2, 3, 4, 5, 6, 7, 8].map((slot) => `--series-${slot}`);
+// The series slots: the eight every chart assigns, and the two more the families take, which one chart draws beside
+// the eight, so all ten are checked together.
+const SLOTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((slot) => `--series-${slot}`);
 
 // Colours set as text, read on the paper, on a card and on a card's raised fill.
 const TEXT_TOKENS = [
@@ -122,7 +124,7 @@ test("each series slot keeps its hue between the schemes", () => {
   }
 });
 
-test("the eight slots spread round the wheel in both schemes, no two closer than the smallest gap", () => {
+test("the ten slots spread round the wheel in both schemes, no two closer than the smallest gap", () => {
   for (const [scheme, tokens] of Object.entries(SCHEMES)) {
     const hues = SLOTS.map((slot) => oklchHue(colourOf(tokens, slot)));
     for (let first = 0; first < hues.length; first += 1) {

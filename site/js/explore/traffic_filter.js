@@ -1,29 +1,36 @@
 /**
  * The Traffic Explorer's choice and what follows from it: the URL keys that hold it, the drop-downs' entries, the rows
- * it keeps of the `explore/daily_rollup` answer, their sums for the tiles and their requests per day for the bars.
- * These are plain functions, tested with `node --test`.
+ * it keeps, their sums for the tiles and their requests per day for the bars. These are plain functions, tested with
+ * `node --test`.
  *
- * A choice is `{ model, endpoint, period }`, each "" for everything: `model` a named model's `chute_id`, or `other` for
- * the rows of every other model; `endpoint` an endpoint group (`chat`, `chat_stream`, …); `period` a key of `PERIODS`.
- * A row of the answer is `{ day, chute_id, model, endpoint_group, requests, input_tokens, input_counted, output_tokens,
- * output_counted, ttft_sum, ttft_counted }`: one calendar day, model and endpoint group, `chute_id` null for Other.
+ * A choice is `{ family, model, endpoint, period }`, each "" for everything: `family` a family's slug; `model`, within
+ * the family, a named model's `chute_id`, or `other` for the rows of the family's other models; `endpoint` an endpoint
+ * group (`chat`, `chat_stream`, …); `period` a key of `PERIODS`. The rows are those of the `explore/daily_by_family`
+ * answer while no family is chosen, `{ day, family, family_slug, endpoint_group, requests, input_tokens,
+ * input_counted, output_tokens, output_counted, ttft_sum, ttft_counted }`, and those of the family's
+ * `explore/daily_by_model/<family_slug>` answer once one is, `{ day, chute_id, model, endpoint_group, ... }` with the
+ * same measures, `chute_id` null for the family's other models.
  */
 
 import { foldedRows } from "../charts/stacked_bars.js";
-import { ENDPOINT_LABELS, ENDPOINT_SERIES, MODEL_SERIES } from "../shared/series.js";
+import { ENDPOINT_LABELS, ENDPOINT_SERIES, FAMILY_SERIES, MODEL_SERIES } from "../shared/series.js";
 import { OTHER_NAME } from "../theme/colours.js";
 
 // The URL keys the choice is written in, one value each.
+const FAMILY_KEY = "family";
 const MODEL_KEY = "model";
 const ENDPOINT_KEY = "endpoint";
 const PERIOD_KEY = "period";
 
-/** The model of the rows of every model but the twenty named ones, in a choice and in the URL. */
+/** The model of the rows of a family's models past its eight named ones, in a choice and in the URL. */
 export const OTHER_MODEL = "other";
 
 // The text of each drop-down's first entry, which chooses everything.
-const EVERY_MODEL_TEXT = "All models";
+const EVERY_FAMILY_TEXT = "All families";
 const EVERY_ENDPOINT_TEXT = "All endpoints";
+
+/** The model drop-down's one entry while no family is chosen, when it is disabled. */
+export const NO_FAMILY_MODEL_CHOICES = Object.freeze([Object.freeze({ value: "", text: "Choose a family" })]);
 
 /**
  * The periods, in the order of their buttons: All, then the calendar quarters the trace spans, each by its key in the
@@ -40,15 +47,19 @@ export const PERIODS = Object.freeze([
 ]);
 
 /**
- * The choice the URL's `model`, `endpoint` and `period` name; a value that is not one of `modelValues` (the model
- * drop-down's values), an endpoint group or a period falls back to "", everything.
+ * The choice the URL's `family`, `model`, `endpoint` and `period` name; a value that is not one of `familyValues` (the
+ * family drop-down's values), an endpoint group or a period falls back to "", everything, and so does a model with no
+ * family or not one of `modelValues` (the model drop-down's values for that family).
  */
-export function readTrafficChoice(params, modelValues) {
+export function readTrafficChoice(params, familyValues, modelValues) {
+  const family = params.get(FAMILY_KEY) ?? "";
   const model = params.get(MODEL_KEY) ?? "";
   const endpoint = params.get(ENDPOINT_KEY) ?? "";
   const period = params.get(PERIOD_KEY) ?? "";
+  const knownFamily = familyValues.includes(family) ? family : "";
   return {
-    model: modelValues.includes(model) ? model : "",
+    family: knownFamily,
+    model: knownFamily !== "" && modelValues.includes(model) ? model : "",
     endpoint: Object.hasOwn(ENDPOINT_LABELS, endpoint) ? endpoint : "",
     period: PERIODS.some((entry) => entry.value === period) ? period : "",
   };
@@ -57,37 +68,75 @@ export function readTrafficChoice(params, modelValues) {
 /** A copy of `params` with `choice` written and every other key untouched; a part chosen as "" writes no key. */
 export function writeTrafficChoice(params, choice) {
   const written = new URLSearchParams(params);
+  setOrDelete(written, FAMILY_KEY, choice.family);
   setOrDelete(written, MODEL_KEY, choice.model);
   setOrDelete(written, ENDPOINT_KEY, choice.endpoint);
   setOrDelete(written, PERIOD_KEY, choice.period);
   return written;
 }
 
-/** True when the choices `first` and `second` choose the same model, endpoint group and period. */
+/** True when the choices `first` and `second` choose the same family, model, endpoint group and period. */
 export function isSameChoice(first, second) {
-  return first.model === second.model && first.endpoint === second.endpoint && first.period === second.period;
+  return first.family === second.family && first.model === second.model && first.endpoint === second.endpoint
+    && first.period === second.period;
 }
 
 /**
- * The model drop-down's entries, `[{ value, text }]`: "All models" (value ""), each named model of `rows` by its name,
- * most requested over the rows first, valued by its `chute_id`, and "Other" (value `other`).
+ * The families of `familyRows`, the rows of `explore/daily_by_family`: `[{ family, family_slug, requests }]`, each
+ * family once with its requests over the rows, most requested first and "Other", the models in no family, last.
  */
-export function modelChoices(rows) {
-  const requestsByModel = new Map();
-  const names = new Map();
+export function familyOrder(familyRows) {
+  const families = new Map();
+  for (const row of familyRows) {
+    const family = families.get(row.family) ?? { family: row.family, family_slug: row.family_slug, requests: 0 };
+    family.requests += row.requests;
+    families.set(row.family, family);
+  }
+  return [...families.values()].sort(otherLastByRequests);
+}
+
+/**
+ * The family drop-down's entries, `[{ value, text }]`: "All families" (value ""), then each family of `families`
+ * (`familyOrder`'s rows, in their order) by its name, valued by its slug.
+ */
+export function familyChoices(families) {
+  const choices = [{ value: "", text: EVERY_FAMILY_TEXT }];
+  for (const { family, family_slug: slug } of families) {
+    choices.push({ value: slug, text: family });
+  }
+  return choices;
+}
+
+/**
+ * The named models of `rows`, a family's rows of `explore/daily_by_model`: `[{ chute_id, model, requests }]`, each
+ * once with its requests over the rows, most requested first; the family's other models, a null `chute_id`, are left
+ * out.
+ */
+export function modelOrder(rows) {
+  const models = new Map();
   for (const row of rows) {
     if (row.chute_id !== null) {
-      requestsByModel.set(row.chute_id, (requestsByModel.get(row.chute_id) ?? 0) + row.requests);
-      names.set(row.chute_id, row.model);
+      const model = models.get(row.chute_id) ?? { chute_id: row.chute_id, model: row.model, requests: 0 };
+      model.requests += row.requests;
+      models.set(row.chute_id, model);
     }
   }
-  const ranked = [...requestsByModel.keys()];
-  ranked.sort((first, second) => requestsByModel.get(second) - requestsByModel.get(first));
-  const choices = [{ value: "", text: EVERY_MODEL_TEXT }];
-  for (const chuteId of ranked) {
-    choices.push({ value: chuteId, text: names.get(chuteId) });
+  return [...models.values()].sort((first, second) => second.requests - first.requests);
+}
+
+/**
+ * The model drop-down's entries for the family named `familyName`, from its rows `rows`, `[{ value, text }]`: "All
+ * <family> models" (value ""), each named model of `modelOrder(rows)` by its name, valued by its `chute_id`, and
+ * "Other <family>" (value `other`) where the rows hold the family's other models.
+ */
+export function modelChoices(rows, familyName) {
+  const choices = [{ value: "", text: `All ${familyName} models` }];
+  for (const { chute_id: chuteId, model } of modelOrder(rows)) {
+    choices.push({ value: chuteId, text: model });
   }
-  choices.push({ value: OTHER_MODEL, text: OTHER_NAME });
+  if (rows.some((row) => row.chute_id === null)) {
+    choices.push({ value: OTHER_MODEL, text: otherModelsName(familyName) });
+  }
   return choices;
 }
 
@@ -100,7 +149,10 @@ export function endpointChoices() {
   return choices;
 }
 
-/** The rows of `rows` that `choice` keeps: of its model, its endpoint group and a day of its period, in their order. */
+/**
+ * The rows of `rows`, the answer of the choice's family (or of every family), that `choice` keeps: of its model, its
+ * endpoint group and a day of its period, in their order.
+ */
 export function rowsInChoice(rows, choice) {
   const { firstDay, lastDay } = periodOf(choice.period);
   const kept = [];
@@ -138,17 +190,24 @@ export function trafficSummary(rows) {
 }
 
 /**
- * The series the bars stack by: the models (`MODEL_SERIES`) while no model is chosen, the endpoint groups
- * (`ENDPOINT_SERIES`) once one is.
+ * The series the bars stack by: the families (`FAMILY_SERIES`) while no family is chosen; the models of the family
+ * named `familyName` once one is (`MODEL_SERIES`, its "Other" written "Other <family>"); the endpoint groups
+ * (`ENDPOINT_SERIES`) once a model is.
  */
-export function choiceSeries(choice) {
-  return choice.model === "" ? MODEL_SERIES : ENDPOINT_SERIES;
+export function choiceSeries(choice, familyName) {
+  if (choice.family === "") {
+    return FAMILY_SERIES;
+  }
+  if (choice.model === "") {
+    // The family's other models fold into the models' "Other" (`modelColours`), named here for the family.
+    return Object.freeze({ ...MODEL_SERIES, labels: Object.freeze({ [OTHER_NAME]: otherModelsName(familyName) }) });
+  }
+  return ENDPOINT_SERIES;
 }
 
 /**
- * The bars' rows: `{ day, [seriesColumn], requests }`, the requests of `rows` per day and series, each series past the
- * eight named in `colours` (a Map from series name to colour) folded into "Other", in order of first appearance. By
- * model, the twelve named models the Overview does not name are among them.
+ * The bars' rows: `{ day, [seriesColumn], requests }`, the requests of `rows` per day and series, each series that
+ * `colours` (a Map from series name to colour) does not name folded into "Other", in order of first appearance.
  */
 export function dailyRequests(rows, seriesColumn, colours) {
   const daily = [];
@@ -194,7 +253,22 @@ function isDayInPeriod(day, firstDay, lastDay) {
   return (firstDay === null || day >= firstDay) && (lastDay === null || day <= lastDay);
 }
 
-// The `chute_id` of the rows of the model `model`: null, the answer's, for Other.
+// The name of a family's models past its eight named ones, as its answer writes it: "Other DeepSeek".
+function otherModelsName(familyName) {
+  return `${OTHER_NAME} ${familyName}`;
+}
+
+// For sorting families: "Other" after every other family, the rest by requests, most first.
+function otherLastByRequests(first, second) {
+  const firstIsOther = first.family === OTHER_NAME;
+  const secondIsOther = second.family === OTHER_NAME;
+  if (firstIsOther !== secondIsOther) {
+    return firstIsOther ? 1 : -1;
+  }
+  return second.requests - first.requests;
+}
+
+// The `chute_id` of the rows of the model `model`: null, the answer's, for the family's other models.
 function modelChuteId(model) {
   return model === OTHER_MODEL ? null : model;
 }

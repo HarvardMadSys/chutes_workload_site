@@ -1,6 +1,6 @@
 /**
  * The stacked-bars kind: one stacked bar per value of a named x column, a day, a month or a bin, a segment per series,
- * the series past the eighth of the colours folded into one "Other" segment.
+ * every series its colours do not name folded into one "Other" segment.
  *
  * Its rows hold a column naming the row's bar, a column naming its series and a column of the segment's value, all
  * three named by the figure; a series may have several rows in one bar, which are summed once folded.
@@ -8,7 +8,7 @@
 
 import { AXIS_STYLE, BAR_INSET, chartFrame, colourScale, distinct, GRID_STYLE } from "../shared/charts.js";
 import { axisWithTicks, TICK_COUNT } from "../axes/ticks.js";
-import { OTHER_NAME, SERIES_SLOTS } from "../theme/colours.js";
+import { OTHER_NAME } from "../theme/colours.js";
 import { seriesLegend, shownRows } from "../shared/series.js";
 
 const UNTITLED_MARGIN_TOP = 12; // pixels above a chart whose y axis has no title: room for half its top tick's label
@@ -81,7 +81,7 @@ export function stackedBarsLegend(rows, colours, { seriesColumn, labels = {} }) 
 }
 
 /**
- * The rows with each series past the first eight names of `colours` renamed "Other", and the rows sharing a bar and a
+ * The rows with each series `colours` does not name renamed "Other", and the rows sharing a bar and a
  * series summed into one on `valueColumn`, in order of first appearance.
  */
 export function foldedRows(rows, colours, { xColumn, seriesColumn, valueColumn }) {
@@ -89,10 +89,12 @@ export function foldedRows(rows, colours, { xColumn, seriesColumn, valueColumn }
   return sumFolded(folded, { xColumn, seriesColumn, valueColumn });
 }
 
-/** A copy of `rows` with `row[key]` replaced by "Other" where it is not among the first eight distinct `names`. */
+/**
+ * A copy of `rows` with `row[key]` replaced by "Other" where it is not one of `names`; a chart's colours name at most
+ * the eight series slots, or the ten family slots, so no other series is drawn on its own.
+ */
 export function foldToOther(rows, key, names) {
-  const named = distinct(names).slice(0, SERIES_SLOTS.length);
-  return rows.map((row) => (named.includes(row[key]) ? row : { ...row, [key]: OTHER_NAME }));
+  return rows.map((row) => (names.includes(row[key]) ? row : { ...row, [key]: OTHER_NAME }));
 }
 
 /**

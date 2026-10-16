@@ -4,22 +4,28 @@ import { test } from "node:test";
 import { followHistory } from "../site/js/explore/start.js";
 import { mountTopicTabs } from "../site/js/explore/topic_tabs.js";
 import { mountTrafficControls } from "../site/js/explore/traffic_controls.js";
-import { modelChoices } from "../site/js/explore/traffic_filter.js";
+import { familyChoices, modelChoices } from "../site/js/explore/traffic_filter.js";
 import { FakeElement, FakeHistory, PAGE_ADDRESS, shownIds, TOPIC_ANCHORS, topicSections } from "./fake_page.js";
 
-// A daily rollup of one named model and Other, as `explore/daily_rollup` answers it, its counts zero but requests.
-const ROWS = [
+// Two families, Qwen and Other, as the family drop-down offers them.
+const FAMILIES = familyChoices([
+  { family: "Qwen", family_slug: "qwen", requests: 10 },
+  { family: "Other", family_slug: "other", requests: 5 },
+]);
+
+// Qwen's daily answer by model: one named model and its other models, its counts zero but requests.
+const QWEN_ROWS = [
   { day: "2025-07-01", chute_id: "id-a", model: "A", endpoint_group: "chat", requests: 10 },
-  { day: "2025-07-01", chute_id: null, model: "Other", endpoint_group: "chat", requests: 5 },
+  { day: "2025-07-01", chute_id: null, model: "Other Qwen", endpoint_group: "chat", requests: 5 },
 ];
 
 /**
  * The page opened at `PAGE_ADDRESS`, as `startPage` starts it, with the globals its fakes until the test of `context`
  * ends: the topic tabs, the history followed, and the Traffic Explorer's controls, each choice they draw added to
- * `drawn`. Returns `{ tabs, sections, header, endpoint, drawn, history }`, `endpoint` reading the endpoint drop-down
- * as drawn now.
+ * `drawn`. Resolves to `{ tabs, sections, header, field, drawn, history }`, `field(index)` reading a drop-down of the
+ * controls as drawn now: 0 the families', 1 the models', 2 the endpoints'.
  */
-function startedPage(context) {
+async function startedPage(context) {
   const sections = topicSections();
   const header = new FakeElement("header", "site-header");
   const window = new FakeElement();
@@ -37,9 +43,13 @@ function startedPage(context) {
   const pageHistory = followHistory(showEntryTopic);
   const controls = new FakeElement("div");
   const drawn = [];
-  mountTrafficControls(controls, modelChoices(ROWS), pageHistory, (choice) => drawn.push(choice));
-  const endpoint = () => controls.children[1].children[1];
-  return { tabs: tabsRow.children, sections, header, endpoint, drawn, history: window.history };
+  await mountTrafficControls(controls, FAMILIES, pageHistory, {
+    modelsOf: async () => modelChoices(QWEN_ROWS, "Qwen"),
+    onChange: (choice) => drawn.push(choice),
+    onError: (error) => assert.fail(error),
+  });
+  const field = (index) => controls.children[index].children[1];
+  return { tabs: tabsRow.children, sections, header, field, drawn, history: window.history };
 }
 
 function forgetThePage() {
@@ -53,40 +63,57 @@ function addressBar() {
   return `${globalThis.window.location.search}${globalThis.window.location.hash}`;
 }
 
-// Choose `value` in the endpoint drop-down of `page`, as a reader does.
-function chooseEndpoint(page, value) {
-  page.endpoint().value = value;
-  page.endpoint().dispatch("change");
+// The drop-downs' indices among the controls.
+const FAMILY_FIELD = 0;
+const MODEL_FIELD = 1;
+const ENDPOINT_FIELD = 2;
+
+// Choose `value` in the drop-down at `index` of `page`'s controls, as a reader does, and wait while a family's models
+// are read and the choice is drawn.
+async function choose(page, index, value) {
+  page.field(index).value = value;
+  page.field(index).dispatch("change");
+  await settled();
 }
 
-test("Back after a tab and a choice shows the earlier entry's choice and topic; Forward the later's", (context) => {
-  const page = startedPage(context);
+// Wait until every promise of the page that can settle has, as reading a family's models and following the history do.
+function settled() {
+  return new Promise((resolve) => setImmediate(resolve));
+}
+
+test("Back after a tab and a family shows the earlier entry's choice and topic; Forward the later's", async (context) => {
+  const page = await startedPage(context);
   page.tabs[3].dispatch("click");
-  chooseEndpoint(page, "chat");
-  assert.equal(addressBar(), "?endpoint=chat#insights-evolution");
-  assert.match(page.header.innerHTML, /href="index\.html\?endpoint=chat"/);
+  await choose(page, FAMILY_FIELD, "qwen");
+  assert.equal(addressBar(), "?family=qwen#insights-evolution");
+  assert.match(page.header.innerHTML, /href="index\.html\?family=qwen"/);
   page.history.back();
+  await settled();
   assert.equal(addressBar(), "");
-  assert.equal(page.endpoint().value, "");
-  assert.deepEqual(page.drawn.at(-1), { model: "", endpoint: "", period: "" });
+  assert.equal(page.field(FAMILY_FIELD).value, "");
+  assert.equal(page.field(MODEL_FIELD).disabled, true);
+  assert.deepEqual(page.drawn.at(-1), { family: "", model: "", endpoint: "", period: "" });
   assert.match(page.header.innerHTML, /href="index\.html"/);
   assert.deepEqual(shownIds(page.sections), ["insights-overview"]);
   page.history.forward();
-  assert.equal(addressBar(), "?endpoint=chat#insights-evolution");
-  assert.equal(page.endpoint().value, "chat");
-  assert.deepEqual(page.drawn.at(-1), { model: "", endpoint: "chat", period: "" });
-  assert.match(page.header.innerHTML, /href="index\.html\?endpoint=chat"/);
+  await settled();
+  assert.equal(addressBar(), "?family=qwen#insights-evolution");
+  assert.equal(page.field(FAMILY_FIELD).value, "qwen");
+  assert.equal(page.field(MODEL_FIELD).children[0].textContent, "All Qwen models");
+  assert.deepEqual(page.drawn.at(-1), { family: "qwen", model: "", endpoint: "", period: "" });
+  assert.match(page.header.innerHTML, /href="index\.html\?family=qwen"/);
   assert.deepEqual(shownIds(page.sections), ["insights-evolution"]);
 });
 
-test("Back after a choice and then a tab keeps the choice, which is not drawn again", (context) => {
-  const page = startedPage(context);
-  chooseEndpoint(page, "chat");
+test("Back after a choice and then a tab keeps the choice, which is not drawn again", async (context) => {
+  const page = await startedPage(context);
+  await choose(page, ENDPOINT_FIELD, "chat");
   page.tabs[3].dispatch("click");
   assert.equal(addressBar(), "?endpoint=chat#insights-evolution");
   page.history.back();
+  await settled();
   assert.equal(addressBar(), "?endpoint=chat");
-  assert.equal(page.endpoint().value, "chat");
+  assert.equal(page.field(ENDPOINT_FIELD).value, "chat");
   assert.equal(page.drawn.length, 1);
   assert.match(page.header.innerHTML, /href="index\.html\?endpoint=chat"/);
   assert.deepEqual(shownIds(page.sections), ["insights-overview"]);

@@ -26,16 +26,19 @@ The one page, `index.html`, holds, in order:
   stream, completion, completion stream, other), and three monthly trends
   as stacked bars: requests by model, tokens by model and requests by
   endpoint group. A legend's button hides or shows a series.
-- **Traffic Explorer** (`#traffic`). A model drop-down (the twenty most
-  requested named models and Other), an endpoint drop-down and period
-  buttons (All and the calendar quarters Q2 '25 to Q1 '26), over the
-  chosen requests per day as stacked bars and four tiles that follow the
-  choice: requests, average input tokens, average output tokens, and
-  average time to first token with the share of requests that record it.
-  The choice is kept in the URL as `model`, `endpoint` and `period`
-  (`?model=<chute id>&period=2025-q3#traffic`), so a view can be shared as
-  a link, and Back and Forward show the choice of the entry they return
-  to; the default, everything, writes no key.
+- **Traffic Explorer** (`#traffic`). A family drop-down (the model
+  families by their requests, and Other), a model drop-down (once a family
+  is chosen: its eight most requested named models and its other models),
+  an endpoint drop-down and period buttons (All and the calendar quarters
+  Q2 '25 to Q1 '26), over the chosen requests per day as stacked bars, by
+  family, by model once a family is chosen and by endpoint group once a
+  model is, and four tiles that follow the choice: requests, average input
+  tokens, average output tokens, and average time to first token with the
+  share of requests that record it. The choice is kept in the URL as
+  `family`, `model`, `endpoint` and `period`
+  (`?family=deepseek&model=<chute id>&period=2025-q3#traffic`), so a view
+  can be shared as a link, and Back and Forward show the choice of the
+  entry they return to; the default, everything, writes no key.
 - **Insights** (`#insights`). The paper's figures in six topics that follow
   its sections, one shown at a time behind a row of tabs, the shown topic
   in the URL's hash: Workload overview (`#insights-overview`), Token shape
@@ -231,7 +234,7 @@ site/                exactly the files that are deployed
     charts.js        a chart's frame and ink, the loading and error states, the figure card's layout
     format.js        numbers and dates as the page writes them
     layout.js        the header and the footer
-    series.js        a chart's shown rows and its legend; the models and the endpoint groups as series
+    series.js        a chart's shown rows and its legend; the models, the endpoint groups and the families as series
     scrolling_row.js
                      a row that scrolls sideways, as the Insights' tabs do on a phone
   js/charts/         the two chart kinds
@@ -240,7 +243,7 @@ site/                exactly the files that are deployed
   js/axes/ticks.js   how many ticks an axis asks for, and an axis that labels the ticks it is given
   js/theme/colours.js
                      the series colours as the style tokens give them, from one model order and one endpoint
-                     order
+                     order, and the families' ten
   js/landing/        the page's opening and closing parts
     hero.js, stats.js
                      the title, lede and buttons; the stats strip of the trace's totals

@@ -4,12 +4,12 @@ import { test } from "node:test";
 import {
   barTipText, foldedRows, foldToOther, stackedBarsLegend, sumFolded,
 } from "../site/js/charts/stacked_bars.js";
-import { barColours } from "../site/js/theme/colours.js";
+import { barColours, familyColours } from "../site/js/theme/colours.js";
 
 // Ten endpoint groups in their colour order: the ninth and tenth fold into Other.
 const ORDER = ["e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "e9", "e10"];
-// Nine models in their colour order: the ninth folds into Other.
-const NINE_MODELS = ["m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9"];
+// Eight models in their colour order: a ninth folds into Other.
+const EIGHT_MODELS = ["m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8"];
 const ROWS = [
   { month: "2025-06", endpoint: "e1", requests: 40 },
   { month: "2025-06", endpoint: "e9", requests: 3 },
@@ -28,17 +28,22 @@ test("a series past the eighth of the colours folds into Other, summed per month
   ]);
 });
 
-test("names past the first eight fold into Other, and the rows are not changed in place", () => {
+test("a name not among the names folds into Other, and the rows are not changed in place", () => {
   const rows = [{ model: "m1", requests: 5 }, { model: "m9", requests: 3 }, { model: "unlisted", requests: 1 }];
-  const folded = foldToOther(rows, "model", NINE_MODELS);
+  const folded = foldToOther(rows, "model", EIGHT_MODELS);
   assert.deepEqual(folded, [{ model: "m1", requests: 5 }, { model: "Other", requests: 3 }, { model: "Other", requests: 1 }]);
   assert.equal(rows[1].model, "m9");
 });
 
-test("folding counts the first eight distinct names, not the first eight entries", () => {
-  const names = ["m1", "m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9"];
-  const folded = foldToOther([{ model: "m8" }, { model: "m9" }], "model", names);
-  assert.deepEqual(folded, [{ model: "m8" }, { model: "Other" }]);
+test("ten named families keep their ten series; a family the colours do not name folds into Other", () => {
+  const families = ["f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11", "Other"];
+  const colours = familyColours(families.map((family) => ({ family })));
+  const rows = families.map((family) => ({ day: "2025-07-01", family, requests: 1 }));
+  const folded = foldedRows(rows, colours, { xColumn: "day", seriesColumn: "family", valueColumn: "requests" });
+  assert.deepEqual(folded.map((row) => [row.family, row.requests]), [
+    ["f1", 1], ["f2", 1], ["f3", 1], ["f4", 1], ["f5", 1], ["f6", 1], ["f7", 1], ["f8", 1], ["f9", 1], ["f10", 1],
+    ["Other", 2],
+  ]);
 });
 
 test("rows sharing a bar and a series are summed into one, in order of first appearance", () => {
@@ -61,7 +66,7 @@ test("rows sharing a bar and a series are summed into one, in order of first app
 
 test("folding then summing leaves one Other row per bar", () => {
   const rows = [{ month: "2025-04", model: "m8", requests: 3 }, { month: "2025-04", model: "m9", requests: 4 }, { month: "2025-04", model: "m10", requests: 5 }];
-  const summed = sumFolded(foldToOther(rows, "model", NINE_MODELS), {
+  const summed = sumFolded(foldToOther(rows, "model", EIGHT_MODELS), {
     xColumn: "month", seriesColumn: "model", valueColumn: "requests",
   });
   assert.deepEqual(summed, [{ month: "2025-04", model: "m8", requests: 3 }, { month: "2025-04", model: "Other", requests: 9 }]);

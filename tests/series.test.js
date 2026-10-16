@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { ENDPOINT_LABELS, ENDPOINT_SERIES, MODEL_SERIES, seriesLegend, shownRows } from "../site/js/shared/series.js";
-import { endpointColours, modelColours } from "../site/js/theme/colours.js";
+import {
+  ENDPOINT_LABELS, ENDPOINT_SERIES, FAMILY_SERIES, MODEL_SERIES, seriesLegend, shownRows,
+} from "../site/js/shared/series.js";
+import { endpointColours, familyColours, modelColours } from "../site/js/theme/colours.js";
 
 // Two models of a monthly answer, two months each.
 const ROWS = [
@@ -29,7 +31,10 @@ test("the models and the endpoint groups are each coloured by their order's rows
   assert.deepEqual([MODEL_SERIES.order, MODEL_SERIES.column, MODEL_SERIES.colours], ["models", "model", modelColours]);
   assert.deepEqual([ENDPOINT_SERIES.order, ENDPOINT_SERIES.column, ENDPOINT_SERIES.colours],
     ["endpoints", "endpoint_group", endpointColours]);
+  assert.deepEqual([FAMILY_SERIES.order, FAMILY_SERIES.column, FAMILY_SERIES.colours],
+    ["families", "family", familyColours]);
   assert.equal(MODEL_SERIES.labels, undefined, "a model is written by its name");
+  assert.equal(FAMILY_SERIES.labels, undefined, "a family is written by its name");
   assert.equal(ENDPOINT_SERIES.labels, ENDPOINT_LABELS);
 });
 

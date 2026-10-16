@@ -3,61 +3,78 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
-  choiceSeries, dailyRequests, endpointChoices, isSameChoice, modelChoices, OTHER_MODEL, PERIODS, periodDays,
-  readTrafficChoice, rowsInChoice, trafficSummary, writeTrafficChoice,
+  choiceSeries, dailyRequests, endpointChoices, familyChoices, familyOrder, isSameChoice, modelChoices, modelOrder,
+  OTHER_MODEL, PERIODS, periodDays, readTrafficChoice, rowsInChoice, trafficSummary, writeTrafficChoice,
 } from "../site/js/explore/traffic_filter.js";
-import { ENDPOINT_SERIES, MODEL_SERIES } from "../site/js/shared/series.js";
-import { modelColours } from "../site/js/theme/colours.js";
+import { ENDPOINT_SERIES, FAMILY_SERIES, MODEL_SERIES } from "../site/js/shared/series.js";
+import { familyColours, modelColours } from "../site/js/theme/colours.js";
 
-// The rows of the shipped daily rollup, as the page reads them.
-const SHIPPED_ROWS = JSON.parse(
-  readFileSync(new URL("../site/data/all/explore/daily_rollup.json", import.meta.url), "utf8"),
-);
+/** The rows of the shipped answer of the query `name`, as the page reads them. */
+function shippedAnswer(name) {
+  return JSON.parse(readFileSync(new URL(`../site/data/all/${name}.json`, import.meta.url), "utf8"));
+}
 
-// A row of the daily rollup with every count zero but those given.
-function rollupRow(fields) {
+// The rows of the shipped daily answer by family.
+const SHIPPED_ROWS = shippedAnswer("explore/daily_by_family");
+
+// A row of the family Kin's daily answer by model, with every count zero but those given.
+function modelRow(fields) {
   return {
-    day: "2025-07-01", chute_id: null, model: "Other", endpoint_group: "chat", requests: 0,
+    day: "2025-07-01", chute_id: null, model: "Other Kin", endpoint_group: "chat", requests: 0,
     input_tokens: null, input_counted: 0, output_tokens: null, output_counted: 0, ttft_sum: null, ttft_counted: 0,
     ...fields,
   };
 }
 
-// Two named models and Other over three days and two endpoint groups.
+// A family's two named models and its Other over three days and two endpoint groups.
 const ROWS = [
-  rollupRow({ day: "2025-06-30", chute_id: "id-a", model: "A", requests: 10 }),
-  rollupRow({ day: "2025-07-01", chute_id: "id-a", model: "A", endpoint_group: "chat_stream", requests: 30 }),
-  rollupRow({ day: "2025-07-01", chute_id: "id-b", model: "B", requests: 50 }),
-  rollupRow({ day: "2025-07-01", model: "Other", requests: 5 }),
-  rollupRow({ day: "2025-10-01", chute_id: "id-b", model: "B", endpoint_group: "chat_stream", requests: 20 }),
+  modelRow({ day: "2025-06-30", chute_id: "id-a", model: "A", requests: 10 }),
+  modelRow({ day: "2025-07-01", chute_id: "id-a", model: "A", endpoint_group: "chat_stream", requests: 30 }),
+  modelRow({ day: "2025-07-01", chute_id: "id-b", model: "B", requests: 50 }),
+  modelRow({ day: "2025-07-01", requests: 5 }),
+  modelRow({ day: "2025-10-01", chute_id: "id-b", model: "B", endpoint_group: "chat_stream", requests: 20 }),
 ];
 
-const MODEL_VALUES = ["id-a", "id-b", OTHER_MODEL];
+// The family drop-down's values, and the model drop-down's for the family `kin`.
+const FAMILY_VALUES = ["", "kin", "other"];
+const MODEL_VALUES = ["", "id-a", "id-b", OTHER_MODEL];
 
-// The choice of everything: every model, every endpoint group, every day.
-const EVERYTHING = Object.freeze({ model: "", endpoint: "", period: "" });
+// The choice of everything: every family, every model, every endpoint group, every day.
+const EVERYTHING = Object.freeze({ family: "", model: "", endpoint: "", period: "" });
 
 test("the default choice writes no key and leaves every other key as it is", () => {
-  const written = writeTrafficChoice(new URLSearchParams("tab=x&model=id-a"), EVERYTHING);
+  const written = writeTrafficChoice(new URLSearchParams("tab=x&family=kin&model=id-a"), EVERYTHING);
   assert.equal(written.toString(), "tab=x");
 });
 
 test("a choice written to the URL reads back the same", () => {
-  const choice = { model: "id-b", endpoint: "chat_stream", period: "2026-q1" };
+  const choice = { family: "kin", model: "id-b", endpoint: "chat_stream", period: "2026-q1" };
   const written = writeTrafficChoice(new URLSearchParams("tab=x"), choice);
-  assert.equal(written.toString(), "tab=x&model=id-b&endpoint=chat_stream&period=2026-q1");
-  assert.deepEqual(readTrafficChoice(written, MODEL_VALUES), choice);
+  assert.equal(written.toString(), "tab=x&family=kin&model=id-b&endpoint=chat_stream&period=2026-q1");
+  assert.deepEqual(readTrafficChoice(written, FAMILY_VALUES, MODEL_VALUES), choice);
+  const family = { ...EVERYTHING, family: "kin" };
+  assert.equal(writeTrafficChoice(new URLSearchParams(""), family).toString(), "family=kin");
 });
 
 test("a URL value the explorer does not know falls back to the default, the others kept", () => {
-  const params = new URLSearchParams("model=nope&endpoint=fax&period=2027-q1");
-  assert.deepEqual(readTrafficChoice(params, MODEL_VALUES), EVERYTHING);
-  const mixed = new URLSearchParams("model=other&endpoint=fax&period=2025-q3");
-  assert.deepEqual(readTrafficChoice(mixed, MODEL_VALUES), { model: OTHER_MODEL, endpoint: "", period: "2025-q3" });
+  const params = new URLSearchParams("family=nope&model=id-a&endpoint=fax&period=2027-q1");
+  assert.deepEqual(readTrafficChoice(params, FAMILY_VALUES, MODEL_VALUES), EVERYTHING);
+  const mixed = new URLSearchParams("family=kin&model=other&endpoint=fax&period=2025-q3");
+  assert.deepEqual(readTrafficChoice(mixed, FAMILY_VALUES, MODEL_VALUES), {
+    family: "kin", model: OTHER_MODEL, endpoint: "", period: "2025-q3",
+  });
 });
 
-test("two choices are the same when their model, endpoint group and period all are", () => {
-  assert.equal(isSameChoice(EVERYTHING, { model: "", endpoint: "", period: "" }), true);
+test("a model key without its family, or not among the family's models, is dropped", () => {
+  const withoutFamily = new URLSearchParams("model=id-a&endpoint=chat");
+  assert.deepEqual(readTrafficChoice(withoutFamily, FAMILY_VALUES, MODEL_VALUES), { ...EVERYTHING, endpoint: "chat" });
+  const outsideFamily = new URLSearchParams("family=kin&model=id-z");
+  assert.deepEqual(readTrafficChoice(outsideFamily, FAMILY_VALUES, MODEL_VALUES), { ...EVERYTHING, family: "kin" });
+});
+
+test("two choices are the same when their family, model, endpoint group and period all are", () => {
+  assert.equal(isSameChoice(EVERYTHING, { family: "", model: "", endpoint: "", period: "" }), true);
+  assert.equal(isSameChoice(EVERYTHING, { ...EVERYTHING, family: "kin" }), false);
   assert.equal(isSameChoice({ ...EVERYTHING, model: "id-a" }, { ...EVERYTHING, model: "id-a" }), true);
   assert.equal(isSameChoice(EVERYTHING, { ...EVERYTHING, model: "id-a" }), false);
   assert.equal(isSameChoice(EVERYTHING, { ...EVERYTHING, endpoint: "chat" }), false);
@@ -88,17 +105,17 @@ test("each period holds the shipped answer's days of its quarter; All holds ever
 test("a choice keeps the rows of its model, its endpoint group and its period's days", () => {
   const requests = (choice) => rowsInChoice(ROWS, { ...EVERYTHING, ...choice }).map((row) => row.requests);
   assert.deepEqual(requests({}), [10, 30, 50, 5, 20]);
-  assert.deepEqual(requests({ model: "id-a" }), [10, 30]);
-  assert.deepEqual(requests({ model: OTHER_MODEL }), [5]);
+  assert.deepEqual(requests({ family: "kin", model: "id-a" }), [10, 30]);
+  assert.deepEqual(requests({ family: "kin", model: OTHER_MODEL }), [5]);
   assert.deepEqual(requests({ endpoint: "chat_stream" }), [30, 20]);
   assert.deepEqual(requests({ period: "2025-q3" }), [30, 50, 5]);
-  assert.deepEqual(requests({ model: "id-b", period: "2025-q4" }), [20]);
+  assert.deepEqual(requests({ family: "kin", model: "id-b", period: "2025-q4" }), [20]);
 });
 
 test("an average divides by the requests that have the value: 490 of 1,000 recording a TTFT is 49%", () => {
   const rows = [
-    rollupRow({ requests: 600, input_tokens: 6000, input_counted: 600, ttft_sum: 98, ttft_counted: 490 }),
-    rollupRow({ requests: 400, input_tokens: 2000, input_counted: 400, output_tokens: 900, output_counted: 300 }),
+    modelRow({ requests: 600, input_tokens: 6000, input_counted: 600, ttft_sum: 98, ttft_counted: 490 }),
+    modelRow({ requests: 400, input_tokens: 2000, input_counted: 400, output_tokens: 900, output_counted: 300 }),
   ];
   assert.deepEqual(trafficSummary(rows), {
     requests: 1000, inputAverage: 8, outputAverage: 3, ttftAverage: 0.2, ttftShare: 0.49,
@@ -111,40 +128,73 @@ test("a summary of no requests has no averages and no share", () => {
   });
 });
 
-test("the bars are by model while no model is chosen, and by endpoint group once one is", () => {
-  assert.equal(choiceSeries(EVERYTHING), MODEL_SERIES);
-  assert.equal(choiceSeries({ ...EVERYTHING, endpoint: "chat" }), MODEL_SERIES);
-  assert.equal(choiceSeries({ ...EVERYTHING, model: "id-a" }), ENDPOINT_SERIES);
-  assert.equal(choiceSeries({ ...EVERYTHING, model: OTHER_MODEL }), ENDPOINT_SERIES);
+test("the bars are by family with no family chosen, by model with one, and by endpoint group with a model", () => {
+  assert.equal(choiceSeries(EVERYTHING, undefined), FAMILY_SERIES);
+  assert.equal(choiceSeries({ ...EVERYTHING, endpoint: "chat" }, undefined).column, "family");
+  const byModel = choiceSeries({ ...EVERYTHING, family: "kin" }, "Kin");
+  assert.deepEqual([byModel.column, byModel.order, byModel.colours], ["model", "models", MODEL_SERIES.colours]);
+  assert.deepEqual(byModel.labels, { Other: "Other Kin" });
+  assert.equal(choiceSeries({ ...EVERYTHING, family: "kin", model: "id-a" }, "Kin"), ENDPOINT_SERIES);
+  assert.equal(choiceSeries({ ...EVERYTHING, family: "kin", model: OTHER_MODEL }, "Kin"), ENDPOINT_SERIES);
 });
 
-test("a model the Overview does not name folds into Other in the bars, summed per day", () => {
-  const colours = modelColours([{ model: "A" }, { model: "Other" }]);
+test("a family's other models fold into Other in the bars, summed per day", () => {
+  const colours = modelColours(modelOrder(ROWS));
   assert.deepEqual(dailyRequests(ROWS, "model", colours), [
     { day: "2025-06-30", model: "A", requests: 10 },
     { day: "2025-07-01", model: "A", requests: 30 },
-    { day: "2025-07-01", model: "Other", requests: 55 },
-    { day: "2025-10-01", model: "Other", requests: 20 },
+    { day: "2025-07-01", model: "B", requests: 50 },
+    { day: "2025-07-01", model: "Other", requests: 5 },
+    { day: "2025-10-01", model: "B", requests: 20 },
   ]);
 });
 
-test("the shipped rollup's requests add up to the trace totals', so the tile equals the stats strip", () => {
-  const [totals] = JSON.parse(
-    readFileSync(new URL("../site/data/all/explore/trace_totals.json", import.meta.url), "utf8"),
-  );
+test("the shipped answer by family adds up to the trace totals', so the tile equals the stats strip", () => {
+  const [totals] = shippedAnswer("explore/trace_totals");
   assert.equal(trafficSummary(SHIPPED_ROWS).requests, totals.requests);
 });
 
-test("the model drop-down offers every named model by its requests, then Other; the shipped one twenty", () => {
-  assert.deepEqual(modelChoices(ROWS), [
-    { value: "", text: "All models" },
+test("the families are ordered by their requests, Other last, whatever its requests", () => {
+  const rows = [
+    { family: "Other", family_slug: "other", requests: 50 },
+    { family: "Kin", family_slug: "kin", requests: 10 },
+    { family: "Clan", family_slug: "clan", requests: 20 },
+    { family: "Kin", family_slug: "kin", requests: 15 },
+  ];
+  assert.deepEqual(familyOrder(rows), [
+    { family: "Kin", family_slug: "kin", requests: 25 },
+    { family: "Clan", family_slug: "clan", requests: 20 },
+    { family: "Other", family_slug: "other", requests: 50 },
+  ]);
+  assert.deepEqual(familyChoices(familyOrder(rows)), [
+    { value: "", text: "All families" }, { value: "kin", text: "Kin" }, { value: "clan", text: "Clan" },
+    { value: "other", text: "Other" },
+  ]);
+});
+
+test("the shipped family drop-down offers All families, the eleven families by requests, then Other", () => {
+  const texts = familyChoices(familyOrder(SHIPPED_ROWS)).map((choice) => choice.text);
+  assert.equal(texts.length, 12);
+  assert.deepEqual([texts[0], texts[1], texts.at(-1)], ["All families", "DeepSeek", "Other"]);
+  assert.equal(familyColours(familyOrder(SHIPPED_ROWS)).size, 11, "every family has a colour of its own");
+});
+
+test("a family's model drop-down offers its named models by requests, then Other <family> where it has a rest", () => {
+  assert.deepEqual(modelChoices(ROWS, "Kin"), [
+    { value: "", text: "All Kin models" },
     { value: "id-b", text: "B" },
     { value: "id-a", text: "A" },
-    { value: OTHER_MODEL, text: "Other" },
+    { value: OTHER_MODEL, text: "Other Kin" },
   ]);
-  const shipped = modelChoices(SHIPPED_ROWS);
-  assert.equal(shipped.length, 22);
-  assert.equal(shipped[1].text, "deepseek-ai/DeepSeek-V3-0324");
+  const named = ROWS.filter((row) => row.chute_id !== null);
+  assert.deepEqual(modelChoices(named, "Kin").map((choice) => choice.text), ["All Kin models", "B", "A"]);
+});
+
+test("the shipped DeepSeek drop-down offers its eight models and Other DeepSeek", () => {
+  const choices = modelChoices(shippedAnswer("explore/daily_by_model/deepseek"), "DeepSeek");
+  assert.equal(choices.length, 10);
+  assert.deepEqual([choices[0].text, choices.at(-1).text], ["All DeepSeek models", "Other DeepSeek"]);
+  assert.equal(choices.at(-1).value, OTHER_MODEL);
 });
 
 test("the endpoint drop-down offers every endpoint group by its label", () => {

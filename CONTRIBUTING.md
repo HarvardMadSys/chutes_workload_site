@@ -118,12 +118,15 @@ checks that each path it names exists.
   topic's images are fetched the first time it is shown, so a topic never
   shown requests none.
 - **The Traffic Explorer's URL keys.** The explorer's choice is the URL's
-  `model` (a named model's `chute_id`, or `other`), `endpoint` (an endpoint
-  group: `chat`, `chat_stream`, `completion`, `completion_stream`,
-  `other`) and `period` (`2025-q2`, `2025-q3`, `2025-q4`, `2026-q1`).
-  `explore/traffic_filter.js` is their one home: `readTrafficChoice` reads
-  them when the page starts, a value it does not know falling back to
-  everything, and `writeTrafficChoice` writes them on every change, through
+  `family` (a family's slug, `daily_by_family`'s `family_slug`), `model`
+  (within the family, a named model's `chute_id`, or `other` for its other
+  models), `endpoint` (an endpoint group: `chat`, `chat_stream`,
+  `completion`, `completion_stream`, `other`) and `period` (`2025-q2`,
+  `2025-q3`, `2025-q4`, `2026-q1`). `explore/traffic_filter.js` is their
+  one home: `readTrafficChoice` reads them when the page starts, a value it
+  does not know falling back to everything (a `model` with no `family`, or
+  not among the family's, too, and the URL is then rewritten without it),
+  and `writeTrafficChoice` writes them on every change, through
   `context.replaceQuery`, which replaces the history entry rather than
   adding one. `explore/traffic_controls.js` keeps the controls and the URL
   in step: on Back or Forward (`context.onReturn`) it reads the keys
@@ -299,14 +302,18 @@ Plot, the donuts as plain SVG; the Insights' figures are the paper's images.
 
 - **Colour.** Series colours are the tokens `--series-1` to `--series-8` in
   `style.css`, assigned in that order to a chart's series and never cycled;
-  a ninth series folds into "Other" (`--series-other`). A model has the same
-  colour in every chart, the donut, the trends and the Traffic Explorer:
-  the models take the slots from the first, in `explore/model_mix`'s order
-  (`modelColours` of `theme/colours.js`), and the endpoint groups from
-  `ENDPOINT_FIRST_SLOT`, in `explore/endpoint_mix`'s order, so the two
-  donuts do not open on one colour. The palette is Open Data's tokens
+  a ninth series folds into "Other" (`--series-other`). The one exception
+  is the Traffic Explorer's chart of families, which stacks all ten named
+  families and so takes two more, `--series-9` and `--series-10`
+  (`familyColours`). A model has the same colour in the donut and the
+  trends: the models take the slots from the first, in
+  `explore/model_mix`'s order (`modelColours` of `theme/colours.js`), and
+  the endpoint groups from `ENDPOINT_FIRST_SLOT`, in
+  `explore/endpoint_mix`'s order, so the two donuts do not open on one
+  colour; in the Traffic Explorer a family's models take the slots in the
+  order of their requests within the family. The palette is Open Data's tokens
   (paper, surfaces, inks, rule and crimson) in light and the same inks
-  turned over in dark, with eight series slots: eight OKLCH hues no two
+  turned over in dark, with ten series slots: ten OKLCH hues no two
   closer than 30°, each the same hue in both schemes, set apart in
   lightness so that a red-green colour-blind reader can tell every pair
   apart. `tests/palette_contrast.test.js` is the validation: it reads both

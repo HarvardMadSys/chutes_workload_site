@@ -1,12 +1,16 @@
 /**
- * The Traffic Explorer: a row of controls (a model drop-down, an endpoint drop-down, period buttons) over one wide card
- * of four tiles (requests, average input and output tokens, average TTFT with the share of the requests that record
- * it) and the chosen requests per day as stacked bars, by model while no model is chosen and by endpoint group once one
- * is, with a legend that hides and shows a series (`explore/legend.js`). A bar takes no click.
+ * The Traffic Explorer: a row of controls (a family drop-down, a model drop-down, an endpoint drop-down, period
+ * buttons) over one wide card of four tiles (requests, average input and output tokens, average TTFT with the share of
+ * the requests that record it) and the chosen requests per day as stacked bars, by family while no family is chosen, by
+ * model once one is and by endpoint group once a model is, with a legend that hides and shows a series
+ * (`explore/legend.js`). A bar takes no click.
  *
- * Its rows come from the `explore/daily_rollup` answer alone, read once, its colours from the Overview's orders
- * (`context.orders`): a change filters the rows once (`explore/traffic_filter.js`, which defines the choice) and draws
- * the tiles and bars again. The controls keep the choice in the URL (`explore/traffic_controls.js`).
+ * Its rows come from the `explore/daily_by_family` answer, read once, and from a family's
+ * `explore/daily_by_model/<family_slug>` answer, read the first time the family is chosen and kept for the visit. The
+ * families take their colours in the order of their requests, a family's models in the order of theirs, and the
+ * endpoint groups from the Overview's order (`context.orders`). A change filters the rows once
+ * (`explore/traffic_filter.js`, which defines the choice) and draws the tiles and bars again. The controls keep the
+ * choice in the URL (`explore/traffic_controls.js`).
  */
 
 import { readAnswer } from "../shared/answers.js";
@@ -19,11 +23,14 @@ import { drawStackedBars, stackedBarsLegend } from "../charts/stacked_bars.js";
 import { drawWithLegend } from "./legend.js";
 import { mountTrafficControls } from "./traffic_controls.js";
 import {
-  choiceSeries, dailyRequests, modelChoices, periodDays, rowsInChoice, trafficSummary,
+  choiceSeries, dailyRequests, familyChoices, familyOrder, modelChoices, modelOrder, periodDays, rowsInChoice,
+  trafficSummary,
 } from "./traffic_filter.js";
 
-// The answer the explorer draws from: one row per calendar day, model and endpoint group.
-const ROLLUP_QUERY = "explore/daily_rollup";
+// The answers the explorer draws from: one row per calendar day, family and endpoint group; and, per family, the
+// folder of its rows per calendar day, model and endpoint group, each family's file named by its slug.
+const FAMILY_QUERY = "explore/daily_by_family";
+const FAMILY_MODELS_QUERY = "explore/daily_by_model";
 
 // The bars' margins, in pixels, as the monthly trends': room on the left for a count tick ("600M"), below for a
 // slanted month ("2025-04"), and little on the right, so the bars take the card's width.
@@ -49,14 +56,16 @@ const NO_REQUESTS_NOTE = "No requests in this choice.";
 // The card's words; the caption names what the bars are stacked by, by the series' order key.
 const CHART_TITLE = "Requests per day";
 const CHART_CAPTIONS = Object.freeze({
-  models: "Requests each day, by model: the eight the model mix names, and Other.",
+  families: "Requests each day, by model family: the models in no family as Other.",
+  models: "Requests each day of the chosen family, by model: its eight most requested, and the rest as Other.",
   endpoints: "Requests each day of the chosen model, by endpoint group.",
 });
-const CHART_DEFINITION = "Requests per calendar day of the chosen model, endpoint group and period, stacked by model "
-  + "(the eight models the model mix names, the rest as Other) while no model is chosen, and by the endpoint group "
-  + "they were sent to once one is. An average in the tiles divides by the requests that record its value.";
+const CHART_DEFINITION = "Requests per calendar day of the chosen family, model, endpoint group and period, stacked "
+  + "by family while no family is chosen, by model once one is (the family's eight most requested models, its other "
+  + "models as Other), and by the endpoint group they were sent to once a model is. A model's family is the "
+  + "artifact's, by its name. An average in the tiles divides by the requests that record its value.";
 
-/** Show the loading state in `container`, then draw the explorer into it from the daily rollup, or the error. */
+/** Show the loading state in `container`, then draw the explorer into it from the daily answers, or the error. */
 export async function runTraffic(container, context) {
   showLoading(container);
   await drawExplorer(container, context).catch((error) => showError(container, error));
@@ -118,20 +127,45 @@ export function dayMonth(day) {
 }
 
 async function drawExplorer(container, context) {
-  const rows = await readAnswer(ROLLUP_QUERY);
-  const orders = { models: await context.orders.models, endpoints: await context.orders.endpoints };
+  const familyRows = await readAnswer(FAMILY_QUERY);
   const view = {
-    rows,
-    orders,
-    days: distinct(rows.map((row) => row.day)),
+    familyRows,
+    families: familyOrder(familyRows),
+    familyAnswers: new Map(), // each family's answer, by its slug, from the first time the family is chosen
+    endpoints: await context.orders.endpoints,
+    days: distinct(familyRows.map((row) => row.day)),
     tiles: document.createElement("ul"),
     figure: document.createElement("div"),
   };
   const controls = document.createElement("div");
   controls.className = "controls traffic-controls";
   container.replaceChildren(controls, explorerCard(view));
-  const choice = mountTrafficControls(controls, modelChoices(rows), context, (chosen) => drawChange(view, chosen));
+  const choice = await mountTrafficControls(controls, familyChoices(view.families), context, {
+    modelsOf: async (family) => (await familyAnswer(view, family)).models,
+    onChange: (chosen) => drawChange(view, chosen),
+    onError: (error) => showError(view.figure, error),
+  });
   await drawChoice(view, choice);
+}
+
+/**
+ * The answer of the family whose slug is `family`: the promised `{ name, rows, models }`, its name, its rows of
+ * `explore/daily_by_model` and its model drop-down's entries; read the first time it is asked for and kept.
+ */
+function familyAnswer(view, family) {
+  if (!view.familyAnswers.has(family)) {
+    const answer = readFamilyAnswer(view, family);
+    // A failed read is not kept, so that choosing the family again reads it again.
+    answer.catch(() => view.familyAnswers.delete(family));
+    view.familyAnswers.set(family, answer);
+  }
+  return view.familyAnswers.get(family);
+}
+
+async function readFamilyAnswer(view, family) {
+  const rows = await readAnswer(`${FAMILY_MODELS_QUERY}/${family}`);
+  const name = view.families.find((entry) => entry.family_slug === family).family;
+  return { name, rows, models: modelChoices(rows, name) };
 }
 
 // The wide card: the tiles above the figure.
@@ -150,25 +184,33 @@ function drawChange(view, choice) {
   drawChoice(view, choice).catch((error) => showError(view.figure, error));
 }
 
-// Filter the rows once for `choice`, then draw the tiles and the bars from what it keeps.
+// Filter the rows of the choice's answer once for `choice`, then draw the tiles and the bars from what it keeps.
 async function drawChoice(view, choice) {
-  const chosen = rowsInChoice(view.rows, choice);
+  const family = choice.family === "" ? null : await familyAnswer(view, choice.family);
+  const chosen = rowsInChoice(family === null ? view.familyRows : family.rows, choice);
   const summary = trafficSummary(chosen);
   renderTiles(view.tiles, summary);
-  await drawBars(view, choice, chosen, summary.requests);
+  await drawBars(view, { choice, family, chosen, requests: summary.requests });
 }
 
-// The figure of the `chosen` rows of `choice`, `requests` in all: their requests per day stacked by the choice's
-// series, with its legend, or a note when there are none.
-async function drawBars(view, choice, chosen, requests) {
-  const series = choiceSeries(choice);
+// The figure of `drawn`, `{ choice, family, chosen, requests }`: the `chosen` rows of `choice`, of the answer of
+// `family` (null for every family), `requests` in all, their requests per day stacked by the choice's series, with its
+// legend, or a note when there are none.
+async function drawBars(view, { choice, family, chosen, requests }) {
+  const series = choiceSeries(choice, family?.name);
   const body = renderFigure(view.figure, {
     title: CHART_TITLE,
     caption: CHART_CAPTIONS[series.order],
     definition: CHART_DEFINITION,
     rows: formatQuantity(requests, "request", "requests"),
   });
-  const colours = series.colours(view.orders[series.order]);
+  // The order each kind of series takes its colours in: the families', the family's models' and the Overview's.
+  const orders = {
+    families: view.families,
+    models: family === null ? [] : modelOrder(family.rows),
+    endpoints: view.endpoints,
+  };
+  const colours = series.colours(orders[series.order]);
   const daily = dailyRequests(chosen, series.column, colours);
   if (daily.length === 0) {
     showNote(body, NO_REQUESTS_NOTE);

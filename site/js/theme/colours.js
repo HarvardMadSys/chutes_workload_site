@@ -19,6 +19,12 @@ export const SERIES_SLOTS = Object.freeze([
   "var(--series-8)",
 ]);
 
+/**
+ * The families' colours, in order: the eight series slots, then two more, as the Traffic Explorer stacks all ten named
+ * families in one chart. No other chart takes the last two.
+ */
+export const FAMILY_SLOTS = Object.freeze([...SERIES_SLOTS, "var(--series-9)", "var(--series-10)"]);
+
 /** The colour of every series past the eighth, folded together as "Other". */
 export const OTHER_SERIES = "var(--series-other)";
 
@@ -59,6 +65,22 @@ export function barColours(names, firstSlot = 0) {
 export function modelColours(modelMixRows) {
   const named = modelMixRows.map((row) => row.model).filter((model) => model !== OTHER_NAME);
   return barColours(named);
+}
+
+/**
+ * The families' colours: the named families of `familyRows` (rows `{ family }`, most requested first) in the family
+ * slots in order, a family past the tenth taking none and so folding into "Other", and "Other", the family of the
+ * models in no family, in its grey, last.
+ */
+export function familyColours(familyRows) {
+  const colours = new Map();
+  for (const { family } of familyRows) {
+    if (family !== OTHER_NAME && colours.size < FAMILY_SLOTS.length) {
+      colours.set(family, FAMILY_SLOTS[colours.size]);
+    }
+  }
+  colours.set(OTHER_NAME, OTHER_SERIES);
+  return colours;
 }
 
 /** The slot the endpoint groups' colours start from: apart from the models', so the two donuts do not open alike. */
