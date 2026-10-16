@@ -19,7 +19,7 @@ const CARD_COUNTS = [5, 8, 10, 6, 9, 9];
 
 // The fields of a topic, and of a card; a card may also have the optional ones.
 const TOPIC_FIELDS = ["selector", "takeaway", "cards"];
-const CARD_FIELDS = ["image", "title", "insight", "caption", "definition", "source"];
+const CARD_FIELDS = ["image", "title", "insight", "caption", "definition", "cache", "source"];
 const OPTIONAL_CARD_FIELDS = ["legendImage", "isWide"];
 
 // The legend shown above the two monthly share panels, and those panels.

@@ -1,15 +1,16 @@
 /**
  * A card of the Insights: one panel of the paper's figures, shown as the image `make data` rendered from its PDF. A
- * card is `{ image, title, insight, caption, definition, source, legendImage?, isWide? }` (`explore/figure_sections.js`
- * lists them): `image` the figure's name, `figures/<image>.png`; `source` the address of the artifact's README that
- * says how the figure is computed; `legendImage` the name of a legend image shown above the figure.
+ * card is `{ image, title, insight, caption, definition, cache, source, legendImage?, isWide? }`
+ * (`explore/figure_sections.js` lists them): `image` the figure's name, `figures/<image>.png`; `cache` the artifact's
+ * query results the figure is drawn from, and whether they ship; `source` the address of the artifact's README, or
+ * folder, that says how the figure is computed; `legendImage` the name of a legend image shown above the figure.
  *
  * A card's words are placed at once (`renderFigureCard`), its image only when its topic is first shown
  * (`drawFigureImage`), from the images' index (`readFigureIndex` of `shared/answers.js`): `sizes`, a Map from an
  * image's name to its `{ width, height }` in pixels. The card draws nothing interactive.
  */
 
-import { showError, showLoading } from "../shared/charts.js";
+import { renderFigure, showError, showLoading } from "../shared/charts.js";
 
 // The folder of the figure images, relative to the page.
 const FIGURES_FOLDER = "figures/";
@@ -17,8 +18,11 @@ const FIGURES_FOLDER = "figures/";
 // The data step renders a figure at twice the width it is shown at, so it stays sharp on a high-density screen.
 const PIXELS_PER_CSS_PIXEL = 2;
 
-// The text of the link, behind a card's Definition control, to the README that says how its figure is computed.
-const SOURCE_LINK_TEXT = "How it is computed · artifact README";
+// The text of the link, behind a card's Definition control, to the artifact's README or folder of its figure.
+const SOURCE_LINK_TEXT = "How it is computed · the artifact on GitHub";
+
+// What the line of rows behind a card's Definition control starts with: the cache the figure is drawn from.
+const CACHE_PREFIX = "Cache: ";
 
 /** The address of the image `name`, relative to the page: `figures/<name>.png`. */
 export function figureImageUrl(name) {
@@ -33,33 +37,27 @@ export function shownSize(pixels) {
   };
 }
 
-/** The element of `card`: an empty `<article>` of the class `card`, and `is-wide` for a wide card, its id the image. */
+/** The element of `card`: an empty `<article>` of the class `card`, and `is-wide` for a wide card. */
 export function newCardElement(card) {
   const element = document.createElement("article");
   element.className = card.isWide === true ? "card is-wide" : "card";
-  element.id = card.image;
   return element;
 }
 
 /**
- * Fill `container` with `card`'s words and return its body, the place of its image, showing the loading state: the
- * title, the insight, an empty legend place, the body, the caption, and the Definition control that opens on the
- * definition and the link to its source.
+ * Fill `container` with `card`'s words, as every figure card is laid out (`renderFigure` of `shared/charts.js`), and
+ * return its body, the place of its image, showing the loading state. Its Definition control opens on the definition,
+ * the cache the figure rests on and the link to its source.
  */
 export function renderFigureCard(container, card) {
-  const figure = document.createElement("div");
-  figure.className = "figure";
-  const body = textElement("div", "figure-body", "");
-  figure.append(
-    textElement("h3", "figure-title", card.title),
-    textElement("p", "figure-insight", card.insight),
-    // The legend place, kept empty: a legend image sits in the body, on the figure's panel.
-    textElement("div", "figure-legend", ""),
-    body,
-    textElement("p", "figure-caption", card.caption),
-    definitionControl(card),
-  );
-  container.replaceChildren(figure);
+  const body = renderFigure(container, {
+    title: card.title,
+    insight: card.insight,
+    caption: card.caption,
+    definition: card.definition,
+    rows: `${CACHE_PREFIX}${card.cache}`,
+  });
+  container.querySelector(".figure-definition").append(sourceLine(card.source));
   showLoading(body);
   return body;
 }
@@ -105,27 +103,15 @@ function figureImage(body, name, sizes, alt) {
   return image;
 }
 
-/** A card's Definition control: a closed `<details>` that opens on its definition and the link to its source. */
-function definitionControl(card) {
-  const details = document.createElement("details");
-  details.className = "figure-definition";
-  const source = document.createElement("a");
-  source.href = card.source;
-  source.target = "_blank";
-  source.rel = "noopener";
-  source.textContent = SOURCE_LINK_TEXT;
-  const sourceLine = textElement("p", "figure-source", "");
-  sourceLine.append(source);
-  const summary = document.createElement("summary");
-  summary.textContent = "Definition";
-  details.append(summary, textElement("p", "figure-definition-text", card.definition), sourceLine);
-  return details;
-}
-
-// An element of `tagName` with the class `className` holding `text`.
-function textElement(tagName, className, text) {
-  const element = document.createElement(tagName);
-  element.className = className;
-  element.textContent = text;
-  return element;
+/** The line under a card's definition that links `source`, the artifact's account of how the figure is computed. */
+function sourceLine(source) {
+  const link = document.createElement("a");
+  link.href = source;
+  link.target = "_blank";
+  link.rel = "noopener";
+  link.textContent = SOURCE_LINK_TEXT;
+  const line = document.createElement("p");
+  line.className = "figure-source";
+  line.append(link);
+  return line;
 }

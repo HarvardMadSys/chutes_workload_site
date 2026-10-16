@@ -3,6 +3,7 @@
  * return, and the eviction algorithms' hit ratios in simulation, as `explore/figure_sections.js` defines a topic. The
  * words are the paper's and the definitions the artifact's README or, for the simulation, its plotting script's; a
  * line marked "placeholder" is not the paper's own, for the authors to review.
+ * A card's cache is where the artifact keeps the results its figure is drawn from, as the artifact's READMEs say.
  */
 
 import { URLS } from "../shared/layout.js";
@@ -24,6 +25,7 @@ export const CACHING_TOPIC = Object.freeze({
       insight: "Request-level cached fractions are bimodal.",
       caption: "Most requests see either little to no prefix reuse or reuse nearly their entire input prefix. Short-input requests skew toward high reuse, long-input requests toward low.",
       definition: "Share of requests whose token hit ratio, the share of input tokens served from the prefix cache, is at most this value: all requests, and those under 1K and over 8K input tokens.",
+      cache: "this figure's query results, shipped in data/paper/cache/",
       source: SECTION_README,
     }),
     Object.freeze({
@@ -32,6 +34,7 @@ export const CACHING_TOPIC = Object.freeze({
       insight: "Cache behavior differs sharply across models.",
       caption: "The two DeepSeek models have many requests with zero cache hits, while MiniMax-M2.5 shows a broader distribution, with many requests at intermediate to high hit ratios.",
       definition: "Share of requests whose token hit ratio is at most this value, over all requests and for the three highlighted models.",
+      cache: "this figure's query results, shipped in data/paper/cache/",
       source: SECTION_README,
     }),
     Object.freeze({
@@ -41,6 +44,7 @@ export const CACHING_TOPIC = Object.freeze({
       insight: "Request volume alone does not determine a model's reuse.",
       caption: "Several models with modest request volumes achieve high token hit ratios; they may benefit from a small set of users repeatedly accessing them with similar contexts.",
       definition: "Each model placed by its request count and its average token hit ratio, binned into hexagons shaded by how many models fall in each.",
+      cache: "this figure's query results, shipped in data/paper/cache/",
       source: SECTION_README,
     }),
     Object.freeze({
@@ -50,6 +54,7 @@ export const CACHING_TOPIC = Object.freeze({
       insight: "Most users exhibit little reuse, while a smaller group achieves high hit ratios.",
       caption: "The high-reuse users likely repeatedly access a limited set of models, with low inter-arrival times and proper context engineering.",
       definition: "Each user placed by their request count and their average token hit ratio, binned into hexagons shaded by how many users fall in each.",
+      cache: "this figure's query results, shipped in data/paper/cache/",
       source: SECTION_README,
     }),
     Object.freeze({
@@ -58,6 +63,7 @@ export const CACHING_TOPIC = Object.freeze({
       insight: "User IAT trends downwards over time.",
       caption: "Per-user inter-arrival time remains on the order of minutes for most of the trace, but declines toward early 2026 with a widened spread.",
       definition: "Each user's time between consecutive requests (inter-arrival time, IAT), by trace month: the median over users of each user's median, with bands between the medians of each user's 10th and 90th and 25th and 75th percentiles.",
+      cache: "iat_monthly_per_user.parquet, shipped in data/paper/cache/",
       source: SECTION_README,
     }),
     Object.freeze({
@@ -65,8 +71,9 @@ export const CACHING_TOPIC = Object.freeze({
       title: "Per-user IAT across models",
       // placeholder: the paragraph's lead-in is on the IAT over time card; this is its sentence on this panel.
       insight: "The recurrence pattern also varies significantly by model.",
-      caption: "MiniMax-M2.5 has the lowest per-user IAT, consistent with coding or agentic workflows; DeepSeek R1 has the longest, reflecting more human-paced reasoning interactions.",
+      caption: "MiniMax-M2.5 has the lowest per-user IAT, consistent with coding or agentic workflows; DeepSeek R1 has the longest, which may reflect more human-paced reasoning interactions.",
       definition: "For each highlighted model, a box plot over users of each user's median time between consecutive requests to that model.",
+      cache: "this figure's query results, shipped in data/paper/cache/",
       source: SECTION_README,
     }),
     Object.freeze({
@@ -75,6 +82,7 @@ export const CACHING_TOPIC = Object.freeze({
       insight: "A short TTL covers most repeat arrivals.",
       caption: "99% of reuse arrives within 15 minutes of the previous request. Cache locality is concentrated at short timescales.",
       definition: "Share of requests that follow the previous request of the same user and model within this time, weighted by request: the reuse a cache time-to-live (TTL) of that length would cover.",
+      cache: "iat_per_user_model_pair.parquet (about 700 MB), not shipped: built from the trace into output/paper/cache/ on the first run",
       source: SECTION_README,
     }),
     Object.freeze({
@@ -84,6 +92,7 @@ export const CACHING_TOPIC = Object.freeze({
       insight: "Simple eviction policies are already highly competitive for LLM prefix caching.",
       caption: "MiniMax-M2.5 is cache-friendly: its hit ratio increases quickly, and most policies approach the size-aware Belady oracle at moderate cache sizes.",
       definition: "Token hit ratio (1 minus the byte miss ratio) against cache size in tokens, for seven eviction algorithms in libCacheSim replaying MiniMax-M2.5's reconstructed sessions.",
+      cache: "data/caching/results.txt, the libCacheSim sweep's results, committed in the artifact",
       source: SIMULATION_FOLDER,
     }),
     Object.freeze({
@@ -93,6 +102,7 @@ export const CACHING_TOPIC = Object.freeze({
       insight: "Cache effectiveness is workload-dependent.",
       caption: "DeepSeek V3.2 is more cache-constrained: its hit ratio increases gradually with cache size, and practical policies remain below the Belady oracle even at large capacities.",
       definition: "Token hit ratio (1 minus the byte miss ratio) against cache size in tokens, for seven eviction algorithms in libCacheSim replaying DeepSeek V3.2's reconstructed sessions.",
+      cache: "data/caching/results.txt, the libCacheSim sweep's results, committed in the artifact",
       source: SIMULATION_FOLDER,
     }),
   ]),

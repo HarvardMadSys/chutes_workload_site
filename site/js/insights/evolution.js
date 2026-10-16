@@ -3,6 +3,7 @@
  * token lengths of each release cohort of users, as `explore/figure_sections.js` defines a topic. The two share
  * panels show the legend the paper draws once above both. The words are the paper's and the definitions the artifact
  * README's; a line marked "placeholder" is not the paper's own, for the authors to review.
+ * A card's cache is where the artifact keeps the results its figure is drawn from, as the artifact's READMEs say.
  */
 
 import { URLS } from "../shared/layout.js";
@@ -24,6 +25,7 @@ export const EVOLUTION_TOPIC = Object.freeze({
       insight: "Dominant models turn over.",
       caption: "Early traffic is dominated by DeepSeek models such as DeepSeek-V3-0324 and DeepSeek-R1. Their shares decline, while newer models such as Qwen3-32B and DeepSeek-V3.2 become more prominent.",
       definition: "Each month's share of requests among the ten most requested models, a model and its TEE variant counted as one, and Others for the rest.",
+      cache: "monthly_requests_tokens_by_model.parquet, shipped in data/paper/cache/",
       source: SECTION_README,
       legendImage: SHARE_LEGEND,
     }),
@@ -33,6 +35,7 @@ export const EVOLUTION_TOPIC = Object.freeze({
       insight: "Traffic spreads across more models over time.",
       caption: "The Others band grows in both panels: a larger fraction of requests and tokens comes from non-dominant models as more models are released and adopted.",
       definition: "The same models' share of each month's input plus output tokens.",
+      cache: "monthly_requests_tokens_by_model.parquet, shipped in data/paper/cache/",
       source: SECTION_README,
       legendImage: SHARE_LEGEND,
     }),
@@ -42,6 +45,7 @@ export const EVOLUTION_TOPIC = Object.freeze({
       insight: "Inputs stay stable while outputs shrink.",
       caption: "Input lengths remain broadly stable over the year, with the monthly median staying in the thousands of tokens.",
       definition: "Input tokens per request in each month: the median, and bands from the 25th to the 75th and from the 10th to the 90th percentile.",
+      cache: "monthly_token_percentiles.parquet, shipped in data/paper/cache/",
       source: SECTION_README,
     }),
     Object.freeze({
@@ -51,6 +55,7 @@ export const EVOLUTION_TOPIC = Object.freeze({
       insight: "Output lengths show a clearer downward trend than input lengths.",
       caption: "The median falls from a few hundred tokens early in the trace to below one hundred near the end, and wider bands show greater variation.",
       definition: "Output tokens per request in each month: the median, and bands from the 25th to the 75th and from the 10th to the 90th percentile.",
+      cache: "monthly_token_percentiles.parquet, shipped in data/paper/cache/",
       source: SECTION_README,
     }),
     Object.freeze({
@@ -59,6 +64,7 @@ export const EVOLUTION_TOPIC = Object.freeze({
       insight: "Newer user cohorts are more input-heavy.",
       caption: "Later cohorts have larger median input lengths, indicating that newer users typically submit longer prompts.",
       definition: "Each user's median input tokens, by release cohort, the month the user first appeared: the median over the cohort's users, with bands from the 25th to the 75th and the 10th to the 90th percentile.",
+      cache: "user_cohort_user_rank.parquet and user_cohort_token_medians.parquet (10 MB), not shipped: built from the trace into output/paper/cache/ on the first run",
       source: SECTION_README,
     }),
     Object.freeze({
@@ -68,6 +74,7 @@ export const EVOLUTION_TOPIC = Object.freeze({
       insight: "Change in the median output is less pronounced across cohorts.",
       caption: "The percentile bands widen for later cohorts, showing greater variation across users in their typical output lengths.",
       definition: "Each user's median output tokens, by release cohort: the median over the cohort's users, with bands from the 25th to the 75th and the 10th to the 90th percentile.",
+      cache: "user_cohort_user_rank.parquet and user_cohort_token_medians.parquet (10 MB), not shipped: built from the trace into output/paper/cache/ on the first run",
       source: SECTION_README,
     }),
   ]),

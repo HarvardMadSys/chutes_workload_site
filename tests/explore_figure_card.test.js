@@ -5,7 +5,13 @@ import {
   drawFigureImage, figureImageUrl, newCardElement, renderFigureCard, shownSize,
 } from "../site/js/explore/figure_card.js";
 
-/** A stand-in for a page element: its children, attributes, listeners and the properties a card sets. */
+// An element of static markup, as `innerHTML` writes it: its tag, its class and its text.
+const MARKUP_ELEMENT = /<(\w+)(?: class="([^"]*)")?>([^<]*)<\/\1>/g;
+
+/**
+ * A stand-in for a page element: its children, attributes, listeners and the properties a card sets. Its markup is
+ * read into children, and `querySelector` finds a descendant by one class.
+ */
 class FakeElement {
   constructor(tag) {
     this.tag = tag;
@@ -39,6 +45,29 @@ class FakeElement {
   dispatch(type) {
     this.listeners.get(type)();
   }
+
+  set innerHTML(markup) {
+    this.children = [];
+    for (const [, tag, className, text] of markup.matchAll(MARKUP_ELEMENT)) {
+      const child = new FakeElement(tag);
+      child.className = className ?? "";
+      child.textContent = text;
+      this.children.push(child);
+    }
+  }
+
+  querySelector(selector) {
+    for (const child of this.children) {
+      if (child.className.split(" ").includes(selector.slice(1))) {
+        return child;
+      }
+      const found = child.querySelector(selector);
+      if (found !== null) {
+        return found;
+      }
+    }
+    return null;
+  }
 }
 
 /** Make a stand-in the global document for the test of `context`, and keep the errors a card logs out of its output. */
@@ -55,6 +84,7 @@ const CARD = Object.freeze({
   insight: "Aggregate demand is non-stationary.",
   caption: "Requests rise, peak and decline.",
   definition: "Requests per day.",
+  cache: "daily_requests.parquet, shipped in data/paper/cache/",
   source: "https://github.com/HarvardMadSys/chutes_workload/blob/main/paper/01_workload_overview/README.md",
 });
 const LEGEND_CARD = Object.freeze({ ...CARD, legendImage: "fig_legend" });
@@ -70,11 +100,10 @@ test("an image is shown at half its pixels, rounded", () => {
   assert.deepEqual(shownSize({ width: 1129, height: 970 }), { width: 565, height: 485 });
 });
 
-test("a card is an article named by its image, and a wide card is marked wide", (context) => {
+test("a card is an article, and a wide card is marked wide", (context) => {
   useFakeDocument(context);
   const element = newCardElement(CARD);
   assert.equal(element.tag, "article");
-  assert.equal(element.id, "fig_a");
   assert.equal(element.className, "card");
   assert.equal(newCardElement({ ...CARD, isWide: true }).className, "card is-wide");
 });
@@ -85,7 +114,7 @@ test("a card shows its title, insight, legend place, image place, caption and De
   const body = renderFigureCard(container, CARD);
   const [figure] = container.children;
   assert.deepEqual(figure.children.map((part) => part.className), [
-    "figure-title", "figure-insight", "figure-legend", "figure-body", "figure-caption", "figure-definition",
+    "figure-title", "figure-insight", "figure-legend legend", "figure-body", "figure-caption", "figure-definition",
   ]);
   const [title, insight, , place, caption] = figure.children;
   assert.deepEqual([title.tag, title.textContent], ["h3", CARD.title]);
@@ -95,17 +124,19 @@ test("a card shows its title, insight, legend place, image place, caption and De
   assert.equal(body.children[0].className, "loading");
 });
 
-test("the Definition control opens on the definition and the link to how the figure is computed", (context) => {
+test("the Definition control opens on the definition, the cache and the link to how the figure is computed", (context) => {
   useFakeDocument(context);
   const container = new FakeElement("article");
   renderFigureCard(container, CARD);
   const details = container.children[0].children[5];
-  const [summary, definition, sourceLine] = details.children;
   assert.equal(details.tag, "details");
-  assert.equal(summary.textContent, "Definition");
-  assert.equal(definition.textContent, CARD.definition);
-  const [link] = sourceLine.children;
-  assert.deepEqual([link.href, link.target, link.textContent], [CARD.source, "_blank", "How it is computed · artifact README"]);
+  assert.deepEqual(details.children.map((part) => part.textContent), [
+    "Definition", CARD.definition, `Cache: ${CARD.cache}`, "",
+  ]);
+  const [link] = details.querySelector(".figure-source").children;
+  assert.deepEqual([link.href, link.target, link.textContent], [
+    CARD.source, "_blank", "How it is computed · the artifact on GitHub",
+  ]);
 });
 
 test("the image is shown at its size, named by the title and insight, and links to itself in a new tab", (context) => {
