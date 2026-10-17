@@ -4,8 +4,7 @@
  * Traffic Explorer and Insights, the dataset, the paper and the code, and the lab's name under them.
  */
 
-import { AFFILIATION, monthCountText, TRAFFIC_EXPLORER_ANCHOR, URLS } from "../shared/layout.js";
-import { linkMark } from "../shared/link_marks.js";
+import { AFFILIATION, externalLink, monthCountText, TRAFFIC_EXPLORER_ANCHOR, URLS } from "../shared/layout.js";
 
 // The title, the dataset's name: its first phrase, and its second, drawn in the accent.
 const TITLE = "Chutes";
@@ -32,10 +31,7 @@ export function renderHero(container, monthCount) {
   const siteButtons = SITE_BUTTONS.map(
     (button) => `<a class="${button.className}" href="${button.href}">${button.title}</a>`,
   );
-  const externalButtons = EXTERNAL_BUTTONS.map(
-    (button) =>
-      `<a class="button" href="${button.url}" target="_blank" rel="noopener">${linkMark(button.mark)}${button.title}</a>`,
-  );
+  const externalButtons = EXTERNAL_BUTTONS.map((button) => externalLink(button, "button"));
   container.innerHTML = `
     <h1 id="hero-title">${TITLE} <em>${TITLE_ACCENT}</em></h1>
     <p class="hero-lede">${ledeText(monthCount)}</p>

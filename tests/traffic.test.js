@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { runTraffic } from "../site/js/traffic/traffic.js";
-import { FakeElement, PAGE_ADDRESS, runFrames, settled } from "./fake_page.js";
+import { deferred, FakeElement, PAGE_ADDRESS, runFrames, settled } from "./fake_page.js";
 
 // The answer files the explorer reads: every family's rows, and the family Kin's by model.
 const FAMILY_FILE = "data/all/explore/daily_by_family.json";
@@ -19,13 +19,6 @@ function dayRow(fields) {
 // One family, Kin, on one day of 2025's third quarter; and its one named model.
 const FAMILY_ROWS = [dayRow({ family: "Kin", family_slug: "kin" })];
 const KIN_ROWS = [dayRow({ chute_id: "id-a", model: "A" })];
-
-/** A promise with its `resolve` and `reject`, `{ promise, resolve, reject }`, for an answer the test lets arrive. */
-function deferred() {
-  const parts = {};
-  parts.promise = new Promise((resolve, reject) => Object.assign(parts, { resolve, reject }));
-  return parts;
-}
 
 // A stand-in element whose `querySelector` finds a new element, as the figure's Definition control asks for its parts.
 function fakeElement(tag) {

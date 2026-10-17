@@ -66,12 +66,12 @@ export function tileTexts(summary, percentiles) {
 /**
  * Fill `list`, a `<ul>`, with the four tiles, each an `<li>` named by its `data-tile` ("requests", "input", "output",
  * "ttft") holding an empty `div.tile-text`, and the input, output and TTFT tiles under it a `div.tile-chart`, each
- * showing the loading state; return the three chart places in that order, `[input, output, ttft]`. Called once,
- * before `renderTiles`.
+ * showing the loading state; return the three chart places by their tile's `data-tile`, `{ input, output, ttft }`.
+ * Called once, before `renderTiles`.
  */
 export function placeTiles(list) {
   const tiles = [];
-  const chartPlaces = [];
+  const chartPlaces = {};
   for (const { key, hasChart } of TILES) {
     const tile = document.createElement("li");
     tile.setAttribute("data-tile", key);
@@ -81,7 +81,7 @@ export function placeTiles(list) {
       const place = textElement("div", "tile-chart figure-body", "");
       showLoading(place);
       tile.append(place);
-      chartPlaces.push(place);
+      chartPlaces[key] = place;
     }
     tiles.push(tile);
   }

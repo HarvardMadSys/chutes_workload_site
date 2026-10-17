@@ -176,3 +176,10 @@ export class FakeHistory {
     this.window.dispatch("popstate", { state: this.entries[index].state });
   }
 }
+
+/** A promise with its `resolve` and `reject`, `{ promise, resolve, reject }`, for an answer the test lets arrive. */
+export function deferred() {
+  const parts = {};
+  parts.promise = new Promise((resolve, reject) => Object.assign(parts, { resolve, reject }));
+  return parts;
+}

@@ -28,12 +28,15 @@ and the footer's links should show at a glance where they lead.
   definition. The three cards under the bars go.
 - **Fixed axes.** The input tokens' x axis runs from 1 to 1,000,000,
   the output tokens' from 1 to 100,000, the TTFT's from 0.01 to 100
-  seconds, each ticked at decades; a line is clipped at the ends.
+  seconds, each ticked at listed decades that include both ends (input
+  1, 100, 10k, 1M; output 1, 1k, 100k; TTFT 10 ms, 1 s, 100 s); a line is
+  clipped at the ends.
 - **The explorer first, the rest after.** The page's first fetches are
   the hero's, the Overview's and the explorer's daily answer, the
   latter started from the page's head before the modules have loaded;
   the histogram answer once the bars are drawn; the Insights' shown
-  topic once the explorer has drawn; a family's answers when chosen;
+  topic once the explorer and the page's other sections have drawn or
+  failed; a family's answers when chosen;
   nothing for a topic or a family not shown. The first draw's time is
   measured before and after, served compressed as the published page
   is, and recorded.
@@ -62,9 +65,11 @@ and the footer's links should show at a glance where they lead.
 2. **Small charts in tiles.** At 1280 px a tile is about 250 px wide,
    so a chart holds at most four ticks per axis. The axes stay, as the
    user asked; the tooltip gives the exact values.
-3. **The Insights wait for the explorer.** The shown topic's figures
-   are requested once the explorer has drawn, so on a slow line the
-   Insights appear a second or two later than they do now. They are
+3. **The Insights wait for the page's other sections.** The shown
+   topic's figures are requested once the explorer and the page's other
+   sections have drawn or failed, so on a slow line the Insights appear
+   later than they do now: design D4 measures 2.6 s gzipped and 6.2 s
+   plain on the line throttled to 10 Mbit/s, against 1.9 s before. They are
    below the fold; a tab pressed before then draws its topic at once.
 
 ## Not in this change

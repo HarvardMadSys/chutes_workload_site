@@ -8,7 +8,7 @@ import { runTraffic } from "../site/js/traffic/traffic.js";
 import { mountTrafficControls } from "../site/js/traffic/traffic_controls.js";
 import { familyChoices, modelChoices } from "../site/js/traffic/traffic_filter.js";
 import {
-  FakeElement, FakeHistory, PAGE_ADDRESS, settled, shownIds, TOPIC_ANCHORS, topicSections,
+  deferred, FakeElement, FakeHistory, PAGE_ADDRESS, settled, shownIds, TOPIC_ANCHORS, topicSections,
 } from "./fake_page.js";
 
 // Two families, Qwen and Other, as the family drop-down offers them.
@@ -195,15 +195,6 @@ const DAILY_ROWS = [{
 
 // The Overview's endpoint groups, the order the explorer colours them in.
 const ENDPOINT_ROWS = [{ endpoint_group: "chat", requests: 10 }];
-
-/** A promise with its `resolve`, `{ promise, resolve }`, for an answer the test lets arrive. */
-function deferred() {
-  const parts = {};
-  parts.promise = new Promise((resolve) => {
-    parts.resolve = resolve;
-  });
-  return parts;
-}
 
 /**
  * The page started as `startPage` starts it, with the Traffic Explorer as its one section, for the test of `context`:

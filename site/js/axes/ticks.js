@@ -54,15 +54,15 @@ export function decadeTicks([low, high]) {
 
 /**
  * The ticks of a log axis over `[low, high]`: its powers of ten, every second, third or more of them when there are
- * more than `maxTicks` (`MAX_LOG_TICKS` when not given), so the labels never crowd; undefined, for Plot's own, when the
+ * more than `MAX_LOG_TICKS`, so the labels never crowd; undefined, for Plot's own, when the
  * range holds fewer than two.
  */
-export function logAxisTicks([low, high], maxTicks = MAX_LOG_TICKS) {
+export function logAxisTicks([low, high]) {
   const powers = decadeTicks([low, high]);
   if (powers.length < 2) {
     return undefined;
   }
-  const step = Math.ceil(powers.length / maxTicks);
+  const step = Math.ceil(powers.length / MAX_LOG_TICKS);
   return powers.filter((power, index) => index % step === 0);
 }
 

@@ -59,8 +59,9 @@ function tileTextParts(list) {
 
 // True when `places` are the very elements the input, output and TTFT tiles of `list` hold under their text.
 function areTheTilesPlaces(list, places) {
-  const held = list.children.slice(1).map((tile) => tile.children[1]);
-  return held.length === places.length && held.every((place, index) => place === places[index]);
+  const [, input, output, ttft] = list.children.map((tile) => tile.children[1]);
+  return Object.keys(places).join() === "input,output,ttft"
+    && places.input === input && places.output === output && places.ttft === ttft;
 }
 
 test("the tiles are placed once, the input, output and TTFT tiles each holding a chart's place, loading", (context) => {
@@ -71,8 +72,8 @@ test("the tiles are placed once, the input, output and TTFT tiles each holding a
   assert.deepEqual(names, ["requests", "input", "output", "ttft"]);
   assert.deepEqual(list.children.map((tile) => tile.children.length), [1, 2, 2, 2]);
   assert.ok(areTheTilesPlaces(list, places));
-  assert.deepEqual(places.map((place) => place.className), Array(3).fill("tile-chart figure-body"));
-  assert.deepEqual(places.map((place) => place.children[0].className), ["loading", "loading", "loading"]);
+  assert.deepEqual(Object.values(places).map((place) => place.className), Array(3).fill("tile-chart figure-body"));
+  assert.deepEqual(Object.values(places).map((place) => place.children[0].className), Array(3).fill("loading"));
   assert.ok(list.children.every((tile) => tile.children[0].className === "tile-text"));
 });
 
@@ -111,13 +112,13 @@ test("writing the tiles again leaves their charts' places as they are", (context
   const list = new FakeElement("ul");
   const places = placeTiles(list);
   const drawn = new FakeElement("svg");
-  places[0].replaceChildren(drawn);
+  places.input.replaceChildren(drawn);
   renderTiles(list, SMALL_SUMMARY, null);
   renderTiles(list, SMALL_SUMMARY, PERCENTILES);
   assert.ok(areTheTilesPlaces(list, places), "the same elements");
-  assert.equal(places[0].children[0], drawn);
-  assert.equal(places[0].children.length, 1);
-  assert.deepEqual(places.slice(1).map((place) => place.children[0].className), ["loading", "loading"]);
+  assert.equal(places.input.children[0], drawn);
+  assert.equal(places.input.children.length, 1);
+  assert.deepEqual([places.output, places.ttft].map((place) => place.children[0].className), ["loading", "loading"]);
   assert.equal(tileTextParts(list)[1][2].textContent, "≈1,100 p50 · ≈4,200 p90", "the latest notes, once");
   assert.equal(tileTextParts(list)[1].length, 3);
 });

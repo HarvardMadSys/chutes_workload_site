@@ -54,7 +54,7 @@ async function drawExplorer(container, context) {
     tiles: document.createElement("ul"),
     figure: document.createElement("div"),
     rangeRow: document.createElement("div"),
-    chartPlaces: [], // the places of the input, output and TTFT tiles' charts, once the tiles are placed
+    chartPlaces: {}, // the places of the tiles' charts by tile (input, output, ttft), once the tiles are placed
     tileCharts: null, // the tiles' charts drawn last, which the legend draws again; null while they load
     hidden: new Set(), // the series the legend hides, kept while the choice keeps its family and model
     summary: null, // the tiles' numbers drawn last, which an error leaves without their percentiles
