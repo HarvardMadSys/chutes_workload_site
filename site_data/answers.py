@@ -8,8 +8,8 @@ A family query (`FAMILY_QUERIES`) takes the family as its one parameter, `$famil
 by-family answer (`FAMILIES_QUERY`) and written as `all/explore/<query>/<family_slug>.json`, its hash recorded once.
 
 An answer is a JSON list with one object per row, its keys the query's column names in the query's order. Integers
-are written as integers and other numbers as floats, strings as strings, dates as `YYYY-MM-DD` strings and NULL as
-null.
+are written as integers and other numbers as floats, strings as strings, dates as `YYYY-MM-DD` strings, lists as
+arrays and NULL as null.
 """
 
 import dataclasses
@@ -28,7 +28,7 @@ ANSWERED_FOLDERS = ["explore"]  # the folders of `site/queries/` whose queries a
 FAMILIES_QUERY = "explore/daily_by_family"  # its rows name the families the family queries are run for, with slugs
 # The queries run once per family of `FAMILIES_QUERY`'s answer, the family bound as `$family`, each written as
 # `<query>/<family_slug>.json`.
-FAMILY_QUERIES = ["explore/daily_by_model"]
+FAMILY_QUERIES = ["explore/daily_by_model", "explore/histograms_by_model"]
 FAMILY_PARAMETER = "family"  # the name a family query binds the family's name to, `$family` in its text
 OTHER_FAMILY = "Other"  # the family of every model in no family of the artifact's table: listed after every other
 

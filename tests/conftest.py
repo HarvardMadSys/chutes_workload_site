@@ -1,12 +1,14 @@
-"""Fixtures shared by the tests: the fixture artifact (`fixture_artifact.py`), its frames and the site's database over
-them; the fixture trace and the trace table's database over it and the frames; the artifact's own checkout, which the
-environment variable `ARTIFACT` names, as `make test` passes it; and the files git tracks."""
+"""Fixtures shared by the tests: the fixture artifact (`fixture_artifact.py`) and its frames; the fixture trace, the
+trace table's database over it and the frames, and the tables folder the builder writes from them; the site's database
+over the frames and that folder's trace table; the artifact's own checkout, which the environment variable `ARTIFACT`
+names, as `make test` passes it; and the files git tracks."""
 
 import os
 import pathlib
 import subprocess
 
 import duckdb
+import pandas
 import pytest
 
 import fixture_artifact
@@ -27,15 +29,30 @@ def frames(artifact: pathlib.Path) -> loading.ArtifactFrames:
 
 
 @pytest.fixture
-def connection(frames: loading.ArtifactFrames) -> duckdb.DuckDBPyConnection:
-    """The site's database over the fixture artifact's frames."""
-    return site_database.open_database(frames)
+def weekly_histograms(fixture_tables: pathlib.Path) -> pandas.DataFrame:
+    """The fixture's trace table."""
+    return loading.load_trace_table(fixture_tables)
+
+
+@pytest.fixture
+def connection(frames: loading.ArtifactFrames, weekly_histograms: pandas.DataFrame) -> duckdb.DuckDBPyConnection:
+    """The site's database over the fixture artifact's frames and the fixture's trace table."""
+    return site_database.open_database(frames, weekly_histograms)
 
 
 @pytest.fixture(scope="session")
 def fixture_trace(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
     """The fixture trace's Parquet file, written once for the run."""
     return fixture_artifact.write_fixture_trace(tmp_path_factory.mktemp("trace") / "trace.parquet")
+
+
+@pytest.fixture(scope="session")
+def fixture_tables(artifact: pathlib.Path, fixture_trace: pathlib.Path,
+                   tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
+    """The tables folder the trace table's builder writes from the fixture trace and artifact, once for the run."""
+    folder = tmp_path_factory.mktemp("tables")
+    tables.main(["--trace", str(fixture_trace), "--artifact", str(artifact), "--out", str(folder)])
+    return folder
 
 
 @pytest.fixture

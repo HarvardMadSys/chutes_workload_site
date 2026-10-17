@@ -19,6 +19,9 @@ EXPECTED_COLUMNS = {
                                "input_counted", "output_tokens", "output_counted", "ttft_sum", "ttft_counted"],
     "explore/endpoint_mix": ["endpoint_group", "requests"],
     "explore/family_mix": ["family", "requests"],
+    "explore/histograms_by_family": ["week", "first_day", "family", "endpoint_group", "metric", "bins", "requests"],
+    "explore/histograms_by_model": ["week", "first_day", "chute_id", "model", "endpoint_group", "metric", "bins",
+                                    "requests"],
     "explore/trace_totals": ["first_day", "last_day", "months", "requests", "input_tokens", "output_tokens", "users",
                              "models", "instances"],
     "setup/family_models": ["family", "chute_id", "name", "requests", "rank"],
@@ -26,12 +29,13 @@ EXPECTED_COLUMNS = {
 }
 # The tables of the site's database, the only ones a query of `SITE_TABLE_FOLDERS` may read.
 SITE_TABLES = {"trace_totals", "daily_rollup", "function_name_daily_requests", "chute_models", "model_families",
-               "trace_calendar", "family_models"}
+               "trace_calendar", "family_models", "weekly_histograms"}
 SITE_TABLE_FOLDERS = ("explore/", "setup/")  # the folders of the queries over the site's tables alone
 # The only tables the trace query reads: the trace, and the models and families that place its requests.
 TRACE_QUERY_TABLES = {"trace", "chute_models", "model_families", "family_models"}
 # The parameters a query that takes one is run with here: a family of the fixture.
-QUERY_PARAMETERS = {"explore/daily_by_model": {"family": "DeepSeek"}}
+QUERY_PARAMETERS = {"explore/daily_by_model": {"family": "DeepSeek"},
+                    "explore/histograms_by_model": {"family": "DeepSeek"}}
 # A named parameter in a query's text, `$family`.
 NAMED_PARAMETER = re.compile(r"\$\w+")
 
@@ -153,3 +157,44 @@ def test_a_family_s_daily_rows_name_its_models_and_its_rest(connection: duckdb.D
     ]
     other = query_records(connection, "explore/daily_by_model", {"family": "Other"})
     assert [(row["model"], row["requests"]) for row in other] == [("Other Other", 20), ("model-04", 5)]
+
+
+def test_the_histograms_by_family_sum_a_family_s_models_bin_by_bin(connection: duckdb.DuckDBPyConnection) -> None:
+    """Counted by hand from the trace table's rows (`test_tables.FIXTURE_HISTOGRAMS`): DeepSeek's chat_stream outputs
+    in week 0 are chute-01's 29 in bin 14 and 1 in bin 18 and its other models' 10 in bin 13; its completion TTFTs in
+    week 4, which starts on trace day 28, are 14 in bin -8 and 1 in bin -4."""
+    histograms = query_records(connection, "explore/histograms_by_family")
+    keys = [(row["week"], row["family"], row["endpoint_group"], row["metric"]) for row in histograms]
+    assert keys == [
+        (0, "DeepSeek", "chat", "input_tokens"), (0, "DeepSeek", "chat", "output_tokens"),
+        (0, "DeepSeek", "chat", "ttft"),
+        (0, "DeepSeek", "chat_stream", "input_tokens"), (0, "DeepSeek", "chat_stream", "output_tokens"),
+        (0, "Other", "chat", "input_tokens"), (0, "Other", "chat", "output_tokens"), (0, "Other", "chat", "ttft"),
+        (0, "gpt-oss", "chat", "input_tokens"), (0, "gpt-oss", "chat", "output_tokens"), (0, "gpt-oss", "chat", "ttft"),
+        (4, "DeepSeek", "completion", "output_tokens"), (4, "DeepSeek", "completion", "ttft"),
+    ]
+    assert histograms[4] == {"week": 0, "first_day": datetime.date(2025, 4, 11), "family": "DeepSeek",
+                             "endpoint_group": "chat_stream", "metric": "output_tokens", "bins": [13, 14, 18],
+                             "requests": [10, 29, 1]}
+    assert histograms[12] == {"week": 4, "first_day": datetime.date(2025, 5, 9), "family": "DeepSeek",
+                              "endpoint_group": "completion", "metric": "ttft", "bins": [-8, -4], "requests": [14, 1]}
+
+
+def test_a_family_s_histograms_name_its_models_and_its_rest(connection: duckdb.DuckDBPyConnection) -> None:
+    deepseek = query_records(connection, "explore/histograms_by_model", {"family": "DeepSeek"})
+    named = [(row["week"], row["chute_id"], row["model"], row["endpoint_group"], row["metric"]) for row in deepseek]
+    assert named == [
+        (0, "chute-01", "DeepSeek-model-01", "chat", "input_tokens"),
+        (0, "chute-01", "DeepSeek-model-01", "chat", "output_tokens"),
+        (0, "chute-01", "DeepSeek-model-01", "chat", "ttft"),
+        (0, "chute-01", "DeepSeek-model-01", "chat_stream", "input_tokens"),
+        (0, "chute-01", "DeepSeek-model-01", "chat_stream", "output_tokens"),
+        (0, None, "Other DeepSeek", "chat_stream", "input_tokens"),
+        (0, None, "Other DeepSeek", "chat_stream", "output_tokens"),
+        (4, "chute-02", "deepseek-r1t-model-02", "completion", "output_tokens"),
+        (4, "chute-02", "deepseek-r1t-model-02", "completion", "ttft"),
+    ]
+    assert (deepseek[4]["bins"], deepseek[4]["requests"]) == ([14, 18], [29, 1])
+    other = query_records(connection, "explore/histograms_by_model", {"family": "Other"})
+    other_ttfts = [(row["model"], row["bins"], row["requests"]) for row in other if row["metric"] == "ttft"]
+    assert other_ttfts == [("Other Other", [-4], [20]), ("model-04", [-8, -4], [1, 4])]

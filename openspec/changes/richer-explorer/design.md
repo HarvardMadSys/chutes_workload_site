@@ -120,20 +120,22 @@ Two queries under `queries/explore/`:
 - `histograms_by_family`: one row per trace week, family, endpoint
   group and metric, with `week`, the week's `first_day` (the calendar
   day of trace day `7 · week`, through `trace_calendar`), `family`,
-  `family_slug` (as `daily_by_family` makes it), `endpoint_group`,
-  `metric`, and two lists in bin order, `bins` and `requests`, the
-  rollup's kept models and the family's rest summed together.
+  `endpoint_group`, `metric`, and two lists in bin order, `bins` and
+  `requests`, the rollup's kept models and the family's rest summed
+  together. No slug: the page has each family's from `daily_by_family`.
 - `histograms_by_model` (`$family`): the same per week, `chute_id` and
   `model` (one of the family's eight by `family_models`, or "Other
   <family>" with a null id, as `daily_by_model` names it) and endpoint
   group, one file per family.
 
 Lists rather than a row per bin: the same information in a fifth of the
-bytes. Measured on the spike's table: the by-family answer is 5,024
-rows and 2.2 MB (547 KB gzipped); DeepSeek's, the largest family's,
-2,997 rows and 1.4 MB (342 KB gzipped). The daily answers are 3.4 MB
-and 2.4 MB (466 KB and 288 KB gzipped). The task records the sizes
-`make data` writes.
+bytes. As `make data` writes them from the tracked trace table: the
+by-family answer is 5,024 rows and 2,366,346 bytes (550,569 gzipped,
+`gzip -9`); DeepSeek's, the largest family's, 2,997 rows and 1,622,233
+bytes (341,740 gzipped); the smallest, MiniMax's, 278 rows and 119,330
+bytes (20,802 gzipped); the eleven family files 7,919,361 bytes
+together. The daily answers they sit beside are 3,376,522 and
+2,363,500 bytes (456,209 and 283,429 gzipped).
 
 ### D7. CDFs and percentiles in the browser
 

@@ -1,5 +1,6 @@
 """The answers over the fixture artifact: one file per Explore query holding its live rows, a family query's one per
-family, and the hashes that tell a query edited since its answer was written."""
+family, the sums that tie a family's answers to the by-family ones, and the hashes that tell a query edited since its
+answer was written."""
 
 import datetime
 import json
@@ -30,9 +31,10 @@ def test_every_explore_query_has_its_answer(connection: duckdb.DuckDBPyConnectio
     for name in answers.single_answer_query_names():
         expected.append(tmp_path / "data" / paths.answer_file(name))
     for family in FIXTURE_FAMILIES:
-        expected.append(tmp_path / "data" / paths.family_answer_file("explore/daily_by_model", family.slug))
+        for name in answers.FAMILY_QUERIES:
+            expected.append(tmp_path / "data" / paths.family_answer_file(name, family.slug))
     assert written == expected
-    assert len(expected) == 4 + 3
+    assert len(expected) == 5 + 2 * 3
 
 
 def test_the_single_answers_are_a_folder_s_queries_but_the_family_ones(tmp_path: pathlib.Path) -> None:
@@ -43,6 +45,7 @@ def test_the_single_answers_are_a_folder_s_queries_but_the_family_ones(tmp_path:
     assert "explore/added" in names
     assert "explore/daily_by_family" in names
     assert "explore/daily_by_model" not in names
+    assert "explore/histograms_by_model" not in names
 
 
 def test_the_families_are_ordered_by_requests_with_other_last(connection: duckdb.DuckDBPyConnection) -> None:
@@ -59,13 +62,14 @@ def test_an_answer_holds_its_query_s_live_rows(connection: duckdb.DuckDBPyConnec
     assert list(written[0]) == site_database.run_query(connection, name).columns
 
 
+@pytest.mark.parametrize("name", answers.FAMILY_QUERIES)
 @pytest.mark.parametrize("family", FIXTURE_FAMILIES)
 def test_a_family_answer_holds_its_query_s_live_rows_for_the_family(connection: duckdb.DuckDBPyConnection,
                                                                     data_directory: pathlib.Path,
-                                                                    family: answers.Family) -> None:
-    written = json.loads((data_directory / paths.family_answer_file("explore/daily_by_model", family.slug)).read_text())
-    assert written, f"{family.name} has no rows over the fixture"
-    assert written == answers.answer_rows(connection, "explore/daily_by_model", {"family": family.name})
+                                                                    family: answers.Family, name: str) -> None:
+    written = json.loads((data_directory / paths.family_answer_file(name, family.slug)).read_text())
+    assert written, f"{name} has no rows for {family.name} over the fixture"
+    assert written == answers.answer_rows(connection, name, {"family": family.name})
 
 
 def test_the_daily_rows_by_family_sum_to_the_trace_totals(data_directory: pathlib.Path) -> None:
@@ -84,6 +88,40 @@ def test_a_family_s_model_rows_sum_to_its_rows_by_family(data_directory: pathlib
         assert sum(row[column] for row in by_model) == family_sum, f"{family.name}'s {column}"
 
 
+def histogram_requests(rows: list[dict]) -> dict[tuple[int, str, str], int]:
+    """The requests of histogram answer rows per week, endpoint group and metric: each row's list of requests summed."""
+    requests = {}
+    for row in rows:
+        group = (row["week"], row["endpoint_group"], row["metric"])
+        requests[group] = requests.get(group, 0) + sum(row["requests"])
+    return requests
+
+
+@pytest.mark.parametrize("family", FIXTURE_FAMILIES)
+def test_a_family_s_model_histograms_sum_to_its_histograms_by_family(data_directory: pathlib.Path,
+                                                                     family: answers.Family) -> None:
+    by_family = json.loads((data_directory / paths.answer_file("explore/histograms_by_family")).read_text())
+    by_model_file = data_directory / paths.family_answer_file("explore/histograms_by_model", family.slug)
+    by_model = json.loads(by_model_file.read_text())
+    family_rows = [row for row in by_family if row["family"] == family.name]
+    assert family_rows, f"{family.name} has no histograms"
+    assert histogram_requests(by_model) == histogram_requests(family_rows)
+
+
+def test_the_input_histograms_count_the_daily_rows_input_requests(data_directory: pathlib.Path) -> None:
+    """Each family's requests in its `input_tokens` histograms are the requests that recorded an input count."""
+    by_family = json.loads((data_directory / paths.answer_file("explore/histograms_by_family")).read_text())
+    daily = json.loads((data_directory / paths.answer_file("explore/daily_by_family")).read_text())
+    histogram_counts = {}
+    for row in by_family:
+        if row["metric"] == "input_tokens":
+            histogram_counts[row["family"]] = histogram_counts.get(row["family"], 0) + sum(row["requests"])
+    daily_counts = {}
+    for row in daily:
+        daily_counts[row["family"]] = daily_counts.get(row["family"], 0) + row["input_counted"]
+    assert histogram_counts == daily_counts
+
+
 def test_dates_and_nulls_are_written_as_json(data_directory: pathlib.Path) -> None:
     by_family = json.loads((data_directory / paths.answer_file("explore/daily_by_family")).read_text())
     assert by_family[1]["day"] == "2025-04-11"
@@ -97,6 +135,15 @@ def test_an_answer_value_is_its_json_form() -> None:
     assert answers.json_value(datetime.date(2025, 4, 11)) == "2025-04-11"
     assert answers.json_value(float("nan")) is None
     assert answers.json_value(3) == 3
+    assert answers.json_value([13, 14, 18]) == [13, 14, 18]
+
+
+def test_a_list_is_written_as_a_json_array_of_integers(data_directory: pathlib.Path) -> None:
+    by_family_file = data_directory / paths.answer_file("explore/histograms_by_family")
+    assert '"bins":[22],"requests":[40]}' in by_family_file.read_text()
+    first_row = json.loads(by_family_file.read_text())[0]
+    assert first_row["first_day"] == "2025-04-11"
+    assert all(isinstance(value, int) for value in first_row["bins"] + first_row["requests"])
 
 
 def test_the_hashes_cover_every_query_once_and_the_setup_query(data_directory: pathlib.Path) -> None:
@@ -106,7 +153,8 @@ def test_the_hashes_cover_every_query_once_and_the_setup_query(data_directory: p
     assert answers.stale_queries(data_directory) == []
 
 
-@pytest.mark.parametrize("edited", ["explore/family_mix", "explore/daily_by_model", "setup/family_models"])
+@pytest.mark.parametrize("edited", ["explore/family_mix", "explore/daily_by_model", "explore/histograms_by_model",
+                                    "setup/family_models"])
 def test_an_edited_query_is_stale(data_directory: pathlib.Path, tmp_path: pathlib.Path, edited: str) -> None:
     queries_folder = tmp_path / "queries"
     shutil.copytree(site_database.QUERIES_FOLDER, queries_folder)

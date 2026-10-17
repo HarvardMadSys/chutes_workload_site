@@ -1,5 +1,5 @@
-"""The site's database: every frame of the artifact is the table of its name, with the calendar and the family
-models its seven tables, and a query is run from its file."""
+"""The site's database: every frame of the artifact is the table of its name, with the calendar, the family models
+and the trace table its eight tables, and a query is run from its file."""
 
 import datetime
 
@@ -17,10 +17,16 @@ def test_every_frame_is_the_table_of_its_name(connection: duckdb.DuckDBPyConnect
                       "model_families": 3}
 
 
-def test_the_database_holds_seven_tables(connection: duckdb.DuckDBPyConnection) -> None:
+def test_the_database_holds_eight_tables(connection: duckdb.DuckDBPyConnection) -> None:
     tables = {row[0] for row in connection.execute("SELECT name FROM (SHOW TABLES)").fetchall()}
     assert tables == test_queries.SITE_TABLES
-    assert len(tables) == 7
+    assert len(tables) == 8
+
+
+def test_the_trace_table_is_registered_as_weekly_histograms(connection: duckdb.DuckDBPyConnection) -> None:
+    weekly_histograms = connection.table("weekly_histograms")
+    assert weekly_histograms.columns == ["week", "family", "chute_id", "endpoint_group", "metric", "bin", "requests"]
+    assert weekly_histograms.shape[0] == 22
 
 
 def test_the_database_runs_on_one_thread(connection: duckdb.DuckDBPyConnection) -> None:

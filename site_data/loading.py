@@ -1,11 +1,12 @@
 """Reading the paper's artifact into frames: the three caches the site's queries read, the model names and the family
-table.
+table; and reading the site's trace table, which this repository holds, into a frame.
 
 The artifact is a checkout of the paper's artifact repository. Each cache is the Parquet file
 `data/paper/cache/<name>.parquet`, read whole into a frame of its columns; the model names are the
 `chute_id` and `name` columns of `data/paper/chute_models.csv`, and the family table is
-`data/paper/model_families.csv` whole. A file that is not there stops the step with a message naming it, before
-anything is read or written.
+`data/paper/model_families.csv` whole. The trace table is `weekly_histograms.parquet` of the tables folder, by default
+this repository's `tables/`, read whole. A file that is not there stops the step with a message naming it and saying
+how to supply it, before anything is read or written.
 
 pandas reads an integer column that holds nulls as float; `with_nullable_integers` gives such a column back its
 integer type, with the nulls kept, so that an answer writes its counts as integers.
@@ -19,12 +20,19 @@ import pyarrow
 import pyarrow.csv
 import pyarrow.parquet
 
+from site_data import paths
+
 CACHE_FOLDER = pathlib.Path("data") / "paper" / "cache"  # in the artifact: the paper's committed caches
 MODEL_NAMES_FILE = pathlib.Path("data") / "paper" / "chute_models.csv"  # in the artifact: each chute's model name
 MODEL_NAME_COLUMNS = ["chute_id", "name"]  # the columns of the model names the queries read
 MODEL_FAMILIES_FILE = pathlib.Path("data") / "paper" / "model_families.csv"  # in the artifact: the family table
 # The caches the site's queries read, each the file `<name>.parquet` and the table of its name.
 CACHE_NAMES = ["trace_totals", "daily_rollup", "function_name_daily_requests"]
+# This repository's tables folder, where `make tables` writes the trace table: the data step's default `--tables`.
+TABLES_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "tables"
+# What the message of a missing file tells the reader to do: for a file of the artifact, and for the trace table.
+ARTIFACT_FILE_HINT = "pass a checkout of the paper's artifact repository as --artifact"
+TRACE_TABLE_HINT = "run make tables to build it from the released trace"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -63,10 +71,22 @@ def load_artifact(artifact: pathlib.Path) -> ArtifactFrames:
     )
 
 
-def required_file(path: pathlib.Path) -> pathlib.Path:
-    """The path, if a file is there; otherwise stops the step with exit status 1, naming it."""
+def load_trace_table(tables_folder: pathlib.Path) -> pandas.DataFrame:
+    """The trace table of the tables folder `tables_folder`, `weekly_histograms.parquet`; stops naming it if missing.
+
+    One row per trace week (`week`, seven trace days, week 0 the trace's first seven), `family`, `chute_id` (null for
+    every model of the family outside its eight most requested named ones), `endpoint_group`, `metric`
+    (`input_tokens`, `output_tokens` or `ttft`) and `bin` (a value v is in bin floor(4 * log2(v))), with the `requests`
+    whose value fell in the bin. `site/queries/trace/weekly_histograms.sql` states each column's definition.
+    """
+    return read_cache(required_file(tables_folder / paths.TRACE_TABLE_FILE, TRACE_TABLE_HINT))
+
+
+def required_file(path: pathlib.Path, hint: str = ARTIFACT_FILE_HINT) -> pathlib.Path:
+    """The path, if a file is there; otherwise stops the step with exit status 1, naming it and saying, by `hint`, how
+    to supply it."""
     if not path.is_file():
-        raise SystemExit(f"missing {path}: pass a checkout of the paper's artifact repository as --artifact")
+        raise SystemExit(f"missing {path}: {hint}")
     return path
 
 

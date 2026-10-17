@@ -1,7 +1,7 @@
 """The built data, as `make data` wrote it and git tracks it: every file of it tracked, the figure answers' index
 listing exactly the figure answers tracked, every query's answer there (a family query's one per family) and written
 from its current text, and the answers and the figure answers with their index the same as a rebuild from the
-artifact's checkout (`ARTIFACT`; skipped, saying so, without one)."""
+artifact's checkout (`ARTIFACT`; skipped, saying so, without one) and the tracked trace table."""
 
 import json
 import pathlib
@@ -77,7 +77,8 @@ def test_every_answer_comes_from_its_query_s_current_text() -> None:
 def test_the_answers_are_the_ones_the_artifact_gives(artifact_checkout: pathlib.Path, tmp_path: pathlib.Path) -> None:
     """The query answers and the figure answers, with their hashes and index, rebuilt from the artifact's checkout are
     the committed ones, file for file and byte for byte."""
-    connection = site_database.open_database(loading.load_artifact(artifact_checkout))
+    weekly_histograms = loading.load_trace_table(loading.TABLES_FOLDER)
+    connection = site_database.open_database(loading.load_artifact(artifact_checkout), weekly_histograms)
     answers.write_answers(connection, tmp_path)
     figure_answers.write_figure_answers(figure_answers.read_figure_tables(artifact_checkout), tmp_path)
     rebuilt = files_by_name(tmp_path / paths.ANSWERS_FOLDER)
