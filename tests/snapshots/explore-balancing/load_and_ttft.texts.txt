@@ -1,4 +1,4 @@
 title: Load and TTFT
 insight: P90 TTFT rises sharply once an instance exceeds a high tokens-per-second threshold.
 caption: The rise is sharpest for long-input requests: TTFT climbs once long-token requests land on heavily loaded instances.
-definition: Requests of DeepSeek-V3.2 binned into hexagons by their instance's load in tokens per second and their input tokens, each hexagon coloured by the 90th percentile of time to first token.
+definition: Requests of DeepSeek-V3.2 binned into cells of a log grid by their instance's load in tokens per second and their input tokens, each cell coloured by the 90th percentile of time to first token.

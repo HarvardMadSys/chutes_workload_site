@@ -8,7 +8,7 @@
  */
 
 import {
-  formatCompactCount, formatCount, formatCountTick, formatMinutesTick, formatPercentage, formatSecondsTick,
+  formatCompactCount, formatCount, formatCountTick, formatHoursTick, formatPercentage, formatSecondsTick,
   formatWholeCountTick,
 } from "../shared/format.js";
 import { frozenCard, TRACE_DAY_AXIS } from "./figure_card.js";
@@ -18,9 +18,9 @@ import { frozenCard, TRACE_DAY_AXIS } from "./figure_card.js";
 const HOURLY_GAP = 1.5 / 24;
 
 // The occupancy's x axis: the minutes of its 24-hour window, which starts at 17:00 UTC on day 317 of the trace,
-// labelled every sixth hour as the paper's, written as hours and minutes from its start.
+// labelled every sixth hour as the paper's, written as hours elapsed, "6 h", so that no tick reads as a clock time.
 const WINDOW_AXIS = Object.freeze({
-  label: "Time from day 317, 17:00 UTC", ticks: [0, 360, 720, 1080, 1440], tickFormat: formatMinutesTick,
+  label: "Hours into the window", ticks: [0, 360, 720, 1080, 1440], tickFormat: formatHoursTick,
 });
 
 // The instance load's axis of the two P90 grids, labelled every second power of ten as the paper's.
@@ -28,15 +28,17 @@ const INSTANCE_LOAD_AXIS = Object.freeze({
   label: "Instance load (tokens/s)", log: true, ticks: [10, 1e3, 1e5], tickFormat: formatWholeCountTick,
 });
 
-// The two panels of a user zoom whose request shares reach up to `requestShareTop` percent: per instance, the user's
-// share of the hour's requests, on the paper's 0 to `requestShareTop`, and its token hit ratio, on 0 to 100.
+// The two panels of a user zoom over `instances` instances whose request shares reach up to `requestShareTop` percent:
+// per instance, the user's share of the hour's requests, on the paper's 0 to `requestShareTop`, with a dashed rule at
+// an even split, 100 / `instances` percent, to read the bars against, and its token hit ratio, on 0 to 100.
 // placeholder: the panel titles are the paper's axis titles, for the authors to confirm.
-function userZoomPanels(requestShareTop) {
+function userZoomPanels(requestShareTop, instances) {
+  const evenSplit = { value: 100 / instances, label: "even split" };
   return [
     {
       panel: "request_share",
       title: "User request (%)",
-      chart: { y: { domain: [0, requestShareTop] }, valueLabel: "User request" },
+      chart: { y: { domain: [0, requestShareTop] }, reference: evenSplit, valueLabel: "User request" },
     },
     { panel: "token_hit", title: "Token hit (%)", chart: { y: { domain: [0, 100] }, valueLabel: "Token hit" } },
   ];
@@ -45,6 +47,11 @@ function userZoomPanels(requestShareTop) {
 // The request share's top on each zoom, as the paper sets it: 1.25 times the largest share, and at least 8.
 const HIGH_LOAD_SHARE_TOP = 11.5; // 1.25 × 9.2%
 const LOW_LOAD_SHARE_TOP = 34.5; // 1.25 × 27.6%
+
+// The instances each zoom's user sent requests to in its hour, a bar each in its answer: an even split of the user's
+// requests gives each 100 / instances percent, the level the request-share panel marks.
+const HIGH_LOAD_INSTANCES = 12;
+const LOW_LOAD_INSTANCES = 11;
 
 // The routing figure's eight series, a policy of the four for each of the two models, in the paper's legend order,
 // each in its policy's colour (`palette: "policies"`), whose legend lists each policy once for both models.
@@ -134,7 +141,8 @@ export const BALANCING_TOPIC = Object.freeze({
       chart: {
         x: TRACE_DAY_AXIS,
         gap: HOURLY_GAP,
-        y: { label: "Active instances" },
+        // From zero, so the last days' single instance does not lie on the axis, to past the most, 17.
+        y: { label: "Active instances", domain: [0, 18], ticks: [0, 5, 10, 15] },
         valueLabel: "Active instances",
         valueFormat: formatCount,
       },
@@ -150,7 +158,8 @@ export const BALANCING_TOPIC = Object.freeze({
       chart: {
         x: TRACE_DAY_AXIS,
         gap: HOURLY_GAP,
-        y: { label: "Max/mean token load" },
+        // From 1, where every instance carries the mean load, to past the highest hour's 2.07.
+        y: { label: "Max/mean token load", domain: [1, 2.1] },
         valueLabel: "Max/mean token load",
         valueFormat: formatCount,
       },
@@ -180,7 +189,8 @@ export const BALANCING_TOPIC = Object.freeze({
       // placeholder: the overview paragraph has no lead-in; this is its sentence on this panel.
       insight: "P90 TTFT rises sharply once an instance exceeds a high tokens-per-second threshold.",
       caption: "The rise is sharpest for long-input requests: TTFT climbs once long-token requests land on heavily loaded instances.",
-      definition: "Requests of DeepSeek-V3.2 binned into hexagons by their instance's load in tokens per second and their input tokens, each hexagon coloured by the 90th percentile of time to first token.",
+      // placeholder: "cells of a log grid", not "hexagons": the cells drawn are squares.
+      definition: "Requests of DeepSeek-V3.2 binned into cells of a log grid by their instance's load in tokens per second and their input tokens, each cell coloured by the 90th percentile of time to first token.",
       kind: "cells",
       chart: {
         x: INSTANCE_LOAD_AXIS,
@@ -188,6 +198,8 @@ export const BALANCING_TOPIC = Object.freeze({
         // The latency grids' scheme, its darkest values keeping their ink on either card; clipped as the paper's, to
         // the 5th and 95th percentiles of every request's TTFT.
         scheme: "YlOrRd",
+        // From a tenth along the scheme, so the lightest cells keep a tint on the card.
+        schemeStart: 0.1,
         colourDomain: [1.1, 13.6],
         valueLabel: "P90 TTFT",
         valueFormat: formatSecondsTick,
@@ -199,13 +211,16 @@ export const BALANCING_TOPIC = Object.freeze({
       // placeholder: the overview paragraph has no lead-in; this is its sentence on this panel.
       insight: "P90 decode time mainly follows output length and is largely insensitive to instance throughput.",
       caption: "Overload primarily affects prefill, making input-heavy traffic the most vulnerable to load imbalance.",
-      definition: "Requests of DeepSeek-V3.2 binned into hexagons by their instance's load in tokens per second and their output tokens, each hexagon coloured by the 90th percentile of decode time.",
+      // placeholder: "cells of a log grid", not "hexagons": the cells drawn are squares.
+      definition: "Requests of DeepSeek-V3.2 binned into cells of a log grid by their instance's load in tokens per second and their output tokens, each cell coloured by the 90th percentile of decode time.",
       kind: "cells",
       chart: {
         x: INSTANCE_LOAD_AXIS,
         y: { label: "Output tokens", log: true, tickFormat: formatWholeCountTick },
         // As the TTFT grid's, clipped to the 5th and 95th percentiles of every request's decode time.
         scheme: "YlOrRd",
+        // As the TTFT grid's, so the cells of the shortest outputs, near 0 s, stay visible.
+        schemeStart: 0.1,
         colourDomain: [0, 153],
         valueLabel: "P90 decode time",
         valueFormat: formatSecondsTick,
@@ -221,7 +236,7 @@ export const BALANCING_TOPIC = Object.freeze({
       definition: "The busiest hour of the busiest DeepSeek-V3.2 user with a high token hit ratio that hour: per instance, the user's share of requests and its token hit ratio.",
       kind: "bars",
       chart: { x: { label: "Instance index" }, valueFormat: formatPercentage },
-      panels: userZoomPanels(HIGH_LOAD_SHARE_TOP),
+      panels: userZoomPanels(HIGH_LOAD_SHARE_TOP, HIGH_LOAD_INSTANCES),
     }),
     frozenCard({
       figure: "fig_lb_user_zoom_min",
@@ -233,7 +248,7 @@ export const BALANCING_TOPIC = Object.freeze({
       definition: "The same for the least busy such user.",
       kind: "bars",
       chart: { x: { label: "Instance index" }, valueFormat: formatPercentage },
-      panels: userZoomPanels(LOW_LOAD_SHARE_TOP),
+      panels: userZoomPanels(LOW_LOAD_SHARE_TOP, LOW_LOAD_INSTANCES),
     }),
     frozenCard({
       figure: "fig_routing_tradeoff",

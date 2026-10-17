@@ -1,5 +1,5 @@
 name: Eviction algorithms on MiniMax-M2.5: Simple eviction policies are already highly competitive for LLM prefix caching.
 x-axis: 100k | 1M
-y-axis: 0.4 | 0.6 | 0.8
+y-axis: 0 | 0.2 | 0.4 | 0.6 | 0.8 | 1
 x-axis title: Cache size (tokens)
 y-axis title: Token hit ratio

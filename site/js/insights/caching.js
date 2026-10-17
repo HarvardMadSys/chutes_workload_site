@@ -7,7 +7,8 @@
  */
 
 import {
-  formatCount, formatCountTick, formatPercent, formatSeconds, formatSecondsTick, formatShare, formatWholeCountTick,
+  formatCount, formatCountTick, formatDurationTick, formatPercent, formatSeconds, formatSecondsTick, formatShare,
+  formatWholeCountTick,
 } from "../shared/format.js";
 import { HIGHLIGHTED_LABELS, HIGHLIGHTED_SERIES } from "../shared/series.js";
 import { COUNT_COLOUR, frozenCard, TRACE_MONTH_AXIS } from "./figure_card.js";
@@ -74,10 +75,16 @@ export const CACHING_TOPIC = Object.freeze({
       // placeholder: the paragraph's lead-in, "Model and user cacheability.", names a topic, not a claim.
       insight: "Request volume alone does not determine a model's reuse.",
       caption: "Several models with modest request volumes achieve high token hit ratios; they may benefit from a small set of users repeatedly accessing them with similar contexts.",
-      definition: "Each model placed by its request count and its average token hit ratio, binned into hexagons shaded by how many models fall in each.",
+      // placeholder: "cells of a log grid", not "hexagons": the cells drawn are squares.
+      definition: "Each model placed by its request count and its average token hit ratio, binned into cells of a log grid shaded by how many models fall in each.",
       kind: "cells",
       chart: {
-        x: { label: "Requests", log: true, tickFormat: formatWholeCountTick },
+        // From 100, the least requests of a model drawn (101), to past the most, 141M; every second decade labelled,
+        // the left edge among them, so that six labels do not run together on a phone.
+        x: {
+          label: "Requests", log: true, domain: [100, 2e8], ticks: [100, 1e4, 1e6, 1e8],
+          tickFormat: formatWholeCountTick,
+        },
         y: { ...HIT_RATIO_AXIS, label: "Average token hit ratio" },
         ...COUNT_COLOUR,
         valueLabel: "Models",
@@ -90,10 +97,16 @@ export const CACHING_TOPIC = Object.freeze({
       // placeholder: the paragraph's lead-in, "Model and user cacheability.", names a topic, not a claim.
       insight: "Most users exhibit little reuse, while a smaller group achieves high hit ratios.",
       caption: "The high-reuse users likely repeatedly access a limited set of models, with low inter-arrival times and proper context engineering.",
-      definition: "Each user placed by their request count and their average token hit ratio, binned into hexagons shaded by how many users fall in each.",
+      // placeholder: "cells of a log grid", not "hexagons": the cells drawn are squares.
+      definition: "Each user placed by their request count and their average token hit ratio, binned into cells of a log grid shaded by how many users fall in each.",
       kind: "cells",
       chart: {
-        x: { label: "Requests", log: true, tickFormat: formatWholeCountTick },
+        // From 10, the least requests of a user drawn (11), to past the most, 158M; labelled at every second decade from
+        // the left edge, 1k among them, where most users fall.
+        x: {
+          label: "Requests", log: true, domain: [10, 2e8], ticks: [10, 1e3, 1e5, 1e7],
+          tickFormat: formatWholeCountTick,
+        },
         y: { ...HIT_RATIO_AXIS, label: "Average token hit ratio" },
         ...COUNT_COLOUR,
         valueLabel: "Users",
@@ -129,6 +142,7 @@ export const CACHING_TOPIC = Object.freeze({
         x: { tickRotate: -25 },
         // From zero, as the paper's, to past the highest whisker, 538.8 s.
         y: { label: "Per-user median IAT", domain: [0, 560], tickFormat: formatSecondsTick },
+        // Room for the slanted names, which reach 67 px below the plot at any width: at 52 "DeepSeek V3.2" is cut off.
         margins: { marginBottom: 72 },
         labels: HIGHLIGHTED_LABELS,
         valueLabel: "Median IAT per user",
@@ -143,12 +157,17 @@ export const CACHING_TOPIC = Object.freeze({
       definition: "Share of requests that follow the previous request of the same user and model within this time, weighted by request: the reuse a cache time-to-live (TTL) of that length would cover.",
       kind: "lines",
       chart: {
-        // Seconds written as numbers, "0.001": the seconds' own format writes a millisecond as "0.00 s".
-        x: { label: "Time to live (s)", log: true, domain: [1e-3, 1e4], tickFormat: formatCount },
+        // Ticked at the thresholds the caption and the paper quote, about two decades apart, "1 ms" to "15 min".
+        x: {
+          label: "Time to live", log: true, domain: [1e-3, 1e4], ticks: [0.001, 0.1, 10, 900],
+          tickFormat: formatDurationTick,
+        },
         y: { label: "Request-weighted coverage", domain: [0, 1], tickFormat: formatPercent },
         valueLabel: "Requests covered",
         valueFormat: formatShare,
       },
+      // Wide, so the two eviction cards after it share a row, as the paper sets them side by side.
+      isWide: true,
     }),
     frozenCard({
       figure: "fig_hit_ratio_minimax_m25",
@@ -161,8 +180,11 @@ export const CACHING_TOPIC = Object.freeze({
       series: EVICTION_ALGORITHMS,
       chart: {
         x: { label: "Cache size (tokens)", log: true, tickFormat: formatCountTick },
-        y: { label: "Token hit ratio", tickFormat: formatCount },
+        // 0 to 1 on both eviction cards, so the pair compares at a glance and the axis's ends are labelled.
+        y: HIT_RATIO_AXIS,
         markers: true,
+        // LRB's line covers LRU's: the tooltip lists every algorithm at the hovered cache size.
+        tipAllSeries: true,
         dashed: ORACLE,
         valueLabel: "Token hit ratio",
         valueFormat: formatCount,
@@ -179,8 +201,11 @@ export const CACHING_TOPIC = Object.freeze({
       series: EVICTION_ALGORITHMS,
       chart: {
         x: { label: "Cache size (tokens)", log: true, tickFormat: formatCountTick },
-        y: { label: "Token hit ratio", tickFormat: formatCount },
+        // 0 to 1 on both eviction cards, so the pair compares at a glance and the axis's ends are labelled.
+        y: HIT_RATIO_AXIS,
         markers: true,
+        // LRB's line covers LRU's: the tooltip lists every algorithm at the hovered cache size.
+        tipAllSeries: true,
         dashed: ORACLE,
         valueLabel: "Token hit ratio",
         valueFormat: formatCount,

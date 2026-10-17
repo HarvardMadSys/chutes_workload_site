@@ -1,4 +1,4 @@
 title: Per-user cache profile
 insight: Most users exhibit little reuse, while a smaller group achieves high hit ratios.
 caption: The high-reuse users likely repeatedly access a limited set of models, with low inter-arrival times and proper context engineering.
-definition: Each user placed by their request count and their average token hit ratio, binned into hexagons shaded by how many users fall in each.
+definition: Each user placed by their request count and their average token hit ratio, binned into cells of a log grid shaded by how many users fall in each.

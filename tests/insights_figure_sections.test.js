@@ -26,9 +26,9 @@ const OPTIONAL_CARD_FIELDS = ["panels", "legend", "series", "palette", "isWide"]
 const SHARE_LEGEND = "fig_top10_model_monthly_share_legend";
 const SHARE_PANELS = ["fig_top10_model_monthly_request_share", "fig_top10_model_monthly_token_share"];
 
-// The wide cards, in the topics' order: the output-to-input ratio, so the latency cards after it pair in rows, and the
-// routing simulation's panels.
-const WIDE_CARDS = ["fig_output_input_ratio_cdf_by_model", "fig_routing_tradeoff"];
+// The wide cards, in the topics' order: the output-to-input ratio, so the latency cards after it pair in rows, the TTL
+// coverage, so the two eviction cards after it pair, and the routing simulation's panels.
+const WIDE_CARDS = ["fig_output_input_ratio_cdf_by_model", "fig_iat_pair_ttl_coverage", "fig_routing_tradeoff"];
 
 // Every card of every topic.
 function everyCard() {
@@ -81,7 +81,7 @@ test("every figure answer of the index is drawn once, but the share legend, whic
   }
 });
 
-test("only the two share cards name the legend, and only the output-to-input ratio and the routing are wide", () => {
+test("only the two share cards name the legend, and only the ratio, the TTL coverage and the routing are wide", () => {
   const withLegend = everyCard().filter((card) => card.legend !== undefined).map((card) => card.figure);
   assert.deepEqual(withLegend, SHARE_PANELS);
   const wide = everyCard().filter((card) => card.isWide === true).map((card) => card.figure);
