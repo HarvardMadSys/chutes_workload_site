@@ -8,8 +8,8 @@ takeaway of one sentence and at most thirty words under it (the
 paper's finding for the section in plain words), and its cards in
 groups, each group with a heading of at most six words and a takeaway
 of at most two sentences and forty words that says what the group's
-figures show and what it means for a serving system, and no other
-intro text; each card with a title, an insight of at most twenty words under
+figures show and, where the paper draws one, what it means for a serving
+system, and no other intro text; each card with a title, an insight of at most twenty words under
 the title, the figure's chart, a caption of at most forty words in at
 most three sentences under the chart, and behind a control its
 definition (at most sixty words in at most three sentences) and nothing
@@ -29,7 +29,7 @@ between topics, each topic a tab panel labelled by its tab.
 | 02 Request shape and latency (`#insights-tokens`) | Three model profiles: `fig_token_length_input_cdf_by_model`, `fig_token_length_output_cdf_by_model`, `fig_output_input_ratio_cdf_by_model` (a wide card) · Latency is mostly decode: `fig_latency_e2e_cdf_by_model`, `fig_prefill_fraction_cdf_by_model` · What drives latency: `fig_duration_p50_heatmap`, `fig_ttft_p50_heatmap_input_output`, `fig_ttft_heatmap_input_cached` |
 | 03 Users and models (`#insights-users`) | Same volume, different breadth: `fig_model_requests_vs_users_density`, `fig_user_requests_distinct_models_heatmap`, `fig_model_median_input_output_heatmap`, `fig_user_median_input_output_heatmap` · Access patterns: `fig_model_raster_qwen3_next_80b`, `fig_model_raster_gpt_oss_20b`, `fig_user_raster_periodic`, `fig_user_raster_explore` · Burstiness is persistent: `fig_model_heatmap_fixedxy_density`, `fig_model_heatmap_fixedxy_scatter_colored_metrics` |
 | 04 A year of change (`#insights-evolution`) | Dominant models turn over: `fig_top10_model_monthly_request_share` and `fig_top10_model_monthly_token_share`, each with its series in the order of `fig_top10_model_monthly_share_legend` · Inputs stay, outputs shrink: `fig_monthly_input_token_intervals`, `fig_monthly_output_token_intervals` · Newer users send more input: `fig_user_release_cohort_input_band`, `fig_user_release_cohort_output_band` |
-| 05 Prefix caching (`#insights-caching`) | Reuse is all or nothing: `fig_request_cached_fraction_cdf_by_input`, `fig_request_token_hit_rate_cdf_by_model`, `fig_model_nreq_vs_avg_hitratio_hexbin`, `fig_user_nreq_vs_avg_hitratio_hexbin` · Reuse comes back fast: `fig_iat_monthly_per_user_band`, `fig_per_user_iat_p50_by_model`, `fig_iat_pair_ttl_coverage` (a wide card) · Simple eviction is enough: `fig_hit_ratio_minimax_m25`, `fig_hit_ratio_deepseek_v32` |
+| 05 Prefix caching (`#insights-caching`) | Reuse is all or nothing: `fig_request_cached_fraction_cdf_by_input`, `fig_request_token_hit_rate_cdf_by_model`, `fig_model_nreq_vs_avg_hitratio_hexbin`, `fig_user_nreq_vs_avg_hitratio_hexbin` · Reuse comes back fast: `fig_iat_monthly_per_user_band`, `fig_per_user_iat_p50_by_model`, `fig_iat_pair_ttl_coverage` (a wide card) · Simple eviction holds up: `fig_hit_ratio_minimax_m25`, `fig_hit_ratio_deepseek_v32` |
 | 06 Load balancing (`#insights-balancing`) | Balanced on average, not every hour: `fig_lb_request_rate`, `fig_lb_active_instances`, `fig_lb_maxmean_tokens`, `fig_lb_concurrency`, `fig_lb_ttft_p90_vs_load`, `fig_lb_decode_p90_vs_load` · Locality against balance: `fig_lb_user_zoom_top` (two panels: request share, token hit), `fig_lb_user_zoom_min` (the same two panels) · Cache-aware routing: `fig_routing_tradeoff` (a wide card of eight panels in two rows, one row per model, four panels each) |
 
 Every file the artifact's `config/figures.json` lists SHALL be the

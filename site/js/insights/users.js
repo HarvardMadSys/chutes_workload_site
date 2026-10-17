@@ -145,7 +145,7 @@ export const USERS_TOPIC = Object.freeze({
     Object.freeze({
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
       heading: "Access patterns",
-      takeaway: "Some users stick to a few models or return on a schedule, others spread out or burst, and popular models see both.",
+      takeaway: "Some users stick to a few models or return on a schedule, others spread out or burst, and two popular models show one steady and one synchronised user pattern.",
       cards: Object.freeze([
         frozenCard({
           figure: "fig_model_raster_qwen3_next_80b",
@@ -214,7 +214,7 @@ export const USERS_TOPIC = Object.freeze({
     Object.freeze({
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
       heading: "Burstiness is persistent",
-      takeaway: "Most models arrive in bursts, and busy or quiet hours follow each other, so colocation and autoscaling can plan on it.",
+      takeaway: "Requests to most models come in bursts, and busy or quiet spells tend to last, so colocation and autoscaling can plan on it.",
       cards: Object.freeze([
         frozenCard({
           figure: "fig_model_heatmap_fixedxy_density",

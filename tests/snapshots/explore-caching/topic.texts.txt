@@ -5,10 +5,10 @@ tab: 04 A year of change | selected=false
 tab: 05 Prefix caching | selected=true
 tab: 06 Load balancing | selected=false
 heading: 05 Prefix caching
-takeaway: Cache reuse is common but uneven: a request reuses nearly all of its prefix or none, and most reuse returns within minutes, so simple eviction works.
+takeaway: Cache reuse is common but uneven: most requests reuse nearly all of their prefix or none, and most reuse returns within minutes, so simple eviction works.
 group: Reuse is all or nothing
 group: Reuse comes back fast
-group: Simple eviction is enough
-group takeaway: A request reuses nearly all of its prefix or none; DeepSeek's models mostly see none, MiniMax M2.5 a broad range, so cacheability follows the use case and the user base.
-group takeaway: Per-user inter-arrival times run to minutes and shorten over the year, and 99% of repeat requests to a model return within 15 minutes, so a short TTL keeps most reuse.
-group takeaway: FIFO and LRU match or beat newer policies; the gap to Belady is what session-aware caching could still win, more so on DeepSeek V3.2.
+group: Simple eviction holds up
+group takeaway: Most requests reuse nearly all of their prefix or none; the two DeepSeek models mostly see none, MiniMax M2.5 a broad range, so cacheability follows the use case and the user base.
+group takeaway: Per-user inter-arrival times stay at minutes and drop toward early 2026, and 99% of a user's repeat requests to the same model come within 15 minutes, so a short TTL keeps most reuse.
+group takeaway: FIFO and LRU often match or beat newer policies; the gap to Belady is what session-aware caching could still win, more so on DeepSeek V3.2.

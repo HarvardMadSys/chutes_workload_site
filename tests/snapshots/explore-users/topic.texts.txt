@@ -10,5 +10,5 @@ group: Same volume, different breadth
 group: Access patterns
 group: Burstiness is persistent
 group takeaway: Models and users with similar request counts differ by orders of magnitude in how many users or models they touch, and in their token shape.
-group takeaway: Some users stick to a few models or return on a schedule, others spread out or burst, and popular models see both.
-group takeaway: Most models arrive in bursts, and busy or quiet hours follow each other, so colocation and autoscaling can plan on it.
+group takeaway: Some users stick to a few models or return on a schedule, others spread out or burst, and two popular models show one steady and one synchronised user pattern.
+group takeaway: Requests to most models come in bursts, and busy or quiet spells tend to last, so colocation and autoscaling can plan on it.

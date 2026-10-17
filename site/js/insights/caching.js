@@ -31,7 +31,7 @@ const ORACLE = Object.freeze(["Belady (size-aware)"]);
 // The three highlighted models, without the global series: the boxes of the per-user IAT.
 const HIGHLIGHTED_MODELS = Object.freeze(HIGHLIGHTED_SERIES.filter((name) => name !== "Global"));
 
-// The top of the per-user IAT band card's linear y axis, in seconds: the 90th percentile passes it in the last months
+// The top of the per-user IAT band card's linear y axis, in seconds: the 90th percentile passes it from August on
 // and is cut off there, so that a linear axis shows the median's move, which a log axis hid.
 const IAT_CAP_SECONDS = 400;
 
@@ -39,12 +39,12 @@ const IAT_CAP_SECONDS = 400;
 export const CACHING_TOPIC = Object.freeze({
   selector: "#insights-caching",
   // placeholder: the takeaway is the paper's finding for the section in plain words, for the authors.
-  takeaway: "Cache reuse is common but uneven: a request reuses nearly all of its prefix or none, and most reuse returns within minutes, so simple eviction works.",
+  takeaway: "Cache reuse is common but uneven: most requests reuse nearly all of their prefix or none, and most reuse returns within minutes, so simple eviction works.",
   groups: Object.freeze([
     Object.freeze({
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
       heading: "Reuse is all or nothing",
-      takeaway: "A request reuses nearly all of its prefix or none; DeepSeek's models mostly see none, MiniMax M2.5 a broad range, so cacheability follows the use case and the user base.",
+      takeaway: "Most requests reuse nearly all of their prefix or none; the two DeepSeek models mostly see none, MiniMax M2.5 a broad range, so cacheability follows the use case and the user base.",
       cards: Object.freeze([
         frozenCard({
           figure: "fig_request_cached_fraction_cdf_by_input",
@@ -66,8 +66,8 @@ export const CACHING_TOPIC = Object.freeze({
           figure: "fig_request_token_hit_rate_cdf_by_model",
           title: "Model token hit ratio",
           insight: "Cache behavior differs sharply across models.",
-          // placeholder: "most" and "near-zero" as the answer shows, and what MiniMax-M2.5 is used for, are the site's.
-          caption: "Most requests to the two DeepSeek models have near-zero cache hits, while MiniMax-M2.5, used for coding and agents, shows a broader distribution, with many requests at intermediate to high hit ratios.",
+          // placeholder: "most" and "near-zero" as the answer shows, and the three models' uses, are the site's.
+          caption: "Most requests to DeepSeek R1 (reasoning) and V3.2 (general chat) have near-zero cache hits, while MiniMax-M2.5, used for coding and agents, shows a broader distribution, with many requests at intermediate to high hit ratios.",
           definition: "Share of requests whose token hit ratio is at most this value, over all requests and for the three highlighted models.",
           kind: "cdf",
           series: HIGHLIGHTED_SERIES,
@@ -129,7 +129,7 @@ export const CACHING_TOPIC = Object.freeze({
     Object.freeze({
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
       heading: "Reuse comes back fast",
-      takeaway: "Per-user inter-arrival times run to minutes and shorten over the year, and 99% of repeat requests to a model return within 15 minutes, so a short TTL keeps most reuse.",
+      takeaway: "Per-user inter-arrival times stay at minutes and drop toward early 2026, and 99% of a user's repeat requests to the same model come within 15 minutes, so a short TTL keeps most reuse.",
       cards: Object.freeze([
         frozenCard({
           figure: "fig_iat_monthly_per_user_band",
@@ -196,8 +196,8 @@ export const CACHING_TOPIC = Object.freeze({
     }),
     Object.freeze({
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
-      heading: "Simple eviction is enough",
-      takeaway: "FIFO and LRU match or beat newer policies; the gap to Belady is what session-aware caching could still win, more so on DeepSeek V3.2.",
+      heading: "Simple eviction holds up",
+      takeaway: "FIFO and LRU often match or beat newer policies; the gap to Belady is what session-aware caching could still win, more so on DeepSeek V3.2.",
       cards: Object.freeze([
         frozenCard({
           figure: "fig_hit_ratio_minimax_m25",

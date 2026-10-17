@@ -186,7 +186,7 @@ export const BALANCING_TOPIC = Object.freeze({
     Object.freeze({
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
       heading: "Locality against balance",
-      takeaway: "Under low load a user stays on one instance and keeps their cache; under high load the router spreads them and duplicates it.",
+      takeaway: "Under high load the router spreads a user over many instances and duplicates their cache; under low load it keeps most of their requests on one.",
       cards: Object.freeze([
         frozenCard({
           figure: "fig_lb_user_zoom_top",

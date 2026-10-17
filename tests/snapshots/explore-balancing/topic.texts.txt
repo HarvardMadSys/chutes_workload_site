@@ -10,5 +10,5 @@ group: Balanced on average, not every hour
 group: Locality against balance
 group: Cache-aware routing
 group takeaway: The fleet shrinks with token load, imbalance grows as it does, and the busiest instances pay in time to first token.
-group takeaway: Under low load a user stays on one instance and keeps their cache; under high load the router spreads them and duplicates it.
+group takeaway: Under high load the router spreads a user over many instances and duplicates their cache; under low load it keeps most of their requests on one.
 group takeaway: Larger caches raise hit ratios only when routing keeps a session together; the price is a few percent of imbalance.

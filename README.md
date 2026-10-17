@@ -50,7 +50,8 @@ The one page, `index.html`, holds, in order:
   (`#insights-balancing`). A topic opens with its takeaway, the paper's
   finding for its section in plain words, and holds its cards in groups,
   each a run of the paper's figures under a heading and a plain takeaway
-  of what they show together and what that means for a serving system.
+  of what they show together and, where the paper draws one, what that
+  means for a serving system.
   Each of the 47 cards draws one of the paper's figures in the browser
   from its plot-ready table, with the paper's axes, log scales and limits
   (but the per-user inter-arrival band card, on a linear axis to 400 s

@@ -26,13 +26,13 @@ const WEEKDAY_LABELS = Object.freeze(["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", 
 /** The topic "The workload at a glance". */
 export const OVERVIEW_TOPIC = Object.freeze({
   selector: "#insights-overview",
-  // placeholder: the takeaway is the paper's finding for the section in plain words, for the authors.
+  // placeholder: the takeaway is the section's closing conclusion in plain words, for the authors.
   takeaway: "Demand changes all year, in volume, in which models are active and in how the API is called; one request rate would not describe it.",
   groups: Object.freeze([
     Object.freeze({
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
       heading: "Demand over the year",
-      takeaway: "Requests and tokens rise through 2025 and fall into 2026, the set of active models swings, and chat overtakes completion calls.",
+      takeaway: "Requests and tokens rise to a peak in late 2025 and fall into 2026, the set of active models swings, and chat calls grow while completion calls fall back.",
       cards: Object.freeze([
         frozenCard({
           figure: "fig_request_rate_day",

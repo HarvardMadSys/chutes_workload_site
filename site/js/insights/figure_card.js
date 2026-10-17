@@ -11,7 +11,7 @@
  * while the legend lists them all); `legend`, the name of a legend answer, rows `{ series, rank }`, whose order the
  * card's series take; `series`, the names of the series drawn, in the order they are drawn and listed, the answer's
  * others left out (the stacked bars fold them into "Other"); `palette`, the colours its series take, a key of
- * `PALETTES` of `insights/card_series.js`, "series" when not given; `isWide` true for a card that takes its topic's
+ * `PALETTES` of `insights/card_series.js`, "series" when not given; `isWide` true for a card that takes its group's
  * width.
  *
  * A card's words are placed at once (`renderFigureCard`), its chart only when its topic is first shown

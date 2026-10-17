@@ -235,9 +235,9 @@ A topic's `selector` is its section in `index.html`; its `takeaway`, the
 paper's finding for its section in plain words, is one sentence of at
 most thirty words, written under its heading. A group's `heading` is at
 most six words, with no full stop; its `takeaway`, what its figures show
-and what that means for a serving system, is at most two sentences and
-forty words; its `cards` are in the paper's order. A topic module
-freezes the topic, each group and each `cards` list, and
+and, where the paper draws one, what that means for a serving system, is
+at most two sentences and forty words; its `cards` are in the paper's
+order. A topic module freezes the topic, each group and each `cards` list, and
 `topicCards(topic)` of `explore/figure_sections.js` lists a topic's
 cards group by group, the one way the tests list them.
 `tests/figure_words.test.js` counts these limits and a card's below;
@@ -279,7 +279,7 @@ the fields below, and of no other:
   slots, when not given; `"families"`, the ten, for more than eight;
   `"endpoints"`, the Overview's endpoint colours; `"policies"`, a colour
   per routing policy.
-- `isWide` (optional): true for a card that takes its topic's whole width.
+- `isWide` (optional): true for a card that takes its group's whole width.
 
 A line of words that is not the paper's own carries a `// placeholder:`
 comment above it, for the authors to review.

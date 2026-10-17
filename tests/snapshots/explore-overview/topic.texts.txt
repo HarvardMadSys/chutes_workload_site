@@ -8,5 +8,5 @@ heading: 01 The workload at a glance
 takeaway: Demand changes all year, in volume, in which models are active and in how the API is called; one request rate would not describe it.
 group: Demand over the year
 group: The weekly rhythm
-group takeaway: Requests and tokens rise through 2025 and fall into 2026, the set of active models swings, and chat overtakes completion calls.
+group takeaway: Requests and tokens rise to a peak in late 2025 and fall into 2026, the set of active models swings, and chat calls grow while completion calls fall back.
 group takeaway: Through all of it traffic keeps a weekly and daily cycle, busiest in UTC afternoons.

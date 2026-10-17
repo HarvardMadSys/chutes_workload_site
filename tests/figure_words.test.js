@@ -22,8 +22,9 @@ const MAX_CAPTION_WORDS = 40; // a caption gives evidence for the insight in up 
 const MAX_DEFINITION_WORDS = 60; // short sentences leave room to explain units and essential assumptions
 const MAX_TAKEAWAY_WORDS = 30; // a topic's takeaway is the paper's finding for its section, more than a lead-in
 const MAX_GROUP_HEADING_WORDS = 6; // a group's heading names what its figures show, at a glance
-const MAX_GROUP_TAKEAWAY_WORDS = 40; // a group's takeaway says what its figures show and what that means for serving
-const MAX_GROUP_TAKEAWAY_SENTENCES = 2; // the finding, and what it means
+// A group's takeaway says what its figures show and, where the paper draws one, what it means for a serving system.
+const MAX_GROUP_TAKEAWAY_WORDS = 40;
+const MAX_GROUP_TAKEAWAY_SENTENCES = 2; // what the figures show, then what it means where the paper draws one
 const MAX_SENTENCES = 3; // a caption's or a definition's sentences
 
 // The sentences of `text`, split at each sentence break.

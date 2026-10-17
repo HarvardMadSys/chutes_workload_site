@@ -43,8 +43,8 @@ function formatHitRatio(ratio) {
 /** The topic "Request shape and latency". */
 export const TOKENS_TOPIC = Object.freeze({
   selector: "#insights-tokens",
-  // placeholder: the takeaway is the paper's finding for the section in plain words, for the authors.
-  takeaway: "Requests are prompt-heavy and latency is mostly decode; the three highlighted models are slow for different reasons.",
+  // placeholder: the takeaway is the section's closing conclusion in plain words, for the authors.
+  takeaway: "Requests are often prompt-heavy and most latency is decode; the three highlighted models spend it differently, on long outputs or on long prompts.",
   groups: Object.freeze([
     Object.freeze({
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
@@ -100,7 +100,7 @@ export const TOKENS_TOPIC = Object.freeze({
           kind: "cdf",
           series: HIGHLIGHTED_SERIES,
           chart: {
-            // Every decade from 0.01, the card taking the topic's width; 0.001 is left out, since on a phone, where the
+            // Every decade from 0.01, the card taking its group's width; 0.001 is left out, since on a phone, where the
             // card is a column wide, its label runs into 0.01's.
             x: {
               label: "Output / input tokens", log: true, domain: [5e-4, 100], ticks: [0.01, 0.1, 1, 10, 100],
@@ -163,7 +163,7 @@ export const TOKENS_TOPIC = Object.freeze({
     Object.freeze({
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
       heading: "What drives latency",
-      takeaway: "Duration grows with output length, time to first token with input length, and caching cuts it only for long inputs.",
+      takeaway: "Duration grows with output length, time to first token with input length, and caching cuts it most for long inputs.",
       cards: Object.freeze([
         frozenCard({
           figure: "fig_duration_p50_heatmap",
