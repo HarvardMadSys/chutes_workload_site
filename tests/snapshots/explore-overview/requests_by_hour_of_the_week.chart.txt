@@ -1,5 +1,5 @@
 name: Requests by hour of the week: Weekly and diurnal patterns persist throughout.
-colour-legend: Average requests per week: 650k | 700k | 750k | 800k
+colour-legend: Average requests in the hour: 650k | 700k | 750k | 800k
 x-axis: 0 | 4 | 8 | 12 | 16 | 20
-y-axis: Mon | Tue | Wed | Thu | Fri | Sat | Sun
+y-axis: Sun | Mon | Tue | Wed | Thu | Fri | Sat
 x-axis title: Hour of the day (UTC)

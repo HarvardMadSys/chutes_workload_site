@@ -1,7 +1,8 @@
 // The Insights' cards drawn from their shipped answers, as the landing page's spec describes them: the value under the
 // pointer, a log axis, a raster, a hidden series of a CDF card, a CDF's straight lines, the hourly lines' gaps, the
-// routing card's rows of panels and its policy legend, a bands card's key, and the colour and the day and month axes
-// the cards share. Each reads a card as its topic lists it and its answer as the page reads it.
+// routing card's rows of panels and its policy legend, a bands card's key, the hit-ratio grid's all-cached row, and
+// the colour and the day and month axes the cards share. Each reads a card as its topic lists it and its answer as the
+// page reads it.
 
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -15,6 +16,7 @@ import {
   pooledGrid, rasterColourDomain, rasterGrid, rasterYDomain, rowBoundaries,
 } from "../site/js/charts/raster.js";
 import { axisTicks } from "../site/js/axes/ticks.js";
+import { cellTipText } from "../site/js/charts/cells.js";
 import { drawWithLegend, hasLegend } from "../site/js/explore/legend.js";
 import { cardColours, figureLegend } from "../site/js/insights/card_series.js";
 import {
@@ -62,11 +64,21 @@ test("the requests-per-day card's tooltip at day 120 gives the day with its date
   assert.match(requests, /^Requests: \d+(\.\d)?[kM]?$/);
 });
 
-test("the input-tokens card's x axis is logarithmic from 1 to 400,000 tokens, ticked in the site's format", () => {
+test("the input-tokens card's x axis is logarithmic from 10 to 1,000,000 tokens, ticked 100 to 100k", () => {
   const { x: xAxis } = chartParameters(cardOf("fig_token_length_input_cdf_by_model"));
   assert.equal(xAxis.log, true);
-  assert.deepEqual(xAxis.domain, [1, 400000]);
-  assert.deepEqual(axisTicks(xAxis, []).map(xAxis.tickFormat), ["1", "100", "10k"]);
+  assert.deepEqual(xAxis.domain, [10, 1000000]);
+  assert.deepEqual(axisTicks(xAxis, []).map(xAxis.tickFormat), ["100", "1k", "10k", "100k"]);
+});
+
+test("the hit-ratio grid labels its all-cached top row 100% at its centre, and its tooltip says 100% once", () => {
+  const card = cardOf("fig_ttft_heatmap_input_cached");
+  const parameters = chartParameters(card);
+  const { y: yAxis } = parameters;
+  assert.deepEqual(axisTicks(yAxis, []).map(yAxis.tickFormat), ["0%", "20%", "40%", "60%", "80%", "100%"]);
+  const allCached = shippedAnswer(card.figure).find((cell) => cell.y_low === 1);
+  assert.equal(yAxis.ticks.at(-1), (allCached.y_low + allCached.y_high) / 2);
+  assert.equal(cellTipText(allCached, parameters).split("\n")[1], "Token hit ratio: 100%");
 });
 
 test("the Qwen3-Next-80B raster shades each user row's hours by requests, days on x, pooled past its pixels", () => {
@@ -247,14 +259,14 @@ test("the routing card's legend lists each policy once, and hiding Sticky hides 
   assert.deepEqual(after, before.filter((point) => !isSticky(point)));
 });
 
-test("the input-tokens card's tooltip names no point past its axis's 400,000 tokens", () => {
+test("the input-tokens card's tooltip names no point outside its axis's 10 to 1,000,000 tokens", () => {
   const card = cardOf("fig_token_length_input_cdf_by_model");
   const rows = shippedAnswer(card.figure);
   const parameters = chartParameters(card);
   const drawn = drawnPoints(rows, cardColours(card, rows, null), parameters, new Set());
   const tipped = framedPoints(drawn, parameters.x, lineYAxis(parameters), "cdf");
-  assert.ok(drawn.some((point) => point.x > 400000), "the answer runs past the axis");
-  assert.ok(tipped.length > 0 && tipped.every((point) => point.x >= 1 && point.x <= 400000));
+  assert.ok(drawn.some((point) => point.x < 10 || point.x > 1000000), "the answer runs past the axis");
+  assert.ok(tipped.length > 0 && tipped.every((point) => point.x >= 10 && point.x <= 1000000));
 });
 
 test("the two user zooms have no legend: each of their panels holds one series, which its title names", () => {

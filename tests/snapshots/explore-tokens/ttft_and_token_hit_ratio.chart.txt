@@ -1,6 +1,6 @@
 name: TTFT and token hit ratio: Caching cuts TTFT most aggressively on long-input requests.
 colour-legend: Median TTFT: 1 s | 2 s | 3 s | 4 s
 x-axis: 0 | 10k | 20k | 30k
-y-axis: 0 | 0.2 | 0.4 | 0.6 | 0.8 | 1
+y-axis: 0% | 20% | 40% | 60% | 80% | 100%
 x-axis title: Input tokens
 y-axis title: Token hit ratio

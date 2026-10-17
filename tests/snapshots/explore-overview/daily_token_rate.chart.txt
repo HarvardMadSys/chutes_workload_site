@@ -1,5 +1,5 @@
 name: Daily token rate: Similar request volumes can represent different amounts of serving work.
 x-axis: 0 | 100 | 200 | 300
-y-axis: 50B | 100B | 150B | 200B
+y-axis: 0 | 50B | 100B | 150B | 200B
 x-axis title: Day of the trace (0 = Apr 11, 2025)
 y-axis title: Tokens per day

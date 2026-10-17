@@ -7,7 +7,7 @@
  */
 
 import {
-  formatCount, formatCountTick, formatPercent, formatSeconds, formatSecondsTick, formatShare, formatThousandsTick,
+  formatCountTick, formatPercent, formatSeconds, formatSecondsTick, formatShare, formatSignificant, formatThousandsTick,
   formatWholeCount,
 } from "../shared/format.js";
 import { HIGHLIGHTED_LABELS, HIGHLIGHTED_SERIES } from "../shared/series.js";
@@ -22,11 +22,23 @@ const OUTPUT_DOMAIN = Object.freeze([0, 8200]);
 
 // The hit-ratio grid's extent: its top row, 1.0 to 1.1, holds the requests whose input was all served from the cache.
 const HIT_RATIO_DOMAIN = Object.freeze([0, 1.1]);
-const HIT_RATIO_TICKS = Object.freeze([0, 0.2, 0.4, 0.6, 0.8, 1]);
+// The hit-ratio grid's ticks: every fifth of the ratio, the last, 1.05, at the centre of the all-cached top row.
+const HIT_RATIO_TICKS = Object.freeze([0, 0.2, 0.4, 0.6, 0.8, 1.05]);
+
+// The grids' height in pixels: the paper's grids are near-square, and the duration and TTFT grids share a row.
+const GRID_HEIGHT = 320;
 
 // How the latency grids write seconds: the cells kind gives their colour legend's ticks and their tooltips one format,
 // and the ticks' "50 s" reads better there than "50.0 s".
 const GRID_SECONDS = formatSecondsTick;
+
+/**
+ * A token hit ratio as the hit-ratio grid's axis writes it, a percentage, any ratio above one as "100%": the grid's top
+ * row, 1.0 to 1.1, holds the requests whose whole input was cached, so it is labelled "100%" at its centre, 1.05.
+ */
+function formatHitRatio(ratio) {
+  return formatPercent(Math.min(ratio, 1));
+}
 
 /** The Token shape and latency topic. */
 export const TOKENS_TOPIC = Object.freeze({
@@ -43,8 +55,11 @@ export const TOKENS_TOPIC = Object.freeze({
       kind: "cdf",
       series: HIGHLIGHTED_SERIES,
       chart: {
-        // Every second power of ten: every one crowds a phone's axis ("10k100k").
-        x: { label: "Input tokens", log: true, domain: [1, 4e5], ticks: [1, 100, 1e4], tickFormat: formatCountTick },
+        // From 10, under which fewer than 1% of requests fall, to 1M, past every series' 99th percentile; the decades
+        // from 100 to 100k are ticked, the axis's ends left bare so a phone's labels do not meet its neighbours'.
+        x: {
+          label: "Input tokens", log: true, domain: [10, 1e6], ticks: [100, 1e3, 1e4, 1e5], tickFormat: formatCountTick,
+        },
         y: SHARE_OF_REQUESTS,
         dashed: ["Global"],
         labels: HIGHLIGHTED_LABELS,
@@ -79,16 +94,21 @@ export const TOKENS_TOPIC = Object.freeze({
       kind: "cdf",
       series: HIGHLIGHTED_SERIES,
       chart: {
-        // Every second power of ten, as the paper labels them: every one crowds a phone's axis.
+        // Every decade from 0.01, the card taking the topic's width; 0.001 is left out, since on a phone, where the card
+        // is a column wide, its label runs into 0.01's.
         x: {
-          label: "Output / input tokens", log: true, domain: [5e-4, 100], ticks: [0.01, 1, 100], tickFormat: String,
+          label: "Output / input tokens", log: true, domain: [5e-4, 100], ticks: [0.01, 0.1, 1, 10, 100],
+          tickFormat: String,
         },
         y: SHARE_OF_REQUESTS,
         dashed: ["Global"],
         labels: HIGHLIGHTED_LABELS,
         valueLabel: "Ratio",
-        valueFormat: formatCount,
+        // Two significant figures, so a ratio well under one reads "0.0047", not "0".
+        valueFormat: formatSignificant,
       },
+      // Wide, so the latency CDFs and then the two latency grids each share a row, as the paper sets them side by side.
+      isWide: true,
     }),
     frozenCard({
       figure: "fig_latency_e2e_cdf_by_model",
@@ -135,6 +155,7 @@ export const TOKENS_TOPIC = Object.freeze({
       chart: {
         x: { label: "Input tokens", domain: INPUT_DOMAIN, tickFormat: formatThousandsTick },
         y: { label: "Output tokens", domain: OUTPUT_DOMAIN, tickFormat: formatCountTick },
+        height: GRID_HEIGHT,
         scheme: "YlOrRd",
         valueLabel: "Median duration",
         valueFormat: GRID_SECONDS,
@@ -151,6 +172,7 @@ export const TOKENS_TOPIC = Object.freeze({
       chart: {
         x: { label: "Input tokens", domain: INPUT_DOMAIN, tickFormat: formatThousandsTick },
         y: { label: "Output tokens", domain: OUTPUT_DOMAIN, tickFormat: formatCountTick },
+        height: GRID_HEIGHT,
         scheme: "YlOrRd",
         valueLabel: "Median TTFT",
         valueFormat: GRID_SECONDS,
@@ -166,7 +188,8 @@ export const TOKENS_TOPIC = Object.freeze({
       kind: "cells",
       chart: {
         x: { label: "Input tokens", domain: INPUT_DOMAIN, tickFormat: formatThousandsTick },
-        y: { label: "Token hit ratio", domain: HIT_RATIO_DOMAIN, ticks: HIT_RATIO_TICKS, tickFormat: String },
+        y: { label: "Token hit ratio", domain: HIT_RATIO_DOMAIN, ticks: HIT_RATIO_TICKS, tickFormat: formatHitRatio },
+        height: GRID_HEIGHT,
         scheme: "YlOrRd",
         valueLabel: "Median TTFT",
         valueFormat: GRID_SECONDS,

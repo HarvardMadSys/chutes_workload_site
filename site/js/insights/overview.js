@@ -19,8 +19,9 @@ const FUNCTION_LABELS = Object.freeze({
 const HOURS = Object.freeze(Array.from({ length: 24 }, (unused, hour) => hour));
 const LABELLED_HOURS = Object.freeze([0, 4, 8, 12, 16, 20]);
 
-// The seasonality's rows' labels, in the order of its `y_low` 0..6, as the paper labels them.
-const WEEKDAY_LABELS = Object.freeze(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]);
+// The seasonality's rows' labels, in the order of its `y_low` 0..6: the row i holds the weekday DuckDB's `dayofweek`
+// numbers i, 0 being Sunday, as the artifact README defines the rows.
+const WEEKDAY_LABELS = Object.freeze(["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]);
 
 /** The Workload overview topic. */
 export const OVERVIEW_TOPIC = Object.freeze({
@@ -37,7 +38,8 @@ export const OVERVIEW_TOPIC = Object.freeze({
       kind: "lines",
       chart: {
         x: TRACE_DAY_AXIS,
-        y: { label: "Requests per day", tickFormat: formatCountTick },
+        // From zero, so the caption's growth reads at its true ratio; the busiest day, 34.9M, sits under the top.
+        y: { label: "Requests per day", domain: [0, 36e6], tickFormat: formatCountTick },
         valueLabel: "Requests",
         valueFormat: formatCompactCount,
       },
@@ -52,7 +54,8 @@ export const OVERVIEW_TOPIC = Object.freeze({
       kind: "lines",
       chart: {
         x: TRACE_DAY_AXIS,
-        y: { label: "Tokens per day", tickFormat: formatCountTick },
+        // From zero, as the request rate's beside it; the busiest day, 218B tokens, sits under the top.
+        y: { label: "Tokens per day", domain: [0, 225e9], tickFormat: formatCountTick },
         valueLabel: "Tokens",
         valueFormat: formatCompactCount,
       },
@@ -66,7 +69,8 @@ export const OVERVIEW_TOPIC = Object.freeze({
       kind: "lines",
       chart: {
         x: TRACE_DAY_AXIS,
-        y: { label: "Active models" },
+        // From zero, so the caption's rise from under 100 to over 400 reads as the fourfold it is; the most, 422, fits.
+        y: { label: "Active models", domain: [0, 450] },
         valueLabel: "Models",
         valueFormat: formatCount,
       },
@@ -100,11 +104,12 @@ export const OVERVIEW_TOPIC = Object.freeze({
       chart: {
         x: { label: "Hour of the day (UTC)", ticks: LABELLED_HOURS },
         xTicks: HOURS,
-        // Reversed, so the first row, labelled Mon, is at the top, as the paper draws it.
+        // Reversed, so the first row, Sunday, is at the top.
         y: { domain: [7, 0] },
         yTicks: WEEKDAY_LABELS,
         scheme: "YlOrRd",
-        valueLabel: "Average requests per week",
+        // A cell's value is one hour's average, so the colour legend and the tooltip name it so.
+        valueLabel: "Average requests in the hour",
         valueFormat: formatCountTick,
       },
     }),
