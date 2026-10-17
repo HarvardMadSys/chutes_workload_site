@@ -163,13 +163,14 @@ export function chartName(body) {
 const CHART_SVG = 'svg:not(svg svg):not([class$="-ramp"])';
 
 /**
- * Name every chart drawn in a figure's `body` for a screen reader, as one image named by `chartName`, its colour legend
- * left out; called after each drawing, since a drawing replaces the chart. A body holding a note has no chart to name.
+ * Name every chart drawn in `body` for a screen reader, as one image named `name`, or by `chartName` where no name is
+ * given (a figure's body), its colour legend left out; called after each drawing, since a drawing replaces the chart. A
+ * body holding a note has no chart to name.
  */
-export function nameChart(body) {
+export function nameChart(body, name = null) {
   for (const chart of body.querySelectorAll(CHART_SVG)) {
     chart.setAttribute("role", "img");
-    chart.setAttribute("aria-label", chartName(body));
+    chart.setAttribute("aria-label", name ?? chartName(body));
   }
 }
 

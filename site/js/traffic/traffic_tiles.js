@@ -3,10 +3,12 @@
  * their average TTFT with the share of them that record it, and under each average its p50 and p90 once the
  * distributions have arrived. They take a summary as `trafficSummary` of `traffic/traffic_filter.js` gives it,
  * `{ requests, inputAverage, outputAverage, ttftAverage, ttftShare }`, and percentiles as `choicePercentiles` of
- * `traffic/traffic_distributions.js` gives them, and do not change with the metric the bars stack.
+ * `traffic/traffic_distributions.js` gives them, and do not change with the metric the bars stack. Each tile is a
+ * `<li>` holding its text, and the three averages' tiles under it the place of their value's distribution chart,
+ * which `traffic/traffic_tile_charts.js` draws into; the texts are written without touching the charts.
  */
 
-import { textElement } from "../shared/charts.js";
+import { showLoading, textElement } from "../shared/charts.js";
 import {
   formatCompactCount, formatPercent, formatSeconds, formatSignificant, formatSignificantSeconds, formatWholeCount,
   MISSING_TEXT,
@@ -18,6 +20,15 @@ export const NO_PERCENTILES = Object.freeze({ input: null, output: null, ttft: n
 
 // The note under an average while its percentiles have not arrived.
 const PERCENTILES_LOADING_NOTE = "…";
+
+// The tiles in the order of `tileTexts`, each by its `data-tile` name, and whether it holds a chart of its value's
+// distribution: the requests' tile has none, as a request has no value to distribute.
+const TILES = Object.freeze([
+  Object.freeze({ name: "requests", hasChart: false }),
+  Object.freeze({ name: "input", hasChart: true }),
+  Object.freeze({ name: "output", hasChart: true }),
+  Object.freeze({ name: "ttft", hasChart: true }),
+]);
 
 /**
  * The four tiles' text for `summary` (as `trafficSummary` gives it) and `percentiles`: `[{ label, value, notes }]`,
@@ -49,20 +60,43 @@ export function tileTexts(summary, percentiles) {
 }
 
 /**
- * Fill `list`, a `<ul>`, with one tile per entry of `tileTexts(summary, percentiles)`: its value, its label and its
- * notes, each on a line of its own.
+ * Fill `list`, a `<ul>`, with the four tiles, each an `<li>` named by its `data-tile` ("requests", "input", "output",
+ * "ttft") holding an empty `div.tile-text`, and the input, output and TTFT tiles under it a `div.tile-chart`, each
+ * showing the loading state; return the three chart places in that order, `[input, output, ttft]`. Called once,
+ * before `renderTiles`.
  */
-export function renderTiles(list, summary, percentiles) {
+export function placeTiles(list) {
   const tiles = [];
-  for (const { label, value, notes } of tileTexts(summary, percentiles)) {
+  const chartPlaces = [];
+  for (const { name, hasChart } of TILES) {
     const tile = document.createElement("li");
-    tile.append(textElement("strong", "", value), textElement("span", "", label));
-    for (const note of notes) {
-      tile.append(textElement("span", "tile-note", note));
+    tile.setAttribute("data-tile", name);
+    tile.append(textElement("div", "tile-text", ""));
+    if (hasChart) {
+      // The place is a figure's body, so the chart is drawn, counted and styled as every other chart is.
+      const place = textElement("div", "tile-chart figure-body", "");
+      showLoading(place);
+      tile.append(place);
+      chartPlaces.push(place);
     }
     tiles.push(tile);
   }
   list.replaceChildren(...tiles);
+  return chartPlaces;
+}
+
+/**
+ * Write into each tile's `div.tile-text` of `list` (as `placeTiles` laid it out) its entry of `tileTexts(summary,
+ * percentiles)`: its value, its label and its notes, each on a line of its own. The tiles' charts are left as they are.
+ */
+export function renderTiles(list, summary, percentiles) {
+  for (const [index, { label, value, notes }] of tileTexts(summary, percentiles).entries()) {
+    const text = list.children[index].children[0]; // the tile's text comes first, before its chart
+    text.replaceChildren(textElement("strong", "", value), textElement("span", "", label));
+    for (const note of notes) {
+      text.append(textElement("span", "tile-note", note));
+    }
+  }
 }
 
 // An average written by `format`, or "—" where there is none.

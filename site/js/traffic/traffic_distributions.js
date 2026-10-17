@@ -20,7 +20,6 @@ export const BINS_PER_DOUBLING = 4;
 
 // A trace week is seven trace days, the trace's first week starting on its first day.
 const DAYS_PER_WEEK = 7;
-const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 
 // The characters of a calendar day, "YYYY-MM-DD".
 const DAY_LENGTH = "YYYY-MM-DD".length;
@@ -65,17 +64,6 @@ export function histogramRowsInChoice(rows, choice) {
     }
   }
   return kept;
-}
-
-/**
- * The days the trace weeks holding a day of `choice`'s range span, `{ firstDay, lastDay }`, the weeks counted from
- * `firstTraceDay`: the first day of the week holding `from` (the trace's first day for ""), and the last day of the
- * week holding `to` (`lastTraceDay` for ""), clipped to `lastTraceDay`. They follow from the range alone.
- */
-export function coveredDays(choice, firstTraceDay, lastTraceDay) {
-  const firstDay = weekFirstDay(choice.from === "" ? firstTraceDay : choice.from, firstTraceDay);
-  const lastDay = weekLastDay(weekFirstDay(choice.to === "" ? lastTraceDay : choice.to, firstTraceDay));
-  return { firstDay, lastDay: lastDay > lastTraceDay ? lastTraceDay : lastDay };
 }
 
 /**
@@ -180,13 +168,6 @@ export function choicePercentiles(rows) {
  */
 export function percentileText(value, format = formatSignificant) {
   return value === null ? MISSING_TEXT : `${NEAR}${format(value)}`;
-}
-
-// The first day of the trace week holding `day`, the weeks being seven days each from `firstTraceDay`.
-function weekFirstDay(day, firstTraceDay) {
-  const sinceFirstDay = Date.parse(`${day}T00:00:00Z`) - Date.parse(`${firstTraceDay}T00:00:00Z`);
-  const daysAfterFirst = Math.round(sinceFirstDay / MILLISECONDS_PER_DAY);
-  return addDays(firstTraceDay, DAYS_PER_WEEK * Math.floor(daysAfterFirst / DAYS_PER_WEEK));
 }
 
 // The day `count` days after `day` ("YYYY-MM-DD"), counted in UTC, as the trace's days are.

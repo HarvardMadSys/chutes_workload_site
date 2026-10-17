@@ -1,16 +1,16 @@
 /**
  * The Traffic Explorer: a row of controls (a family drop-down, a model drop-down, an endpoint drop-down, a metric
  * drop-down, period buttons) over one wide card of four tiles (`traffic/traffic_tiles.js`), the chosen metric per day
- * as stacked bars with their legend (`traffic/traffic_bars.js`), under the bars the day range's slider
- * (`traffic/traffic_range.js`), and under it three distribution cards (`traffic/traffic_distribution_cards.js`), whose
- * series the bars' legend hides and shows with the bars'.
+ * as stacked bars with their legend (`traffic/traffic_bars.js`) and under the bars the day range's slider
+ * (`traffic/traffic_range.js`). The input tokens, output tokens and TTFT tiles hold the distributions of their values
+ * (`traffic/traffic_tile_charts.js`), whose series the bars' legend hides and shows with the bars'.
  *
  * Its rows come from the `explore/daily_by_family` answer, read once, and from a family's
  * `explore/daily_by_model/<family_slug>` answer, read the first time the family is chosen and kept for the visit. The
  * families take their colours in the order of their requests, a family's models in the order of theirs, and the
  * endpoint groups from the Overview's order (`context.orders`). A change filters the rows once
  * (`traffic/traffic_filter.js`, which defines the choice) and draws the tiles and bars again; so does the slider as it
- * moves. Once the bars are drawn, the cards and the tiles' percentiles are drawn from the histogram answer, read and
+ * moves. Once the bars are drawn, the tiles' charts and percentiles are drawn from the histogram answer, read and
  * kept as the daily ones are. The controls keep the choice in the URL (`traffic/traffic_controls.js`).
  */
 
@@ -18,15 +18,13 @@ import { readAnswer } from "../shared/answers.js";
 import { distinct, showError, showErrorNote, showLoading } from "../shared/charts.js";
 import { drawBars } from "./traffic_bars.js";
 import { mountTrafficControls } from "./traffic_controls.js";
-import {
-  drawDistributionCards, drawDistributionCurves, placeDistributionCards, showCardsError, showCardsLoading,
-} from "./traffic_distribution_cards.js";
-import { choicePercentiles, coveredDays, histogramRowsInChoice } from "./traffic_distributions.js";
+import { choicePercentiles, histogramRowsInChoice } from "./traffic_distributions.js";
 import {
   familyChoices, familyOrder, isSameChoice, modelChoices, modelOrder, rowsInChoice, trafficSummary,
 } from "./traffic_filter.js";
 import { mountRange } from "./traffic_range.js";
-import { NO_PERCENTILES, renderTiles } from "./traffic_tiles.js";
+import { drawTileCharts, drawTileCurves, showChartsError, showChartsLoading } from "./traffic_tile_charts.js";
+import { NO_PERCENTILES, placeTiles, renderTiles } from "./traffic_tiles.js";
 
 // The answers the explorer draws from: one row per calendar day, family and endpoint group; and, per family, the
 // folder of its rows per calendar day, model and endpoint group, each family's file named by its slug.
@@ -55,9 +53,8 @@ async function drawExplorer(container, context) {
     tiles: document.createElement("ul"),
     figure: document.createElement("div"),
     rangeRow: document.createElement("div"),
-    cardGrid: document.createElement("div"),
-    cardPlaces: [], // the places of the three distribution cards, once placed in the grid
-    distributions: null, // the distribution cards drawn last, which the legend draws again; null while they load
+    chartPlaces: [], // the places of the input, output and TTFT tiles' charts, once the tiles are placed
+    tileCharts: null, // the tiles' charts drawn last, which the legend draws again; null while they load
     hidden: new Set(), // the series the legend hides, kept while the choice keeps its family and model
     summary: null, // the tiles' numbers drawn last, which an error leaves without their percentiles
     sliders: null, // the sliders' `{ show }`, once placed
@@ -129,8 +126,7 @@ async function readFamilyAnswer(view, family) {
   return { name, rows, models: modelChoices(rows, name) };
 }
 
-// The wide card: the tiles above the figure, the day range's slider under it, and the distribution cards' grid under
-// them.
+// The wide card: the tiles, with their charts' places, above the figure, and the day range's slider under it.
 function explorerCard(view) {
   const card = document.createElement("article");
   card.className = "card traffic-card";
@@ -138,9 +134,8 @@ function explorerCard(view) {
   view.tiles.setAttribute("aria-label", "The chosen requests in numbers");
   view.figure.className = "traffic-bars";
   view.rangeRow.className = "traffic-range";
-  view.cardGrid.className = "card-grid distribution-grid";
-  view.cardPlaces = placeDistributionCards(view.cardGrid);
-  card.append(view.tiles, view.figure, view.rangeRow, view.cardGrid);
+  view.chartPlaces = placeTiles(view.tiles);
+  card.append(view.tiles, view.figure, view.rangeRow);
   return card;
 }
 
@@ -156,12 +151,12 @@ function drawChange(view, choice) {
   drawChoice(view, choice).catch((error) => showChoiceError(view, error));
 }
 
-// The choice could not be drawn: `error` in the bars' place and in each distribution card's, logged once, and the
-// tiles drawn last left without percentile notes, so nothing keeps loading or shows an earlier choice.
+// The choice could not be drawn: `error` in the bars' place and in each tile chart's, logged once, and the tiles drawn
+// last left without percentile notes, so nothing keeps loading or shows an earlier choice.
 function showChoiceError(view, error) {
-  view.distributions = null;
+  view.tileCharts = null;
   showErrorNote(view.figure, error);
-  showCardsError(view.cardPlaces, error);
+  showChartsError(view.chartPlaces, error);
   if (view.summary !== null) {
     renderTiles(view.tiles, view.summary, NO_PERCENTILES);
   }
@@ -192,16 +187,16 @@ async function drawChoice(view, choice) {
   await drawDistributions(view, choice, { ...drawn, summary });
 }
 
-// The distribution cards and the tiles' percentiles of `choice`, once its bars are `drawn` (`{ series, legend,
-// summary }`), from its histogram answer, the cards loading while it is read. A choice the explorer has moved on from,
-// before or while the answer is read, touches nothing; a failed read shows its error in the cards and leaves the tiles
-// without percentiles.
+// The tiles' charts and percentiles of `choice`, once its bars are `drawn` (`{ series, legend, summary }`), from its
+// histogram answer, the charts loading while it is read. A choice the explorer has moved on from, before or while the
+// answer is read, touches nothing; a failed read shows its error in the charts and leaves the tiles without
+// percentiles.
 async function drawDistributions(view, choice, drawn) {
   if (!isSameChoice(view.choice, choice)) {
     return;
   }
-  view.distributions = null;
-  showCardsLoading(view.cardPlaces);
+  view.tileCharts = null;
+  showChartsLoading(view.chartPlaces);
   try {
     const answer = await histogramAnswer(view, choice.family);
     if (isSameChoice(view.choice, choice)) {
@@ -209,29 +204,28 @@ async function drawDistributions(view, choice, drawn) {
     }
   } catch (error) {
     if (isSameChoice(view.choice, choice)) {
-      showCardsError(view.cardPlaces, error);
+      showChartsError(view.chartPlaces, error);
       renderTiles(view.tiles, drawn.summary, NO_PERCENTILES);
     }
   }
 }
 
-// Draw the tiles' percentiles and the distribution cards of `choice` from `answer`, the rows of its histogram answer.
+// Draw the tiles' percentiles and charts of `choice` from `answer`, the rows of its histogram answer.
 async function drawHistograms(view, choice, drawn, answer) {
   const rows = histogramRowsInChoice(answer, choice);
   renderTiles(view.tiles, drawn.summary, choicePercentiles(rows));
-  const covered = coveredDays(choice, view.days[0], view.days.at(-1));
-  const distributions = { rows, covered, series: drawn.series, legend: drawn.legend };
-  const drawnCards = await drawDistributionCards(view.cardPlaces, distributions, view.hidden);
+  const distributions = { rows, series: drawn.series, legend: drawn.legend };
+  const tileCharts = await drawTileCharts(view.chartPlaces, distributions, view.hidden);
   if (isSameChoice(view.choice, choice)) {
-    view.distributions = drawnCards;
+    view.tileCharts = tileCharts;
   }
 }
 
-// The legend hid or showed a series: keep its `hidden` set for the choices that follow, and draw the distribution
-// cards' lines again where they are drawn.
+// The legend hid or showed a series: keep its `hidden` set for the choices that follow, and draw the tiles' charts'
+// lines again where they are drawn.
 function followLegend(view, hidden) {
   view.hidden = hidden;
-  if (view.distributions !== null) {
-    drawDistributionCurves(view.distributions, hidden);
+  if (view.tileCharts !== null) {
+    drawTileCurves(view.tileCharts, hidden);
   }
 }

@@ -95,8 +95,8 @@ test("the explorer loads until the URL's family is read; a family that cannot be
     assert.deepEqual(figure.children.map((child) => [child.className, child.textContent]), [
       ["note is-error", "Could not fetch kin"],
     ]);
-    const cards = card.children[3].children.map((place) => place.children[0].className);
-    assert.deepEqual(cards, ["note is-error", "note is-error", "note is-error"], "no card loads for ever");
+    const charts = explorerParts(page.container).chartPlaces.map((place) => place.children[0].className);
+    assert.deepEqual(charts, ["note is-error", "note is-error", "note is-error"], "no tile chart loads for ever");
   });
 
 test("choosing a family not read before shows the chart loading until its answer arrives", async (context) => {
@@ -123,19 +123,27 @@ const THREE_DAY_ROWS = [
   dayRow({ day: "2025-07-02", family: "Kin", family_slug: "kin", endpoint_group: "completion", requests: 5 }),
 ];
 
-// The explorer's parts in the fake page: `{ tiles, handles, rangeDays, periodButtons }`, the tiles' list, the day
-// range's From and To inputs, the From and To days under the track's ends, and the period buttons.
+// The explorer's parts in the fake page: `{ tiles, chartPlaces, handles, rangeDays, periodButtons }`, the tiles'
+// list, the places of the input, output and TTFT tiles' charts, the day range's From and To inputs, the From and To
+// days under the track's ends, and the period buttons.
 function explorerParts(container) {
   const [controls, card] = container.children;
   const [tiles, , rangeRow] = card.children;
+  const chartPlaces = tiles.children.slice(1).map((tile) => tile.children[1]); // each under its tile's text
   const [track, dayRow] = rangeRow.children;
   const [, ...handles] = track.children; // the bar between the handles comes first
-  return { tiles, handles, rangeDays: dayRow.children, periodButtons: controls.children[4].children[1].children };
+  const periodButtons = controls.children[4].children[1].children;
+  return { tiles, chartPlaces, handles, rangeDays: dayRow.children, periodButtons };
+}
+
+// The parts of `tile`'s text: its value, its label and its notes.
+function tileTextParts(tile) {
+  return tile.children[0].children;
 }
 
 // The value of the requests' tile.
 function requestsTile(tiles) {
-  return tiles.children[0].children[0].textContent;
+  return tileTextParts(tiles.children[0])[0].textContent;
 }
 
 // Opened on the completions of the trace's first two days, which hold none, the bars are a note node can draw.
@@ -176,7 +184,7 @@ test("a period button stands the handles on its days and draws them", async (con
 
 // The value of each tile, in order.
 function tileValues(tiles) {
-  return tiles.children.map((tile) => tile.children[0].textContent);
+  return tiles.children.map((tile) => tileTextParts(tile)[0].textContent);
 }
 
 test("a token metric titles the bars and closes their caption with the token note; the tiles stay the requests'",
@@ -213,30 +221,28 @@ test("Back to an entry of another range stands the handles on it and draws it", 
 const HISTOGRAMS_FILE = "data/all/explore/histograms_by_family.json";
 const KIN_HISTOGRAMS_FILE = "data/all/explore/histograms_by_model/kin.json";
 
-// The explorer's distribution cards' places, in the fake page.
-function cardPlaces(container) {
-  return container.children[1].children[3].children;
+// The first part of each tile chart's place: its loading line, its error, or its note once drawn with no request.
+function chartStates(container) {
+  return explorerParts(container).chartPlaces.map((place) => place.children[0].className);
 }
 
-// The first part of each card's place: its loading line, or its figure once drawn.
-function cardStates(container) {
-  return cardPlaces(container).map((place) => place.children[0].className);
-}
+// The note a tile chart shows where no chosen request records its value: the histogram answers here are empty.
+const NO_VALUE_STATES = ["note", "note", "note"];
 
-test("the histogram answer is read once the bars are drawn, the cards and the notes loading until it arrives",
+test("the histogram answer is read once the bars are drawn, the charts and the notes loading until it arrives",
   async (context) => {
     const histograms = deferred();
     const answers = { [FAMILY_FILE]: THREE_DAY_ROWS, [HISTOGRAMS_FILE]: histograms.promise };
     const page = runExplorer(context, NO_COMPLETION_QUERY, answers);
     await settled();
     assert.deepEqual(page.reads, [[FAMILY_FILE, "none"], [HISTOGRAMS_FILE, "note"]], "read once the bars are drawn");
-    assert.deepEqual(cardStates(page.container), ["loading", "loading", "loading"]);
+    assert.deepEqual(chartStates(page.container), ["loading", "loading", "loading"]);
     const { tiles } = explorerParts(page.container);
-    assert.equal(tiles.children[1].children[2].textContent, "…");
+    assert.equal(tileTextParts(tiles.children[1])[2].textContent, "…");
     histograms.resolve([]);
     await page.running;
-    assert.deepEqual(cardStates(page.container), ["figure", "figure", "figure"]);
-    assert.equal(tiles.children[1].children[2].textContent, "— p50 · — p90");
+    assert.deepEqual(chartStates(page.container), NO_VALUE_STATES);
+    assert.equal(tileTextParts(tiles.children[1])[2].textContent, "— p50 · — p90");
   });
 
 test("a choice the explorer has moved on from draws nothing when its histogram answer lands", async (context) => {
@@ -255,25 +261,26 @@ test("a choice the explorer has moved on from draws nothing when its histogram a
   await settled();
   everyFamily.resolve([]);
   await settled();
-  assert.deepEqual(cardStates(page.container), ["loading", "loading", "loading"], "every family's answer is stale");
+  assert.deepEqual(chartStates(page.container), ["loading", "loading", "loading"], "every family's answer is stale");
   kin.resolve([]);
   await settled();
-  assert.deepEqual(cardStates(page.container), ["figure", "figure", "figure"]);
+  assert.deepEqual(chartStates(page.container), NO_VALUE_STATES);
 });
 
-test("a failed histogram read shows its error in the cards, logged once, the notes empty; the next draw reads again",
+test("a failed histogram read shows its error in the charts, logged once, the notes empty; the next draw reads again",
   async (context) => {
     const answers = { [FAMILY_FILE]: THREE_DAY_ROWS };
     const page = runExplorer(context, NO_COMPLETION_QUERY, answers);
     await page.running;
-    assert.deepEqual(cardStates(page.container), ["note is-error", "note is-error", "note is-error"]);
+    assert.deepEqual(chartStates(page.container), ["note is-error", "note is-error", "note is-error"]);
     assert.equal(console.error.mock.callCount(), 1);
     const { tiles, handles } = explorerParts(page.container);
-    assert.deepEqual(tiles.children.map((tile) => tile.children.length), [2, 2, 2, 3], "only the TTFT's share");
+    const partCounts = tiles.children.map((tile) => tileTextParts(tile).length);
+    assert.deepEqual(partCounts, [2, 2, 2, 3], "only the TTFT's share");
     answers[HISTOGRAMS_FILE] = [];
     handles[1].dispatch("input");
     runFrames(page.frames);
     await settled();
     assert.deepEqual(page.reads.map(([file]) => file), [FAMILY_FILE, HISTOGRAMS_FILE, HISTOGRAMS_FILE]);
-    assert.deepEqual(cardStates(page.container), ["figure", "figure", "figure"]);
+    assert.deepEqual(chartStates(page.container), NO_VALUE_STATES);
   });

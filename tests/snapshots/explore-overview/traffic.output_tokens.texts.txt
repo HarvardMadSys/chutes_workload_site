@@ -1,4 +1,0 @@
-title: Output tokens
-caption: Over April 11, 2025 – April 12, 2026, the trace weeks holding a chosen day.
-definition: The share of the chosen requests answered with at most a given number of output tokens, among those that record it, over the trace weeks that hold a chosen day. The tokens are counted in bins a quarter of a doubling wide, so the tiles' p50 and p90 are within about 9%.
-rows: 5,662,741,634 requests

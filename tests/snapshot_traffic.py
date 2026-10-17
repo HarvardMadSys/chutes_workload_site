@@ -1,20 +1,20 @@
 """The Traffic Explorer's snapshot units, read from the Explore page as it opens, nothing chosen: its controls, its
-tiles with their notes, its bars' texts and legend, its bars' axes, its day range and its three distribution cards.
+tiles' texts with their notes, the charts in its tiles, its bars' texts and legend, its bars' axes and its day range.
 Each is the text written to its file, as `snapshot_units.py` writes the page's other units: a control's choice as
-`field: choice | selected=…`, a handle of the day range as `name: day | value=… | max=…`, a distribution card as an
-Insights card. Every reading function takes a Playwright page and reads it as it is now.
+`field: choice | selected=…`, a handle of the day range as `name: day | value=… | max=…`, a tile's chart as an
+Insights card's chart. Every reading function takes a Playwright page and reads it as it is now.
 """
 
 from snapshot_units import (
-    CARD_TEXTS, CHART, axis_lines, figure_card_units, labelled_texts, legend_lines, plain_text, unit_name,
+    CARD_TEXTS, CHART, NAMED_CHART, axis_lines, figure_chart_lines, labelled_texts, legend_lines, plain_text, unit_name,
 )
 
-TRAFFIC = "#traffic-explorer"  # the Traffic Explorer: its controls, then its card of tiles, bars, range and cards
+TRAFFIC = "#traffic-explorer"  # the Traffic Explorer: its controls, then its card of tiles, bars and range
 TRAFFIC_BARS = "#traffic-explorer .traffic-bars"  # the bars' figure, with their legend
-TRAFFIC_TILES = "#traffic-explorer .traffic-tiles li"
+TRAFFIC_TILE_TEXTS = "#traffic-explorer .traffic-tiles li .tile-text"  # each tile's value, label and notes
+TRAFFIC_CHART_TILES = "#traffic-explorer .traffic-tiles li:has(.tile-chart)"  # the tiles holding a chart, in order
 TRAFFIC_RANGE_INPUTS = "#traffic-explorer .traffic-range .range-track input"  # the From and To handles, in order
 TRAFFIC_RANGE_DAYS = "#traffic-explorer .traffic-range .range-day"  # the From and To days under the track's ends
-TRAFFIC_DISTRIBUTIONS = "#traffic-explorer .distribution-card"  # the three distribution cards, in their order
 
 
 def control_lines(page) -> str:
@@ -42,28 +42,28 @@ def range_lines(page) -> str:
     return "\n".join(lines)
 
 
-def distribution_units(page) -> dict[str, str]:
-    """The Traffic Explorer's distribution cards, each read as an Insights card is (`figure_card_units`: its texts and
-    its chart's name, axes and axis titles; it has no legend of its own) under `traffic.<its title's name>`."""
+def tile_chart_units(page) -> dict[str, str]:
+    """The charts in the Traffic Explorer's tiles, each read as an Insights card's chart is (`figure_chart_lines`: its
+    accessible name, its axes and its axis titles) under `traffic.<its accessible name, as a file name>.chart`."""
     units = {}
-    for card in page.locator(TRAFFIC_DISTRIBUTIONS).all():
-        name = unit_name(card.locator(".figure-title").inner_text())
-        units.update(figure_card_units(card, f"traffic.{name}"))
+    for tile in page.locator(TRAFFIC_CHART_TILES).all():
+        name = unit_name(tile.locator(NAMED_CHART).get_attribute("aria-label"))
+        units[f"traffic.{name}.chart"] = figure_chart_lines(tile)
     return units
 
 
 def traffic_units(page) -> dict[str, str]:
-    """The Traffic Explorer's units as it opens, nothing chosen: its controls, tiles (their notes the percentiles), the
-    bars' texts, legend and axes, its day range and its distribution cards. The bars themselves, a rectangle for each
-    day and series, are left to the tiles and the axes, and the cards' lines to the cards' axes."""
+    """The Traffic Explorer's units as it opens, nothing chosen: its controls, tiles' texts (their notes the
+    percentiles) and tiles' charts, the bars' texts, legend and axes, and its day range. The bars themselves, a
+    rectangle for each day and series, are left to the tiles and the axes, and the charts' lines to the charts' axes."""
     bars = page.locator(TRAFFIC_BARS)
     units = {
         "traffic.controls": control_lines(page),
-        "traffic.tiles": "\n".join(plain_text(tile) for tile in page.locator(TRAFFIC_TILES).all_inner_texts()),
+        "traffic.tiles": "\n".join(plain_text(tile) for tile in page.locator(TRAFFIC_TILE_TEXTS).all_inner_texts()),
         "traffic.texts": labelled_texts(bars, CARD_TEXTS),
         "traffic.legend": legend_lines(bars),
         "traffic.axes": axis_lines(bars.locator(CHART)),
         "traffic.range": range_lines(page),
     }
-    units.update(distribution_units(page))
+    units.update(tile_chart_units(page))
     return units

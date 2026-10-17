@@ -1,9 +1,8 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
-  binMiddle, binTotals, binUpperEdge, cdfRows, choicePercentiles, coveredDays, histogramRowsInChoice, metricBins,
+  binMiddle, binTotals, binUpperEdge, cdfRows, choicePercentiles, histogramRowsInChoice, metricBins,
   percentile, percentileText, requestTotal, weekLastDay, weeksInRange,
 } from "../site/js/traffic/traffic_distributions.js";
 import { formatSignificantSeconds } from "../site/js/shared/format.js";
@@ -51,36 +50,6 @@ test("the histogram rows of a choice are those of its model and endpoint group i
   const choice = { family: "kin", model: "id-a", endpoint: "chat", metric: "", from: "", to: "2025-04-17" };
   assert.deepEqual(histogramRowsInChoice(rows, choice), [rows[0]]);
   assert.deepEqual(histogramRowsInChoice(rows, { ...choice, model: "other" }), [rows[1]]);
-});
-
-// The trace's first and last day.
-// The shipped histogram answer by family: the first day of each trace week it holds.
-const HISTOGRAM_ANSWER = new URL("../site/data/all/explore/histograms_by_family.json", import.meta.url);
-const WEEK_FIRST_DAYS = [...new Set(JSON.parse(readFileSync(HISTOGRAM_ANSWER, "utf8")).map((row) => row.first_day))];
-
-const TRACE_FIRST_DAY = "2025-04-11";
-const TRACE_LAST_DAY = "2026-04-12";
-
-test("the covered days run from the week holding the range's first day to the end of the week holding its last", () => {
-  const weekEnds = { from: "2025-04-17", to: "2025-04-18" };
-  assert.deepEqual(coveredDays(weekEnds, TRACE_FIRST_DAY, TRACE_LAST_DAY), {
-    firstDay: "2025-04-11", lastDay: "2025-04-24",
-  });
-  const november = { from: "2025-11-03", to: "2025-11-30" };
-  assert.deepEqual(coveredDays(november, TRACE_FIRST_DAY, TRACE_LAST_DAY), {
-    firstDay: "2025-10-31", lastDay: "2025-12-04",
-  });
-});
-
-test("the covered days of the whole trace are its own, the last week clipped to the trace's last day", () => {
-  const whole = { from: "", to: "" };
-  assert.deepEqual(coveredDays(whole, TRACE_FIRST_DAY, TRACE_LAST_DAY), {
-    firstDay: TRACE_FIRST_DAY, lastDay: TRACE_LAST_DAY,
-  });
-  const lastWeek = { from: "2026-04-11", to: "" };
-  assert.deepEqual(coveredDays(lastWeek, TRACE_FIRST_DAY, TRACE_LAST_DAY), {
-    firstDay: "2026-04-10", lastDay: TRACE_LAST_DAY,
-  });
 });
 
 test("the bin maps sum each series' requests by bin over the weeks, a series the colours do not name as Other", () => {
@@ -152,12 +121,4 @@ test("a percentile is written near, to two significant figures, and a missing on
   assert.equal(percentileText(binMiddle(40)), "≈1,100");
   assert.equal(percentileText(0.8374, formatSignificantSeconds), "≈0.84 s");
   assert.equal(percentileText(null), "—");
-});
-
-test("the week of each first day the shipped answer holds is the week the covered days start from", () => {
-  assert.ok(WEEK_FIRST_DAYS.length > 1);
-  for (const firstDay of WEEK_FIRST_DAYS) {
-    const covered = coveredDays({ from: firstDay, to: firstDay }, TRACE_FIRST_DAY, TRACE_LAST_DAY);
-    assert.equal(covered.firstDay, firstDay);
-  }
 });

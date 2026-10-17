@@ -3,9 +3,10 @@ import { test } from "node:test";
 
 import {
   CHART_HEIGHT, chartFrame, chartName, chartWidth, colourScale, columnTotal, DASH, haloedReferenceRule, logColumns,
-  panelRows, positiveRows, REFERENCE_HALO, REFERENCE_STYLE, referenceRule, sequentialColour, SURFACE_INK, titledFrame,
+  nameChart, panelRows, positiveRows, REFERENCE_HALO, REFERENCE_STYLE, referenceRule, sequentialColour, SURFACE_INK, titledFrame,
 } from "../site/js/shared/charts.js";
 import { assignColours } from "../site/js/theme/colours.js";
+import { FakeElement } from "./fake_page.js";
 
 test("every chart starts from the same frame, as wide as its body", () => {
   const frame = chartFrame({ clientWidth: 300 });
@@ -54,6 +55,19 @@ test("a chart is named by its card's title and insight, or its caption where the
   assert.equal(chartName(withInsight), "Tokens per request: Each request adds little to a large context.");
   const withCaption = bodyOfFigure({ ".figure-title": title, ".figure-caption": caption });
   assert.equal(chartName(withCaption), "Tokens per request: Input, uncached input and output tokens of each request.");
+});
+
+test("a chart is named as one image by the name given, else by its card's", () => {
+  const caption = { textContent: "Each family's share of the requests." };
+  const chart = new FakeElement("svg");
+  const body = bodyOfFigure({ ".figure-title": { textContent: "Family mix" }, ".figure-caption": caption });
+  body.querySelectorAll = () => [chart];
+  nameChart(body);
+  assert.deepEqual([...chart.attributes], [
+    ["role", "img"], ["aria-label", "Family mix: Each family's share of the requests."],
+  ]);
+  nameChart({ querySelectorAll: () => [chart] }, "Input tokens distribution");
+  assert.equal(chart.getAttribute("aria-label"), "Input tokens distribution");
 });
 
 test("a chart whose y axis has no title has a small top margin, and a card's margins are kept", () => {

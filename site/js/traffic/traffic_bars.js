@@ -69,7 +69,7 @@ const CHART_DEFINITION = "Requests, input tokens or output tokens, as the metric
   + "(up to eight of the family's most requested named models, and its other models where it has any), and by the "
   + "endpoint group they were sent to once a model is. Tokens are summed over the requests that record them. A model's "
   + "family is the artifact's, by its name. An average in the tiles divides by the requests that record its value. The "
-  + "tiles' p50 and p90 are read from the distribution cards' bins, over the trace weeks that hold a chosen day.";
+  + "tiles' p50 and p90 are read from the distributions' bins, over the trace weeks that hold a chosen day.";
 
 /**
  * The days of `days` (the range's, in order) whose month is written under bars `plotWidth` pixels wide: each that opens

@@ -420,8 +420,8 @@ site/                exactly the files that are deployed
                      URL keys and its sums
     traffic_bars.js, traffic_range.js, traffic_tiles.js
                      the bars and their legend; the day range's sliders and period buttons' days; the four tiles
-    traffic_distributions.js, traffic_distribution_cards.js
-                     the histogram rows' bin maps, CDF rows and percentiles; the three distribution cards
+    traffic_distributions.js, traffic_tile_charts.js
+                     the histogram rows' bin maps, CDF rows and percentiles; the tiles' three distributions
   js/insights/       the figure cards and the topics
     figure_card.js   a card, its chart drawn from its answer by its kind
     card_series.js   a card's series: their order, each palette's colours, the card's legend

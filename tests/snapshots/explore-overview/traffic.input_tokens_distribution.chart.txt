@@ -1,0 +1,5 @@
+name: Input tokens distribution
+x-axis: 1 | 100 | 10k | 1M
+y-axis: 0% | 50% | 100%
+x-axis title: Input tokens
+y-axis title: Share of requests

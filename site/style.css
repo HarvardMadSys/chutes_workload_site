@@ -866,6 +866,23 @@ section[id] {
   border-radius: var(--radius-small);
 }
 
+/* A tile is a column: its text at the top, and under it, at the tile's foot, its chart as wide as the tile, so the
+   charts' x axes line up across a row whose tiles' texts differ in lines. The chart's place is a figure's body, but
+   only as tall as its chart, so a loading line or a note takes no more room than it needs. */
+.traffic-tiles li {
+  display: flex;
+  flex-direction: column;
+}
+
+.traffic-tiles .tile-text {
+  flex: 1 0 auto;
+}
+
+.traffic-tiles .tile-chart {
+  min-height: 0;
+  margin-top: 0.5rem;
+}
+
 @media (max-width: 50rem) {
   .traffic-tiles {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1010,23 +1027,6 @@ section[id] {
 .range-days {
   display: flex;
   justify-content: space-between;
-}
-
-/* The three distribution cards under the sliders, side by side, one under the other on a narrower screen (below). */
-.traffic-card .distribution-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.5rem;
-  margin-top: 1.5rem;
-}
-
-.distribution-card {
-  min-width: 0;
-}
-
-@media (max-width: 50rem) {
-  .traffic-card .distribution-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
 /* ---------- Cite and Team ---------- */

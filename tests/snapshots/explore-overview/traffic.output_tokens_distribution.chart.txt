@@ -1,0 +1,5 @@
+name: Output tokens distribution
+x-axis: 1 | 100 | 10k
+y-axis: 0% | 50% | 100%
+x-axis title: Output tokens
+y-axis title: Share of requests
