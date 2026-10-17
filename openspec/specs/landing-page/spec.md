@@ -30,43 +30,6 @@ instances, and a line naming the span's first and last day.
 - **WHEN** the visitor presses "Traffic Explorer" or "Insights"
 - **THEN** the page SHALL scroll to that section
 
-### Requirement: Overview donuts
-Below the hero, an Overview section (`#overview`) SHALL open with two
-cards: the model mix (the share of requests per model over the year, the
-eight most requested named models named and the rest as Other) and the
-endpoint mix (the share of requests per endpoint group: chat, chat
-stream, completion, completion stream and other), as donuts with legends
-that toggle, in the site's colour orders, the endpoints' colours starting
-from a different slot than the models', each donut's centre reading its
-total. On a phone a donut's legend SHALL be one column.
-
-#### Scenario: The model mix
-- **WHEN** the page draws
-- **THEN** the model-mix donut's shares SHALL equal the `explore/model_mix` answer and its colours SHALL match the models' colours in the trends
-
-#### Scenario: The centre
-- **WHEN** the page draws
-- **THEN** the model-mix donut's centre SHALL read the stats strip's request count
-
-### Requirement: Monthly trends
-Three cards in the Overview SHALL show per trace month (a month counted
-from the trace's first day, labelled by the calendar month its first
-day falls in) the requests by model, the tokens by model (input and
-output together, as the cache sums them) and the requests by endpoint
-group, as stacked bars, the
-models the donut names named and the rest folded into Other, with
-legends that toggle, each chart as wide as its card's body, its x axis
-ticked at every month, the first and the last included. A bar SHALL take
-no click.
-
-#### Scenario: Clicking a bar
-- **WHEN** the visitor clicks a month's bar
-- **THEN** nothing SHALL change
-
-#### Scenario: Months per bar
-- **WHEN** the requests-per-month card draws
-- **THEN** it SHALL show 13 bars labelled from the answer's calendar months, `2025-04` first and `2026-04` last, the last bar holding two days
-
 ### Requirement: Traffic Explorer
 Directly after the Overview, a Traffic Explorer section (that heading,
 no eyebrow, anchor `#traffic`, and under the heading one guide line of
@@ -148,15 +111,16 @@ takeaway sentence of at most twenty words under it, and no other intro
 text; each card with a title, an insight of at most twenty words under
 the title, the figure's chart, a caption of at most forty words in at
 most three sentences under the chart, and behind a control its
-definition (at most sixty words in at most three sentences), a link to
-the figure's plotdata file in the artifact on GitHub and a link to its
-section's README there. A click on a tab SHALL show its topic and hide
-the others, and SHALL write the topic's anchor to the URL's hash, so
-that a link with that hash opens the Insights on that topic and the
-browser's Back returns to the topic before, whatever anchor the page
-opened on. The tab row SHALL follow the ARIA tabs pattern: one tab stop,
-the arrow keys, Home and End moving between topics, each topic a tab
-panel labelled by its tab.
+definition (at most sixty words in at most three sentences) and nothing
+else. A definition SHALL describe what the figure shows in plain words
+and SHALL NOT name a cut-off used to pick its rows or a bin width. A card's element
+SHALL carry its figure's name in a `data-figure` attribute. A click on
+a tab SHALL show its topic and hide the others, and SHALL write the
+topic's anchor to the URL's hash, so that a link with that hash opens
+the Insights on that topic and the browser's Back returns to the topic
+before, whatever anchor the page opened on. The tab row SHALL follow the
+ARIA tabs pattern: one tab stop, the arrow keys, Home and End moving
+between topics, each topic a tab panel labelled by its tab.
 
 | Topic | Cards, in order (the artifact's figure names) |
 |---|---|
@@ -178,7 +142,7 @@ artifact's checkout is given.
 
 #### Scenario: The definition on demand
 - **WHEN** the visitor opens a card's definition control
-- **THEN** the card SHALL show the definition, the link to the figure's plotdata and the link to the artifact's README, and hide them again when closed
+- **THEN** the card SHALL show the definition and no link, and hide it again when closed
 
 #### Scenario: A caption that grew
 - **WHEN** an insight or a takeaway exceeds twenty words, a caption forty, a definition sixty, or a card has no insight
@@ -196,40 +160,26 @@ artifact's checkout is given.
 - **WHEN** the artifact's `config/figures.json` gains a figure that no card shows
 - **THEN** the test that compares the lists SHALL fail naming it
 
-### Requirement: Legends toggle series
-In an Overview chart or a figure card with more than one series, each
-legend entry SHALL be a button that hides or shows its series, redrawing
-the chart from the rows it already has. A hidden series SHALL be shown
-struck through in the legend. The legend SHALL be one tab stop, the
-arrow keys moving between its buttons. The hidden set SHALL NOT be kept
-in the URL.
-
-#### Scenario: Hiding a model in the trend
-- **WHEN** the visitor clicks a model in the requests-per-month legend
-- **THEN** that model's segments SHALL disappear from every bar and the bars SHALL rescale
-
-#### Scenario: Hiding a model in a CDF card
-- **WHEN** the visitor clicks "DeepSeek R1" in the input-tokens card's legend
-- **THEN** that line SHALL disappear and the other lines SHALL stay as drawn
-
 ### Requirement: Cite, Team and footer
 The page SHALL end with a Cite section holding the paper's BibTeX in a
-block with a copy button, its lines wrapping rather than scrolling; a
-Team section naming Harvard MadSys and collaborators and the paper's
-authors with their affiliations as names, not links; and a footer with
-the brand line "Chutes Production Trace", one line of the user's words
-whose month count is read from `trace_totals` in digits, the lab's name
-"Harvard SEAS · MadSys Lab" linking to the lab, and the on-site and
-elsewhere links, and nothing else: no copyright line and no policy
-links. Every link that leaves the site SHALL show an arrow after its
-text.
+block with a copy button, its lines wrapping rather than scrolling, and
+under its citation sentence one see-also sentence naming, with a link,
+the blog post "A Year of LLM Traffic, in a Browser Tab", which explores
+the same trace in the browser; a Team section naming Harvard MadSys and
+collaborators and the paper's authors with their affiliations as names,
+not links; and a footer with the brand line "Chutes Production Trace",
+one line of the user's words whose month count is read from
+`trace_totals` in digits, the lab's name "Harvard SEAS · MadSys Lab"
+linking to the lab, and the on-site and elsewhere links, and nothing
+else: no copyright line and no policy links. Every link that leaves the
+site SHALL show an arrow after its text.
 
 #### Scenario: Copying the citation
 - **WHEN** the visitor presses the copy button
 - **THEN** the BibTeX SHALL be on the clipboard unchanged
 
 #### Scenario: A link off the site
-- **WHEN** the visitor looks at the hero's Paper button or the footer's Dataset link
+- **WHEN** the visitor looks at the hero's Paper button, the see-also link or the footer's Dataset link
 - **THEN** each SHALL end in an arrow, and the Traffic Explorer link SHALL not
 
 ### Requirement: Figure cards are drawn from their answers
@@ -262,3 +212,40 @@ SHALL carry the card's title and insight as its accessible name.
 #### Scenario: A phone
 - **WHEN** the page is opened 360 pixels wide
 - **THEN** the cards SHALL stack in one column, each chart as wide as its card, and the page SHALL not scroll sideways
+
+### Requirement: The Overview's two mixes
+Below the hero, an Overview section (`#overview`) SHALL hold two cards
+and nothing else: the family mix (the share of requests per model
+family over the year, from the `explore/family_mix` answer, each family
+of the artifact's family table named and the models in no family as
+Other) and the endpoint mix (the share of requests per endpoint group:
+chat, chat stream, completion, completion stream and other), as donuts
+with legends that toggle, each donut's centre reading its total. The
+family mix SHALL take the families' colours of the Traffic Explorer, the
+families in the order of their requests and Other last in its grey; the
+endpoints' colours SHALL start from a different slot than the families'.
+On a phone a donut's legend SHALL be one column.
+
+#### Scenario: The family mix
+- **WHEN** the page draws
+- **THEN** the family-mix donut's shares SHALL equal the `explore/family_mix` answer and its colours SHALL match the families' colours in the Traffic Explorer
+
+#### Scenario: The centre
+- **WHEN** the page draws
+- **THEN** the family-mix donut's centre SHALL read the stats strip's request count
+
+### Requirement: Legend buttons
+In an Overview donut, the Traffic Explorer's chart or a figure card with
+more than one series, each legend entry SHALL be a button that hides or
+shows its series, redrawing the chart from the rows it already has. A
+hidden series SHALL be shown struck through in the legend. The legend
+SHALL be one tab stop, the arrow keys moving between its buttons. The
+hidden set SHALL NOT be kept in the URL.
+
+#### Scenario: Hiding a family in the donut
+- **WHEN** the visitor clicks a family in the family mix's legend
+- **THEN** that family's slice SHALL disappear and the other slices SHALL take the ring
+
+#### Scenario: Hiding a model in a CDF card
+- **WHEN** the visitor clicks "DeepSeek R1" in the input-tokens card's legend
+- **THEN** that line SHALL disappear and the other lines SHALL stay as drawn
