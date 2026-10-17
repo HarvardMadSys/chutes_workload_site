@@ -1,8 +1,9 @@
 /**
  * Numbers and dates as the page shows them, a value with one decimal kept and an axis's tick with none it does not
  * need: counts, compact counts and their ticks (a count given in thousands, or rounded to a whole one, among them),
- * durations in seconds and their ticks, minutes as hours and minutes, shares, whole percentages and values already in
- * percent, and a span of days.
+ * durations in seconds and their ticks (milliseconds to hours among them), minutes as hours and minutes or as whole
+ * hours, shares, whole percentages and values already in percent, a value to two significant figures, a span of days,
+ * and a day of the trace with its date.
  */
 
 // A compact count is shown in the largest of these units it reaches.
@@ -21,6 +22,22 @@ const THREE_FIGURE_BOUND = 10;
 const TWO_DECIMALS_BELOW = 0.1; // a duration under a tenth of a second keeps two decimals, so 0.04 s is not written 0 s
 
 const MINUTES_PER_HOUR = 60; // how a time in minutes is split into hours and minutes
+const MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR; // how a trace day's fraction is read as a time of day
+const MILLISECONDS_PER_SECOND = 1000;
+const SECONDS_PER_MINUTE = 60;
+const SECONDS_PER_HOUR = 3600;
+const MILLISECONDS_PER_MINUTE = SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND;
+
+const MILLISECONDS_BELOW = 0.1; // a duration tick under a tenth of a second is written in milliseconds, "50 ms"
+
+// A date as "Sep 8, 2025", read in UTC, as the trace's days are, so no machine's time zone moves a date.
+const SHORT_DATE = Object.freeze({ month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+
+/**
+ * The trace's first day, its day 0, as "YYYY-MM-DD". It is `TRACE_START` of `site_data/months.py`, which dates every
+ * answer; a test checks it against the shipped `trace_totals` answer's `first_day`, so the two cannot drift.
+ */
+export const TRACE_FIRST_DAY = "2025-04-11";
 
 /** The text of a value that has none, such as an average over no requests. */
 export const MISSING_TEXT = "—";
@@ -89,6 +106,51 @@ export function formatSeconds(seconds) {
 /** A duration in seconds as an axis writes it, with no decimal it does not need: 0.1 → "0.1 s", 10 → "10 s". */
 export function formatSecondsTick(seconds) {
   return `${withoutTrailingZero(oneDecimal(seconds))} s`;
+}
+
+/**
+ * A duration in seconds as an axis writes it, in the largest unit it reaches, with no decimal it does not need: under a
+ * tenth of a second in milliseconds, 0.001 → "1 ms"; under a minute in seconds, 0.1 → "0.1 s", 10 → "10 s"; under an
+ * hour in minutes, 900 → "15 min"; else in hours, 3600 → "1 h".
+ */
+export function formatDurationTick(seconds) {
+  if (seconds < MILLISECONDS_BELOW) {
+    return `${formatCount(seconds * MILLISECONDS_PER_SECOND)} ms`;
+  }
+  if (seconds < SECONDS_PER_MINUTE) {
+    return formatSecondsTick(seconds);
+  }
+  if (seconds < SECONDS_PER_HOUR) {
+    return `${formatCount(seconds / SECONDS_PER_MINUTE)} min`;
+  }
+  return `${formatCount(seconds / SECONDS_PER_HOUR)} h`;
+}
+
+/** A time in minutes from a window's start as hours, as an axis writes it: 360 → "6 h", 90 → "1.5 h". */
+export function formatHoursTick(minutes) {
+  return `${formatCount(minutes / MINUTES_PER_HOUR)} h`;
+}
+
+/** A value to two significant figures, with separators: 0.000471 → "0.00047", 0.4712 → "0.47", 12.3 → "12". */
+export function formatSignificant(value) {
+  return value.toLocaleString("en-US", { maximumSignificantDigits: 2 });
+}
+
+/**
+ * A day of the trace, counted from `TRACE_FIRST_DAY` as day 0, with its calendar date: 150 → "Day 150 · Sep 8, 2025".
+ * A day with a fraction, an hour's start, also gives its time of day in UTC, to the minute: 305.875 → "Day 305 · Feb
+ * 10, 2026, 21:00 UTC".
+ */
+export function formatTraceDay(day) {
+  const minutes = Math.round(day * MINUTES_PER_DAY);
+  const wholeDay = Math.floor(minutes / MINUTES_PER_DAY);
+  const minuteOfDay = minutes - wholeDay * MINUTES_PER_DAY;
+  const date = new Date(Date.parse(`${TRACE_FIRST_DAY}T00:00:00Z`) + minutes * MILLISECONDS_PER_MINUTE);
+  const dateText = date.toLocaleDateString("en-US", SHORT_DATE);
+  if (minuteOfDay === 0) {
+    return `Day ${wholeDay} · ${dateText}`;
+  }
+  return `Day ${wholeDay} · ${dateText}, ${formatMinutesTick(minuteOfDay)} UTC`;
 }
 
 /** A share of one as a whole percentage, as an axis writes it: 0.632 → "63%", 1 → "100%". */

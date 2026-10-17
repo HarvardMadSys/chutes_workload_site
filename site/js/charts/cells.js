@@ -29,6 +29,7 @@ const CATEGORY_CENTRE = 0.5; // a category's tick sits halfway between its cell'
  *   equal.
  * - `valueLabel`: what a value is, the colour legend's title and the tooltip's; `valueFormat`: how it is written there.
  * - `margins`: Plot margins in place of the frame's.
+ * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `shared/charts.js`).
  * Required: `valueLabel` and `valueFormat`.
  */
 export async function drawCells(rows, body, colours, parameters) {
@@ -46,7 +47,7 @@ export async function drawCells(rows, body, colours, parameters) {
   const tipParameters = { ...parameters, x: xAxis, y: yAxis };
   const legendTicks = colourLegendTicks(parameters, drawn.map((cell) => cell.value));
   const chart = Plot.plot({
-    ...titledFrame(body, yAxis.label ?? null, margins),
+    ...titledFrame(body, yAxis.label ?? null, margins, parameters.height),
     x: axisScale(xAxis),
     y: axisScale(yAxis),
     color: sequentialColour(parameters, DEFAULT_SCHEME, legendTicks),

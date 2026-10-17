@@ -18,6 +18,7 @@ import { SERIES_COLUMN, shownSeriesRows } from "../shared/series.js";
  * - `panel`: the panel drawn, of a multi-panel answer.
  * - `valueLabel`: what a value is, in the tooltip, "Share of requests: 12.4%"; `valueFormat`: how it is written there.
  * - `margins`: Plot margins in place of the frame's.
+ * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `shared/charts.js`).
  * Required: `valueLabel` and `valueFormat`.
  */
 export async function drawBars(rows, body, colours, parameters, hidden) {
@@ -27,7 +28,7 @@ export async function drawBars(rows, body, colours, parameters, hidden) {
   const bars = drawnBars(rows, colours.series, parameters, hidden);
   const names = distinct(bars.map((bar) => bar[SERIES_COLUMN]));
   const chart = Plot.plot({
-    ...titledFrame(body, yAxis.label ?? null, margins),
+    ...titledFrame(body, yAxis.label ?? null, margins, parameters.height),
     x: { type: "band", domain: distinct(bars.map((bar) => bar.x)) },
     y: { domain: yAxis.domain },
     color: colourScale(colours.series, names),

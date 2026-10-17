@@ -1,5 +1,5 @@
 name: Active instances per hour: Replica count tracks serving utilization rather than request volume alone.
 x-axis: 320 | 340 | 360
 y-axis: 5 | 10 | 15
-x-axis title: Day of the trace
+x-axis title: Day of the trace (0 = Apr 11, 2025)
 y-axis title: Active instances

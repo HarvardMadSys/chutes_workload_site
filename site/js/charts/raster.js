@@ -22,6 +22,7 @@ const DEFAULT_SCHEME = "Blues"; // a raster's colour scheme when the card names 
  *   value takes, its first colour when not given; `colourLog`: true for a log colour scale; `colourDomain`:
  *   the values at the scale's two ends, the rows' own (`rasterColourDomain`) when not given.
  * - `valueLabel`: what a value is, the colour legend's title. `margins`: Plot margins in place of the frame's.
+ * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `shared/charts.js`).
  * Required: `valueLabel`.
  */
 export async function drawRaster(rows, body, colours, parameters) {
@@ -29,7 +30,7 @@ export async function drawRaster(rows, body, colours, parameters) {
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
   const { width, height, values } = rasterGrid(rows);
-  const frame = titledFrame(body, yAxis.label ?? null, margins);
+  const frame = titledFrame(body, yAxis.label ?? null, margins, parameters.height);
   const plotWidth = frame.width - frame.marginLeft - frame.marginRight;
   const plotHeight = frame.height - frame.marginTop - frame.marginBottom;
   const pooled = pooledGrid({ width, height, values }, plotWidth, plotHeight);

@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  brokenAtGaps, drawnPoints, framedPoints, drawnSeries, lineTipText, lineYAxis, seriesDash, yColumn,
+  allSeriesTips, allSeriesTipText, brokenAtGaps, drawnPoints, framedPoints, drawnSeries, lineTip, lineTipText,
+  lineYAxis, seriesDash, seriesLine, yColumn,
 } from "../site/js/charts/lines.js";
 import { formatPercent } from "../site/js/shared/format.js";
 import { assignColours } from "../site/js/theme/colours.js";
@@ -22,6 +23,23 @@ const PANEL_ROWS = [
   { series: "Global", x: 2, y: 12, panel: "a" },
   { series: "Global", x: 1, y: 0.5, panel: "b" },
 ];
+// A stand-in for Plot's line, tip and pointers, each returning its name and the arguments it was given.
+const FAKE_PLOT = {
+  line: (...args) => ["line", ...args],
+  tip: (...args) => ["tip", ...args],
+  pointer: (options) => ["pointer", options],
+  pointerX: (options) => ["pointerX", options],
+};
+// Two cache policies' hit ratios at two cache sizes.
+const POLICY_POINTS = [
+  { series: "LRU", x: 1000, y: 0.4 }, { series: "Belady", x: 1000, y: 0.923 },
+  { series: "LRU", x: 2000, y: 0.6 }, { series: "Belady", x: 2000, y: 0.95 },
+];
+const POLICY_PARAMETERS = {
+  x: { label: "Cache size", tickFormat: (size) => `${size / 1000}k` },
+  valueFormat: (value) => value.toFixed(3),
+  labels: { LRU: "Least recently used" },
+};
 
 test("a series the card lists as dashed is drawn dashed, every other solid", () => {
   assert.equal(seriesDash("Global", ["Global"]), "4,3");
@@ -104,4 +122,38 @@ test("a tooltip names only the points within the axes' domains, the part of the 
   assert.deepEqual(framedPoints(points, { domain: [1, 10] }, {}, "y"), [points[0], points[2]]);
   assert.deepEqual(framedPoints(points, {}, { domain: [0, 1] }, "y"), [points[0], points[1]]);
   assert.equal(framedPoints(points, {}, {}, "y").length, 3);
+});
+
+test("a CDF's points are joined by straight lines, as a lines chart's are", () => {
+  const [, points, options] = seriesLine(FAKE_PLOT, CDF_ROWS, "DeepSeek R1", { cdf: true });
+  assert.equal(options.curve, "linear");
+  assert.equal(options.y, "cdf");
+  assert.deepEqual(points.map((point) => point.x), [0, 40]);
+  assert.equal(seriesLine(FAKE_PLOT, PANEL_ROWS, "Global", {})[2].curve, "linear");
+});
+
+test("a CDF's tooltip names the point nearest in x and y; a lines chart's the point nearest in x", () => {
+  const [, , [cdfPointer, cdfOptions]] = lineTip(FAKE_PLOT, CDF_ROWS, { cdf: true, valueFormat: String });
+  assert.equal(cdfPointer, "pointer");
+  assert.equal(cdfOptions.y, "cdf");
+  const [, , [linesPointer]] = lineTip(FAKE_PLOT, PANEL_ROWS, { valueFormat: String });
+  assert.equal(linesPointer, "pointerX");
+});
+
+test("a tooltip of every series lists each value at the hovered x, highest first, after the x", () => {
+  const atFirstSize = POLICY_POINTS.slice(0, 2);
+  assert.equal(allSeriesTipText(1000, atFirstSize, POLICY_PARAMETERS),
+    "Cache size: 1k\nBelady 0.923\nLeast recently used 0.400");
+  const tips = allSeriesTips(POLICY_POINTS, POLICY_PARAMETERS);
+  assert.deepEqual(tips.map((tip) => [tip.x, tip.y]), [[1000, 0.923], [2000, 0.95]]);
+  const [, rows, [pointer, options]] = lineTip(FAKE_PLOT, POLICY_POINTS, { ...POLICY_PARAMETERS, tipAllSeries: true });
+  assert.equal(rows.length, 2);
+  assert.deepEqual([pointer, options.title], ["pointerX", "text"]);
+});
+
+test("a chart given its series draws only those, its legend's hidden ones still left out", () => {
+  const named = drawnPoints(CDF_ROWS, COLOURS, { series: ["DeepSeek R1", "Global"] }, new Set());
+  assert.deepEqual(named.map((point) => [point.series, point.x]), [["DeepSeek R1", 0], ["DeepSeek R1", 40]]);
+  const hidden = drawnPoints(CDF_ROWS, COLOURS, { series: ["DeepSeek R1"] }, new Set(["DeepSeek R1"]));
+  assert.deepEqual(hidden, []);
 });

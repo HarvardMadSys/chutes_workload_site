@@ -33,6 +33,7 @@ const KEY_SEPARATOR = "\u0000";
  * - `inset`: the pixels taken off each side of a bar, `BAR_INSET` when not given; 0 where a bar is a pixel or two wide,
  *   as a day's is over a year.
  * - `margins`: Plot margins in place of the frame's, where the bars should take more of the card's width.
+ * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `shared/charts.js`).
  * - `labels`: each series' label in the tooltip where it is written otherwise than its name, as the legend's `labels`.
  * Required: the three columns, `valueLabel` and `valueFormat`.
  * Needs the figure's legend: its colours are `colours.series`.
@@ -48,7 +49,7 @@ export async function drawStackedBars(rows, body, colours, parameters, hidden) {
   const shown = shownRows(folded, seriesColumn, hidden);
   const stacked = [...colours.series.keys()].filter((name) => shown.some((row) => row[seriesColumn] === name));
   const chart = Plot.plot({
-    ...titledFrame(body, yLabel, margins),
+    ...titledFrame(body, yLabel, margins, parameters.height),
     x: { type: "band", domain: xDomain ?? distinct(shown.map((row) => row[xColumn])) },
     color: colourScale(colours.series, stacked),
     marks: [

@@ -2,8 +2,10 @@
  * A chart's axes: how many ticks a linear axis asks Plot for, the powers of ten a log axis is ticked at, Plot's scale
  * options for a card's axis, its axis and grid marks (a band axis's among them), a value written as its axis writes
  * it, alone or in a tooltip, and the ticks of a colour legend on a log scale. A card's axis options are `{ label, log,
- * domain, ticks, tickFormat }`, each optional: its title, whether it is a log axis, its `[low, high]`, the values it
- * ticks and how a tick is written. All are plain functions, tested with `node --test`; a mark's is given Plot.
+ * domain, ticks, tickFormat, tipFormat }`, each optional: its title, whether it is a log axis, its `[low, high]`, the
+ * values it ticks, how a tick is written, and how a value is written in a tooltip where that differs from a tick's,
+ * the whole of the value's line, which then names the value itself (a trace day with its date, "Day 150 · Sep 8,
+ * 2025"). All are plain functions, tested with `node --test`; a mark's is given Plot.
  */
 
 import { AXIS_STYLE, GRID_STYLE } from "../shared/charts.js";
@@ -122,10 +124,14 @@ export function afterAxisTitle(axis, text) {
 }
 
 /**
- * A value of the card's axis options `axis` as a tooltip writes it: as the axis writes it (`axisText`), after the
- * axis's title where it has one, "Day of the trace: 120".
+ * A value of the card's axis options `axis` as a tooltip writes it: by `axis.tipFormat` where given, "Day 120 · Aug 9,
+ * 2025"; else as the axis writes it (`axisText`), after the axis's title where it has one, "Instances: 12".
  */
 export function axisValueText(axis, value) {
+  if (axis.tipFormat !== undefined) {
+    // The tooltip's text names the value itself, so the axis's title, written for the ticks, is not repeated.
+    return axis.tipFormat(value);
+  }
   return afterAxisTitle(axis, axisText(axis, value));
 }
 

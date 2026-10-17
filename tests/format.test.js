@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
-  dateSpanText, formatCompactCount, formatCount, formatCountTick, formatMinutesTick, formatPercent, formatPercentage,
-  formatQuantity, formatSeconds, formatSecondsTick, formatShare, formatThousandsTick, formatWholeCount,
-  formatWholeCountTick,
+  dateSpanText, formatCompactCount, formatCount, formatCountTick, formatDurationTick, formatHoursTick,
+  formatMinutesTick, formatPercent, formatPercentage, formatQuantity, formatSeconds, formatSecondsTick, formatShare,
+  formatSignificant, formatThousandsTick, formatTraceDay, formatWholeCount, formatWholeCountTick, TRACE_FIRST_DAY,
 } from "../site/js/shared/format.js";
 
 test("a count gets thousands separators", () => {
@@ -96,4 +97,56 @@ test("an axis's percentage has no decimals", () => {
 test("a span of days names the year once when both share it", () => {
   assert.equal(dateSpanText("2026-05-17", "2026-09-05"), "May 17 – September 5, 2026");
   assert.equal(dateSpanText("2025-12-28", "2026-01-03"), "December 28, 2025 – January 3, 2026");
+});
+
+test("a value to two significant figures keeps the zeros it needs and no more", () => {
+  assert.equal(formatSignificant(0.000471), "0.00047");
+  assert.equal(formatSignificant(0.4712), "0.47");
+  assert.equal(formatSignificant(12.3), "12");
+  assert.equal(formatSignificant(0.5), "0.5");
+  assert.equal(formatSignificant(1234), "1,200");
+});
+
+test("a duration tick is written in milliseconds, seconds, minutes or hours, the largest it reaches", () => {
+  assert.equal(formatDurationTick(0.001), "1 ms");
+  assert.equal(formatDurationTick(0.05), "50 ms");
+  assert.equal(formatDurationTick(0.1), "0.1 s");
+  assert.equal(formatDurationTick(10), "10 s");
+  assert.equal(formatDurationTick(60), "1 min");
+  assert.equal(formatDurationTick(900), "15 min");
+  assert.equal(formatDurationTick(3600), "1 h");
+});
+
+test("minutes into a window are written as hours on an axis", () => {
+  assert.equal(formatHoursTick(360), "6 h");
+  assert.equal(formatHoursTick(0), "0 h");
+  assert.equal(formatHoursTick(90), "1.5 h");
+});
+
+test("a trace day is written with its date, and an hour's start with its time in UTC", () => {
+  assert.equal(formatTraceDay(0), "Day 0 · Apr 11, 2025");
+  assert.equal(formatTraceDay(150), "Day 150 · Sep 8, 2025");
+  assert.equal(formatTraceDay(305.875), "Day 305 · Feb 10, 2026, 21:00 UTC");
+  assert.equal(formatTraceDay(366), "Day 366 · Apr 12, 2026");
+});
+
+test("a trace day's date does not move with the machine's time zone", (context) => {
+  const zone = process.env.TZ;
+  context.after(() => {
+    if (zone === undefined) {
+      delete process.env.TZ;
+    } else {
+      process.env.TZ = zone;
+    }
+  });
+  for (const timeZone of ["Pacific/Kiritimati", "Pacific/Pago_Pago"]) {
+    process.env.TZ = timeZone;
+    assert.equal(formatTraceDay(150), "Day 150 · Sep 8, 2025", timeZone);
+  }
+});
+
+test("the trace's first day is the shipped trace totals' first day", () => {
+  const totalsFile = new URL("../site/data/all/explore/trace_totals.json", import.meta.url);
+  const [totals] = JSON.parse(readFileSync(totalsFile, "utf8"));
+  assert.equal(TRACE_FIRST_DAY, totals.first_day);
 });

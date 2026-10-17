@@ -7,10 +7,12 @@
  * for a figure of several panels, `[{ panel, title, chart }]`, one chart per entry drawn from the rows whose `panel`
  * column is `panel`, under its title, with the card's `chart` and then the entry's own as its parameters (the card has
  * one legend for all its panels, so only the card's `chart.labels` relabel the legend; a panel's own relabel only its
- * tooltips); `legend`, the name of a legend answer, rows `{ series, rank }`, whose order the card's series take;
- * `series`, the names of the series drawn, in the order they are drawn and listed, the answer's others left out (the
- * stacked bars fold them into "Other"); `palette`, the colours its series take, a key of `PALETTES` of
- * `insights/card_series.js`, "series" when not given; `isWide` true for a card that takes its topic's width.
+ * tooltips; and a panel's `chart.series`, the names of the series it draws, leaves the others to the other panels
+ * while the legend lists them all); `legend`, the name of a legend answer, rows `{ series, rank }`, whose order the
+ * card's series take; `series`, the names of the series drawn, in the order they are drawn and listed, the answer's
+ * others left out (the stacked bars fold them into "Other"); `palette`, the colours its series take, a key of
+ * `PALETTES` of `insights/card_series.js`, "series" when not given; `isWide` true for a card that takes its topic's
+ * width.
  *
  * A card's words are placed at once (`renderFigureCard`), its chart only when its topic is first shown
  * (`drawFigureChart`), with a legend of buttons above it where it has more than one series.
@@ -18,6 +20,7 @@
 
 import { nameChart, renderFigure, showError, showLoading } from "../shared/charts.js";
 import { readAnswer } from "../shared/answers.js";
+import { formatTraceDay } from "../shared/format.js";
 import { SERIES_COLUMN } from "../shared/series.js";
 import { drawBands } from "../charts/bands.js";
 import { drawBars } from "../charts/bars.js";
@@ -58,16 +61,31 @@ export const CHART_KINDS = Object.freeze({
  */
 export const COUNT_COLOUR = Object.freeze({ scheme: "viridis", schemeStart: 0.25, colourLog: true });
 
+/** A card's x axis of the trace's days, day 0 being its first; a tooltip gives the day's date (`formatTraceDay`). */
+export const TRACE_DAY_AXIS = Object.freeze({
+  label: "Day of the trace (0 = Apr 11, 2025)", tipFormat: formatTraceDay,
+});
+
 /**
  * The trace's months an axis of its months 1 to 13 labels: every third from the first, as the paper labels them;
  * all thirteen run together on a phone.
  */
 export const TRACE_MONTH_TICKS = Object.freeze([1, 4, 7, 10, 13]);
 
-/** A card's x axis of the trace's months, 1 to 13, the first being April 2025's. */
-export const TRACE_MONTH_AXIS = Object.freeze({
-  label: "Trace month (1 = April 2025)", ticks: TRACE_MONTH_TICKS, tickFormat: String,
-});
+/**
+ * The names of the trace's months 1 to 13, in order: each is named by the calendar month its first day falls in, as
+ * `trace_calendar`'s `calendar_month` labels it (`site_data/months.py`).
+ */
+export const TRACE_MONTH_NAMES = Object.freeze([
+  "Apr '25", "May '25", "Jun '25", "Jul '25", "Aug '25", "Sep '25", "Oct '25", "Nov '25", "Dec '25", "Jan '26",
+  "Feb '26", "Mar '26", "Apr '26",
+]);
+
+/** The trace month that holds only the trace's last two days, its name starred so a reader does not compare it. */
+export const PARTIAL_TRACE_MONTH = 13;
+
+/** A card's x axis of the trace's months, 1 to 13, ticked by their names (`traceMonthName`). */
+export const TRACE_MONTH_AXIS = Object.freeze({ label: "Month", ticks: TRACE_MONTH_TICKS, tickFormat: traceMonthName });
 
 // The palette of the endpoint groups, whose card reads their colour order, the answer `ENDPOINT_ORDER`.
 const ENDPOINT_PALETTE = "endpoints";
@@ -123,6 +141,15 @@ export async function drawFigureChart(body, card) {
 }
 
 /**
+ * The name of the trace month `month` (1 to 13), from `TRACE_MONTH_NAMES`, with a star for `PARTIAL_TRACE_MONTH`: 1 →
+ * "Apr '25", 13 → "Apr '26*".
+ */
+export function traceMonthName(month) {
+  const name = TRACE_MONTH_NAMES[month - 1];
+  return month === PARTIAL_TRACE_MONTH ? `${name}*` : name;
+}
+
+/**
  * A card as a topic lists it: `card`, frozen with every object and list it holds (its `chart` and their axes, its
  * `panels` and theirs), so no reader can change a card another reads. Functions, such as a tick format, are left as
  * they are.
@@ -133,7 +160,8 @@ export function frozenCard(card) {
 
 /**
  * The parameters the chart of `card` is drawn with: those of its kind, then the card's `chart`, then, for a panel
- * `entry` of the card's `panels`, the entry's own `chart` and its `panel`.
+ * `entry` of the card's `panels`, the entry's own `chart` (its `series` among them, where it draws only those) and its
+ * `panel`.
  */
 export function chartParameters(card, entry = null) {
   const parameters = { ...CHART_KINDS[card.kind].parameters, ...card.chart };

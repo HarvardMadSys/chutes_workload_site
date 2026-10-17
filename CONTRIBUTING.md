@@ -274,7 +274,7 @@ frozenCard({
   definition: "Requests per day over the trace's year.",
   kind: "lines",
   chart: {
-    x: { label: "Day of the trace" },
+    x: TRACE_DAY_AXIS,
     y: { label: "Requests per day", tickFormat: formatCountTick },
     valueLabel: "Requests",
     valueFormat: formatCompactCount,
@@ -329,13 +329,17 @@ table and the card's words.
 - *Panels.* A figure of several panels holds a `panel` column; the card
   lists `panels`, each drawn as its own chart under its title from its
   rows, with the card's `chart` and the panel's own parameters, under one
-  legend (the balancing topic's user zooms and the routing card).
+  legend (the balancing topic's user zooms and the routing card). A
+  panel's `chart.series` names the series it draws, the others left to
+  the other panels; the legend still lists them all.
 - *A legend answer.* Where the paper orders series by a legend of its own,
   the card names the legend answer in `legend` and its series take the
   legend's ranks (the two monthly shares).
 - *Shared axes and colours.* A constant two cards share, such as the count
-  colour (`COUNT_COLOUR`) or the trace's month axis (`TRACE_MONTH_AXIS`),
-  is exported once from `insights/figure_card.js`; one topic's axes are
+  colour (`COUNT_COLOUR`), the trace's day axis (`TRACE_DAY_AXIS`, whose
+  tooltip gives the day's date) or its month axis (`TRACE_MONTH_AXIS`,
+  ticked by the months' names, the partial thirteenth starred), is
+  exported once from `insights/figure_card.js`; one topic's axes are
   constants of its module.
 
 **The chart kinds** (`js/charts/`), nine modules, one per shape: the
@@ -358,10 +362,19 @@ decides; its pure functions (the rows drawn, the tooltip's text, a scale's
 options) are exported and tested in `tests/charts_<kind>.test.js`. A kind
 imports only from `shared/`, `axes/` and `theme/`. A kind takes only
 parameters two or more charts use, or a frame or axis setting (the bars'
-`margins`, `inset` and `xTickRotate`, the lines' `gap`). Every Plot kind
+`margins`, `inset` and `xTickRotate`, the lines' `gap`). Every kind takes
+`height`, the chart's height in pixels, `CHART_HEIGHT` (240) when not
+given (`titledFrame` of `shared/charts.js`); the two cards of a grid row
+take the same height, so the row stays level. Every Plot kind
 but the raster has a tooltip, written by the kind's `…TipText` function,
-its x after the x axis's title (`axisValueText` of `axes/ticks.js`); the
-donut's slices carry their tooltip as an SVG `<title>` each.
+its x after the x axis's title (`axisValueText` of `axes/ticks.js`), or
+written by the axis's `tipFormat` alone where it gives one (a trace day
+with its date); the
+donut's slices carry their tooltip as an SVG `<title>` each. The lines
+kind joins a CDF's points with straight lines, its tooltip naming the
+point nearest the pointer in x and y; with `tipAllSeries` its tooltip
+lists every drawn series' value at the hovered x, highest first, and with
+`series` it draws only the series named (a panel's own).
 
 ## JavaScript style
 
@@ -453,7 +466,12 @@ Insights' figures are drawn from their plot-ready tables.
   in a legend, a tooltip, a tile or the stats strip with one decimal kept
   ("129.1k", "94.0%", "4.3 s", and three figures in billions, "2.04B"),
   a duration in seconds (`formatCompactCount`, `formatShare`,
-  `formatSeconds`).
+  `formatSeconds`). An axis of durations from milliseconds to hours is
+  written "1 ms", "0.1 s", "15 min", "1 h" (`formatDurationTick`), of
+  minutes into a window as hours, "6 h" (`formatHoursTick`), a ratio to
+  two significant figures, "0.00047" (`formatSignificant`), and a trace
+  day in a tooltip with its date, "Day 150 · Sep 8, 2025"
+  (`formatTraceDay`).
 
 ## Verifying a change
 

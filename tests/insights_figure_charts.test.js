@@ -1,18 +1,22 @@
 // The Insights' cards drawn from their shipped answers, as the landing page's spec describes them: the value under the
-// pointer, a log axis, a raster, a hidden series of a CDF card, the hourly lines' gaps, and the colour and the month
-// axis the cards share. Each reads a card as its topic lists it and its answer as the page reads it.
+// pointer, a log axis, a raster, a hidden series of a CDF card, a CDF's straight lines, the hourly lines' gaps, a
+// panel's own series, and the colour and the day and month axes the cards share. Each reads a card as its topic lists
+// it and its answer as the page reads it.
 
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { brokenAtGaps, drawnPoints, framedPoints, lineTipText, lineYAxis } from "../site/js/charts/lines.js";
+import {
+  brokenAtGaps, drawnPoints, framedPoints, lineTipText, lineYAxis, seriesLine,
+} from "../site/js/charts/lines.js";
 import { pooledGrid, rasterColourDomain, rasterGrid } from "../site/js/charts/raster.js";
 import { axisTicks } from "../site/js/axes/ticks.js";
 import { drawWithLegend } from "../site/js/explore/legend.js";
 import { cardColours, figureLegend } from "../site/js/insights/card_series.js";
 import {
-  chartParameters, COUNT_COLOUR, TRACE_MONTH_AXIS, TRACE_MONTH_TICKS,
+  chartParameters, COUNT_COLOUR, PARTIAL_TRACE_MONTH, TRACE_DAY_AXIS, TRACE_MONTH_AXIS, TRACE_MONTH_NAMES,
+  TRACE_MONTH_TICKS, traceMonthName,
 } from "../site/js/insights/figure_card.js";
 import { FIGURE_SECTIONS } from "../site/js/insights/figure_sections.js";
 import { sequentialColour } from "../site/js/shared/charts.js";
@@ -21,6 +25,8 @@ import { FakeElement, FakeFigureBody } from "./fake_page.js";
 
 const HOURS_IN_WINDOW = 31 * 24; // a raster's window: thirty-one days of hours
 const TRACE_MONTHS = 13; // the trace's months, 1 to 13
+// A stand-in for Plot's line mark, returning its name and the arguments it was given.
+const FAKE_LINE_PLOT = { line: (...args) => ["line", ...args] };
 
 // The card that draws `figure`, as its topic lists it.
 function cardOf(figure) {
@@ -43,11 +49,11 @@ function settle() {
   return new Promise((resolve) => setImmediate(resolve));
 }
 
-test("the requests-per-day card's tooltip at day 120 gives the day and its requests", () => {
+test("the requests-per-day card's tooltip at day 120 gives the day with its date and its requests", () => {
   const card = cardOf("fig_request_rate_day");
   const row = shippedAnswer(card.figure).find((point) => point.x === 120);
   const [, day, requests] = lineTipText(row, chartParameters(card)).split("\n");
-  assert.equal(day, "Day of the trace: 120");
+  assert.equal(day, "Day 120 · Aug 9, 2025");
   assert.match(requests, /^Requests: \d+(\.\d)?[kM]?$/);
 });
 
@@ -121,12 +127,51 @@ test("a count's colour is viridis on a log scale from a quarter along it, ticked
   assert.ok(Object.isFrozen(COUNT_COLOUR));
 });
 
-test("the trace's month axis labels every third month from the first to the thirteenth, as numbers", () => {
+test("the trace's month axis labels every third month by its name, the partial last one starred", () => {
   assert.deepEqual(TRACE_MONTH_AXIS.ticks, TRACE_MONTH_TICKS);
-  assert.deepEqual(TRACE_MONTH_TICKS.map(TRACE_MONTH_AXIS.tickFormat), ["1", "4", "7", "10", "13"]);
+  assert.deepEqual(TRACE_MONTH_TICKS.map(TRACE_MONTH_AXIS.tickFormat),
+    ["Apr '25", "Jul '25", "Oct '25", "Jan '26", "Apr '26*"]);
+  assert.equal(TRACE_MONTH_AXIS.label, "Month");
   assert.equal(TRACE_MONTH_TICKS.at(-1), TRACE_MONTHS);
-  assert.match(TRACE_MONTH_AXIS.label, /1 = April 2025/);
+  assert.equal(TRACE_MONTH_NAMES.length, TRACE_MONTHS);
+  assert.equal(PARTIAL_TRACE_MONTH, TRACE_MONTHS);
+  assert.equal(traceMonthName(12), "Mar '26");
   assert.ok(Object.isFrozen(TRACE_MONTH_AXIS) && Object.isFrozen(TRACE_MONTH_TICKS));
+  assert.ok(Object.isFrozen(TRACE_MONTH_NAMES));
+});
+
+test("the overview's four daily lines and the three hourly lines share the trace's day axis", () => {
+  const figures = [
+    "fig_request_rate_day", "fig_token_rate_day", "fig_daily_unique_models", "fig_function_name_daily_requests",
+    "fig_lb_request_rate", "fig_lb_active_instances", "fig_lb_maxmean_tokens",
+  ];
+  for (const figure of figures) {
+    assert.equal(cardOf(figure).chart.x, TRACE_DAY_AXIS, figure);
+  }
+  assert.equal(TRACE_DAY_AXIS.label, "Day of the trace (0 = Apr 11, 2025)");
+  const hourly = shippedAnswer("fig_lb_request_rate")[0];
+  assert.match(TRACE_DAY_AXIS.tipFormat(hourly.x), /^Day 305 · Feb 10, 2026, \d\d:\d\d UTC$/);
+});
+
+test("the input-tokens CDF joins its percentile points with straight lines", () => {
+  const card = cardOf("fig_token_length_input_cdf_by_model");
+  const rows = shippedAnswer(card.figure);
+  const [, points, options] = seriesLine(FAKE_LINE_PLOT, rows, "Global", chartParameters(card));
+  assert.equal(options.curve, "linear");
+  assert.ok(points.length > 2);
+});
+
+test("a panel given its series draws only those of the card's answer", () => {
+  const card = cardOf("fig_routing_tradeoff");
+  const rows = shippedAnswer(card.figure);
+  const [entry] = card.panels;
+  const deepSeek = [...new Set(rows.map((row) => row[SERIES_COLUMN]))].filter((name) => name.startsWith("DeepSeek"));
+  const panelEntry = { ...entry, chart: { ...entry.chart, series: deepSeek } };
+  const parameters = chartParameters(card, panelEntry);
+  assert.deepEqual(parameters.series, deepSeek);
+  const drawn = drawnPoints(rows, cardColours(card, rows, null), parameters, new Set());
+  assert.ok(drawn.length > 0);
+  assert.ok(drawn.every((point) => deepSeek.includes(point[SERIES_COLUMN]) && point.panel === entry.panel));
 });
 
 test("the input-tokens card's tooltip names no point past its axis's 400,000 tokens", () => {

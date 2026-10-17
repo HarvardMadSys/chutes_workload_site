@@ -19,7 +19,7 @@ const INPUT_COLOUR = SERIES_SLOTS[0];
 const OUTPUT_COLOUR = SERIES_SLOTS[1];
 
 // The x axis of the release cohorts: a user's cohort is the trace month the user first appeared in.
-const COHORT_AXIS = Object.freeze({ ...TRACE_MONTH_AXIS, label: "Release cohort (1 = April 2025)" });
+const COHORT_AXIS = Object.freeze({ ...TRACE_MONTH_AXIS, label: "Release cohort (month first seen)" });
 
 /** The Workload evolution topic. */
 export const EVOLUTION_TOPIC = Object.freeze({
@@ -36,6 +36,7 @@ export const EVOLUTION_TOPIC = Object.freeze({
       chart: {
         xLabel: TRACE_MONTH_AXIS.label,
         xTicks: TRACE_MONTH_TICKS,
+        xTickFormat: TRACE_MONTH_AXIS.tickFormat,
         yLabel: "Share of requests",
         yTickFormat: formatPercent,
         valueLabel: "Share of requests",
@@ -55,6 +56,7 @@ export const EVOLUTION_TOPIC = Object.freeze({
       chart: {
         xLabel: TRACE_MONTH_AXIS.label,
         xTicks: TRACE_MONTH_TICKS,
+        xTickFormat: TRACE_MONTH_AXIS.tickFormat,
         yLabel: "Share of total tokens",
         yTickFormat: formatPercent,
         valueLabel: "Share of tokens",

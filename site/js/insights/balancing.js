@@ -11,10 +11,7 @@ import {
   formatCompactCount, formatCount, formatCountTick, formatMinutesTick, formatPercentage, formatSecondsTick,
   formatWholeCountTick,
 } from "../shared/format.js";
-import { frozenCard } from "./figure_card.js";
-
-// The x axis of the three hourly lines: the hour's start, as a day of the trace.
-const TRACE_DAY_AXIS = Object.freeze({ label: "Day of the trace" });
+import { frozenCard, TRACE_DAY_AXIS } from "./figure_card.js";
 
 // The largest step, in days, the three hourly lines are drawn across: an hour and a half, so a line breaks where an
 // hour is missing from its answer, as the paper's does, and joins every two hours that follow each other.

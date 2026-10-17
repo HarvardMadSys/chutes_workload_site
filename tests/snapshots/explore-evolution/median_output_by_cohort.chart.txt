@@ -1,5 +1,5 @@
 name: Median output by cohort: Change in the median output is less pronounced across cohorts.
-x-axis: 1 | 4 | 7 | 10 | 13
+x-axis: Apr '25 | Jul '25 | Oct '25 | Jan '26 | Apr '26*
 y-axis: 0 | 1k | 2k | 3k
-x-axis title: Release cohort (1 = April 2025)
+x-axis title: Release cohort (month first seen)
 y-axis title: Median output

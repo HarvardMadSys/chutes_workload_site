@@ -94,6 +94,12 @@ test("a tooltip writes a value as its axis does, after the axis's title where it
   assert.equal(axisValueText({}, 3), "3");
 });
 
+test("an axis's tipFormat writes a tooltip's value line in its place, the ticks keeping their own format", () => {
+  const axis = { label: "Day of the trace", tickFormat: String, tipFormat: (day) => `Day ${day} · a date` };
+  assert.equal(axisValueText(axis, 120), "Day 120 · a date");
+  assert.equal(axisText(axis, 120), "120");
+});
+
 test("a log colour legend is ticked at the powers of ten of its domain or its values; any other at Plot's own", () => {
   assert.deepEqual(colourLegendTicks({ colourLog: true }, [1, 40, 13851]), [1, 10, 100, 1000, 10000]);
   assert.deepEqual(colourLegendTicks({ colourLog: true, colourDomain: [1.1, 153] }, [0.5, 900]), [10, 100]);

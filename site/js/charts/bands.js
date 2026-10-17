@@ -30,6 +30,7 @@ const INNER_BAND_OPACITY = 0.4; // the 25th-to-75th band, drawn over the outer o
  *   percentiles are not all above zero is not drawn.
  * - `valueLabel`: what a value is, the tooltip's heading under the x; `valueFormat`: how a percentile is written there.
  * - `margins`: Plot margins in place of the frame's.
+ * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `shared/charts.js`).
  * Required: `valueLabel` and `valueFormat`.
  */
 export async function drawBands(rows, body, colours, parameters) {
@@ -41,7 +42,7 @@ export async function drawBands(rows, body, colours, parameters) {
   const xTicks = axisTicks(xAxis, xValues);
   const yTicks = axisTicks(yAxis, [...drawn.map((row) => row.p10), ...drawn.map((row) => row.p90)]);
   const chart = Plot.plot({
-    ...titledFrame(body, yAxis.label ?? null, margins),
+    ...titledFrame(body, yAxis.label ?? null, margins, parameters.height),
     x: axisScale(xAxis, xValues),
     y: axisScale(yAxis),
     marks: [

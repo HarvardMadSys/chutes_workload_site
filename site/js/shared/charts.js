@@ -5,8 +5,8 @@
  * that need no page are tested with `node --test`.
  */
 
-// Every chart's height, so a grid of figures lines up.
-const CHART_HEIGHT = 240;
+/** A chart's height in pixels where its card gives none, so a grid of figures lines up. */
+export const CHART_HEIGHT = 240;
 const FALLBACK_WIDTH = 480; // the width drawn when the body has not been laid out yet
 const UNTITLED_MARGIN_TOP = 12; // pixels above a chart whose y axis has no title: room for half its top tick's label
 /** Pixels taken off each side of a bar: a 2px gap between neighbouring bars and segments. */
@@ -28,17 +28,21 @@ export const GRID_STYLE = Object.freeze({ stroke: "var(--chart-grid)", strokeOpa
 /** The options of every chart's axes and its zero line: the axis ink, and an axis title with no arrow. */
 export const AXIS_STYLE = Object.freeze({ stroke: "var(--chart-axis)", labelArrow: "none" });
 
-/** The Plot options every chart starts from: its margins, its height, the width of `body`, and its ink. */
-export function chartFrame(body) {
-  return { ...PLOT_MARGINS, width: chartWidth(body), height: CHART_HEIGHT, style: PLOT_STYLE };
+/**
+ * The Plot options every chart starts from: its margins, its height (`height` pixels, `CHART_HEIGHT` when not given),
+ * the width of `body`, and its ink.
+ */
+export function chartFrame(body, height = CHART_HEIGHT) {
+  return { ...PLOT_MARGINS, width: chartWidth(body), height, style: PLOT_STYLE };
 }
 
 /**
- * The frame of a chart whose y axis is titled `yLabel` (null for none): `chartFrame`, then `margins` where given, and a
- * small top margin where the y axis has no title.
+ * The frame of a chart whose y axis is titled `yLabel` (null for none): `chartFrame` at `height` pixels (a kind's
+ * `height` parameter, `CHART_HEIGHT` when not given), then `margins` where given, and a small top margin where the y
+ * axis has no title.
  */
-export function titledFrame(body, yLabel, margins) {
-  const frame = { ...chartFrame(body), ...margins };
+export function titledFrame(body, yLabel, margins, height = CHART_HEIGHT) {
+  const frame = { ...chartFrame(body, height), ...margins };
   if (yLabel === null) {
     frame.marginTop = UNTITLED_MARGIN_TOP;
   }

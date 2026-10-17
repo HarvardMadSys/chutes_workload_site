@@ -32,6 +32,7 @@ const MEDIAN_WIDTH = 2; // pixels; the median's tick, thicker than the whiskers
  * - `labels`: each series' label on the axis and in the tooltip where it is written otherwise than its name.
  * - `valueLabel`: what a value is, the tooltip's heading; `valueFormat`: how a statistic is written there.
  * - `margins`: Plot margins in place of the frame's.
+ * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `shared/charts.js`).
  * Required: `valueLabel` and `valueFormat`.
  */
 export async function drawBoxes(rows, body, colours, parameters, hidden) {
@@ -42,7 +43,7 @@ export async function drawBoxes(rows, body, colours, parameters, hidden) {
   const names = boxes.map((box) => box[SERIES_COLUMN]);
   const yTicks = axisTicks(yAxis, [...boxes.map((box) => box.low), ...boxes.map((box) => box.high)]);
   const chart = Plot.plot({
-    ...titledFrame(body, yAxis.label ?? null, margins),
+    ...titledFrame(body, yAxis.label ?? null, margins, parameters.height),
     x: { type: "band", domain: names, padding: BOX_PADDING },
     y: axisScale(yAxis),
     color: colourScale(colours.series, names),

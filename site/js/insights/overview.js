@@ -7,7 +7,7 @@
 
 import { formatCompactCount, formatCount, formatCountTick } from "../shared/format.js";
 import { ENDPOINT_LABELS } from "../shared/series.js";
-import { frozenCard } from "./figure_card.js";
+import { frozenCard, TRACE_DAY_AXIS } from "./figure_card.js";
 
 // The API functions' labels where the answer writes a function's name otherwise than the site's endpoint groups.
 const FUNCTION_LABELS = Object.freeze({
@@ -36,7 +36,7 @@ export const OVERVIEW_TOPIC = Object.freeze({
       definition: "Requests per day over the trace's year.",
       kind: "lines",
       chart: {
-        x: { label: "Day of the trace" },
+        x: TRACE_DAY_AXIS,
         y: { label: "Requests per day", tickFormat: formatCountTick },
         valueLabel: "Requests",
         valueFormat: formatCompactCount,
@@ -51,7 +51,7 @@ export const OVERVIEW_TOPIC = Object.freeze({
       definition: "Input plus output tokens per day, over the requests that completed.",
       kind: "lines",
       chart: {
-        x: { label: "Day of the trace" },
+        x: TRACE_DAY_AXIS,
         y: { label: "Tokens per day", tickFormat: formatCountTick },
         valueLabel: "Tokens",
         valueFormat: formatCompactCount,
@@ -65,7 +65,7 @@ export const OVERVIEW_TOPIC = Object.freeze({
       definition: "Distinct models with at least one request that day.",
       kind: "lines",
       chart: {
-        x: { label: "Day of the trace" },
+        x: TRACE_DAY_AXIS,
         y: { label: "Active models" },
         valueLabel: "Models",
         valueFormat: formatCount,
@@ -81,7 +81,7 @@ export const OVERVIEW_TOPIC = Object.freeze({
       kind: "lines",
       palette: "endpoints",
       chart: {
-        x: { label: "Day of the trace" },
+        x: TRACE_DAY_AXIS,
         // The paper's limits: the busiest function's busiest day, 21.1M requests, sits under its top.
         y: { label: "Requests per day", domain: [0, 23e6], tickFormat: formatCountTick },
         labels: FUNCTION_LABELS,

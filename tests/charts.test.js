@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  chartFrame, chartName, chartWidth, colourScale, columnTotal, DASH, logColumns, panelRows, positiveRows,
+  CHART_HEIGHT, chartFrame, chartName, chartWidth, colourScale, columnTotal, DASH, logColumns, panelRows, positiveRows,
   sequentialColour, titledFrame,
 } from "../site/js/shared/charts.js";
 import { assignColours } from "../site/js/theme/colours.js";
@@ -60,6 +60,14 @@ test("a chart whose y axis has no title has a small top margin, and a card's mar
   assert.equal(titledFrame({ clientWidth: 600 }, "Requests", undefined).marginTop, 32);
   assert.equal(titledFrame({ clientWidth: 600 }, null, undefined).marginTop, 12);
   assert.equal(titledFrame({ clientWidth: 600 }, "Requests", { marginLeft: 40 }).marginLeft, 40);
+});
+
+test("a chart is as tall as its card's height, and CHART_HEIGHT where the card gives none", () => {
+  assert.equal(CHART_HEIGHT, 240);
+  assert.equal(titledFrame({ clientWidth: 600 }, "Requests", undefined).height, CHART_HEIGHT);
+  assert.equal(titledFrame({ clientWidth: 600 }, "Requests", undefined, undefined).height, CHART_HEIGHT);
+  assert.equal(titledFrame({ clientWidth: 600 }, null, { marginLeft: 40 }, 340).height, 340);
+  assert.equal(chartFrame({ clientWidth: 600 }, 400).height, 400);
 });
 
 test("a sequential colour scale takes the card's scheme and type, a log one where asked, with its legend in its format", () => {

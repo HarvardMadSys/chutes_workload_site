@@ -1,5 +1,5 @@
 name: Request share: Dominant models turn over.
-x-axis: 1 | 4 | 7 | 10 | 13
+x-axis: Apr '25 | Jul '25 | Oct '25 | Jan '26 | Apr '26*
 y-axis: 0% | 20% | 40% | 60% | 80% | 100%
-x-axis title: Trace month (1 = April 2025)
+x-axis title: Month
 y-axis title: Share of requests

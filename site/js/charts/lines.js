@@ -1,6 +1,7 @@
 /**
  * The lines kind: one line per series, in its legend's colour, over a linear or a log axis on either side; a CDF is a
- * lines chart of the share of a series' rows at or below each value, stepped, its y axis in percent.
+ * lines chart of the share of a series' rows at or below each value, its points joined by straight lines (an answer's
+ * points are percentiles, which the paper joins so), its y axis in percent.
  *
  * Its rows are a lines answer's, `series` (the series' name), `x` and `y`, or a CDF answer's, `series`, `x` (a value)
  * and `cdf` (the share at or below it), each series' points in order of `x`; a multi-panel figure's rows also name
@@ -19,7 +20,12 @@ const CDF_COLUMN = "cdf"; // the column of a CDF answer holding the share at or 
  * the rows hold, leaving out the series in `hidden`, and return the chart. Its named parameters:
  * - `x`, `y`: the card's axis options `{ label, log, domain, ticks, tickFormat }`; a row with a value at or below zero
  *   on a log axis is not drawn, and a line is cut at a given domain's ends.
- * - `cdf`: true for a CDF answer, its `cdf` column drawn as y from 0 to 1, stepped, the axis in percent.
+ * - `cdf`: true for a CDF answer, its `cdf` column drawn as y from 0 to 1, the axis in percent; its tooltip names the
+ *   point nearest the pointer in x and y (`Plot.pointer`), another chart's the point nearest in x (`Plot.pointerX`).
+ * - `series`: the names of the series drawn, a list, such as a panel's own (`chartParameters` of
+ *   `insights/figure_card.js`); every series of `colours.series` when not given. `hidden` still applies.
+ * - `tipAllSeries`: true for a tooltip at the hovered x that lists every drawn series' value there, highest first
+ *   (`allSeriesTipText`), for a lines answer (not a CDF) of few x values whose lines lie on one another.
  * - `markers`: true to mark each point with a dot.
  * - `dashed`: the names of the series drawn dashed, a list.
  * - `gap`: the largest step in x a line is drawn across; a series' line is broken between two points farther apart,
@@ -28,10 +34,11 @@ const CDF_COLUMN = "cdf"; // the column of a CDF answer holding the share at or 
  *   is its x.
  * - `labels`: each series' label in the tooltip where it is written otherwise than its name.
  * - `panel`: the panel drawn, of a multi-panel answer. `margins`: Plot margins in place of the frame's.
+ * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `shared/charts.js`).
  * Required: `valueLabel` and `valueFormat`.
  */
 export async function drawLines(rows, body, colours, parameters, hidden) {
-  const { x: xAxis = {}, cdf = false, markers = false, dashed = [], gap, margins } = parameters;
+  const { x: xAxis = {}, cdf = false, gap, margins } = parameters;
   const yAxis = lineYAxis(parameters);
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
@@ -41,17 +48,8 @@ export async function drawLines(rows, body, colours, parameters, hidden) {
   const xTicks = axisTicks(xAxis, xValues);
   const yTicks = axisTicks(yAxis, drawn.map((row) => row[yColumn(cdf)]));
   const broken = brokenAtGaps(drawn, gap, yColumn(cdf));
-  const lines = names.map((name) => Plot.line(broken.filter((row) => row[SERIES_COLUMN] === name), {
-    x: "x",
-    y: yColumn(cdf),
-    stroke: SERIES_COLUMN,
-    strokeDasharray: seriesDash(name, dashed),
-    curve: cdf ? "step-after" : "linear",
-    marker: markers,
-    clip: xAxis.domain !== undefined || yAxis.domain !== undefined,
-  }));
   const chart = Plot.plot({
-    ...titledFrame(body, yAxis.label ?? null, margins),
+    ...titledFrame(body, yAxis.label ?? null, margins, parameters.height),
     x: axisScale(xAxis, xValues),
     y: axisScale(yAxis),
     color: colourScale(colours.series, names),
@@ -60,10 +58,8 @@ export async function drawLines(rows, body, colours, parameters, hidden) {
       gridMark(Plot, "y", yTicks),
       axisMark(Plot, "x", xAxis, xTicks),
       axisMark(Plot, "y", yAxis, yTicks),
-      ...lines,
-      Plot.tip(framedPoints(drawn, xAxis, yAxis, yColumn(cdf)), Plot.pointerX({
-        x: "x", y: yColumn(cdf), title: (row) => lineTipText(row, parameters),
-      })),
+      ...names.map((name) => seriesLine(Plot, broken, name, parameters)),
+      lineTip(Plot, framedPoints(drawn, xAxis, yAxis, yColumn(cdf)), parameters),
     ],
   });
   body.replaceChildren(chart);
@@ -81,6 +77,39 @@ export function lineYAxis({ y: yAxis = {}, cdf = false }) {
   return { tickFormat: formatPercent, ...yAxis, domain: [0, 1] };
 }
 
+/**
+ * The line mark of the series `name` among `points` (the drawn points, broken at gaps): its points joined by straight
+ * lines, a CDF's too, dashed where `parameters.dashed` names it, a dot at each point where `parameters.markers`, and
+ * clipped to the frame where either axis gives a domain.
+ */
+export function seriesLine(Plot, points, name, parameters) {
+  const { x: xAxis = {}, cdf = false, markers = false, dashed = [] } = parameters;
+  const yAxis = lineYAxis(parameters);
+  return Plot.line(points.filter((row) => row[SERIES_COLUMN] === name), {
+    x: "x",
+    y: yColumn(cdf),
+    stroke: SERIES_COLUMN,
+    strokeDasharray: seriesDash(name, dashed),
+    curve: "linear",
+    marker: markers,
+    clip: xAxis.domain !== undefined || yAxis.domain !== undefined,
+  });
+}
+
+/**
+ * The tooltip mark of a lines chart over the `framed` points (`framedPoints`): one listing every series at the hovered
+ * x where `parameters.tipAllSeries` (`allSeriesTips`); else a point's own (`lineTipText`), the nearest in x and y for
+ * a CDF, whose curves cross, and the nearest in x for any other.
+ */
+export function lineTip(Plot, framed, parameters) {
+  const { cdf = false, tipAllSeries = false } = parameters;
+  if (tipAllSeries) {
+    return Plot.tip(allSeriesTips(framed, parameters), Plot.pointerX({ x: "x", y: "y", title: "text" }));
+  }
+  const pointer = cdf ? Plot.pointer : Plot.pointerX;
+  return Plot.tip(framed, pointer({ x: "x", y: yColumn(cdf), title: (row) => lineTipText(row, parameters) }));
+}
+
 /** The dash pattern of the series `name`: `DASH` where `dashed`, a list of names, holds it, else none, a solid line. */
 export function seriesDash(name, dashed) {
   return dashed.includes(name) ? DASH.join(",") : undefined;
@@ -93,12 +122,48 @@ export function yColumn(cdf) {
 
 /**
  * The points drawn: the rows of `parameters.panel` (all when not given), of the series `colours` names (a Map from
- * series name to colour) that are not in `hidden`, with a value above zero in every column drawn on a log axis (`x`
- * where `parameters.x.log`, the y column where `parameters.y.log`).
+ * series name to colour) that are in `parameters.series` where it is given and not in `hidden`, with a value above zero
+ * in every column drawn on a log axis (`x` where `parameters.x.log`, the y column where `parameters.y.log`).
  */
-export function drawnPoints(rows, colours, { panel, x: xAxis = {}, y: yAxis = {}, cdf = false }, hidden) {
+export function drawnPoints(rows, colours, { panel, series, x: xAxis = {}, y: yAxis = {}, cdf = false }, hidden) {
   const shown = shownSeriesRows(rows, colours, panel, hidden);
-  return positiveRows(shown, logColumns({ x: xAxis, y: yAxis }, ["x"], [yColumn(cdf)]));
+  const named = series === undefined ? shown : shown.filter((row) => series.includes(row[SERIES_COLUMN]));
+  return positiveRows(named, logColumns({ x: xAxis, y: yAxis }, ["x"], [yColumn(cdf)]));
+}
+
+/**
+ * The tooltips of a chart whose tooltip lists every series (`tipAllSeries`): one per x value of `points`, in the order
+ * of their first appearance, `{ x, y, text }`, `y` the highest value there, where the tooltip points, and `text` its
+ * lines (`allSeriesTipText`).
+ */
+export function allSeriesTips(points, parameters) {
+  const pointsByX = new Map();
+  for (const point of points) {
+    if (!pointsByX.has(point.x)) {
+      pointsByX.set(point.x, []);
+    }
+    pointsByX.get(point.x).push(point);
+  }
+  const tips = [];
+  for (const [x, pointsAtX] of pointsByX) {
+    const highest = Math.max(...pointsAtX.map((point) => point.y));
+    tips.push({ x, y: highest, text: allSeriesTipText(x, pointsAtX, parameters) });
+  }
+  return tips;
+}
+
+/**
+ * The tooltip at `x` of a chart that lists every series there: `x` as the x axis writes it, after its title, then one
+ * line per point of `points` (the points at `x`), highest value first, its series' label (from `labels` where it has
+ * one there) and its value: "Cache size: 315.4k", "Belady 0.923", "LRU 0.871".
+ */
+export function allSeriesTipText(x, points, { x: xAxis = {}, valueFormat, labels = {} }) {
+  const highestFirst = [...points].sort((first, second) => second.y - first.y);
+  const lines = [axisValueText(xAxis, x)];
+  for (const point of highestFirst) {
+    lines.push(`${seriesLabel(labels, point[SERIES_COLUMN])} ${valueFormat(point.y)}`);
+  }
+  return lines.join("\n");
 }
 
 /**

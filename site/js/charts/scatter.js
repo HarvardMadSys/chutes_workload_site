@@ -20,6 +20,7 @@ const DOT_RADIUS = 2; // pixels; small, so that thousands of points overlap litt
  *   `[-1, 1]`, else the values' own, centred on zero.
  * - `valueLabel`: what a value is, the colour legend's title and the tooltip's; `valueFormat`: how it is written there.
  * - `margins`: Plot margins in place of the frame's.
+ * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `shared/charts.js`).
  * Required: `valueLabel` and `valueFormat`.
  */
 export async function drawScatter(rows, body, colours, parameters) {
@@ -30,7 +31,7 @@ export async function drawScatter(rows, body, colours, parameters) {
   const xTicks = axisTicks(xAxis, drawn.map((point) => point.x));
   const yTicks = axisTicks(yAxis, drawn.map((point) => point.y));
   const chart = Plot.plot({
-    ...titledFrame(body, yAxis.label ?? null, margins),
+    ...titledFrame(body, yAxis.label ?? null, margins, parameters.height),
     x: axisScale(xAxis),
     y: axisScale(yAxis),
     color: divergingColour(parameters),
