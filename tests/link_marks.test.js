@@ -4,7 +4,7 @@ import { test } from "node:test";
 
 import { renderHero } from "../site/js/landing/hero.js";
 import { renderFooter, renderHeader } from "../site/js/shared/layout.js";
-import { LINK_MARKS } from "../site/js/shared/link_marks.js";
+import { LINK_MARKS, linkMark } from "../site/js/shared/link_marks.js";
 
 // The stylesheet, which sizes the marks and ends every link off the site in an arrow.
 const STYLESHEET = new URL("../site/style.css", import.meta.url);
@@ -43,6 +43,12 @@ test("each mark is one svg of one path, on the 24-unit grid, in the link's colou
   }
 });
 
+test("a mark is found by its name, and a name that is no mark's throws, naming it", () => {
+  assert.equal(linkMark("github"), LINK_MARKS.github);
+  assert.throws(() => linkMark("gitlab"), { name: "RangeError", message: /gitlab/ });
+  assert.throws(() => linkMark("toString"), RangeError);
+});
+
 test("the hero's Dataset, Paper and Code buttons show their marks before their text", () => {
   const external = links(rendered(renderHero, 13)).filter((link) => link.isExternal && link.mark !== null);
   assert.deepEqual(external.map((link) => [link.text, link.mark]), [
@@ -75,5 +81,5 @@ test("a link that stays on the site carries no mark, nor does the lab's name", (
 test("the stylesheet sizes a mark to the text and ends every link off the site in an arrow", () => {
   const stylesheet = readFileSync(STYLESHEET, "utf8");
   assert.match(stylesheet, /a\[target="_blank"\]::after \{\s*content: "\\2197";/);
-  assert.match(stylesheet, /\.link-mark \{\s*width: 1em;\s*height: 1em;\s*vertical-align: -0\.125em;\s*margin-right: 0\.4em;\s*\}/);
+  assert.match(stylesheet, /\.link-mark \{\s*width: 1em;\s*height: 1em;\s*vertical-align: -0\.125em;\s*margin-right: 0\.3em;\s*\}/);
 });

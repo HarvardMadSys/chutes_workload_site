@@ -5,7 +5,7 @@
  */
 
 import { AFFILIATION, monthCountText, TRAFFIC_EXPLORER_ANCHOR, URLS } from "../shared/layout.js";
-import { LINK_MARKS } from "../shared/link_marks.js";
+import { linkMark } from "../shared/link_marks.js";
 
 // The title, the dataset's name: its first phrase, and its second, drawn in the accent.
 const TITLE = "Chutes";
@@ -16,7 +16,7 @@ const LEDE_OPENING = "One year of production LLM serving on Chutes:";
 const LEDE_HOLDINGS = "every request's timing, tokens, model, user and instance.";
 
 // The buttons under the lede: the first two scroll to the page's own sections, the first of them the primary one; the
-// others leave the site, each with the mark of `LINK_MARKS` it names before its text.
+// others leave the site, each with the link mark it names before its text.
 const SITE_BUTTONS = Object.freeze([
   Object.freeze({ title: "Traffic Explorer", href: TRAFFIC_EXPLORER_ANCHOR, className: "button button--primary" }),
   Object.freeze({ title: "Insights", href: "#insights", className: "button" }),
@@ -34,7 +34,7 @@ export function renderHero(container, monthCount) {
   );
   const externalButtons = EXTERNAL_BUTTONS.map(
     (button) =>
-      `<a class="button" href="${button.url}" target="_blank" rel="noopener">${LINK_MARKS[button.mark]}${button.title}</a>`,
+      `<a class="button" href="${button.url}" target="_blank" rel="noopener">${linkMark(button.mark)}${button.title}</a>`,
   );
   container.innerHTML = `
     <h1 id="hero-title">${TITLE} <em>${TITLE_ACCENT}</em></h1>

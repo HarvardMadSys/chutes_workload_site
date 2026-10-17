@@ -7,7 +7,7 @@
  * Explorer's choice kept; the footer's brand links the page with none.
  */
 
-import { LINK_MARKS } from "./link_marks.js";
+import { linkMark } from "./link_marks.js";
 
 /** Every address outside the site that a page links, each written once. */
 export const URLS = Object.freeze({
@@ -32,8 +32,8 @@ export const LINKED_SECTIONS = Object.freeze([
   Object.freeze({ anchor: "#cite", title: "Cite" }),
 ]);
 
-// The footer's "Elsewhere": the dataset, the paper, the code told apart from the lab's GitHub, each with the mark of
-// `LINK_MARKS` it names. The header links nothing off the site; the hero and the footer do.
+// The footer's "Elsewhere": the dataset, the paper, the code told apart from the lab's GitHub, each with the link mark
+// it names. The header links nothing off the site; the hero and the footer do.
 const ELSEWHERE_LINKS = Object.freeze([
   Object.freeze({ title: "Dataset", url: URLS.dataset, mark: "huggingface" }),
   Object.freeze({ title: "Paper", url: URLS.paper, mark: "document" }),
@@ -137,13 +137,13 @@ function sectionLink(section, className) {
 }
 
 /**
- * The markup of a link off the site to `link`, `{ title, url }` and optionally `mark`, the name of one of `LINK_MARKS`,
- * of the class `className` where one is given: it opens in a new tab, without giving that tab a handle on this one,
- * the mark, when named, comes before the text, and the stylesheet ends it in an arrow.
+ * The markup of a link off the site to `link`, `{ title, url }` and optionally `mark`, the name a `linkMark` knows, of
+ * the class `className` where one is given: it opens in a new tab, without giving that tab a handle on this one, the
+ * mark, when named, comes before the text, and the stylesheet ends it in an arrow.
  */
 export function externalLink(link, className = null) {
   const classAttribute = className === null ? "" : ` class="${className}"`;
-  const mark = link.mark === undefined ? "" : LINK_MARKS[link.mark];
+  const mark = Object.hasOwn(link, "mark") ? linkMark(link.mark) : "";
   return `<a${classAttribute} href="${link.url}" target="_blank" rel="noopener">${mark}${link.title}</a>`;
 }
 

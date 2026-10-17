@@ -28,3 +28,11 @@ export const LINK_MARKS = Object.freeze({
   document: markSvg(DOCUMENT_PATH),
   github: markSvg(GITHUB_PATH),
 });
+
+/** The mark of `LINK_MARKS` named `name`; a RangeError naming `name` when no mark has that name. */
+export function linkMark(name) {
+  if (!Object.hasOwn(LINK_MARKS, name)) {
+    throw new RangeError(`no link mark is named ${name}`);
+  }
+  return LINK_MARKS[name];
+}
