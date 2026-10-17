@@ -21,7 +21,7 @@
 
 import { legendPlace, nameChart, renderFigure, showError, showLoading } from "../shared/charts.js";
 import { readAnswer } from "../shared/answers.js";
-import { formatTraceDate, formatTraceDay } from "../shared/format.js";
+import { formatTraceDay } from "../shared/format.js";
 import { SERIES_COLUMN } from "../shared/series.js";
 import { bandKey, bandsColour, drawBands } from "../charts/bands.js";
 import { drawBars } from "../charts/bars.js";
@@ -64,7 +64,7 @@ export const COUNT_COLOUR = Object.freeze({ scheme: "viridis", schemeStart: 0.25
 
 /** A card's x axis of the trace's days, day 0 being its first; a tooltip gives the day's date (`formatTraceDay`). */
 export const TRACE_DAY_AXIS = Object.freeze({
-  label: `Day of the trace (0 = ${formatTraceDate(0)})`, tipFormat: formatTraceDay,
+  label: "Day of the trace", tipFormat: formatTraceDay,
 });
 
 /**

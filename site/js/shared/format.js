@@ -142,11 +142,6 @@ export function formatSignificant(value) {
   return value.toLocaleString("en-US", { maximumSignificantDigits: 2 });
 }
 
-/** The calendar date of the whole trace day `day`, counted from `TRACE_FIRST_DAY` as day 0: 0 → "Apr 11, 2025". */
-export function formatTraceDate(day) {
-  return calendarDate(day * MINUTES_PER_DAY);
-}
-
 /**
  * A day of the trace, counted from `TRACE_FIRST_DAY` as day 0, with its calendar date: 150 → "Day 150 · Sep 8, 2025".
  * A day with a fraction, an hour's start, also gives its time of day in UTC, to the minute: 305.875 → "Day 305 · Feb

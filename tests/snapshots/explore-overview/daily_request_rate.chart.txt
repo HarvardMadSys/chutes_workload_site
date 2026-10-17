@@ -1,5 +1,5 @@
 name: Daily request rate: Aggregate demand is non-stationary.
 x-axis: 0 | 100 | 200 | 300
 y-axis: 0 | 10M | 20M | 30M
-x-axis title: Day of the trace (0 = Apr 11, 2025)
+x-axis title: Day of the trace
 y-axis title: Requests per day

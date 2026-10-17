@@ -176,7 +176,7 @@ test("the overview's four daily lines and the three hourly lines share the trace
   for (const figure of figures) {
     assert.equal(cardOf(figure).chart.x, TRACE_DAY_AXIS, figure);
   }
-  assert.equal(TRACE_DAY_AXIS.label, "Day of the trace (0 = Apr 11, 2025)");
+  assert.equal(TRACE_DAY_AXIS.label, "Day of the trace");
   const hourly = shippedAnswer("fig_lb_request_rate")[0];
   assert.match(TRACE_DAY_AXIS.tipFormat(hourly.x), /^Day 305 · Feb 10, 2026, \d\d:\d\d UTC$/);
 });

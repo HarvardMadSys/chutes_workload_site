@@ -1,5 +1,5 @@
 name: Requests per hour: Request rate stays roughly stationary.
 x-axis: 320 | 340 | 360
 y-axis: 0 | 50k | 100k | 150k
-x-axis title: Day of the trace (0 = Apr 11, 2025)
+x-axis title: Day of the trace
 y-axis title: Requests per hour

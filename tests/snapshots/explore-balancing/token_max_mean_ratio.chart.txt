@@ -1,5 +1,5 @@
 name: Token max/mean ratio: Load is not always evenly distributed across active instances.
 x-axis: 320 | 340 | 360
 y-axis: 1.0 | 1.2 | 1.4 | 1.6 | 1.8 | 2.0
-x-axis title: Day of the trace (0 = Apr 11, 2025)
+x-axis title: Day of the trace
 y-axis title: Max/mean token load
