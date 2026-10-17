@@ -90,7 +90,7 @@ def test_dates_and_nulls_are_written_as_json(data_directory: pathlib.Path) -> No
     assert by_family[1]["ttft_sum"] is None
     assert isinstance(by_family[1]["requests"], int) and isinstance(by_family[1]["input_tokens"], float)
     deepseek = json.loads((data_directory / paths.family_answer_file("explore/daily_by_model", "deepseek")).read_text())
-    assert deepseek[0]["chute_id"] is None and deepseek[0]["model"] == "Other DeepSeek"
+    assert deepseek[2]["chute_id"] is None and deepseek[2]["model"] == "Other DeepSeek"
 
 
 def test_an_answer_value_is_its_json_form() -> None:

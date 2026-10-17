@@ -4,12 +4,17 @@ written in.
 The answers of the queries are at `all/<folder>/<query>.json`, a family query's at
 `all/<folder>/<query>/<family_slug>.json`, with the hash of each query's text in `all/queries.json`. The answers of
 the figures are at `all/figures/<figure>.json`, with each figure's row count in `all/figures.json`.
+
+The trace table's builder (`tables.py`) writes two files into the tables folder: the trace table,
+`weekly_histograms.parquet`, and its sidecar, `weekly_histograms.json`.
 """
 
 ANSWERS_FOLDER = "all"  # the answers of every Explore query, over the whole trace
 QUERY_HASHES_FILE = "queries.json"  # in the answers folder: the hash of the text of each query the answers come from
 FIGURE_ANSWERS_FOLDER = "figures"  # in the answers folder: one answer per figure, the rows of its plot-ready table
 FIGURE_INDEX_FILE = "figures.json"  # in the answers folder: each figure's name and its answer's row count
+TRACE_TABLE_FILE = "weekly_histograms.parquet"  # in the tables folder: the trace table, built once from the trace
+TRACE_TABLE_SIDECAR_FILE = "weekly_histograms.json"  # in the tables folder: the trace table's query hash and row counts
 # Commas and colons without spaces: every byte is fetched by the visitors.
 JSON_SEPARATORS = (",", ":")
 

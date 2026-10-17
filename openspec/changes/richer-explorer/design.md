@@ -59,18 +59,20 @@ where positive, as the daily rollup counts it. Four bins per doubling
 put a percentile read from a bin within 2^(1/8), about 9%, of the true
 one; the CDF at a bin's upper edge is exact.
 
-Measured once over the released trace (6,122,413,756 rows, the 91 GB
-Parquet file) on this machine with DuckDB 1.5.6:
+Measured by `make tables` over the released trace (6,122,413,756 rows,
+the 91 GB Parquet file) on this machine with DuckDB 1.5.6, on every
+thread:
 
 | | |
 |---|---|
-| Query | 207 s |
+| Query, count and write | 129 s (`make tables`: 2 min 55 s) |
+| Peak memory | 744 GB (DuckDB holds the query's `requests` step whole) |
 | Rows | 676,243 |
 | Weeks, families, kept models | 53, 11, 71 |
-| Parquet | 4.4 MB |
+| Parquet | 1.8 MB (1,810,956 bytes) |
 | Bins | input 0 to 106, output 0 to 91, TTFT −40 to 47 |
 
-The table is tracked: 4.4 MB, rebuilt only when the family table, the
+The table is tracked: 1.8 MB, rebuilt only when the family table, the
 rollup's kept models or the query change. A sidecar
 `tables/weekly_histograms.json` records the query's hash, the trace's
 rows and the table's rows, and `make test` compares the hash with the

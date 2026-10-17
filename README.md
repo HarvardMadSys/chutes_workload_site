@@ -280,6 +280,8 @@ site_data/           builds site/data/ from the artifact's caches and plot-ready
                      answers and the queries' hashes
   figure_answers.py  writes the plot-ready table of every figure the artifact lists as its answer, and their index
   paths.py           the names of the files the step writes into site/data/
+  tables.py          the command make tables runs: the trace query over the released trace, written as the trace
+                     table and its sidecar
 site/                exactly the files that are deployed
   index.html         the one page: header, hero, Overview, Traffic Explorer, Insights, Cite, Team, footer
   style.css          tokens, layout and components

@@ -1,11 +1,12 @@
 """The site's database in DuckDB over the artifact's frames in memory, in which `make data` and the tests run the site's
 queries.
 
-It is opened by registering each frame of `loading.ArtifactFrames` as the table of its name: `trace_totals`,
-`daily_rollup`, `function_name_daily_requests`, `chute_models` and `model_families`, and the calendar of
-`months.trace_calendar` as `trace_calendar`, to the daily rollup's last day. Then the setup query
+It is opened by registering (`register_tables`) each frame of `loading.ArtifactFrames` as the table of its name:
+`trace_totals`, `daily_rollup`, `function_name_daily_requests`, `chute_models` and `model_families`, and the calendar
+of `months.trace_calendar` as `trace_calendar`, to the daily rollup's last day. Then the setup query
 `setup/family_models` ranks the daily rollup's named models within their family, and its rows are registered as
-`family_models`, the one definition of a family's models: seven tables in all. A query's name is its path under
+`family_models`, the one definition of a family's models: seven tables in all. The trace table's builder
+(`tables.py`) registers the same tables in a connection of its own. A query's name is its path under
 `site/queries/` without `.sql`; `run_query` gives its result as `QueryRows`, a query that takes a parameter
 (`$family`) being given its value by name.
 """
@@ -38,9 +39,15 @@ def statement_text(name: str) -> str:
 
 
 def open_database(frames: loading.ArtifactFrames) -> duckdb.DuckDBPyConnection:
-    """A new in-memory database on `THREADS` threads, each of the artifact's frames the table of its name, the
-    trace calendar to the last day of the daily rollup, and the rows of `FAMILY_MODELS_QUERY` as `family_models`."""
+    """A new in-memory database on `THREADS` threads holding the site's seven tables (`register_tables`)."""
     connection = duckdb.connect(config={"threads": THREADS})
+    register_tables(connection, frames)
+    return connection
+
+
+def register_tables(connection: duckdb.DuckDBPyConnection, frames: loading.ArtifactFrames) -> None:
+    """Register in `connection` each of the artifact's frames as the table of its name, the trace calendar to the
+    last day of the daily rollup, and the rows of `FAMILY_MODELS_QUERY` as `family_models`."""
     connection.register("trace_totals", frames.trace_totals)
     connection.register("daily_rollup", frames.daily_rollup)
     connection.register("function_name_daily_requests", frames.function_name_daily_requests)
@@ -49,7 +56,6 @@ def open_database(frames: loading.ArtifactFrames) -> duckdb.DuckDBPyConnection:
     last_trace_day = frames.daily_rollup["day"].max().date()
     connection.register("trace_calendar", months.trace_calendar(last_trace_day))
     connection.register("family_models", connection.execute(statement_text(FAMILY_MODELS_QUERY)).df())
-    return connection
 
 
 def run_query(connection: duckdb.DuckDBPyConnection, name: str, parameters: dict[str, str] | None = None) -> QueryRows:

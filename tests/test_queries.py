@@ -1,5 +1,6 @@
 """The site's queries over the fixture artifact: each returns exactly its documented columns, reads only the site's
-tables, and counts what its definition says."""
+tables (the trace query, only the trace and the three tables of models and families), and counts what its definition
+says. The trace query's rows are checked in `test_tables.py`."""
 
 import datetime
 import re
@@ -8,7 +9,7 @@ import duckdb
 import pytest
 
 import fixture_artifact
-from site_data import site_database
+from site_data import site_database, tables
 
 # Each query's columns, in order. A query added under `site/queries/` is added here.
 EXPECTED_COLUMNS = {
@@ -21,10 +22,14 @@ EXPECTED_COLUMNS = {
     "explore/trace_totals": ["first_day", "last_day", "months", "requests", "input_tokens", "output_tokens", "users",
                              "models", "instances"],
     "setup/family_models": ["family", "chute_id", "name", "requests", "rank"],
+    "trace/weekly_histograms": ["week", "family", "chute_id", "endpoint_group", "metric", "bin", "requests"],
 }
-# The tables of the site's database, the only ones a query may read.
+# The tables of the site's database, the only ones a query of `SITE_TABLE_FOLDERS` may read.
 SITE_TABLES = {"trace_totals", "daily_rollup", "function_name_daily_requests", "chute_models", "model_families",
                "trace_calendar", "family_models"}
+SITE_TABLE_FOLDERS = ("explore/", "setup/")  # the folders of the queries over the site's tables alone
+# The only tables the trace query reads: the trace, and the models and families that place its requests.
+TRACE_QUERY_TABLES = {"trace", "chute_models", "model_families", "family_models"}
 # The parameters a query that takes one is run with here: a family of the fixture.
 QUERY_PARAMETERS = {"explore/daily_by_model": {"family": "DeepSeek"}}
 # A named parameter in a query's text, `$family`.
@@ -53,19 +58,34 @@ def test_every_query_has_its_columns_listed() -> None:
     assert query_names() == sorted(EXPECTED_COLUMNS)
 
 
+def site_query_names() -> list[str]:
+    """The name of every listed query over the site's tables alone: those of `SITE_TABLE_FOLDERS`, sorted."""
+    return [name for name in sorted(EXPECTED_COLUMNS) if name.startswith(SITE_TABLE_FOLDERS)]
+
+
 @pytest.mark.parametrize("name", sorted(EXPECTED_COLUMNS))
-def test_a_query_returns_its_columns_and_rows(connection: duckdb.DuckDBPyConnection, name: str) -> None:
-    result = site_database.run_query(connection, name, QUERY_PARAMETERS.get(name))
+def test_a_query_returns_its_columns_and_rows(connection: duckdb.DuckDBPyConnection,
+                                              trace_connection: duckdb.DuckDBPyConnection, name: str) -> None:
+    database = trace_connection if name == tables.QUERY else connection
+    result = site_database.run_query(database, name, QUERY_PARAMETERS.get(name))
     assert result.columns == EXPECTED_COLUMNS[name]
     assert result.rows, f"{name} has no rows over the fixture"
 
 
-@pytest.mark.parametrize("name", sorted(EXPECTED_COLUMNS))
+@pytest.mark.parametrize("name", site_query_names())
 def test_a_query_reads_only_the_site_s_tables(name: str) -> None:
     # DuckDB names a statement's tables only for a statement it can prepare whole, so a parameter is read as a string.
     text = NAMED_PARAMETER.sub("''", site_database.statement_text(name))
     named_tables = duckdb.get_table_names(text)
     assert named_tables <= SITE_TABLES, f"{name} reads {sorted(named_tables - SITE_TABLES)}"
+
+
+def test_every_query_is_over_the_site_s_tables_or_is_the_trace_query() -> None:
+    assert site_query_names() + [tables.QUERY] == sorted(EXPECTED_COLUMNS)
+
+
+def test_the_trace_query_reads_only_the_trace_and_the_models_and_families() -> None:
+    assert duckdb.get_table_names(site_database.statement_text(tables.QUERY)) == TRACE_QUERY_TABLES
 
 
 def test_the_table_check_sees_every_table_a_query_names() -> None:
@@ -126,10 +146,10 @@ def test_a_family_s_daily_rows_name_its_models_and_its_rest(connection: duckdb.D
     deepseek = query_records(connection, "explore/daily_by_model", {"family": "DeepSeek"})
     named = [(row["day"], row["chute_id"], row["model"], row["endpoint_group"], row["requests"]) for row in deepseek]
     assert named == [
+        (datetime.date(2025, 4, 11), "chute-01", "DeepSeek-model-01", "chat", 40),
+        (datetime.date(2025, 4, 11), "chute-01", "DeepSeek-model-01", "chat_stream", 30),
         (datetime.date(2025, 4, 11), None, "Other DeepSeek", "chat_stream", 10),
-        (datetime.date(2025, 4, 11), "chute-01", "model-01", "chat", 40),
-        (datetime.date(2025, 4, 11), "chute-01", "model-01", "chat_stream", 30),
-        (datetime.date(2025, 5, 13), "chute-02", "model-02", "completion", 15),
+        (datetime.date(2025, 5, 13), "chute-02", "deepseek-r1t-model-02", "completion", 15),
     ]
     other = query_records(connection, "explore/daily_by_model", {"family": "Other"})
     assert [(row["model"], row["requests"]) for row in other] == [("Other Other", 20), ("model-04", 5)]

@@ -41,4 +41,4 @@ def test_the_family_models_are_registered_when_the_database_opens(connection: du
 
 def test_a_query_s_parameter_is_bound_by_name(connection: duckdb.DuckDBPyConnection) -> None:
     result = site_database.run_query(connection, "explore/daily_by_model", {"family": "gpt-oss"})
-    assert [row[result.columns.index("model")] for row in result.rows] == ["model-03"]
+    assert [row[result.columns.index("model")] for row in result.rows] == ["gpt-oss-model-03"]

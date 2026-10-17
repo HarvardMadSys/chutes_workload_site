@@ -1,6 +1,6 @@
 """Fixtures shared by the tests: the fixture artifact (`fixture_artifact.py`), its frames and the site's database over
-them; the artifact's own checkout, which the environment variable `ARTIFACT` names, as `make test` passes it; and the
-files git tracks."""
+them; the fixture trace and the trace table's database over it and the frames; the artifact's own checkout, which the
+environment variable `ARTIFACT` names, as `make test` passes it; and the files git tracks."""
 
 import os
 import pathlib
@@ -11,7 +11,7 @@ import pytest
 
 import fixture_artifact
 from repository_root import ROOT
-from site_data import figure_answers, loading, site_database
+from site_data import figure_answers, loading, site_database, tables
 
 
 @pytest.fixture(scope="session")
@@ -30,6 +30,18 @@ def frames(artifact: pathlib.Path) -> loading.ArtifactFrames:
 def connection(frames: loading.ArtifactFrames) -> duckdb.DuckDBPyConnection:
     """The site's database over the fixture artifact's frames."""
     return site_database.open_database(frames)
+
+
+@pytest.fixture(scope="session")
+def fixture_trace(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
+    """The fixture trace's Parquet file, written once for the run."""
+    return fixture_artifact.write_fixture_trace(tmp_path_factory.mktemp("trace") / "trace.parquet")
+
+
+@pytest.fixture
+def trace_connection(frames: loading.ArtifactFrames, fixture_trace: pathlib.Path) -> duckdb.DuckDBPyConnection:
+    """The trace table's database over the fixture artifact's frames and the fixture trace."""
+    return tables.open_trace_database(frames, fixture_trace)
 
 
 @pytest.fixture

@@ -36,6 +36,7 @@ TRACKED_SUFFIXES_BY_FOLDER = {
     "site/queries": {".sql"},
     "site/data": {".json"},
     "site_data": {".py"},
+    "tables": {".parquet", ".json"},
     "tests": {".py", ".js"},
     "tests/snapshots": {".txt"},
 }
@@ -201,6 +202,7 @@ def test_a_file_outside_the_expected_set_is_named() -> None:
     planted = {
         "README.md", "site/js/start.js", "site/figures/a.png", "site/data/rows.parquet", "notes.txt",
         "tests/node_modules/x.js", "site/data/all/figures/fig_seasonality.json", "site/data/all/figures.json",
+        "tables/weekly_histograms.parquet",
     }
     expected = ["notes.txt", "site/data/rows.parquet", "site/figures/a.png", "tests/node_modules/x.js"]
     assert unexpected_files(planted) == expected
