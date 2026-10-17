@@ -2,7 +2,8 @@
  * The Explore page's start: it places the Insights' groups and cards and draws their topic tabs, draws the header and
  * the footer, then runs the page's sections, once, from their answer files. The topics (`explore/figure_sections.js`)
  * are shown one at a time behind the tabs of the `#topic-tabs` row (`explore/topic_tabs.js`); a topic's figures are
- * drawn from their answers the first time it is shown, so a topic never shown requests none.
+ * drawn from their answers the first time it is shown, so a topic never shown requests none. The topic the page opens
+ * on is drawn once the sections have drawn or shown their errors; a topic a tab shows before then is drawn at once.
  *
  * The page's module names its sections, each `{ id, run }`: the id of its place in `index.html` and the function that
  * runs it, which shows its loading state at once and then draws its answer. A section runs as `run(container,
@@ -26,15 +27,20 @@ import { mountTopicTabs } from "./topic_tabs.js";
 
 /**
  * Start the Explore page: draw its topic tabs, header and footer and its `sections`, and call `showMonthCount` with the
- * number of months the trace spans, null until the trace totals give it. Settles once the sections have drawn.
+ * number of months the trace spans, null until the trace totals give it; once the sections have drawn, draw the shown
+ * topic's figures. Settles once the sections have drawn.
  */
 export async function startPage({ sections, showMonthCount }) {
-  const pageHistory = followHistory(mountInsights());
+  const insights = mountInsights();
+  const pageHistory = followHistory(insights.showEntryTopic);
   renderFooter(document.querySelector("#site-footer"), null);
   showMonthCount(null);
   renderPageHeader();
   const context = sectionContext(pageHistory);
   await Promise.all([showMonths(context.totals, showMonthCount), runEverySection(sections, context)]);
+  // The shown topic's figures wait for the sections, so that the explorer's answers, the page's largest, have the
+  // line to themselves first: the topic is below the fold.
+  insights.drawShown();
   scrollToAnchor();
 }
 
@@ -52,13 +58,16 @@ export function followHistory(showEntryTopic) {
 
 /**
  * Write each topic's takeaway and place its groups and their cards, each card's chart loading, then draw the topic
- * tabs; return the tabs' `showEntryTopic`. A topic's charts are drawn the first time it is shown (`drawShownTopic`).
+ * tabs; return `{ showEntryTopic, drawShown }`, the tabs' `showEntryTopic` and `drawShown()`, which draws the charts of
+ * the topic shown now the first time it is shown (`drawShownTopic`). A tab, a key, Back or Forward calls `drawShown`
+ * as it shows a topic; the topic shown on opening waits for the page to call it.
  */
 function mountInsights() {
   const topics = FIGURE_SECTIONS.map(placeTopic);
   const drawnSections = new Set();
   const drawShown = () => drawShownTopic(topics, drawnSections);
-  return mountTopicTabs(document.querySelector("#topic-tabs"), FIGURE_SECTIONS, drawShown);
+  const showEntryTopic = mountTopicTabs(document.querySelector("#topic-tabs"), FIGURE_SECTIONS, drawShown);
+  return { showEntryTopic, drawShown };
 }
 
 /**

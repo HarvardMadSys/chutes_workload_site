@@ -10,10 +10,11 @@ import {
 } from "./fake_page.js";
 
 /**
- * Mount the tabs on a page opened at `hash`: `{ tabs, sections, history }`; the globals are the fakes until `done`.
- * Back and Forward reach the tabs as the page's start passes them on (`explore/start.js`).
+ * Mount the tabs on a page opened at `hash`, `onShow` called as a topic is shown: `{ tabs, sections, history }`; the
+ * globals are the fakes until `done`. Back and Forward reach the tabs as the page's start passes them on
+ * (`explore/start.js`).
  */
-function mountedTabs(hash) {
+function mountedTabs(hash, onShow = () => undefined) {
   const sections = topicSections();
   const window = new FakeElement();
   window.history = new FakeHistory(window, `${PAGE_ADDRESS}${hash}`);
@@ -26,7 +27,7 @@ function mountedTabs(hash) {
   };
   const row = new FakeElement("div", "topic-tabs");
   const figureSections = TOPIC_ANCHORS.map((anchor) => ({ selector: `#${anchor}` }));
-  const showEntryTopic = mountTopicTabs(row, figureSections, () => undefined);
+  const showEntryTopic = mountTopicTabs(row, figureSections, onShow);
   window.addEventListener("popstate", (event) => showEntryTopic(event.state));
   return { tabs: row.children, sections, history: window.history };
 }
@@ -142,4 +143,16 @@ test("Tab is left to the browser, so focus leaves the row", () => {
   done();
   assert.equal(isDefaultPrevented, false);
   assert.deepEqual(shownIds(sections), ["insights-overview"]);
+});
+
+test("the topic shown on mounting is shown without onShow; a tab, Back and Forward each call it once", () => {
+  const shown = [];
+  const { tabs, sections, history } = mountedTabs("#insights-tokens", () => shown.push(shownIds(sections)[0]));
+  assert.deepEqual(shownIds(sections), ["insights-tokens"]);
+  assert.deepEqual(shown, [], "the page draws the opening topic when it chooses");
+  tabs[3].dispatch("click", {});
+  history.back();
+  history.forward();
+  done();
+  assert.deepEqual(shown, ["insights-evolution", "insights-tokens", "insights-evolution"]);
 });

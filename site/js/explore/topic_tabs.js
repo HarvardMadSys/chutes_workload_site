@@ -114,8 +114,9 @@ export function showTopic(topicSections, tabs, anchor) {
  * Draw the tabs into `row` for the sections `figureSections` name, show the topic the URL's hash names (the first by
  * default), keep it in the history entry the page opened on, and wire the tabs: a click or a key shows its topic and
  * writes its anchor as a new history entry. Return `showEntryTopic(state)`, which shows the topic of the history entry
- * that Back or Forward returned to, `state` being the entry's state. `onShow()` is called each time a topic is shown,
- * after it is, so that its figures are drawn at their cards' width.
+ * that Back or Forward returned to, `state` being the entry's state. `onShow()` is called each time a tab, a key, Back
+ * or Forward shows a topic, after it is shown, so that its figures are drawn at their cards' width; the topic shown on
+ * mounting is shown without it, so the page chooses when that topic's figures are drawn.
  */
 export function mountTopicTabs(row, figureSections, onShow) {
   const topics = pageTopics(figureSections);
@@ -131,7 +132,7 @@ export function mountTopicTabs(row, figureSections, onShow) {
   const opened = topicForHash(window.location.hash, anchors, anchors[0]);
   // The entry the page opened on holds its topic, so Back to it shows that topic whatever its anchor names.
   window.history.replaceState({ topic: opened }, "");
-  showTab(view, opened);
+  showInRow(view, opened);
   return (state) => showTab(view, topicForEntry(state, window.location.hash, anchors, shownTopic(view)));
 }
 
@@ -157,13 +158,18 @@ function moveByKey(view, tab, event) {
   chooseTopic(view, next.getAttribute("aria-controls"));
 }
 
-/** Show the topic `anchor`, bring its tab into the row, and call `view.onShow`. */
+/** Show the topic `anchor` as `showInRow` does, then call `view.onShow`. */
 function showTab(view, anchor) {
+  showInRow(view, anchor);
+  view.onShow();
+}
+
+/** Show the topic `anchor` and bring its tab into the row. */
+function showInRow(view, anchor) {
   showTopic(view.topicSections, view.tabs, anchor);
   const shownTab = view.tabs.find((tab) => tab.getAttribute("aria-controls") === anchor);
   bringIntoRow(view.row, shownTab);
   markMoreBeyondEdge(view.row);
-  view.onShow();
 }
 
 /** The anchor of the topic shown now: the id of the one topic section not hidden. */

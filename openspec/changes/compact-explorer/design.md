@@ -119,16 +119,38 @@ local and throttled to 10 Mbit/s with 50 ms latency, and time the
 stats, the tiles, the bars, the distributions and the shown topic from
 the navigation's start) extended to serve the files gzipped as well,
 since Cloudflare serves the published page compressed and the
-uncompressed figures overstate it. Recorded here once run:
+uncompressed figures overstate it. Run on the page before the change
+(`50630b2`) and after it, three times each; a range is the three runs',
+in seconds from the navigation's start. "Gzipped" sends every `.json`,
+`.js`, `.css` and `.html` file gzip-compressed; the charting library
+comes from its CDN in every case. A request's time is when the network
+request started (Resource Timing), and the bytes are those on the wire,
+the CDN's included:
 
 | | Before, plain | Before, gzipped | After, plain | After, gzipped |
 |---|---|---|---|---|
-| Bars drawn, local | | | | |
-| Bars drawn, throttled | | | | |
-| Tile charts drawn, local / throttled | | | | |
-| Shown topic drawn, local / throttled | | | | |
-| Daily answer requested at | | | | |
-| Fetched before the bars | | | | |
+| Bars drawn, local | 1.00 to 1.28 | 1.08 to 1.23 | 0.90 to 1.02 | 0.80 to 0.95 |
+| Bars drawn, throttled | 4.14 to 4.15 | 1.82 to 1.87 | 4.14 to 4.18 | 1.71 to 1.73 |
+| Tiles drawn, local / throttled | 0.53 to 0.58 / 4.05 to 4.07 | 0.55 to 0.58 / 1.54 to 1.59 | 0.53 to 0.54 / 3.37 to 3.38 | 0.41 to 0.55 / 0.96 |
+| Tile charts drawn, local / throttled | 1.29 to 1.38 / 6.27 to 6.28 | 1.26 to 1.32 / 2.53 to 2.62 | 1.01 to 1.14 / 6.30 to 6.33 | 0.92 to 1.06 / 2.43 to 2.46 |
+| Shown topic drawn, local / throttled | 1.20 to 1.28 / 1.95 to 1.96 | 1.17 to 1.23 / 1.81 to 1.92 | 1.21 to 1.33 / 6.67 to 6.72 | 1.12 to 1.25 / 2.73 to 2.75 |
+| Daily answer requested at, local / throttled | 0.34 to 0.35 / 0.82 to 0.83 | 0.35 to 0.36 / 0.74 to 0.76 | 0.01 / 0.06 | 0.01 / 0.06 |
+| Shown topic's first figure requested at, throttled | 0.81 to 0.82 | 0.73 to 0.75 | 6.29 to 6.33 | 2.43 to 2.45 |
+| Fetched before the bars | 106 requests, 4,154 KB | 106 requests, 868 KB | 100 requests, 4,019 KB | 100 requests, 843 KB |
+
+The preload is used: the daily answer is fetched once, from the head,
+0.7 s earlier on the slow line, with no warning in the console, and the
+tiles are drawn 0.6 to 0.7 s earlier. The bars are drawn no later but
+gain little, 0.1 s gzipped (within the spread of an earlier set of runs
+before the change, 1.62 to 1.83 s) and nothing plain, because the charting library is imported when the first
+chart is drawn and its module graph from the CDN (48 modules, 241 KB,
+in import chains six deep) takes 0.6 s throttled: the Insights' first figure
+used to start that import at 0.8 s, and now the bars start it once the
+daily answer has arrived, so the library, not the answer, is the bars'
+last wait, the case the `modulepreload` below is to be reconsidered
+for. The shown topic's figures are requested once the explorer's tile
+charts are drawn, which moves the topic from 1.9 s to 2.7 s gzipped and
+6.7 s plain on the slow line.
 
 What is not done, and why: prefetching the other families' answers (20
 MB uncompressed for a choice most visitors never make; a family's

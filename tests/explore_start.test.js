@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { followHistory, placeTopic } from "../site/js/explore/start.js";
+import { FIGURE_SECTIONS } from "../site/js/explore/figure_sections.js";
+import { followHistory, placeTopic, startPage } from "../site/js/explore/start.js";
 import { mountTopicTabs } from "../site/js/explore/topic_tabs.js";
+import { runTraffic } from "../site/js/traffic/traffic.js";
 import { mountTrafficControls } from "../site/js/traffic/traffic_controls.js";
 import { familyChoices, modelChoices } from "../site/js/traffic/traffic_filter.js";
 import {
@@ -173,3 +175,122 @@ test("a topic is placed as its takeaway, then each group's heading, takeaway and
   assert.equal(placed.section, section);
   assert.deepEqual(placed.cards.map((placedCard) => placedCard.card.figure), ["fig_a", "fig_b", "fig_c"]);
 });
+
+// The answers the page reads as it opens, in the order it reads them: the hero's, the Overview's, the explorer's.
+const TOTALS_FILE = "data/all/explore/trace_totals.json";
+const FAMILIES_FILE = "data/all/explore/family_mix.json";
+const ENDPOINTS_FILE = "data/all/explore/endpoint_mix.json";
+const DAILY_FILE = "data/all/explore/daily_by_family.json";
+const HISTOGRAMS_FILE = "data/all/explore/histograms_by_family.json";
+
+// The folder of the figures' answers.
+const FIGURES_FOLDER = "data/all/figures/";
+
+// The daily answer by family: one family's requests of the endpoint group chat on one day, so that the explorer opened
+// on the endpoint group completion draws its bars as a note, which node can draw without the charting library.
+const DAILY_ROWS = [{
+  day: "2025-07-01", family: "Kin", family_slug: "kin", endpoint_group: "chat", requests: 10, input_tokens: null,
+  input_counted: 0, output_tokens: null, output_counted: 0, ttft_sum: null, ttft_counted: 0,
+}];
+
+// The Overview's endpoint groups, the order the explorer colours them in.
+const ENDPOINT_ROWS = [{ endpoint_group: "chat", requests: 10 }];
+
+/** A promise with its `resolve`, `{ promise, resolve }`, for an answer the test lets arrive. */
+function deferred() {
+  const parts = {};
+  parts.promise = new Promise((resolve) => Object.assign(parts, { resolve }));
+  return parts;
+}
+
+/**
+ * The page started as `startPage` starts it, with the Traffic Explorer as its one section, for the test of `context`:
+ * the endpoint groups' order and each file of `answers` (a map from file to its promised rows) fetched as their rows,
+ * any other answering 404, and the page opened on the endpoint group completion. Returns `{ reads, tabs, started }`:
+ * the files read, in order, the topic tabs and the page's promise.
+ */
+function startedExplorePage(context, answers) {
+  const sections = topicSections();
+  for (const section of sections) {
+    // The Insights section, which the page scrolls into view when it opens on a topic's anchor.
+    section.parentElement = { scrollIntoView: () => undefined };
+  }
+  const header = new FakeElement("header", "site-header");
+  const footer = new FakeElement("footer", "site-footer");
+  const tabsRow = new FakeElement("div", "topic-tabs");
+  const places = [header, footer, tabsRow, new FakeElement("div", "traffic-explorer"), ...sections];
+  const window = new FakeElement();
+  window.history = new FakeHistory(window, `${PAGE_ADDRESS}?endpoint=completion`);
+  globalThis.window = window;
+  globalThis.ResizeObserver = class { observe() {} };
+  globalThis.requestAnimationFrame = () => 0;
+  globalThis.document = {
+    querySelector: (selector) => places.find((element) => `#${element.id}` === selector),
+    getElementById: (id) => sections.find((section) => section.id === id),
+    createElement: (tag) => new FakeCardPart(tag),
+  };
+  context.after(() => {
+    forgetThePage();
+    delete globalThis.requestAnimationFrame;
+  });
+  context.mock.method(console, "error", () => undefined);
+  const reads = [];
+  const files = { [ENDPOINTS_FILE]: ENDPOINT_ROWS, ...answers };
+  context.mock.method(globalThis, "fetch", async (file) => {
+    reads.push(file);
+    const rows = await files[file];
+    return rows === undefined ? { ok: false, status: 404, statusText: "Not Found" } : { ok: true, json: () => rows };
+  });
+  const explorer = { id: "traffic-explorer", run: runTraffic };
+  const started = startPage({ sections: [explorer], showMonthCount: () => undefined });
+  return { reads, tabs: tabsRow.children, started };
+}
+
+// The answers of the figures of `topic`'s cards, in the order of its groups and cards.
+function topicFigureFiles(topic) {
+  const files = [];
+  for (const group of topic.groups) {
+    for (const card of group.cards) {
+      files.push(`${FIGURES_FOLDER}${card.figure}.json`);
+    }
+  }
+  return files;
+}
+
+// The reads of `reads` from the figures' folder, in order.
+function figureReads(reads) {
+  return reads.filter((file) => file.startsWith(FIGURES_FOLDER));
+}
+
+test("the opening topic's figures are read once the explorer has drawn: the daily answer, the histograms, the figures",
+  async (context) => {
+    const daily = deferred();
+    const histograms = deferred();
+    const page = startedExplorePage(context, { [DAILY_FILE]: daily.promise, [HISTOGRAMS_FILE]: histograms.promise });
+    await settled();
+    assert.deepEqual(page.reads, [TOTALS_FILE, FAMILIES_FILE, ENDPOINTS_FILE, DAILY_FILE]);
+    daily.resolve(DAILY_ROWS);
+    await settled();
+    assert.deepEqual(page.reads.slice(3), [DAILY_FILE, HISTOGRAMS_FILE], "no figure while the histograms are read");
+    histograms.resolve([]);
+    await page.started;
+    assert.deepEqual(page.reads.slice(3, 5), [DAILY_FILE, HISTOGRAMS_FILE]);
+    // The first topic's cards read no legend answer, so its figures are every read of the figures' folder.
+    assert.deepEqual(figureReads(page.reads), topicFigureFiles(FIGURE_SECTIONS[0]));
+  });
+
+test("a tab pressed before the explorer has drawn reads its topic's figures at once, and the opening topic's never",
+  async (context) => {
+    const daily = deferred();
+    const page = startedExplorePage(context, { [DAILY_FILE]: daily.promise, [HISTOGRAMS_FILE]: [] });
+    await settled();
+    page.tabs[1].dispatch("click");
+    await settled();
+    // The second topic's cards read no legend answer either.
+    const pressedFigures = topicFigureFiles(FIGURE_SECTIONS[1]);
+    assert.deepEqual(figureReads(page.reads), pressedFigures);
+    assert.ok(!page.reads.includes(HISTOGRAMS_FILE), "the explorer has not drawn yet");
+    daily.resolve(DAILY_ROWS);
+    await page.started;
+    assert.deepEqual(figureReads(page.reads), pressedFigures, "the topic shown is drawn once, and no other");
+  });
