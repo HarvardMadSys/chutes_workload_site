@@ -927,6 +927,23 @@ section[id] {
   }
 }
 
+/* The three distribution cards under the sliders, side by side, one under the other on a narrower screen (below). */
+.traffic-card .distribution-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.distribution-card {
+  min-width: 0;
+}
+
+@media (max-width: 50rem) {
+  .traffic-card .distribution-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* ---------- Cite and Team ---------- */
 
 /* The Cite section: its heading on the left, the sentence and the BibTeX on the right, wide enough for the BibTeX's

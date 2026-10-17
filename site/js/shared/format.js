@@ -2,8 +2,8 @@
  * Numbers and dates as the page shows them, a value with one decimal kept and an axis's tick with none it does not
  * need: counts, compact counts and their ticks (a count given in thousands, or rounded to a whole one, among them),
  * durations in seconds and their ticks (milliseconds to hours among them), minutes as hours and minutes or as whole
- * hours, shares, whole percentages and values already in percent, a value to two significant figures, a span of days,
- * and a day of the trace with its date.
+ * hours, shares, whole percentages and values already in percent, a value or a duration to two significant figures, a
+ * span of days, and a day of the trace with its date.
  */
 
 // A compact count is shown in the largest of these units it reaches.
@@ -140,6 +140,11 @@ export function formatHours(minutes) {
 /** A value to two significant figures, with separators: 0.000471 → "0.00047", 0.4712 → "0.47", 12.3 → "12". */
 export function formatSignificant(value) {
   return value.toLocaleString("en-US", { maximumSignificantDigits: 2 });
+}
+
+/** A duration in seconds to two significant figures, as a percentile read from a bin is: 0.8374 → "0.84 s". */
+export function formatSignificantSeconds(seconds) {
+  return `${formatSignificant(seconds)} s`;
 }
 
 /**

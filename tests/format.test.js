@@ -5,8 +5,8 @@ import { test } from "node:test";
 import {
   dateSpanText, formatCompactCount, formatCount, formatCountTick, formatDurationTick, formatHoursTick,
   formatMinutesTick, formatPercent, formatPercentage, formatQuantity, formatSeconds, formatSecondsTick, formatShare,
-  formatSignificant, formatThousandsTick, formatTraceDay, formatWholeCount, formatWholeCountTick,
-  TRACE_FIRST_DAY,
+  formatSignificant, formatSignificantSeconds, formatThousandsTick, formatTraceDay, formatWholeCount,
+  formatWholeCountTick, TRACE_FIRST_DAY,
 } from "../site/js/shared/format.js";
 
 test("a count gets thousands separators", () => {
@@ -106,6 +106,13 @@ test("a value to two significant figures keeps the zeros it needs and no more", 
   assert.equal(formatSignificant(12.3), "12");
   assert.equal(formatSignificant(0.5), "0.5");
   assert.equal(formatSignificant(1234), "1,200");
+});
+
+test("a duration to two significant figures is written in seconds", () => {
+  assert.equal(formatSignificantSeconds(0.8374), "0.84 s");
+  assert.equal(formatSignificantSeconds(4.21), "4.2 s");
+  assert.equal(formatSignificantSeconds(0.00116), "0.0012 s");
+  assert.equal(formatSignificantSeconds(1116.7), "1,100 s");
 });
 
 test("a duration tick is written in milliseconds, seconds, minutes or hours, the largest it reaches", () => {

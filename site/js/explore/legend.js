@@ -8,7 +8,8 @@
  * colour, and, for a chart of lines, the names of the series drawn dashed, whose swatches are dashed lines. An entry's
  * `names`, where it has them, are the series its button hides and shows together, as one routing policy's series of
  * every model; `[name]` where it has none. The hidden series are a Set of the rows' series names; it lives as long as
- * one drawing of the chart, and it is never written to the URL.
+ * one drawing of the chart, unless its caller keeps it for the next (`drawWithLegend`), and it is never written to
+ * the URL.
  *
  * From the keyboard a legend is one tab stop, a group of buttons: Tab reaches the last button focused in it, the first
  * at first, ArrowLeft and ArrowRight move between its buttons, and Enter or Space toggles one, as a click does.
@@ -28,11 +29,12 @@ const LEGEND_GROUP_NAME = "Series";
 /**
  * Fill `container` with one button per entry of `series` (`[{ name, label, names? }]`), each with its colour from
  * `colours` (a Map from an entry's name to its colour) in a swatch shaped as the chart draws it, `swatch` ("square" or
- * "line"), a dashed line for a line of `dashed` (the names of the series drawn dashed), each pressed, the whole one tab
- * stop with the arrow keys inside it. A click flips the button between pressed and struck through and calls
- * `onToggle(names)` with the entry's `legendEntryNames`. Fewer than two entries leave `container` empty.
+ * "line"), a dashed line for a line of `dashed` (the names of the series drawn dashed), each pressed but an entry
+ * whose every series is in `hidden` (none by default), the whole one tab stop with the arrow keys inside it. A click
+ * flips the button between pressed and struck through and calls `onToggle(names)` with the entry's
+ * `legendEntryNames`. Fewer than two entries leave `container` empty.
  */
-export function mountLegend(container, series, colours, onToggle, swatch = "square", dashed = []) {
+export function mountLegend(container, series, colours, onToggle, swatch = "square", dashed = [], hidden = new Set()) {
   if (!hasLegend(series)) {
     container.replaceChildren();
     return;
@@ -40,7 +42,8 @@ export function mountLegend(container, series, colours, onToggle, swatch = "squa
   const buttons = [];
   for (const entry of series) {
     const isDashed = swatch === "line" && dashed.includes(entry.name);
-    const appearance = { label: entry.label, colour: colours.get(entry.name), swatch, isDashed };
+    const isShown = !legendEntryNames(entry).every((name) => hidden.has(name));
+    const appearance = { label: entry.label, colour: colours.get(entry.name), swatch, isDashed, isShown };
     buttons.push(legendButton(appearance, () => onToggle(legendEntryNames(entry))));
   }
   for (const [index, button] of buttons.entries()) {
@@ -92,17 +95,19 @@ export function hasLegend(series) {
 
 /**
  * Place `legend`'s buttons in the legend's place above `body` (`legendPlace`), their swatches shaped `swatch` ("square"
- * or "line", dashed for the legend's `dashed` series), and draw the chart into `body` with `drawChart(hidden)`,
- * nothing hidden at first. Each click on a button hides or shows its series and calls `drawChart` again with the new
- * hidden set; a chart whose every series is hidden shows a note instead, and a drawing after a click that fails shows
- * its error in `body`. A legend of fewer than two series is not placed. Settles when the first drawing has.
+ * or "line", dashed for the legend's `dashed` series), and draw the chart into `body` with `drawChart(hidden)`. The
+ * series hidden at first are `shared.hidden`, none when not given. Each click on a button hides or shows its series,
+ * calls `drawChart` again with the new hidden set, then `shared.onToggle(hidden)` where given, so that other charts
+ * the legend stands for follow it; a chart whose every series is hidden shows a note instead (`drawShownSeries`), and
+ * a drawing after a click that fails shows its error in `body`. A legend of fewer than two series is not placed, and
+ * its chart is drawn with nothing hidden. Settles when the first drawing has.
  */
-export async function drawWithLegend(body, legend, drawChart, swatch = "square") {
-  let hidden = new Set();
+export async function drawWithLegend(body, legend, drawChart, swatch = "square", shared = {}) {
   if (!hasLegend(legend.series)) {
-    await drawChart(hidden);
+    await drawChart(new Set());
     return;
   }
+  let hidden = shared.hidden ?? new Set();
   async function onToggle(names) {
     hidden = toggledSeries(hidden, names);
     try {
@@ -111,8 +116,9 @@ export async function drawWithLegend(body, legend, drawChart, swatch = "square")
       // No one awaits a click, so the error is shown here, in the chart's place, as a failed first drawing's would be.
       showError(body, error);
     }
+    shared.onToggle?.(hidden);
   }
-  mountLegend(legendPlace(body), legend.series, legend.colours, onToggle, swatch, legend.dashed ?? []);
+  mountLegend(legendPlace(body), legend.series, legend.colours, onToggle, swatch, legend.dashed ?? [], hidden);
   await drawShownSeries(body, legend, hidden, drawChart);
 }
 
@@ -141,7 +147,11 @@ export function dashedBackground(colour) {
   return `repeating-linear-gradient(to right, ${colour} 0 ${dash}px, transparent ${dash}px ${dash + gap}px)`;
 }
 
-async function drawShownSeries(body, legend, hidden, drawChart) {
+/**
+ * Draw a chart of `legend`'s series into `body` with `drawChart(hidden)`, or, where every series of the legend is in
+ * `hidden` (`isEverySeriesHidden`), show the note that says so instead. Settles when the drawing has.
+ */
+export async function drawShownSeries(body, legend, hidden, drawChart) {
   if (isEverySeriesHidden(legend.series, hidden)) {
     showNote(body, EVERY_SERIES_HIDDEN_NOTE);
     return;
@@ -149,14 +159,14 @@ async function drawShownSeries(body, legend, hidden, drawChart) {
   await drawChart(hidden);
 }
 
-// A legend button for `appearance`, `{ label, colour, swatch, isDashed }`, its swatch a square, a short line or a
-// short dashed line, pressed.
+// A legend button for `appearance`, `{ label, colour, swatch, isDashed, isShown }`, its swatch a square, a short
+// line or a short dashed line, pressed where its series are shown.
 function legendButton(appearance, onClick) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "legend-button";
   // Pressed means shown: the button's state follows each click, as the hidden set does.
-  button.setAttribute("aria-pressed", "true");
+  button.setAttribute("aria-pressed", String(appearance.isShown));
   const swatch = document.createElement("span");
   swatch.className = appearance.swatch === "line" ? "legend-swatch is-line" : "legend-swatch";
   swatch.style.background = appearance.isDashed ? dashedBackground(appearance.colour) : appearance.colour;

@@ -54,7 +54,7 @@ TOPIC_CHARTS_DRAWN = """(topic) => {
   return bodies.length > 0 && bodies.every((body) => body.querySelector('svg[role="img"]') !== null);
 }"""
 # The charts each state draws outside the Insights, by the selector of the section that holds them.
-CHART_COUNTS = {"#overview": 2, "#traffic": 1}  # the two donuts; the Traffic Explorer's bars
+CHART_COUNTS = {"#overview": 2, "#traffic": 4}  # the two donuts; the Traffic Explorer's bars and its three CDFs
 # True once each section the argument names holds as many drawn charts as it gives: a chart's place holding an SVG
 # that the page has named, the last step of every drawing, whole axes and labels included.
 CHARTS_DRAWN = """(counts) => Object.entries(counts).every(([section, count]) => {

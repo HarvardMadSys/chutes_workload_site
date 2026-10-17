@@ -171,13 +171,17 @@ export function metricChoices() {
 export function rowsInChoice(rows, choice) {
   const kept = [];
   for (const row of rows) {
-    const isOfModel = choice.model === "" || row.chute_id === modelChuteId(choice.model);
-    const isOfEndpoint = choice.endpoint === "" || row.endpoint_group === choice.endpoint;
-    if (isOfModel && isOfEndpoint && isDayInRange(row.day, choice)) {
+    if (isOfModelAndEndpoint(row, choice) && isDayInRange(row.day, choice)) {
       kept.push(row);
     }
   }
   return kept;
+}
+
+/** True when `row`, of a daily or a histogram answer, is of the model and the endpoint group `choice` chooses. */
+export function isOfModelAndEndpoint(row, choice) {
+  const isOfModel = choice.model === "" || row.chute_id === modelChuteId(choice.model);
+  return isOfModel && (choice.endpoint === "" || row.endpoint_group === choice.endpoint);
 }
 
 /** The days of `days` (calendar days, "YYYY-MM-DD") in the day range of `choice`, in their order: the bars' days. */

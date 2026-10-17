@@ -1,0 +1,4 @@
+title: Output tokens
+caption: Over April 11, 2025 – April 12, 2026, the trace weeks holding a chosen day.
+definition: Of the chosen requests that record their output tokens, the share with at most this many, counted in bins a quarter of a doubling wide over the trace weeks that hold a chosen day.
+rows: 5,662,741,634 requests

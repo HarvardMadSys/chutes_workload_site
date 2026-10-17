@@ -326,12 +326,15 @@ site/                exactly the files that are deployed
     topic_tabs.js    the Insights' tabs, one topic shown at a time, the shown one in the URL's hash
     figure_sections.js
                      the Insights' six topics in the order of their tabs, and a topic's cards group by group
-  js/traffic/     the Traffic Explorer: its section, its filter, its controls, its day range and its tiles
+  js/traffic/     the Traffic Explorer: its section, its filter, its controls, its bars, its day range, its tiles
+                     and its distributions
     traffic.js, traffic_controls.js, traffic_filter.js
-                     the Traffic Explorer: its bars; its controls, kept in step with the URL; its choice, its
+                     the Traffic Explorer: its section; its controls, kept in step with the URL; its choice, its
                      URL keys and its sums
-    traffic_range.js, traffic_tiles.js
-                     the day range's sliders and period buttons' days; the four tiles
+    traffic_bars.js, traffic_range.js, traffic_tiles.js
+                     the bars and their legend; the day range's sliders and period buttons' days; the four tiles
+    traffic_distributions.js, traffic_distribution_cards.js
+                     the histogram rows' bin maps, CDF rows and percentiles; the three distribution cards
   js/insights/       the figure cards and the topics
     figure_card.js   a card, its chart drawn from its answer by its kind
     card_series.js   a card's series: their order, each palette's colours, the card's legend
@@ -396,6 +399,9 @@ tests/               what make test runs
   insights_caching_balancing.test.js
                      the caching and balancing cards' axes, the eviction cards' tooltips listing every algorithm,
                      the occupancy's tooltip in hours and the user zooms' even split
+  explore_legend_shared.test.js
+                     a legend that other charts follow: its first hidden set, each click's set told, and the note
+                     of every series hidden in another chart
   fake_page.js       the stand-ins for an element, a figure's body, the topic sections and the browser's
                      history that the node tests drive the page's modules with
   palette_contrast.test.js, palette.js

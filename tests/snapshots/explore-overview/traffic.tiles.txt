@@ -1,4 +1,4 @@
 6.12B Requests
-6,321 Avg input tokens
-445 Avg output tokens
-2.3 s Avg TTFT 49% record it
+6,321 Avg input tokens ≈2,700 p50 · ≈13,000 p90
+445 Avg output tokens ≈230 p50 · ≈940 p90
+2.3 s Avg TTFT 49% record it ≈1.1 s p50 · ≈4.4 s p90

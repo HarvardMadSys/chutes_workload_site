@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { dayMonth, monthTicks, runTraffic } from "../site/js/traffic/traffic.js";
+import { runTraffic } from "../site/js/traffic/traffic.js";
+import { dayMonth, monthTicks } from "../site/js/traffic/traffic_bars.js";
 import { FakeElement, PAGE_ADDRESS } from "./fake_page.js";
 
 // Plot widths, in pixels: a desktop card's, and a phone's at 360 px.
@@ -68,11 +69,12 @@ function fakeElement(tag) {
 /**
  * Run the explorer into a new container for the test of `context`, the page opened at `query` and each file of
  * `answers` (a map from file to its promised rows) fetched as its rows, any other answering 404; errors are not
- * logged. Returns `{ container, running, replaced, frames }`, the container, the explorer's promise, the queries
- * written to the URL, in order, and the animation frames asked for and not yet run.
+ * logged. Returns `{ container, running, replaced, frames, reads }`, the container, the explorer's promise, the queries
+ * written to the URL, in order, the animation frames asked for and not yet run, and the files read, in order, each
+ * `[file, bars]` with what the bars' body held then (`barsState`).
  */
 function runExplorer(context, query, answers) {
-  const page = { container: new FakeElement("div"), replaced: [], frames: [] };
+  const page = { container: new FakeElement("div"), replaced: [], frames: [], reads: [] };
   globalThis.document = { createElement: fakeElement };
   globalThis.window = { location: new URL(`${PAGE_ADDRESS}${query}`) };
   globalThis.requestAnimationFrame = (callback) => page.frames.push(callback);
@@ -82,7 +84,10 @@ function runExplorer(context, query, answers) {
     delete globalThis.requestAnimationFrame;
   });
   context.mock.method(console, "error", () => undefined);
-  context.mock.method(globalThis, "fetch", async (file) => fetchedAnswer(answers[file]));
+  context.mock.method(globalThis, "fetch", async (file) => {
+    page.reads.push([file, barsState(page.container)]);
+    return fetchedAnswer(await answers[file]);
+  });
   const explorerContext = {
     orders: { endpoints: Promise.resolve([{ endpoint_group: "chat", requests: 10 }]) },
     replaceQuery: (params) => page.replaced.push(params.toString()),
@@ -97,6 +102,13 @@ function fetchedAnswer(rows) {
     return { ok: false, status: 404, statusText: "Not Found" };
   }
   return { ok: true, json: () => rows };
+}
+
+// What the bars' body in the explorer's `container` holds: the class of its first part, "note" once bars of no
+// request are drawn, or "none" before the bars' figure is placed or while its body is empty.
+function barsState(container) {
+  const figure = container.children[1]?.children[1]?.children[0];
+  return figure?.children[3]?.children[0]?.className ?? "none";
 }
 
 // Wait until every promise of the explorer that can settle has.
@@ -193,4 +205,56 @@ test("a period button stands the sliders on its days and draws them", async (con
   assert.deepEqual(pressed(), ["false", "false", "true", "false", "false"]);
   assert.equal(requestsTile(tiles), "5");
   assert.deepEqual(page.replaced, ["endpoint=completion&from=2025-07-01"]);
+});
+
+// The histogram answers the explorer reads, once the bars are drawn: every family's, and the family Kin's by model.
+const HISTOGRAMS_FILE = "data/all/explore/histograms_by_family.json";
+const KIN_HISTOGRAMS_FILE = "data/all/explore/histograms_by_model/kin.json";
+
+// The explorer's distribution cards' places, in the fake page.
+function cardPlaces(container) {
+  return container.children[1].children[3].children;
+}
+
+// The first part of each card's place: its loading line, or its figure once drawn.
+function cardStates(container) {
+  return cardPlaces(container).map((place) => place.children[0].className);
+}
+
+test("the histogram answer is read once the bars are drawn, the cards and the notes loading until it arrives",
+  async (context) => {
+    const histograms = deferred();
+    const answers = { [FAMILY_FILE]: THREE_DAY_ROWS, [HISTOGRAMS_FILE]: histograms.promise };
+    const page = runExplorer(context, NO_COMPLETION_QUERY, answers);
+    await settled();
+    assert.deepEqual(page.reads, [[FAMILY_FILE, "none"], [HISTOGRAMS_FILE, "note"]], "read once the bars are drawn");
+    assert.deepEqual(cardStates(page.container), ["loading", "loading", "loading"]);
+    const { tiles } = explorerParts(page.container);
+    assert.equal(tiles.children[1].children[2].textContent, "…");
+    histograms.resolve([]);
+    await page.running;
+    assert.deepEqual(cardStates(page.container), ["figure", "figure", "figure"]);
+    assert.equal(tiles.children[1].children[2].textContent, "— p50 · — p90");
+  });
+
+test("a choice the explorer has moved on from draws nothing when its histogram answer lands", async (context) => {
+  const everyFamily = deferred();
+  const kin = deferred();
+  const answers = {
+    [FAMILY_FILE]: FAMILY_ROWS, [KIN_FILE]: KIN_ROWS, [HISTOGRAMS_FILE]: everyFamily.promise,
+    [KIN_HISTOGRAMS_FILE]: kin.promise,
+  };
+  // No row is of the endpoint group chosen, so the bars, which node cannot draw without Plot, are a note.
+  const page = runExplorer(context, "?endpoint=completion", answers);
+  await settled();
+  const familySelect = page.container.children[0].children[0].children[1];
+  familySelect.value = "kin";
+  familySelect.dispatch("change");
+  await settled();
+  everyFamily.resolve([]);
+  await settled();
+  assert.deepEqual(cardStates(page.container), ["loading", "loading", "loading"], "every family's answer is stale");
+  kin.resolve([]);
+  await settled();
+  assert.deepEqual(cardStates(page.container), ["figure", "figure", "figure"]);
 });
