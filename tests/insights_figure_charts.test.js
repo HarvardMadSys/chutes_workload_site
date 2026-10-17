@@ -1,7 +1,7 @@
 // The Insights' cards drawn from their shipped answers, as the landing page's spec describes them: the value under the
-// pointer, a log axis, a raster, a hidden series of a CDF card, a CDF's straight lines, the hourly lines' gaps, a
-// panel's own series, a bands card's key, and the colour and the day and month axes the cards share. Each reads a card as its topic lists
-// it and its answer as the page reads it.
+// pointer, a log axis, a raster, a hidden series of a CDF card, a CDF's straight lines, the hourly lines' gaps, the
+// routing card's rows of panels and its policy legend, a bands card's key, and the colour and the day and month axes
+// the cards share. Each reads a card as its topic lists it and its answer as the page reads it.
 
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -190,17 +190,61 @@ test("the input-tokens CDF joins its percentile points with straight lines", () 
   assert.ok(points.length > 2);
 });
 
-test("a panel given its series draws only those of the card's answer", () => {
+// The routing card's models, as its answer names them, in the order of its rows of panels.
+const ROUTING_MODELS = ["DeepSeek V3.2", "MiniMax M2.5"];
+const ROUTING_PANELS_PER_MODEL = 4; // hit ratio and replication against cache size, replication and imbalance
+
+// The points every panel of `card` draws from `rows` with the series of `hidden` hidden, panel after panel.
+function everyPanelsPoints(card, rows, colours, hidden) {
+  const points = [];
+  for (const entry of card.panels) {
+    points.push(...drawnPoints(rows, colours, chartParameters(card, entry), hidden));
+  }
+  return points;
+}
+
+// The distinct series of `points`, sorted.
+function seriesOf(points) {
+  return [...new Set(points.map((point) => point[SERIES_COLUMN]))].sort();
+}
+
+test("the routing card draws eight panels, a row of four per model, each its model's lines only, inside its axis", () => {
   const card = cardOf("fig_routing_tradeoff");
   const rows = shippedAnswer(card.figure);
-  const [entry] = card.panels;
-  const deepSeek = [...new Set(rows.map((row) => row[SERIES_COLUMN]))].filter((name) => name.startsWith("DeepSeek"));
-  const panelEntry = { ...entry, chart: { ...entry.chart, series: deepSeek } };
-  const parameters = chartParameters(card, panelEntry);
-  assert.deepEqual(parameters.series, deepSeek);
-  const drawn = drawnPoints(rows, cardColours(card, rows, null), parameters, new Set());
-  assert.ok(drawn.length > 0);
-  assert.ok(drawn.every((point) => deepSeek.includes(point[SERIES_COLUMN]) && point.panel === entry.panel));
+  const colours = cardColours(card, rows, null);
+  assert.equal(card.panels.length, ROUTING_MODELS.length * ROUTING_PANELS_PER_MODEL);
+  for (const [index, entry] of card.panels.entries()) {
+    const model = ROUTING_MODELS[Math.floor(index / ROUTING_PANELS_PER_MODEL)];
+    const parameters = chartParameters(card, entry);
+    const drawn = drawnPoints(rows, colours, parameters, new Set());
+    // Every line of the model that the answer holds for the panel: panel d's answer has no Sticky line.
+    const panelRows = rows.filter((row) => row.panel === entry.panel && row[SERIES_COLUMN].startsWith(`${model}, `));
+    assert.ok(seriesOf(panelRows).length >= 3, entry.title);
+    assert.deepEqual(seriesOf(drawn), seriesOf(panelRows), entry.title);
+    assert.ok(drawn.every((point) => point.panel === entry.panel), entry.title);
+    const [low, high] = parameters.y.domain;
+    assert.ok(drawn.every((point) => point.y > low && point.y < high), `${entry.title}: a line lies on its axis`);
+  }
+});
+
+test("the routing card's legend lists each policy once, and hiding Sticky hides its line in both rows", async (context) => {
+  useFakeDocument(context);
+  const card = cardOf("fig_routing_tradeoff");
+  const rows = shippedAnswer(card.figure);
+  const colours = cardColours(card, rows, null);
+  const drawings = [];
+  const drawChart = (hidden) => drawings.push(everyPanelsPoints(card, rows, colours, hidden));
+  const body = new FakeFigureBody();
+  await drawWithLegend(body, figureLegend(card, rows, colours), drawChart, "line");
+  const labels = body.legendPlace.children.map((button) => button.children[1]);
+  assert.deepEqual(labels, ["Round-robin", "Load-first", "Cache-first", "Sticky"]);
+  const button = body.legendPlace.children.find((entry) => entry.children.includes("Sticky"));
+  button.dispatch("click");
+  await settle();
+  const [before, after] = drawings;
+  const isSticky = (point) => point[SERIES_COLUMN].endsWith(", Sticky");
+  assert.deepEqual(seriesOf(before.filter(isSticky)), ["DeepSeek V3.2, Sticky", "MiniMax M2.5, Sticky"]);
+  assert.deepEqual(after, before.filter((point) => !isSticky(point)));
 });
 
 test("the input-tokens card's tooltip names no point past its axis's 400,000 tokens", () => {
@@ -221,7 +265,7 @@ test("the two user zooms have no legend: each of their panels holds one series, 
   }
   const routing = cardOf("fig_routing_tradeoff");
   const rows = shippedAnswer(routing.figure);
-  assert.equal(figureLegend(routing, rows, cardColours(routing, rows, null)).series.length, 8);
+  assert.equal(figureLegend(routing, rows, cardColours(routing, rows, null)).series.length, 4);
 });
 
 test("the trace's month names are the calendar months their first days fall in, counted from its first day", () => {

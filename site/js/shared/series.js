@@ -119,24 +119,41 @@ export function endpointFigureColours(names, labels, endpointMixRows) {
 // Between a routing series' model and its policy: "MiniMax M2.5, Sticky".
 const POLICY_SEPARATOR = ", ";
 
+// Each routing policy's colour. Round-robin, the cache-blind baseline, is the Other grey, so the three policies that
+// route by load or by cache stand out against it; those take the slots 1, 8 and 3, blue, red and green, far apart in
+// hue.
+const POLICY_COLOURS = Object.freeze({
+  "Round-robin": OTHER_SERIES,
+  "Load-first": SERIES_SLOTS[0],
+  "Cache-first": SERIES_SLOTS[7],
+  Sticky: SERIES_SLOTS[2],
+});
+
+/**
+ * The policy of a routing series named "<model>, <policy>": what follows its last ", ". Throws a RangeError naming a
+ * series with no policy in its name.
+ */
+export function seriesPolicy(name) {
+  const separator = name.lastIndexOf(POLICY_SEPARATOR);
+  if (separator === -1) {
+    throw new RangeError(`the series "${name}" names no policy after "${POLICY_SEPARATOR}"`);
+  }
+  return name.slice(separator + POLICY_SEPARATOR.length);
+}
+
 /**
  * A figure card's colours where its series are named "<model>, <policy>", as the routing figure's: a Map from each of
- * `names`, in order, to its policy's colour, the policies taking the series slots in the order they first appear, so
- * that one policy has one colour for every model. Throws a RangeError naming a series with no policy in its name.
+ * `names`, in order, to its policy's colour of `POLICY_COLOURS`, so that one policy has one colour for every model.
+ * Throws a RangeError naming a series with no policy in its name, or a policy with no colour.
  */
 export function policyColours(names) {
-  const policySlots = new Map();
   const colours = new Map();
   for (const name of names) {
-    const separator = name.lastIndexOf(POLICY_SEPARATOR);
-    if (separator === -1) {
-      throw new RangeError(`the series "${name}" names no policy after "${POLICY_SEPARATOR}"`);
+    const policy = seriesPolicy(name);
+    if (!Object.hasOwn(POLICY_COLOURS, policy)) {
+      throw new RangeError(`the series "${name}" names the policy "${policy}", which has no colour`);
     }
-    const policy = name.slice(separator + POLICY_SEPARATOR.length);
-    if (!policySlots.has(policy)) {
-      policySlots.set(policy, SERIES_SLOTS[policySlots.size] ?? OTHER_SERIES);
-    }
-    colours.set(name, policySlots.get(policy));
+    colours.set(name, POLICY_COLOURS[policy]);
   }
   return colours;
 }

@@ -4,7 +4,7 @@ import { test } from "node:test";
 import {
   endpointFigureColours, ENDPOINT_LABELS, ENDPOINT_SERIES, FAMILY_SERIES, figureColours, FIXED_SERIES_COLOURS,
   HIGHLIGHTED_LABELS, HIGHLIGHTED_SERIES, MODEL_SERIES, policyColours, SERIES_COLUMN, seriesLabel, seriesLegend,
-  shownRows, shownSeriesRows,
+  seriesPolicy, shownRows, shownSeriesRows,
 } from "../site/js/shared/series.js";
 import { assignColours, FAMILY_SLOTS, OTHER_SERIES, SERIES_SLOTS } from "../site/js/theme/colours.js";
 import { endpointColours, familyColours, modelColours } from "../site/js/theme/colours.js";
@@ -121,9 +121,12 @@ test("a figure's endpoint groups, written by their labels, take the endpoint gro
   assert.throws(() => endpointFigureColours(["Batch"], {}, ENDPOINT_MIX_ROWS), /"Batch"/);
 });
 
-test("a routing series takes its policy's colour, the same for every model", () => {
-  const names = ["DeepSeek, Round-robin", "DeepSeek, Sticky", "MiniMax, Round-robin", "MiniMax, Sticky"];
-  const [first, second] = SERIES_SLOTS;
-  assert.deepEqual([...policyColours(names).values()], [first, second, first, second]);
+test("a routing series takes its policy's colour, the same for every model, the cache-blind baseline grey", () => {
+  const policies = ["Round-robin", "Load-first", "Cache-first", "Sticky"];
+  const names = [...policies.map((policy) => `DeepSeek, ${policy}`), ...policies.map((policy) => `MiniMax, ${policy}`)];
+  const colours = [OTHER_SERIES, SERIES_SLOTS[0], SERIES_SLOTS[7], SERIES_SLOTS[2]];
+  assert.deepEqual([...policyColours(names).values()], [...colours, ...colours]);
+  assert.equal(seriesPolicy("MiniMax M2.5, Cache-first"), "Cache-first");
   assert.throws(() => policyColours(["Sticky"]), /"Sticky"/);
+  assert.throws(() => policyColours(["DeepSeek, Random"]), /"Random"/);
 });

@@ -7,7 +7,7 @@
 
 import { distinct, panelRows } from "../shared/charts.js";
 import {
-  endpointFigureColours, figureColours, policyColours, SERIES_COLUMN, seriesLegend,
+  endpointFigureColours, figureColours, policyColours, SERIES_COLUMN, seriesLegend, seriesPolicy,
 } from "../shared/series.js";
 import { FAMILY_SLOTS, SERIES_SLOTS } from "../theme/colours.js";
 
@@ -28,16 +28,23 @@ export const PALETTES = Object.freeze({
 // The palette of a card that names none.
 const DEFAULT_PALETTE = "series";
 
+// The palette whose legend lists each policy once, for the series of every model.
+const POLICY_PALETTE = "policies";
+
 /**
  * The legend of `card` over its answer's `rows`: `{ series, colours, dashed }` (as `explore/legend.js` takes one), the
  * series `colours` names that the rows hold, labelled by the card's `chart.labels`, and its `chart.dashed`, the
- * series drawn dashed, whose swatches are dashed too. A card whose every panel holds one series lists none, so it has
- * no legend: each panel's title names its series, and hiding one would leave its panel empty.
+ * series drawn dashed, whose swatches are dashed too; for a card of the policies' palette, `policyLegend`'s. A card
+ * whose every panel holds one series lists none, so it has no legend: each panel's title names its series, and hiding
+ * one would leave its panel empty.
  */
 export function figureLegend(card, rows, colours) {
   const legend = { ...seriesLegend(rows, SERIES_COLUMN, colours, card.chart.labels), dashed: card.chart.dashed ?? [] };
   if (hasOneSeriesPerPanel(card, rows)) {
     return { ...legend, series: [] };
+  }
+  if (card.palette === POLICY_PALETTE) {
+    return policyLegend(legend.series, colours);
   }
   return legend;
 }
@@ -83,4 +90,24 @@ export function cardColours(card, rows, legendRows, endpointMixRows = null) {
   }
   const names = card.series ?? seriesOrder(rows, legendRows);
   return PALETTES[palette](names, card.chart.labels ?? {}, endpointMixRows);
+}
+
+// The legend of routing series named "<model>, <policy>" (`series`, `[{ name }]`, coloured by `colours`, a Map from
+// series name to colour): one entry per policy, in the order the policies first appear, `{ name, label, names }`, the
+// policy as name and label and `names` the series of that policy, one per model, which its button hides and shows
+// together; its colours, a Map from policy to the colour its series share; and no series dashed.
+function policyLegend(series, colours) {
+  const entries = new Map();
+  for (const { name } of series) {
+    const policy = seriesPolicy(name);
+    if (!entries.has(policy)) {
+      entries.set(policy, { name: policy, label: policy, names: [] });
+    }
+    entries.get(policy).names.push(name);
+  }
+  const entryColours = new Map();
+  for (const entry of entries.values()) {
+    entryColours.set(entry.name, colours.get(entry.names[0]));
+  }
+  return { series: [...entries.values()], colours: entryColours, dashed: [] };
 }

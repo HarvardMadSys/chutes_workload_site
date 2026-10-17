@@ -2,23 +2,47 @@ name: Load balance simulation: Cache-aware routing unlocks fleet-wide KV capacit
 name: Load balance simulation: Cache-aware routing unlocks fleet-wide KV capacity.
 name: Load balance simulation: Cache-aware routing unlocks fleet-wide KV capacity.
 name: Load balance simulation: Cache-aware routing unlocks fleet-wide KV capacity.
-panel: (a) Hit ratio vs cache size
+name: Load balance simulation: Cache-aware routing unlocks fleet-wide KV capacity.
+name: Load balance simulation: Cache-aware routing unlocks fleet-wide KV capacity.
+name: Load balance simulation: Cache-aware routing unlocks fleet-wide KV capacity.
+name: Load balance simulation: Cache-aware routing unlocks fleet-wide KV capacity.
+panel: (a) Hit ratio vs cache size · DeepSeek V3.2
+x-axis: 1k | 10k | 100k | 1M
+y-axis: 0.0 | 0.1 | 0.2 | 0.3 | 0.4 | 0.5
+x-axis title: Instance cache size
+y-axis title: Token hit ratio
+panel: (b) Replication vs cache size · DeepSeek V3.2
+x-axis: 1k | 10k | 100k | 1M
+y-axis: 1.0 | 1.2 | 1.4 | 1.6 | 1.8 | 2.0
+x-axis title: Instance cache size
+y-axis title: Replication ratio
+panel: (c) Replication vs instance count · DeepSeek V3.2
+x-axis: 5 | 10 | 15 | 20
+y-axis: 1.0 | 1.2 | 1.4 | 1.6 | 1.8 | 2.0
+x-axis title: Instances
+y-axis title: Replication ratio
+panel: (d) Imbalance vs instance count · DeepSeek V3.2
+x-axis: 5 | 10 | 15 | 20
+y-axis: 0.0 | 0.5 | 1.0 | 1.5 | 2.0 | 2.5
+x-axis title: Instances
+y-axis title: Load imbalance (%)
+panel: (a) Hit ratio vs cache size · MiniMax-M2.5
 x-axis: 1k | 10k | 100k | 1M
 y-axis: 0.0 | 0.2 | 0.4 | 0.6
 x-axis title: Instance cache size
 y-axis title: Token hit ratio
-panel: (b) Replication vs cache size
+panel: (b) Replication vs cache size · MiniMax-M2.5
 x-axis: 1k | 10k | 100k | 1M
 y-axis: 1.0 | 1.5 | 2.0 | 2.5
 x-axis title: Instance cache size
 y-axis title: Replication ratio
-panel: (c) Replication vs instance count
+panel: (c) Replication vs instance count · MiniMax-M2.5
 x-axis: 5 | 10 | 15 | 20
 y-axis: 1.0 | 1.5 | 2.0 | 2.5
 x-axis title: Instances
 y-axis title: Replication ratio
-panel: (d) Imbalance vs instance count
+panel: (d) Imbalance vs instance count · MiniMax-M2.5
 x-axis: 5 | 10 | 15 | 20
-y-axis: 1 | 2 | 3 | 4
+y-axis: 0 | 1 | 2 | 3 | 4
 x-axis title: Instances
 y-axis title: Load imbalance (%)

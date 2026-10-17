@@ -53,7 +53,26 @@ test("a card of the families' palette colours ten series before the Other grey; 
 test("a card of the policies' palette colours each series by its policy", () => {
   const rows = ["A, Sticky", "B, Sticky", "A, Load-first"].map((name) => ({ series: name, x: 1, y: 1 }));
   const colours = cardColours({ ...CARD, palette: "policies" }, rows, null);
-  assert.deepEqual([...colours.values()], [SERIES_SLOTS[0], SERIES_SLOTS[0], SERIES_SLOTS[1]]);
+  assert.deepEqual([...colours.values()], [SERIES_SLOTS[2], SERIES_SLOTS[2], SERIES_SLOTS[0]]);
+});
+
+test("a card of the policies' palette lists each policy once, in its colour, toggling its series of every model", () => {
+  const policies = ["Round-robin", "Load-first", "Cache-first", "Sticky"];
+  const series = [...policies.map((policy) => `A, ${policy}`), ...policies.map((policy) => `B, ${policy}`)];
+  const rows = series.map((name) => ({ panel: "a", series: name, x: 1, y: 1 }));
+  const card = { ...CARD, series, palette: "policies", panels: [{ panel: "a" }] };
+  const legend = figureLegend(card, rows, cardColours(card, rows, null));
+  assert.deepEqual(legend.series, [
+    { name: "Round-robin", label: "Round-robin", names: ["A, Round-robin", "B, Round-robin"] },
+    { name: "Load-first", label: "Load-first", names: ["A, Load-first", "B, Load-first"] },
+    { name: "Cache-first", label: "Cache-first", names: ["A, Cache-first", "B, Cache-first"] },
+    { name: "Sticky", label: "Sticky", names: ["A, Sticky", "B, Sticky"] },
+  ]);
+  assert.deepEqual([...legend.colours], [
+    ["Round-robin", OTHER_SERIES], ["Load-first", SERIES_SLOTS[0]], ["Cache-first", SERIES_SLOTS[7]],
+    ["Sticky", SERIES_SLOTS[2]],
+  ]);
+  assert.deepEqual(legend.dashed, []);
 });
 
 test("a card of the endpoints' palette colours its series as the Overview colours their endpoint groups", () => {

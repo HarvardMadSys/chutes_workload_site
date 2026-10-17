@@ -1316,8 +1316,8 @@ section[id] {
   gap: 0.75rem 1.5rem;
 }
 
-/* A wide card's panels, the routing figure's four: in one row as the paper's where they fit, two by two where they do
-   not, so that no panel stands alone in a row, and one above another on a phone. */
+/* A wide card's panels, the routing figure's eight: four to a row, one row per model, as the paper's where they fit,
+   two by two where they do not, so that no panel stands alone in a row, and one above another on a phone. */
 .card.is-wide .chart-panels {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }

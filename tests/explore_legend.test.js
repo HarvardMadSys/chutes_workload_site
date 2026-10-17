@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  dashedBackground, drawWithLegend, hasLegend, isEverySeriesHidden, legendIndexForKey, mountLegend, toggledSeries,
+  dashedBackground, drawWithLegend, hasLegend, isEverySeriesHidden, legendEntryNames, legendIndexForKey, mountLegend,
+  toggledSeries,
 } from "../site/js/explore/legend.js";
 
 /**
@@ -74,16 +75,37 @@ const LEGEND = {
   colours: new Map([["hermes", "var(--series-1)"], ["pi", "var(--series-2)"]]),
 };
 
+// A legend whose entries each toggle two series together, one routing policy's series of two models.
+const POLICY_LEGEND = {
+  series: [
+    { name: "Sticky", label: "Sticky", names: ["A, Sticky", "B, Sticky"] },
+    { name: "Load-first", label: "Load-first", names: ["A, Load-first", "B, Load-first"] },
+  ],
+  colours: new Map([["Sticky", "var(--series-3)"], ["Load-first", "var(--series-1)"]]),
+};
+
 test("toggling a series hides it when shown and shows it when hidden, leaving the set it was given alone", () => {
   const hidden = new Set(["pi"]);
-  assert.deepEqual([...toggledSeries(hidden, "hermes")].sort(), ["hermes", "pi"]);
-  assert.deepEqual([...toggledSeries(hidden, "pi")], []);
+  assert.deepEqual([...toggledSeries(hidden, ["hermes"])].sort(), ["hermes", "pi"]);
+  assert.deepEqual([...toggledSeries(hidden, ["pi"])], []);
   assert.deepEqual([...hidden], ["pi"]);
+});
+
+test("an entry's button toggles its names, or its name alone where it has none; the names go together", () => {
+  assert.deepEqual(legendEntryNames(LEGEND.series[0]), ["hermes"]);
+  assert.deepEqual(legendEntryNames(POLICY_LEGEND.series[0]), ["A, Sticky", "B, Sticky"]);
+  const names = ["A, Sticky", "B, Sticky"];
+  assert.deepEqual([...toggledSeries(new Set(["A, Sticky"]), names)].sort(), names);
+  assert.deepEqual([...toggledSeries(new Set(names), names)], []);
 });
 
 test("every series is hidden only when each of the legend's series is", () => {
   assert.equal(isEverySeriesHidden(LEGEND.series, new Set(["hermes"])), false);
   assert.equal(isEverySeriesHidden(LEGEND.series, new Set(["hermes", "pi"])), true);
+  const stickyAndOneLoadFirst = new Set(["A, Sticky", "B, Sticky", "A, Load-first"]);
+  assert.equal(isEverySeriesHidden(POLICY_LEGEND.series, stickyAndOneLoadFirst), false);
+  const everyPolicy = new Set([...stickyAndOneLoadFirst, "B, Load-first"]);
+  assert.equal(isEverySeriesHidden(POLICY_LEGEND.series, everyPolicy), true);
 });
 
 test("a legend of no series has no series hidden, so its chart is never replaced by the note", () => {
@@ -143,9 +165,9 @@ test("a click on a legend button names its series and flips the button", (contex
   useFakeDocument(context);
   const container = new FakeElement("div");
   const toggled = [];
-  mountLegend(container, LEGEND.series, LEGEND.colours, (name) => toggled.push(name));
+  mountLegend(container, LEGEND.series, LEGEND.colours, (names) => toggled.push(names));
   container.children[1].click();
-  assert.deepEqual(toggled, ["pi"]);
+  assert.deepEqual(toggled, [["pi"]]);
   assert.equal(container.children[1].getAttribute("aria-pressed"), "false");
   container.children[1].click();
   assert.equal(container.children[1].getAttribute("aria-pressed"), "true");
@@ -162,6 +184,19 @@ test("a chart with a legend is drawn with nothing hidden, then again with each c
   legendPlace.children[0].click();
   await settle();
   assert.deepEqual(drawnWith, [[], ["hermes"], []]);
+});
+
+test("a click on an entry of names hides all of them in one drawing, and a second click shows them again", async (context) => {
+  useFakeDocument(context);
+  const body = new FakeElement("div");
+  const drawnWith = [];
+  await drawWithLegend(body, POLICY_LEGEND, (hidden) => drawnWith.push([...hidden].sort()), "line");
+  assert.equal(body.legendSlot.children[0].children[0].style.background, "var(--series-3)");
+  body.legendSlot.children[0].click();
+  await settle();
+  body.legendSlot.children[0].click();
+  await settle();
+  assert.deepEqual(drawnWith, [[], ["A, Sticky", "B, Sticky"], []]);
 });
 
 test("a chart whose every series is hidden shows a note instead of being drawn", async (context) => {

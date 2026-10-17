@@ -3,10 +3,12 @@
  * and the chart is drawn anew from the rows it already has, with no query. A hidden series' button is struck through
  * and not pressed.
  *
- * A legend is `{ series, colours, dashed? }`: the series it lists, `[{ name, label }]`, `name` being the series' value
- * in the rows and `label` the text its button shows, their colours, a Map from name to colour, and, for a chart of
- * lines, the names of the series drawn dashed, whose swatches are dashed lines. The hidden series are a Set of names;
- * it lives as long as one drawing of the chart, and it is never written to the URL.
+ * A legend is `{ series, colours, dashed? }`: the entries it lists, `[{ name, label, names? }]`, `name` being the
+ * series' value in the rows and `label` the text its button shows, their colours, a Map from an entry's name to its
+ * colour, and, for a chart of lines, the names of the series drawn dashed, whose swatches are dashed lines. An entry's
+ * `names`, where it has them, are the series its button hides and shows together, as one routing policy's series of
+ * every model; `[name]` where it has none. The hidden series are a Set of the rows' series names; it lives as long as
+ * one drawing of the chart, and it is never written to the URL.
  *
  * From the keyboard a legend is one tab stop, a group of buttons: Tab reaches the last button focused in it, the first
  * at first, ArrowLeft and ArrowRight move between its buttons, and Enter or Space toggles one, as a click does.
@@ -24,11 +26,11 @@ const MIN_SERIES_IN_LEGEND = 2;
 const LEGEND_GROUP_NAME = "Series";
 
 /**
- * Fill `container` with one button per series of `series` (`[{ name, label }]`), each with its colour from `colours`
- * (a Map from name to colour) in a swatch shaped as the chart draws it, `swatch` ("square" or "line"), a dashed line
- * for a line of `dashed` (the names of the series drawn dashed), each pressed, the whole one tab stop with the arrow
- * keys inside it. A click flips the button between pressed and struck through and calls `onToggle(name)`. Fewer than
- * two series leave `container` empty.
+ * Fill `container` with one button per entry of `series` (`[{ name, label, names? }]`), each with its colour from
+ * `colours` (a Map from an entry's name to its colour) in a swatch shaped as the chart draws it, `swatch` ("square" or
+ * "line"), a dashed line for a line of `dashed` (the names of the series drawn dashed), each pressed, the whole one tab
+ * stop with the arrow keys inside it. A click flips the button between pressed and struck through and calls
+ * `onToggle(names)` with the entry's `legendEntryNames`. Fewer than two entries leave `container` empty.
  */
 export function mountLegend(container, series, colours, onToggle, swatch = "square", dashed = []) {
   if (!hasLegend(series)) {
@@ -36,9 +38,10 @@ export function mountLegend(container, series, colours, onToggle, swatch = "squa
     return;
   }
   const buttons = [];
-  for (const { name, label } of series) {
-    const entry = { label, colour: colours.get(name), swatch, isDashed: swatch === "line" && dashed.includes(name) };
-    buttons.push(legendButton(entry, () => onToggle(name)));
+  for (const entry of series) {
+    const isDashed = swatch === "line" && dashed.includes(entry.name);
+    const appearance = { label: entry.label, colour: colours.get(entry.name), swatch, isDashed };
+    buttons.push(legendButton(appearance, () => onToggle(legendEntryNames(entry))));
   }
   for (const [index, button] of buttons.entries()) {
     button.tabIndex = index === 0 ? 0 : -1;
@@ -63,13 +66,21 @@ export function legendIndexForKey(key, index, count) {
   return null;
 }
 
-/** A copy of `hidden` with `name` hidden when it was shown, and shown when it was hidden. */
-export function toggledSeries(hidden, name) {
+/** The series names a legend entry's button hides and shows: its `names` where it has them, else its `name` alone. */
+export function legendEntryNames(entry) {
+  return entry.names ?? [entry.name];
+}
+
+/** A copy of `hidden` with every one of `names` shown when all of them were hidden, and else every one hidden. */
+export function toggledSeries(hidden, names) {
   const toggled = new Set(hidden);
-  if (toggled.has(name)) {
-    toggled.delete(name);
-  } else {
-    toggled.add(name);
+  const wereHidden = names.every((name) => hidden.has(name));
+  for (const name of names) {
+    if (wereHidden) {
+      toggled.delete(name);
+    } else {
+      toggled.add(name);
+    }
   }
   return toggled;
 }
@@ -92,8 +103,8 @@ export async function drawWithLegend(body, legend, drawChart, swatch = "square")
     await drawChart(hidden);
     return;
   }
-  async function onToggle(name) {
-    hidden = toggledSeries(hidden, name);
+  async function onToggle(names) {
+    hidden = toggledSeries(hidden, names);
     try {
       await drawShownSeries(body, legend, hidden, drawChart);
     } catch (error) {
@@ -105,9 +116,20 @@ export async function drawWithLegend(body, legend, drawChart, swatch = "square")
   await drawShownSeries(body, legend, hidden, drawChart);
 }
 
-/** True when `series` (`[{ name }]`) has a series and every one is in `hidden`, so nothing is left to draw. */
+/**
+ * True when `series` (`[{ name, names? }]`) has an entry and every series name of every entry (`legendEntryNames`) is
+ * in `hidden`, so nothing is left to draw.
+ */
 export function isEverySeriesHidden(series, hidden) {
-  return series.length > 0 && series.every((one) => hidden.has(one.name));
+  if (series.length === 0) {
+    return false;
+  }
+  for (const entry of series) {
+    if (!legendEntryNames(entry).every((name) => hidden.has(name))) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /**
@@ -127,18 +149,18 @@ async function drawShownSeries(body, legend, hidden, drawChart) {
   await drawChart(hidden);
 }
 
-// A legend button for `entry`, `{ label, colour, swatch, isDashed }`, its swatch a square, a short line or a short
-// dashed line, pressed.
-function legendButton(entry, onClick) {
+// A legend button for `appearance`, `{ label, colour, swatch, isDashed }`, its swatch a square, a short line or a
+// short dashed line, pressed.
+function legendButton(appearance, onClick) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "legend-button";
   // Pressed means shown: the button's state follows each click, as the hidden set does.
   button.setAttribute("aria-pressed", "true");
   const swatch = document.createElement("span");
-  swatch.className = entry.swatch === "line" ? "legend-swatch is-line" : "legend-swatch";
-  swatch.style.background = entry.isDashed ? dashedBackground(entry.colour) : entry.colour;
-  button.append(swatch, entry.label);
+  swatch.className = appearance.swatch === "line" ? "legend-swatch is-line" : "legend-swatch";
+  swatch.style.background = appearance.isDashed ? dashedBackground(appearance.colour) : appearance.colour;
+  button.append(swatch, appearance.label);
   button.addEventListener("click", () => flipAndCall(button, onClick));
   return button;
 }
