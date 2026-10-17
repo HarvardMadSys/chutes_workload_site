@@ -1,6 +1,6 @@
 name: Popularity and burstiness: Most models are bursty and persistently so.
 colour-legend: Models: 1 | 10 | 100
-x-axis: 100 | 10k
+x-axis: 10 | 100 | 1k | 10k | 100k
 y-axis: 0.1 | 1 | 10
 x-axis title: Requests/hour
 y-axis title: Mean CV(IAT)

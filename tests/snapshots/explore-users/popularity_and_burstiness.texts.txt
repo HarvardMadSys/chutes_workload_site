@@ -1,4 +1,4 @@
 title: Popularity and burstiness
 insight: Most models are bursty and persistently so.
 caption: Most models lie above a coefficient of variation of 1, so their arrivals are bursty rather than evenly spaced, for low- and high-rate models alike.
-definition: Each model placed by its mean requests per active hour and the mean hourly coefficient of variation (standard deviation over mean) of its inter-arrival times, binned into hexagons shaded by how many models fall in each.
+definition: Each model placed by its mean requests per active hour and the mean hourly coefficient of variation (standard deviation over mean) of its inter-arrival times, binned into cells of a log grid shaded by how many models fall in each.

@@ -2,4 +2,4 @@ name: Median output by cohort: Change in the median output is less pronounced ac
 x-axis: Apr '25 | Oct '25 | Apr '26*
 y-axis: 0 | 1k | 2k | 3k
 x-axis title: Release cohort (month first seen)
-y-axis title: Median output
+y-axis title: Per-user median output tokens

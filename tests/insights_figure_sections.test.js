@@ -110,3 +110,38 @@ test("the topics and their cards cannot be changed, nor their charts, panels and
     }
   }
 });
+
+// The rows of a topic's two-column grid, in the topic's order: the others two by two, a wide card alone on a row of
+// its own, after a card left alone on the row before it.
+function gridRows(cards) {
+  const rows = [];
+  let open = [];
+  for (const card of cards) {
+    if (card.isWide === true) {
+      if (open.length > 0) {
+        rows.push(open);
+        open = [];
+      }
+      rows.push([card]);
+    } else {
+      open.push(card);
+      if (open.length === 2) {
+        rows.push(open);
+        open = [];
+      }
+    }
+  }
+  if (open.length > 0) {
+    rows.push(open);
+  }
+  return rows;
+}
+
+test("the two cards of a grid row draw their charts at one height, so the row stays level", () => {
+  for (const topic of FIGURE_SECTIONS) {
+    for (const row of gridRows(topic.cards)) {
+      const heights = row.map((card) => card.chart.height);
+      assert.ok(heights.every((height) => height === heights[0]), `${row.map((card) => card.figure)}: ${heights}`);
+    }
+  }
+});

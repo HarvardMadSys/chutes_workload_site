@@ -1,6 +1,6 @@
 name: Lag-1 IAT autocorrelation: High-load periods tend to follow high-load periods, and low-load periods tend to persist.
 colour-legend: Lag-1 autocorrelation: -1 | -0.5 | 0 | 0.5 | 1
-x-axis: 100 | 10k
+x-axis: 10 | 100 | 1k | 10k | 100k
 y-axis: 0.1 | 1 | 10
 x-axis title: Requests/hour
 y-axis title: Mean CV(IAT)

@@ -15,12 +15,30 @@ const USER_INPUT_DOMAIN = Object.freeze([1, 1e6]);
 const USER_OUTPUT_DOMAIN = Object.freeze([1, 1e5]);
 const MODEL_TOKENS_DOMAIN = Object.freeze([1, 1e5]);
 
+// The users' input axis ticked at every decade, as its output axis is: its seven decades are more than
+// `MAX_LOG_TICKS`, past which the axis would label every second.
+const USER_INPUT_TICKS = Object.freeze([1, 10, 100, 1e3, 1e4, 1e5, 1e6]);
+
 // The burstiness figures' two axes, the same on both cards, over every model's point; requests per hour labelled at
-// 100 and 10k, as the paper's.
+// every decade from 10, the floor of an active hour, so a reader can place 1k and 100k.
 const REQUESTS_PER_HOUR_AXIS = Object.freeze({
-  label: "Requests/hour", log: true, domain: [10, 2e5], ticks: [100, 1e4], tickFormat: formatWholeCountTick,
+  label: "Requests/hour", log: true, domain: [10, 2e5], ticks: [10, 100, 1e3, 1e4, 1e5],
+  tickFormat: formatWholeCountTick,
 });
 const IAT_CV_AXIS = Object.freeze({ label: "Mean CV(IAT)", log: true, domain: [0.02, 30], tickFormat: formatCount });
+
+// The coefficient of variation the burstiness cards mark with a dashed rule: above 1, arrivals are burstier than a
+// Poisson process's, the line the caption counts models against.
+const BURSTY_CV = 1;
+
+// The charts' heights in pixels, the two cards of a grid row sharing one so the row stays level. The paper draws these
+// figures near-square: two log axes of similar span read their trend at 340 px, where 240 squashes y to half x's
+// pixels per decade.
+const DENSITY_HEIGHT = 340;
+// The token-shape pair at 400, so the dashed line of equal input and output runs nearer 45° than 240's 21°.
+const TOKEN_SHAPE_HEIGHT = 400;
+// The two rasters of a model's users at 400, so their 230 and 540 rows share fewer pixels than at 240.
+const USER_ROWS_HEIGHT = 400;
 
 // The hours of a raster's 31-day window ticked, every sixth day from its first, as the paper's.
 const HOURS_PER_DAY = 24;
@@ -46,12 +64,13 @@ export const USERS_TOPIC = Object.freeze({
       title: "Models: requests and users",
       insight: "Models and users span wide ranges of request volume.",
       caption: "Models with more requests often serve more users, yet models with similar request counts can differ by orders of magnitude in user count.",
-      definition: "Each model placed by its request count and its number of distinct users, binned into hexagons shaded by how many models fall in each.",
+      // placeholder: "cells of a log grid", not "hexagons": the cells drawn are squares.
+      definition: "Each model placed by its request count and its number of distinct users, binned into cells of a log grid shaded by how many models fall in each.",
       kind: "cells",
       chart: {
         x: { label: "Requests per model", log: true, tickFormat: formatWholeCountTick },
-        // The paper's: from 1 to 1.5 times the most users of a model.
-        y: { label: "Distinct users", log: true, domain: [1, 485333], tickFormat: formatWholeCountTick },
+        y: { label: "Distinct users", log: true, tickFormat: formatWholeCountTick },
+        height: DENSITY_HEIGHT,
         ...COUNT_COLOUR,
         valueLabel: "Models",
         valueFormat: formatCount,
@@ -63,11 +82,13 @@ export const USERS_TOPIC = Object.freeze({
       // placeholder: the paragraph's lead-in is on the models' card; this is its sentence on this panel.
       insight: "Most users issue relatively few requests and access only a small number of models.",
       caption: "A sparse tail of users sends many requests across a much broader model set. These may be automated applications, proxy services, model routers or agentic workflows.",
-      definition: "Each user placed by their request count and the number of distinct models they used, binned into hexagons shaded by how many users fall in each.",
+      // placeholder: "cells of a log grid", not "hexagons": the cells drawn are squares.
+      definition: "Each user placed by their request count and the number of distinct models they used, binned into cells of a log grid shaded by how many users fall in each.",
       kind: "cells",
       chart: {
         x: { label: "Requests per user", log: true, tickFormat: formatWholeCountTick },
         y: { label: "Distinct models", log: true, tickFormat: formatWholeCountTick },
+        height: DENSITY_HEIGHT,
         ...COUNT_COLOUR,
         valueLabel: "Users",
         valueFormat: formatCount,
@@ -78,12 +99,14 @@ export const USERS_TOPIC = Object.freeze({
       title: "Models: input and output",
       insight: "Token shape varies substantially across models and users.",
       caption: "Most points fall below the dashed line of equal size, so most models are input heavy at the median. Some are strongly input-heavy, others output-heavy.",
-      definition: "Each model placed by its median input tokens and median output tokens per request, binned into hexagons shaded by how many models fall in each.",
+      // placeholder: "cells of a log grid", not "hexagons": the cells drawn are squares.
+      definition: "Each model placed by its median input tokens and median output tokens per request, binned into cells of a log grid shaded by how many models fall in each.",
       kind: "cells",
       chart: {
-        x: { label: "Median model input", log: true, domain: MODEL_TOKENS_DOMAIN, tickFormat: formatWholeCountTick },
-        y: { label: "Median model output", log: true, domain: MODEL_TOKENS_DOMAIN, tickFormat: formatWholeCountTick },
+        x: { label: "Median input tokens", log: true, domain: MODEL_TOKENS_DOMAIN, tickFormat: formatWholeCountTick },
+        y: { label: "Median output tokens", log: true, domain: MODEL_TOKENS_DOMAIN, tickFormat: formatWholeCountTick },
         diagonal: true,
+        height: TOKEN_SHAPE_HEIGHT,
         ...COUNT_COLOUR,
         valueLabel: "Models",
         valueFormat: formatCount,
@@ -95,12 +118,17 @@ export const USERS_TOPIC = Object.freeze({
       // placeholder: the paragraph's lead-in is on the models' card; this is its sentence on this panel.
       insight: "The user view is more concentrated, but still spans a broad range.",
       caption: "Some users consistently send short prompts, while others work with much larger contexts; output lengths also vary substantially.",
-      definition: "Each user placed by their median input tokens and median output tokens per request, binned into hexagons shaded by how many users fall in each.",
+      // placeholder: "cells of a log grid", not "hexagons": the cells drawn are squares.
+      definition: "Each user placed by their median input tokens and median output tokens per request, binned into cells of a log grid shaded by how many users fall in each.",
       kind: "cells",
       chart: {
-        x: { label: "Median user input", log: true, domain: USER_INPUT_DOMAIN, tickFormat: formatWholeCountTick },
-        y: { label: "Median user output", log: true, domain: USER_OUTPUT_DOMAIN, tickFormat: formatWholeCountTick },
+        x: {
+          label: "Median input tokens", log: true, domain: USER_INPUT_DOMAIN, ticks: USER_INPUT_TICKS,
+          tickFormat: formatWholeCountTick,
+        },
+        y: { label: "Median output tokens", log: true, domain: USER_OUTPUT_DOMAIN, tickFormat: formatWholeCountTick },
         diagonal: true,
+        height: TOKEN_SHAPE_HEIGHT,
         ...COUNT_COLOUR,
         valueLabel: "Users",
         valueFormat: formatCount,
@@ -117,6 +145,7 @@ export const USERS_TOPIC = Object.freeze({
       chart: {
         x: RASTER_DAYS_AXIS,
         y: { label: "User (by first request)" },
+        height: USER_ROWS_HEIGHT,
         ...COUNT_COLOUR,
         valueLabel: "Requests per hour",
       },
@@ -133,6 +162,7 @@ export const USERS_TOPIC = Object.freeze({
       chart: {
         x: RASTER_DAYS_AXIS,
         y: { label: "User (by first request)" },
+        height: USER_ROWS_HEIGHT,
         ...COUNT_COLOUR,
         valueLabel: "Requests per hour",
       },
@@ -171,11 +201,14 @@ export const USERS_TOPIC = Object.freeze({
       title: "Popularity and burstiness",
       insight: "Most models are bursty and persistently so.",
       caption: "Most models lie above a coefficient of variation of 1, so their arrivals are bursty rather than evenly spaced, for low- and high-rate models alike.",
-      definition: "Each model placed by its mean requests per active hour and the mean hourly coefficient of variation (standard deviation over mean) of its inter-arrival times, binned into hexagons shaded by how many models fall in each.",
+      // placeholder: "cells of a log grid", not "hexagons": the cells drawn are squares.
+      definition: "Each model placed by its mean requests per active hour and the mean hourly coefficient of variation (standard deviation over mean) of its inter-arrival times, binned into cells of a log grid shaded by how many models fall in each.",
       kind: "cells",
       chart: {
         x: REQUESTS_PER_HOUR_AXIS,
         y: IAT_CV_AXIS,
+        yReference: BURSTY_CV,
+        height: DENSITY_HEIGHT,
         ...COUNT_COLOUR,
         valueLabel: "Models",
         valueFormat: formatCount,
@@ -192,6 +225,8 @@ export const USERS_TOPIC = Object.freeze({
       chart: {
         x: REQUESTS_PER_HOUR_AXIS,
         y: IAT_CV_AXIS,
+        yReference: BURSTY_CV,
+        height: DENSITY_HEIGHT,
         // The paper's coolwarm: blue for -1, red for 1.
         scheme: "BuRd",
         colourDomain: [-1, 1],

@@ -1,5 +1,5 @@
 name: Monthly input intervals: Inputs stay stable while outputs shrink.
 x-axis: Apr '25 | Oct '25 | Apr '26*
-y-axis: 100 | 1k | 10k
+y-axis: 10 | 100 | 1k | 10k
 x-axis title: Month
 y-axis title: Input tokens
