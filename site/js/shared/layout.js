@@ -14,8 +14,6 @@ export const URLS = Object.freeze({
   paper: "https://arxiv.org/abs/2608.13573",
   code: "https://github.com/HarvardMadSys/chutes_workload",
   github: "https://github.com/HarvardMadSys",
-  // The blog post that explores the trace in the browser.
-  blog: "https://kasivisu4.github.io/blog/a-year-of-llm-traffic-in-a-browser-tab/",
 });
 
 // The site's one page, which the brand links.
@@ -38,8 +36,6 @@ const ELSEWHERE_LINKS = Object.freeze([
   Object.freeze({ title: "Dataset", url: URLS.dataset }),
   Object.freeze({ title: "Paper", url: URLS.paper }),
   Object.freeze({ title: "Code (this trace)", url: URLS.code }),
-  // The blog post that explores the same trace in the browser, by its own title.
-  Object.freeze({ title: "A Year of LLM Traffic, in a Browser Tab", url: URLS.blog }),
   Object.freeze({ title: "MadSys on GitHub", url: URLS.github }),
 ]);
 
