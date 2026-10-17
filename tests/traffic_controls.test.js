@@ -1,6 +1,6 @@
 /**
  * The Traffic Explorer's controls (`traffic/traffic_controls.js`): the drop-downs, their entries and changes, the URL's
- * choice they open on and write, and Back and Forward. The period buttons and the sliders' released range are tested
+ * choice they open on and write, and Back and Forward. The period buttons and the slider's released range are tested
  * in `traffic_period_buttons.test.js`.
  */
 

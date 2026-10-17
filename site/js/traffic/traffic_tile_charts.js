@@ -35,8 +35,8 @@ const TILE_CHART_HEIGHT = 140;
 // last x tick's label on the right, so the plot keeps most of a tile's width.
 const TILE_CHART_MARGINS = Object.freeze({ marginLeft: 52, marginRight: 20 });
 
-// The x domains, the same for every choice, each with its ticks: evenly spaced decades, at most four so the labels do
-// not crowd a tile's width, from the domain's start to its end so each axis names both its ends.
+// The x domains, the same for every choice, each with its ticks: decades, at most four so the labels do not crowd a
+// tile's width, from the domain's start to its end so each axis names both its ends.
 // Over the whole trace, at the bins' upper edges, 99.9% of the requests send at most 131,072 input tokens, and all at
 // most 112,863,206;
 const INPUT_TOKENS_DOMAIN = Object.freeze([1, 1_000_000]);

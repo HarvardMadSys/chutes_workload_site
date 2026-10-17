@@ -9,9 +9,9 @@
  * `explore/daily_by_model/<family_slug>` answer, read the first time the family is chosen and kept for the visit. The
  * families take their colours in the order of their requests, a family's models in the order of theirs, and the
  * endpoint groups from the Overview's order (`context.orders`). A change filters the rows once
- * (`traffic/traffic_filter.js`, which defines the choice) and draws the tiles and bars again; so does the slider as it
- * moves. Once the bars are drawn, the tiles' charts and percentiles are drawn from the histogram answer, read and
- * kept as the daily ones are. The controls keep the choice in the URL (`traffic/traffic_controls.js`).
+ * (`traffic/traffic_filter.js`, which defines the choice) and draws the tiles and bars again; so does the slider as
+ * a handle moves. Once the bars are drawn, the tiles' charts and percentiles are drawn from the histogram answer, read
+ * and kept as the daily ones are. The controls keep the choice in the URL (`traffic/traffic_controls.js`).
  */
 
 import { readAnswer } from "../shared/answers.js";
@@ -58,8 +58,8 @@ async function drawExplorer(container, context) {
     tileCharts: null, // the tiles' charts drawn last, which the legend draws again; null while they load
     hidden: new Set(), // the series the legend hides, kept while the choice keeps its family and model
     summary: null, // the tiles' numbers drawn last, which an error leaves without their percentiles
-    sliders: null, // the sliders' `{ show }`, once placed
-    choice: null, // the choice drawn last, which a slider's range joins as it moves
+    slider: null, // the day range's slider's `{ show }`, once placed
+    choice: null, // the choice drawn last, which the slider's range joins as a handle moves
   };
   const row = document.createElement("div");
   row.className = "controls traffic-controls";
@@ -71,7 +71,7 @@ async function drawExplorer(container, context) {
     onError: (error) => showError(view.figure, error),
   });
   view.choice = controls.choice;
-  view.sliders = mountRange(view.rangeRow, view.days, controls.choice, {
+  view.slider = mountRange(view.rangeRow, view.days, controls.choice, {
     onInput: (range) => drawChange(view, { ...view.choice, ...range }),
     onChange: controls.chooseRange,
   });
@@ -140,9 +140,9 @@ function explorerCard(view) {
   return card;
 }
 
-// The controls chose `choice`: stand the sliders on its range and draw it.
+// The controls chose `choice`: stand the slider's handles on its range and draw it.
 function showChoice(view, choice) {
-  view.sliders.show(choice);
+  view.slider.show(choice);
   drawChange(view, choice);
 }
 

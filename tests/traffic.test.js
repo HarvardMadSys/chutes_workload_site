@@ -154,16 +154,16 @@ test("the handles sit under the bars on the URL's range and draw the tiles as th
     const page = runExplorer(context, NO_COMPLETION_QUERY, { [FAMILY_FILE]: THREE_DAY_ROWS });
     await page.running;
     const { tiles, handles, rangeDays } = explorerParts(page.container);
-    const [, toSlider] = handles;
+    const [, toHandle] = handles;
     const [, toDay] = rangeDays;
-    assert.deepEqual([requestsTile(tiles), toSlider.value, toDay.textContent], ["0", "1", "2025-07-01"]);
-    toSlider.value = "2";
-    toSlider.dispatch("input");
+    assert.deepEqual([requestsTile(tiles), toHandle.value, toDay.textContent], ["0", "1", "2025-07-01"]);
+    toHandle.value = "2";
+    toHandle.dispatch("input");
     runFrames(page.frames);
     await settled();
     assert.equal(requestsTile(tiles), "5");
-    assert.deepEqual(page.replaced, [], "a slider moving does not write the URL");
-    toSlider.dispatch("change");
+    assert.deepEqual(page.replaced, [], "a handle moving does not write the URL");
+    toHandle.dispatch("change");
     assert.deepEqual(page.replaced, ["endpoint=completion"]);
   });
 
@@ -175,8 +175,8 @@ test("a period button stands the handles on its days and draws them", async (con
   assert.deepEqual(pressed(), ["false", "false", "false", "false", "false"]);
   periodButtons[2].dispatch("click");
   await settled();
-  const sliderValues = handles.map((handle) => handle.value);
-  assert.deepEqual(sliderValues, ["1", "2"], "Q3 '25 is the trace's days from July 1");
+  const handleValues = handles.map((handle) => handle.value);
+  assert.deepEqual(handleValues, ["1", "2"], "Q3 '25 is the trace's days from July 1");
   assert.deepEqual(pressed(), ["false", "false", "true", "false", "false"]);
   assert.equal(requestsTile(tiles), "5");
   assert.deepEqual(page.replaced, ["endpoint=completion&from=2025-07-01"]);

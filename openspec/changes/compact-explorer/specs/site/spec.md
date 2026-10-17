@@ -20,7 +20,7 @@ site/             exactly the files that are deployed
   index.html      the one page
   style.css       tokens, layout and components
   favicon.svg     the brand mark, for the browser tab
-  js/shared/      the answers, the libraries, formatting, charts, series, the layout, the scrolling row
+  js/shared/      the answers, the libraries, formatting, charts, series, the layout, the link marks, the scrolling row
   js/charts/      the nine chart kinds: donut, stacked_bars, lines, bands, cells, raster, scatter, boxes, bars
   js/axes/        the ticks of the charts' axes
   js/theme/       the site's colours as the style tokens give them

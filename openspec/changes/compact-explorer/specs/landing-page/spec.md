@@ -49,11 +49,11 @@ the top: four tiles that follow the choice; one legend that toggles a
 series in every chart of the card; the chosen metric per day as stacked
 bars over the chosen days, by family while no family is chosen, by model
 once a family is and by endpoint group once a model is; and under the
-bars one slider over the trace's days with two handles, the first day
-written under the track's left end and the last under its right, which
-set the day range (a handle moved past the other moves the other along;
-each handle reached by Tab and moved by the arrow keys), the bars and
-the tiles following as a handle moves. The tiles: requests; average
+bars one slider over the trace's days with two handles, the chosen first
+day written under the track's left end and the chosen last day under its
+right, which set the day range (a handle moved past the other moves the
+other along; each handle reached by Tab and moved by the arrow keys),
+the bars and the tiles following as a handle moves. The tiles: requests; average
 input tokens; average output tokens; and average TTFT with the share of
 the chosen requests that record it; an average SHALL divide by the
 requests that have the value; under each average, once the
@@ -63,12 +63,14 @@ written to two significant figures after "≈"; and under that, in each
 of the three averages' tiles, the chosen requests' distribution of the
 tile's value as a CDF, one line in its colour per series of the bars
 that has a chosen request recording the value, over the trace weeks
-that hold a chosen day, with an x axis and a y axis and no title,
+that hold a chosen day, at the tile's foot, with an x axis and a y axis
+(the share of requests, ticked at 0%, 50% and 100%) and no title,
 caption or definition; the input tokens' x axis SHALL run from 1 to
-1,000,000, the output tokens' from 1 to 100,000 and the TTFT's from
-0.01 to 100 seconds, each log, ticked at decades, a line clipped at the
-ends; a tile none of whose chosen requests records its value SHALL say
-so in its chart's place. The choice
+1,000,000, ticked at 1, 100, 10k and 1M, the output tokens' from 1 to
+100,000, ticked at 1, 1k and 100k, and the TTFT's from 0.01 to 100
+seconds, ticked at 10 ms, 1 s and 100 s, each log, the same for every
+choice, a line clipped at the ends; a tile none of whose chosen
+requests records its value SHALL say so in its chart's place. The choice
 SHALL live in the URL query string as `family`, `model`, `endpoint`,
 `metric`, `from` and `to` (the first and last chosen day, `YYYY-MM-DD`),
 the default (everything, requests, the whole trace) writing no key, and
@@ -102,11 +104,11 @@ distributions. A bar SHALL take no click.
 
 #### Scenario: Choosing a period
 - **WHEN** the visitor presses "Q3 '25"
-- **THEN** the chart SHALL show the days of July to September 2025 only, the slider's handles SHALL stand on July 1 and September 30, the tiles SHALL sum those days, and the URL SHALL carry `from=2025-07-01&to=2025-09-30`
+- **THEN** the chart SHALL show the days of July to September 2025 only, the slider's handles SHALL stand on 2025-07-01 and 2025-09-30 and the days under the track's ends SHALL read so, the tiles SHALL sum those days, and the URL SHALL carry `from=2025-07-01&to=2025-09-30`
 
 #### Scenario: Dragging the range
 - **WHEN** the visitor drags the slider's first handle to 2025-11-03 and its second to 2025-11-30
-- **THEN** the bars SHALL show those days alone, the tiles SHALL sum them, the days under the track's ends SHALL read November 3 and November 30, 2025, no period button SHALL show pressed, the URL SHALL carry `from=2025-11-03&to=2025-11-30` once the handle is released, and the tile charts SHALL cover the trace weeks that hold a day of November 3 to 30
+- **THEN** the bars SHALL show those days alone, the tiles SHALL sum them, the days under the track's ends SHALL read 2025-11-03 and 2025-11-30, no period button SHALL show pressed, the URL SHALL carry `from=2025-11-03&to=2025-11-30` once the handle is released, and the tile charts SHALL cover the trace weeks that hold a day of November 3 to 30
 
 #### Scenario: A handle pushed past the other
 - **WHEN** the visitor drags the first handle past the second
@@ -130,7 +132,7 @@ distributions. A bar SHALL take no click.
 
 #### Scenario: A fixed axis
 - **WHEN** the TTFT tile's chart is drawn for a choice whose longest TTFT is 4,096 s
-- **THEN** its x axis SHALL run from 0.01 s to 100 s, and each line SHALL leave the chart at its right edge below 100%
+- **THEN** its x axis SHALL read "10 ms" at its left end and "100 s" at its right, and each line SHALL run to the chart's right edge, cut there below 100% rather than ended before it
 
 #### Scenario: Hiding a series
 - **WHEN** the visitor presses "Qwen" in the legend
@@ -170,9 +172,9 @@ opening, the hero's and the Overview's answers and the Traffic
 Explorer's daily answer by family, the last also named in the page's
 head so that the browser starts it before the page's modules have
 loaded; once the explorer's bars are drawn, its histogram answer; once
-the explorer has drawn or failed, the shown topic's figures, which a
-tab pressed before then SHALL request at once; a family's answers when
-the family is first chosen; and nothing for a topic not shown or a
+the explorer and the page's other sections have drawn or failed, the
+shown topic's figures, which a tab pressed before then SHALL request at
+once; a family's answers when the family is first chosen; and nothing for a topic not shown or a
 family not chosen. The page SHALL run no query and load no database.
 
 #### Scenario: A slow connection

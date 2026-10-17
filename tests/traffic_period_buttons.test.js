@@ -1,7 +1,7 @@
 /**
  * The Traffic Explorer's period buttons in its controls (`traffic/traffic_controls.js`): the one pressed for a range, a
- * press choosing its quarter's days, and the range the sliders are released on, written to the URL and followed by the
- * buttons.
+ * press choosing its quarter's days, and the range a handle of the slider is released on, written to the URL and
+ * followed by the buttons.
  */
 
 import assert from "node:assert/strict";
@@ -71,7 +71,7 @@ test("the button whose days are the range is pressed alone; a press presses it a
   assert.equal(periodButtons(row).getAttribute("role"), "group");
 });
 
-test("the sliders' range, once released, is written to the URL and presses its button, and is not drawn again",
+test("the range a handle is released on is written to the URL and presses its button, and is not drawn again",
   async (context) => {
     useFakeDocument(context);
     const page = useFakeWindow(context, "?endpoint=chat");

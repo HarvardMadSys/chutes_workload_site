@@ -20,9 +20,11 @@ The one page, `index.html`, holds, in order:
 
 - **The hero and the stats strip.** The title, a lede that counts the
   trace's months, and buttons to the Traffic Explorer, the Insights, the
-  dataset, the paper and the code; beside them the trace's totals: months,
-  requests, input and output tokens, user ids, models and serving
-  instances, and its first and last day.
+  dataset, the paper and the code, the last three each with the mark of
+  where it leads before its text (Hugging Face's, a document's, GitHub's),
+  as the footer's links off the site have; beside them the trace's
+  totals: months, requests, input and output tokens, user ids, models and
+  serving instances, and its first and last day.
 - **Overview** (`#overview`). Two donuts, the family mix (the model
   families of the artifact's family table and Other, in the Traffic
   Explorer's family colours) and the endpoint mix (chat, chat stream,
@@ -40,19 +42,21 @@ The one page, `index.html`, holds, in order:
     average output tokens, and average time to first token with the share
     of requests that record it; once the distributions have arrived, each
     average has its p50 and p90 under it, read from the distributions'
-    bins and so written after "≈" (within about 9%);
+    bins and so written after "≈" (within about 9%), and at the tile's
+    foot a chart of the chosen requests' distribution of its value: a CDF
+    per series of the bars whose requests record the value, over the
+    trace weeks that hold a chosen day, on a log axis fixed for every
+    choice (1 to 1M input tokens, 1 to 100k output tokens, 10 ms to
+    100 s), a line whose values run past the axis's right end cut at the
+    chart's edge;
   - the chosen metric per day as stacked bars, by family, by model once a
     family is chosen and by endpoint group once a model is, under one
-    legend whose buttons hide a series in the bars and the three
-    distribution cards alike;
-  - two sliders, From and To, over the trace's days, which set the day
-    range (one pushed past the other moves it along); the tiles, the bars
-    and the distributions follow as a slider moves;
-  - three distribution cards: the input tokens, the output tokens and the
-    time to first token of the chosen requests as CDFs on a log axis, one
-    line per series of the bars whose requests record the value, over the
-    trace weeks that hold a chosen day, the caption naming the days those
-    weeks span.
+    legend whose buttons hide a series in the bars and the three tiles'
+    charts alike;
+  - one slider over the trace's days with two handles, From and To, which
+    set the day range (one pushed past the other moves it along), the
+    chosen first and last day written under the track's left and right
+    ends; the tiles, their charts and the bars follow as a handle moves.
 
   The choice is kept in the URL as `family`, `model`, `endpoint`,
   `metric`, `from` and `to`
@@ -123,7 +127,7 @@ of time; the browser runs no query, it fetches the answers and draws them.
   | `trace_totals` | one row: the first and last request, requests, input and output tokens, user ids, models, instances | `trace_totals`: the stats strip, and the months the hero and the footer count |
   | `daily_rollup` | one row per trace day, family, model (each of the family's eight most requested named models, the family's rest together) and endpoint group: requests, token sums, the TTFT sum, and how many requests recorded each | `daily_by_family` and `daily_by_model`: the Traffic Explorer; `family_mix`: the Overview's family mix |
   | `function_name_daily_requests` | one row per trace day and endpoint group: requests | `endpoint_mix`: the Overview's endpoint mix |
-  | `weekly_histograms`, the site's trace table | one row per trace week, family, model (as the daily rollup keeps them), endpoint group, metric and bin: the requests in the bin | `histograms_by_family` and `histograms_by_model`: the Traffic Explorer's distribution cards and the tiles' percentiles |
+  | `weekly_histograms`, the site's trace table | one row per trace week, family, model (as the daily rollup keeps them), endpoint group, metric and bin: the requests in the bin | `histograms_by_family` and `histograms_by_model`: the Traffic Explorer's tiles' charts and percentiles |
 
   The two derived tables are `trace_calendar`, each trace day's
   calendar day and each trace month's label (`site_data/months.py`); and
@@ -190,7 +194,14 @@ of time; the browser runs no query, it fetches the answers and draws them.
   chosen day, per series of the bars: a CDF's point is a bin's upper edge,
   `2^((bin + 1) / 4)`, and the share of requests at or below it; a p50 or
   p90 is the geometric middle of the bin where the running share reaches
-  it.
+  it. The explorer's answers come first: the page's head preloads the
+  daily answer by family, so the browser starts it before the page's
+  modules have loaded; the page's module starts loading the charting
+  library as it runs, so the library arrives beside the answer rather
+  than after it; and the Insights' opening topic reads its figure answers
+  only once the explorer and the page's other sections have drawn or
+  shown their errors, a tab pressed before then reading its topic's at
+  once.
 - **User ids.** The stats strip says "User ids", not users: the release's
   anonymous user ids rotate every quarter, so one person can hold several,
   and the strip's count of ids exceeds the paper's count of people.
@@ -369,11 +380,13 @@ tables/              built by make tables from the released trace, and tracked
   weekly_histograms.json
                      its sidecar: the trace query's hash, the trace's rows and the table's rows
 site/                exactly the files that are deployed
-  index.html         the one page: header, hero, Overview, Traffic Explorer, Insights, Cite, Team, footer
+  index.html         the one page: header, hero, Overview, Traffic Explorer, Insights, Cite, Team, footer; its head
+                     preloads the explorer's daily answer
   style.css          tokens, layout and components
   favicon.svg        the brand mark, for the browser tab
   js/pages/explore.js
-                     the page's module: it names the page's sections and starts the page
+                     the page's module: it names the page's sections, starts the charting library's load and starts
+                     the page
   js/shared/         what the page's parts share
     answers.js       reads an answer by its query's name, a figure's among them
     libraries.js     the one module that names a library URL: Observable Plot, at a pinned version
@@ -408,20 +421,22 @@ site/                exactly the files that are deployed
                      the citation's sentence and copy buttons; the lab and the authors
   js/explore/        the page's start and its sections
     start.js         places the Insights' groups and cards and draws their tabs, draws the header and footer, runs
-                     the sections, and follows Back and Forward
+                     the sections, then draws the shown topic, and follows Back and Forward
     legend.js        the legend of buttons that hides and shows a series
     topic_tabs.js    the Insights' tabs, one topic shown at a time, the shown one in the URL's hash
     figure_sections.js
                      the Insights' six topics in the order of their tabs, and a topic's cards group by group
   js/traffic/        the Traffic Explorer: its section, its filter, its controls, its bars, its day range, its tiles
-                     and its distributions
+                     and their charts, and its distributions
     traffic.js, traffic_controls.js, traffic_filter.js
                      the Traffic Explorer: its section; its controls, kept in step with the URL; its choice, its
                      URL keys and its sums
     traffic_bars.js, traffic_range.js, traffic_tiles.js
-                     the bars and their legend; the day range's sliders and period buttons' days; the four tiles
+                     the bars and their legend; the day range's slider of two handles and the period buttons' days;
+                     the four tiles' texts and their charts' places
     traffic_distributions.js, traffic_tile_charts.js
-                     the histogram rows' bin maps, CDF rows and percentiles; the tiles' three distributions
+                     the histogram rows' bin maps, CDF rows and percentiles; the charts in the three averages'
+                     tiles, on fixed axes
   js/insights/       the figure cards and the topics
     figure_card.js   a card, its chart drawn from its answer by its kind
     card_series.js   a card's series: their order, each palette's colours, the card's legend
@@ -496,7 +511,7 @@ tests/               what make test runs
                      the occupancy's tooltip in hours and the user zooms' even split
   traffic_period_buttons.test.js
                      the Traffic Explorer's period buttons: their labels, a press choosing its quarter's days, the
-                     button pressed for a range, and a slider's range written to the URL
+                     button pressed for a range, and the range a handle is released on written to the URL
   explore_legend_shared.test.js
                      a legend that other charts follow: its first hidden set, each click's set told, and the note
                      of every series hidden in another chart

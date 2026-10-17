@@ -105,9 +105,10 @@ checks that each path it names exists.
   (`#overview`), the Traffic Explorer (`#traffic`), the Insights
   (`#insights`), Cite (`#cite`) and Team.
 - The page's module, `js/pages/explore.js`, lists its sections in
-  `SECTIONS`, each `{ id, run }`, and calls `startPage` of
-  `explore/start.js` with them. `startPage` places the Insights' groups
-  and cards and their tabs, draws the header and the footer, and runs each section as
+  `SECTIONS`, each `{ id, run }`, starts the charting library's load
+  (see "JavaScript style") and calls `startPage` of `explore/start.js`
+  with the sections. `startPage` places the Insights' groups and cards
+  and their tabs, draws the header and the footer, and runs each section as
   `run(container, context)`; `context` is described in `explore/start.js`.
   Its `orders` are the rows of `explore/family_mix` and
   `explore/endpoint_mix`, asked for once: the donuts' rows, and the order
@@ -137,6 +138,21 @@ checks that each path it names exists.
   then for each group its heading (an `h3`), its takeaway and a card grid
   of its cards, each card's title an `h4`. A topic's answers are fetched
   the first time it is shown, so a topic never shown requests none.
+- **The order of the reads.** The explorer's answers come first, as the
+  page's largest. `index.html`'s head preloads the explorer's daily
+  answer by family (`<link rel="preload" as="fetch" crossorigin>`), so
+  the browser starts it with the stylesheet, before the modules have
+  loaded; `tests/answers.test.js` checks that the preload names the file
+  `readAnswer` reads for `FAMILY_QUERY` of `traffic/traffic.js`. The
+  hero's and the Overview's answers are read as the page starts; the
+  explorer reads its histogram answer once its bars are drawn; and
+  `startPage` draws the Insights' opening topic once every section has
+  drawn or shown its error (`Promise.allSettled`), so its figure answers
+  are read last. A tab pressed before then draws its topic at once, and
+  the opening topic is never drawn twice. A family's answers are read
+  when the family is first chosen; nothing is read for a topic not shown
+  or a family not chosen. `tests/explore_start.test.js` runs the page's
+  start with the explorer on a fake page and checks this order.
 - **The Traffic Explorer's URL keys.** The explorer's choice is the URL's
   `family` (a family's slug, `daily_by_family`'s `family_slug`), `model`
   (within the family, a named model's `chute_id`, or `other` for its other
@@ -154,8 +170,9 @@ checks that each path it names exists.
   `period` key: a `period` is neither read nor written. `writeTrafficChoice`
   writes the keys on every change, through
   `context.replaceQuery`, which replaces the history entry rather than
-  adding one; a slider writes its range once released. The period
-  buttons set `from` and `to` to their quarter's days within the trace. `traffic/traffic_controls.js` keeps the
+  adding one; the day range's slider writes its range when a handle is
+  released. The period buttons set `from` and `to` to their quarter's
+  days within the trace. `traffic/traffic_controls.js` keeps the
   controls and the URL in step: on Back or Forward (`context.onReturn`) it
   reads the keys again, and an entry of another choice is shown and drawn.
   The default, everything, writes no key; a key the explorer does not read
@@ -276,6 +293,22 @@ with a comment, helpers below the exports, and a `node --test` file with one
 `tests/test_months.py`): a module docstring stating the definition, a
 frozen dataclass for anything that crosses a boundary, and functions that
 each do one job.
+
+**A link off the site** (`externalLink` of `shared/layout.js`, the hero's
+buttons in `landing/hero.js`): it opens in a new tab and ends in an arrow,
+which the stylesheet draws after its text (`a[target="_blank"]::after`).
+The hero's Dataset, Paper and Code buttons and the footer's Elsewhere
+links name a mark in their entries, `mark: "huggingface"`, `"document"`
+or `"github"`, and are written with `linkMark(name)` of
+`shared/link_marks.js` before their text: an inline `<svg>` of one path
+filled with `currentColor`, so it takes the link's colour in either
+scheme, hidden from screen readers, one em square by the `.link-mark`
+rule. An entry with no `mark` is written without one, as the Cite
+sentence's link to the paper is. `linkMark` throws on a name that is no
+mark's rather than writing "undefined". A new mark is one path added to
+`LINK_MARKS`, its source named in the module's header;
+`tests/link_marks.test.js` checks the marked links and that no link on
+the site carries a mark.
 
 **A topic and its groups.** A topic of the Insights holds its cards in
 groups, each a run of the paper's figures that says one thing together:
@@ -436,10 +469,11 @@ table and the card's words.
 Overview's `donut` and the Traffic Explorer's `stacked_bars`, and the
 figures' `lines` (a CDF among them), `bands`, `cells`, `raster`,
 `scatter`, `boxes` and `bars`, the stacked bars drawing the two monthly
-shares too. These nine chart modules are not quite a card's nine kinds:
-`CHART_KINDS` of `insights/figure_card.js` names `cdf`, drawn by `lines`,
-and no `donut`, which only the Overview draws, for its two mixes, by
-family and by endpoint. Each module exports one draw function of one
+shares too and the lines the Traffic Explorer's tile charts. These nine
+chart modules are not quite a card's nine kinds: `CHART_KINDS` of
+`insights/figure_card.js` names `cdf`, drawn by `lines`, and no `donut`,
+which only the Overview draws, for its two mixes, by family and by
+endpoint. Each module exports one draw function of one
 interface, `draw<Kind>(rows, body, colours, parameters, hidden)`: the rows
 of its answer, the place to draw into, `colours.series` (the Map of its
 series' colours in the legend's order), its named parameters (a card's
@@ -478,7 +512,11 @@ panel's own).
   A function that draws loads what it needs where it needs it,
   `const { Plot } = await import("../shared/libraries.js");`, with a
   one-line comment saying why. The module's pure functions then stay
-  testable with `node --test`.
+  testable with `node --test`. The page's module, which node does not
+  run, also starts that import as it runs, its failure ignored there
+  since each chart shows its own, so that the library loads beside the
+  explorer's daily answer rather than once the first chart asks for it;
+  the URL keeps its one home.
 - Static markup is an `innerHTML` template; interactive elements are built
   with `document.createElement` so listeners attach to the element, not to a
   string. Text that comes from data goes through `textContent` or a template
@@ -556,11 +594,29 @@ Insights' figures are drawn from their plot-ready tables.
   the chart (none where it has a single series, but a bands card, which
   shows its key there), its caption under the chart, and a Definition
   control that opens on its definition: alone on a figure card of the
-  Insights; with the line of rows it rests on in the two Overview mixes,
-  the Traffic Explorer's bars and its three distribution cards.
+  Insights; with the line of rows it rests on in the two Overview mixes
+  and the Traffic Explorer's bars.
   A legend names only what is drawn. After each drawing the chart is named
   for a screen reader by its title and caption, `nameChart` in
-  `shared/charts.js`.
+  `shared/charts.js`, or by the name it is given.
+- **The tiles' charts.** The Traffic Explorer's input tokens, output
+  tokens and TTFT tiles each hold a chart and no card: no title,
+  caption, definition or legend of its own, the bars' legend hiding its
+  series. `traffic/traffic_tile_charts.js` draws each by the lines kind
+  with `cdf: true`, `TILE_CHART_HEIGHT` (140 px) tall with narrower side
+  margins (`TILE_CHART_MARGINS`), its y axis the share of requests ticked
+  at 0%, 50% and 100% only, and names it by its value and
+  "distribution", "Input tokens distribution". Each x axis is log over a
+  domain fixed for every choice, its ticks listed beside it in
+  `TILE_CHARTS` from the domain's start to its end: input tokens 1 to 1M
+  at 1, 100, 10k and 1M; output tokens 1 to 100k at 1, 1k and 100k; TTFT
+  10 ms to 100 s at 10 ms, 1 s and 100 s (`formatTtftTick`). The rows
+  past a domain's end are kept, so a line is cut at the chart's edge
+  rather than ended before it. A tile is a flex column with its chart at
+  its foot, so the charts' x axes line up across a row, and the chart's
+  place keeps 140 px while it loads or shows a note (`.traffic-tiles
+  .tile-chart`), so the bars under the tiles do not move; the two 140s
+  change together.
 - **Axis text.** A linear axis asks Plot for `TICK_COUNT` ticks
   (`axes/ticks.js`), which gives at most six or seven. The exception is an
   axis of months: the Traffic Explorer's is ticked at the first day of
@@ -569,10 +625,8 @@ Insights' figures are drawn from their plot-ready tables.
   first of a month; on a plot narrower than
   `NARROW_PLOT_WIDTH`, more than `MAX_NARROW_TICKS` ticks are thinned to
   every other one. Its labels are slanted so that thirteen fit a
-  card. The explorer's three distribution cards, a third of its card
-  each, tick their log x axes at no more than four powers of ten
-  (`MAX_CARD_TICKS`), a time to first token as "10 ms", "1 s" and, past
-  a minute, "100 s" (`formatTtftTick`). A figure's axes are the paper's: its titles, its log scales,
+  card. The explorer's tile charts are ticked as "The tiles' charts"
+  says. A figure's axes are the paper's: its titles, its log scales,
   ticked at the powers of ten (every second or more past
   `MAX_LOG_TICKS`), its limits, and its ticks where the card gives them,
   so that a phone's axis does not run its labels together. The one

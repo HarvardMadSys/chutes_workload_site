@@ -72,7 +72,7 @@ test("a range whose from is after its to once clipped is the whole trace", () =>
   assert.deepEqual(clippedRange("2027-01-01", "2024-01-01", GAPPED_DAYS), { from: "", to: "" });
 });
 
-test("the sliders stand on the indices of the range's days, the trace's ends for an empty day", () => {
+test("the handles stand on the indices of the range's days, the trace's ends for an empty day", () => {
   assert.deepEqual(sliderIndices(GAPPED_DAYS, { from: "", to: "" }), { fromIndex: 0, toIndex: 4 });
   assert.deepEqual(sliderIndices(GAPPED_DAYS, { from: "2025-07-03", to: "2025-07-07" }), { fromIndex: 1, toIndex: 3 });
   assert.deepEqual(rangeOfIndices(GAPPED_DAYS, 0, 4), { from: "", to: "" });
@@ -80,7 +80,7 @@ test("the sliders stand on the indices of the range's days, the trace's ends for
   assert.deepEqual(rangeOfIndices(GAPPED_DAYS, 2, 2), { from: "2025-07-05", to: "2025-07-05" });
 });
 
-test("a slider moved past the other pushes it along to its own index", () => {
+test("a handle moved past the other pushes it along to its own index", () => {
   assert.deepEqual(pushedIndices(1, 3, "from"), { fromIndex: 1, toIndex: 3 });
   assert.deepEqual(pushedIndices(3, 3, "to"), { fromIndex: 3, toIndex: 3 });
   assert.deepEqual(pushedIndices(4, 2, "from"), { fromIndex: 4, toIndex: 4 });
@@ -93,7 +93,7 @@ test("a slider moved past the other pushes it along to its own index", () => {
  * the handles, each handle's `{ input, day }`, the handle `mountRange` returns, the ranges handed to `onInput` and to
  * `onChange`, and the animation frames asked for and not yet run.
  */
-function mountSliders(context, choice) {
+function mountSlider(context, choice) {
   const frames = [];
   globalThis.document = { createElement: (tag) => new FakeElement(tag) };
   globalThis.requestAnimationFrame = (callback) => frames.push(callback);
@@ -113,7 +113,7 @@ function mountSliders(context, choice) {
 }
 
 test("the range is one track holding the bar and the two handles, over a row of the days at its ends", (context) => {
-  const page = mountSliders(context, { from: "2025-07-03", to: "" });
+  const page = mountSlider(context, { from: "2025-07-03", to: "" });
   assert.deepEqual(page.container.children.map((child) => child.className), ["range-track", "range-days"]);
   assert.deepEqual(page.track.children.map((child) => child.tag), ["div", "input", "input"]);
   assert.equal(page.span.className, "range-span");
@@ -122,20 +122,20 @@ test("the range is one track holding the bar and the two handles, over a row of 
 });
 
 test("the two handles run over the days' indices, each named and reading out its day", (context) => {
-  const page = mountSliders(context, { from: "2025-07-03", to: "" });
+  const page = mountSlider(context, { from: "2025-07-03", to: "" });
   const expected = [[page.from, "From", "1", "2025-07-03"], [page.to, "To", "4", "2025-07-09"]];
-  for (const [slider, name, value, day] of expected) {
-    assert.equal(slider.input.getAttribute("aria-label"), name);
-    assert.equal(slider.input.type, "range");
-    assert.deepEqual(["min", "max", "step"].map((name) => slider.input.getAttribute(name)), ["0", "4", "1"]);
-    assert.equal(slider.input.value, value);
-    assert.equal(slider.input.getAttribute("aria-valuetext"), day);
+  for (const [handle, name, value, day] of expected) {
+    assert.equal(handle.input.getAttribute("aria-label"), name);
+    assert.equal(handle.input.type, "range");
+    assert.deepEqual(["min", "max", "step"].map((name) => handle.input.getAttribute(name)), ["0", "4", "1"]);
+    assert.equal(handle.input.value, value);
+    assert.equal(handle.input.getAttribute("aria-valuetext"), day);
   }
   assert.deepEqual([page.from.input.id, page.to.input.id], ["traffic-range-from", "traffic-range-to"]);
 });
 
 test("the bar between the handles spans their indices, in percent of the track", (context) => {
-  const page = mountSliders(context, { from: "2025-07-03", to: "2025-07-07" });
+  const page = mountSlider(context, { from: "2025-07-03", to: "2025-07-07" });
   assert.deepEqual([page.span.style.left, page.span.style.right], ["25%", "25%"]);
   page.handle.show({ from: "", to: "" });
   assert.deepEqual([page.span.style.left, page.span.style.right], ["0%", "0%"]);
@@ -145,7 +145,7 @@ test("the bar between the handles spans their indices, in percent of the track",
 });
 
 test("the From handle is drawn on top only while both handles stand on the last day", (context) => {
-  const page = mountSliders(context, { from: "", to: "" });
+  const page = mountSlider(context, { from: "", to: "" });
   assert.equal(page.track.classes.has("from-on-top"), false);
   page.from.input.value = "4";
   page.from.input.dispatch("input");
@@ -160,13 +160,13 @@ test("the From handle is drawn on top only while both handles stand on the last 
 });
 
 test("a handle moved past the other pushes it, and the moves of a frame hand on its last range once", (context) => {
-  const page = mountSliders(context, { from: "", to: "2025-07-05" });
+  const page = mountSlider(context, { from: "", to: "2025-07-05" });
   page.from.input.value = "3";
   page.from.input.dispatch("input");
   assert.deepEqual([page.to.input.value, page.to.day.textContent], ["3", "2025-07-07"]);
   page.from.input.value = "4";
   page.from.input.dispatch("input");
-  assert.equal(page.frames.length, 1, "one frame is asked for however often the slider moves before it");
+  assert.equal(page.frames.length, 1, "one frame is asked for however often a handle moves before it");
   assert.deepEqual(page.inputs, []);
   runFrames(page.frames);
   assert.deepEqual(page.inputs, [{ from: "2025-07-09", to: "" }]);
@@ -179,7 +179,7 @@ test("a handle moved past the other pushes it, and the moves of a frame hand on 
 });
 
 test("a handle released hands on its range; one shown from elsewhere moves both and hands on nothing", (context) => {
-  const page = mountSliders(context, { from: "", to: "" });
+  const page = mountSlider(context, { from: "", to: "" });
   page.to.input.value = "2";
   page.to.input.dispatch("change");
   assert.deepEqual(page.changes, [{ from: "", to: "2025-07-05" }]);

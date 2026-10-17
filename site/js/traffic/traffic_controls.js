@@ -10,8 +10,8 @@
  * The explorer gives the controls `{ modelsOf, onChange, onError }`: `modelsOf(family)` resolves to the model
  * drop-down's entries (`modelChoices`') for the family whose slug is `family`; `onChange(choice)` draws a choice; and
  * `onError(error)` shows a family's answer that cannot be read. The controls give the explorer `chooseRange(range)`,
- * through which the sliders, which draw a range as they move, hand over the range they are released on: it is written
- * to the URL and the period buttons follow it, and the explorer is not asked to draw it again.
+ * through which the slider, which draws a range as a handle moves, hands over the range a handle is released on: it
+ * is written to the URL and the period buttons follow it, and the explorer is not asked to draw it again.
  */
 
 import { textElement } from "../shared/charts.js";
@@ -28,7 +28,7 @@ const PERIOD_NAME_ID = "traffic-period-name";
  * Draw the controls into `row` showing the URL's choice, `entries` being `{ families, days }`, the family drop-down's
  * entries (`familyChoices`') and the trace's days, and resolve to `{ choice, error, chooseRange }` once the choice's
  * family's models are read: the choice shown, null or the error of a URL's family that cannot be read, and the
- * sliders' way in (see the module's comment). A key of the URL the choice does not keep, such as a model with no family
+ * slider's way in (see the module's comment). A key of the URL the choice does not keep, such as a model with no family
  * or not among the family's, or a day outside the trace's, is then rewritten with `context.replaceQuery`. If the URL's
  * family cannot be read, the controls show the choice without it, as a failed choice of a family leaves them, and the
  * explorer is to show `error` rather than draw. A change writes the new choice to the URL the same way and calls
@@ -140,8 +140,8 @@ async function choosePart(controls, part) {
   controls.explorer.onChange(controls.shown);
 }
 
-// The sliders were released on `range`, which they have drawn: it joins the choice shown and is written to the URL,
-// and the period buttons follow it.
+// A handle of the slider was released on `range`, which the slider has drawn: it joins the choice shown and is
+// written to the URL, and the period buttons follow it.
 function chooseRange(controls, range) {
   controls.shown = { ...controls.shown, ...range };
   controls.context.replaceQuery(writeTrafficChoice(new URLSearchParams(window.location.search), controls.shown));

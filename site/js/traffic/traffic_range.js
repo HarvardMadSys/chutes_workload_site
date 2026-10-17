@@ -90,7 +90,7 @@ export function pressedPeriod(choice, days) {
   return null;
 }
 
-/** The sliders' indices in `days` for the range of `choice`, `{ fromIndex, toIndex }`: the trace's ends for "". */
+/** The handles' indices in `days` for the range of `choice`, `{ fromIndex, toIndex }`: the trace's ends for "". */
 export function sliderIndices(days, choice) {
   return {
     fromIndex: choice.from === "" ? 0 : days.indexOf(choice.from),
@@ -99,8 +99,8 @@ export function sliderIndices(days, choice) {
 }
 
 /**
- * The sliders' indices `{ fromIndex, toIndex }` once the slider `moved` ("from" or "to") stands at its index: as they
- * are while From is at or before To, and else the other slider pushed along to the moved one's index.
+ * The handles' indices `{ fromIndex, toIndex }` once the handle `moved` ("from" or "to") stands at its index: as they
+ * are while From is at or before To, and else the other handle pushed along to the moved one's index.
  */
 export function pushedIndices(fromIndex, toIndex, moved) {
   if (fromIndex <= toIndex) {
@@ -112,7 +112,7 @@ export function pushedIndices(fromIndex, toIndex, moved) {
   return { fromIndex: toIndex, toIndex };
 }
 
-/** The range `{ from, to }` of the sliders standing at `fromIndex` and `toIndex` of `days`, "" at the trace's ends. */
+/** The range `{ from, to }` of the handles standing at `fromIndex` and `toIndex` of `days`, "" at the trace's ends. */
 export function rangeOfIndices(days, fromIndex, toIndex) {
   return {
     from: fromIndex === 0 ? "" : days[fromIndex],
@@ -129,30 +129,30 @@ export function rangeOfIndices(days, fromIndex, toIndex) {
  * Forward, calling neither.
  */
 export function mountRange(container, days, choice, { onInput, onChange }) {
-  const sliders = {
+  const slider = {
     days,
     track: textElement("div", "range-track", ""),
     span: textElement("div", "range-span", ""),
-    from: rangeSlider(FROM_NAME, FROM_ID, days),
-    to: rangeSlider(TO_NAME, TO_ID, days),
+    from: rangeHandle(FROM_NAME, FROM_ID, days),
+    to: rangeHandle(TO_NAME, TO_ID, days),
     isInputPending: false, // a frame is asked for, which will hand on the range shown then
   };
-  showIndices(sliders, sliderIndices(days, choice));
+  showIndices(slider, sliderIndices(days, choice));
   for (const moved of ["from", "to"]) {
-    const { input } = sliders[moved];
-    input.addEventListener("input", () => moveSlider(sliders, moved, onInput));
-    input.addEventListener("change", () => onChange(shownRange(sliders)));
+    const { input } = slider[moved];
+    input.addEventListener("input", () => moveHandle(slider, moved, onInput));
+    input.addEventListener("change", () => onChange(shownRange(slider)));
   }
-  sliders.track.append(sliders.span, sliders.from.input, sliders.to.input);
+  slider.track.append(slider.span, slider.from.input, slider.to.input);
   const dayRow = textElement("div", "range-days", "");
-  dayRow.append(sliders.from.day, sliders.to.day);
-  container.replaceChildren(sliders.track, dayRow);
-  return { show: (shown) => showIndices(sliders, sliderIndices(days, shown)) };
+  dayRow.append(slider.from.day, slider.to.day);
+  container.replaceChildren(slider.track, dayRow);
+  return { show: (shown) => showIndices(slider, sliderIndices(days, shown)) };
 }
 
 // One handle of the track over the indices of `days`, named `name` for a screen reader, and the text of the day it
 // stands on: `{ input, day }`.
-function rangeSlider(name, id, days) {
+function rangeHandle(name, id, days) {
   const input = document.createElement("input");
   input.id = id;
   input.type = "range";
@@ -166,40 +166,40 @@ function rangeSlider(name, id, days) {
 
 // The handle `moved` has moved: push the other along if passed, write both days, and hand the range on at the next
 // frame.
-function moveSlider(sliders, moved, onInput) {
-  const fromIndex = Number(sliders.from.input.value);
-  const toIndex = Number(sliders.to.input.value);
-  showIndices(sliders, pushedIndices(fromIndex, toIndex, moved));
-  if (sliders.isInputPending) {
+function moveHandle(slider, moved, onInput) {
+  const fromIndex = Number(slider.from.input.value);
+  const toIndex = Number(slider.to.input.value);
+  showIndices(slider, pushedIndices(fromIndex, toIndex, moved));
+  if (slider.isInputPending) {
     return; // the frame asked for will hand on the range shown then, this move's
   }
-  sliders.isInputPending = true;
+  slider.isInputPending = true;
   requestAnimationFrame(() => {
-    sliders.isInputPending = false;
-    onInput(shownRange(sliders));
+    slider.isInputPending = false;
+    onInput(shownRange(slider));
   });
 }
 
 // Stand the handles at `fromIndex` and `toIndex`, each writing its day under the track and for a screen reader, the
 // bar between them spanning the two.
-function showIndices(sliders, { fromIndex, toIndex }) {
-  const lastIndex = sliders.days.length - 1;
-  showIndex(sliders.from, sliders.days[fromIndex], fromIndex);
-  showIndex(sliders.to, sliders.days[toIndex], toIndex);
-  sliders.span.style.left = `${(fromIndex / lastIndex) * 100}%`;
-  sliders.span.style.right = `${100 - (toIndex / lastIndex) * 100}%`;
+function showIndices(slider, { fromIndex, toIndex }) {
+  const lastIndex = slider.days.length - 1;
+  showIndex(slider.from, slider.days[fromIndex], fromIndex);
+  showIndex(slider.to, slider.days[toIndex], toIndex);
+  slider.span.style.left = `${(fromIndex / lastIndex) * 100}%`;
+  slider.span.style.right = `${100 - (toIndex / lastIndex) * 100}%`;
   // The To input is drawn above the From, so that handles standing together part when dragged right. Both on the last
   // day, only From can move away, so From is drawn on top there; were To on top, it would drag From along with it.
-  sliders.track.classList.toggle("from-on-top", fromIndex === toIndex && toIndex === lastIndex);
+  slider.track.classList.toggle("from-on-top", fromIndex === toIndex && toIndex === lastIndex);
 }
 
-function showIndex(slider, day, index) {
-  slider.input.value = String(index);
-  slider.input.setAttribute("aria-valuetext", day);
-  slider.day.textContent = day;
+function showIndex(handle, day, index) {
+  handle.input.value = String(index);
+  handle.input.setAttribute("aria-valuetext", day);
+  handle.day.textContent = day;
 }
 
 // The range the handles stand on.
-function shownRange(sliders) {
-  return rangeOfIndices(sliders.days, Number(sliders.from.input.value), Number(sliders.to.input.value));
+function shownRange(slider) {
+  return rangeOfIndices(slider.days, Number(slider.from.input.value), Number(slider.to.input.value));
 }
