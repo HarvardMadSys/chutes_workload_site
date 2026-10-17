@@ -1,4 +1,4 @@
 title: Time to first token
 caption: Over April 11, 2025 – April 12, 2026, the trace weeks holding a chosen day.
-definition: Of the chosen requests that record a time to first token, the share whose time to first token is at most this many seconds, counted in bins a quarter of a doubling wide over the trace weeks that hold a chosen day.
+definition: The share of the chosen requests whose first token came within a given time, among those that record it, over the trace weeks that hold a chosen day. The times are counted in bins a quarter of a doubling wide, so the tiles' p50 and p90 are within about 9%.
 rows: 3,012,842,903 requests

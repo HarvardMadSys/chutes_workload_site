@@ -7,15 +7,22 @@ context: |
   Serving: Workload Evolution, Caching and Load-Balancing". It has the
   layout and look of the FreeInference agentic trace site: a hero with a
   stats strip, an Overview of two mixes (by family and by endpoint), a
-  Traffic Explorer of requests per day by family and model, the Insights'
-  figure cards in six topic tabs, Cite and Team. Every chart is drawn in
-  the browser by Observable Plot from small JSON answers: the Overview,
-  the stats and the explorer from answers a Python step computes from the
-  artifact's committed query caches, the Insights' cards from the
-  artifact's plot-ready figure answers. The 91 GB trace is never read.
-  There is no server, no database in the browser and no front-end build
-  step. The artifact repository (chutes_workload) owns every definition;
-  this site reads its caches and only filters, counts and draws.
+  Traffic Explorer of requests or tokens per day by family, model and
+  endpoint over a chosen range of days, with the chosen requests' token
+  and TTFT distributions, the Insights' figure cards in six topic tabs,
+  Cite and Team. Every chart is drawn in the browser by Observable Plot
+  from small JSON answers: the Overview, the stats and the explorer from
+  answers a Python step computes from the artifact's committed query
+  caches and from the site's trace table, the Insights' cards from the
+  artifact's plot-ready figure answers. The 91 GB trace is read once, by
+  `make tables`, to build the trace table (tables/weekly_histograms.parquet,
+  weekly histograms of input tokens, output tokens and TTFT, tracked);
+  nothing else reads it. There is no server, no database in the browser
+  and no front-end build step. The artifact repository (chutes_workload)
+  owns every definition; this site reads its caches and only filters,
+  counts and draws, but for the trace query, which applies the
+  artifact's family rule and is checked against the artifact's daily
+  rollup.
 
   Engineering rules (binding; see openspec/specs/site):
   - It MUST NOT be complicated. Simple, readable and maintainable first.

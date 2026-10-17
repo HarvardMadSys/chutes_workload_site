@@ -6,6 +6,7 @@ import datetime
 import json
 import pathlib
 import shutil
+import typing
 
 import duckdb
 import pytest
@@ -88,18 +89,28 @@ def test_a_family_s_model_rows_sum_to_its_rows_by_family(data_directory: pathlib
         assert sum(row[column] for row in by_model) == family_sum, f"{family.name}'s {column}"
 
 
-def histogram_requests(rows: list[dict]) -> dict[tuple[int, str, str], int]:
-    """The requests of histogram answer rows per week, endpoint group and metric: each row's list of requests summed."""
+class HistogramBin(typing.NamedTuple):
+    """One bin of a trace week's histogram of one endpoint group and metric."""
+
+    week: int
+    endpoint_group: str
+    metric: str
+    bin: int
+
+
+def histogram_requests(rows: list[dict]) -> dict[HistogramBin, int]:
+    """The requests of histogram answer rows per week, endpoint group, metric and bin, summed over the rows."""
     requests = {}
     for row in rows:
-        group = (row["week"], row["endpoint_group"], row["metric"])
-        requests[group] = requests.get(group, 0) + sum(row["requests"])
+        for bin_number, bin_requests in zip(row["bins"], row["requests"], strict=True):
+            key = HistogramBin(row["week"], row["endpoint_group"], row["metric"], bin_number)
+            requests[key] = requests.get(key, 0) + bin_requests
     return requests
 
 
 @pytest.mark.parametrize("family", FIXTURE_FAMILIES)
-def test_a_family_s_model_histograms_sum_to_its_histograms_by_family(data_directory: pathlib.Path,
-                                                                     family: answers.Family) -> None:
+def test_a_family_s_model_histograms_sum_bin_by_bin_to_its_histograms_by_family(data_directory: pathlib.Path,
+                                                                                family: answers.Family) -> None:
     by_family = json.loads((data_directory / paths.answer_file("explore/histograms_by_family")).read_text())
     by_model_file = data_directory / paths.family_answer_file("explore/histograms_by_model", family.slug)
     by_model = json.loads(by_model_file.read_text())

@@ -40,31 +40,33 @@ const NO_RECORDED_VALUE_NOTE = "None of the chosen requests records this value."
 export const DISTRIBUTION_CARDS = Object.freeze([
   Object.freeze({
     metric: "input_tokens",
+    // placeholder: the card's title and definition, for the authors.
     title: "Input tokens",
-    // placeholder: the card's definition, for the authors.
-    definition: "Of the chosen requests that record their input tokens, the share with at most this many, counted in "
-      + "bins a quarter of a doubling wide over the trace weeks that hold a chosen day.",
+    definition: "The share of the chosen requests sent with at most a given number of input tokens, among those that "
+      + "record it, over the trace weeks that hold a chosen day. The tokens are counted in bins a quarter of a "
+      + "doubling wide, so the tiles' p50 and p90 are within about 9%.",
     x: Object.freeze({ label: "Input tokens", log: true, tickFormat: formatCountTick }),
     valueLabel: "Input tokens",
     valueFormat: formatWholeCount,
   }),
   Object.freeze({
     metric: "output_tokens",
+    // placeholder: the card's title and definition, for the authors.
     title: "Output tokens",
-    // placeholder: the card's definition, for the authors.
-    definition: "Of the chosen requests that record their output tokens, the share with at most this many, counted in "
-      + "bins a quarter of a doubling wide over the trace weeks that hold a chosen day.",
+    definition: "The share of the chosen requests answered with at most a given number of output tokens, among those "
+      + "that record it, over the trace weeks that hold a chosen day. The tokens are counted in bins a quarter of a "
+      + "doubling wide, so the tiles' p50 and p90 are within about 9%.",
     x: Object.freeze({ label: "Output tokens", log: true, tickFormat: formatCountTick }),
     valueLabel: "Output tokens",
     valueFormat: formatWholeCount,
   }),
   Object.freeze({
     metric: "ttft",
+    // placeholder: the card's title and definition, for the authors.
     title: "Time to first token",
-    // placeholder: the card's definition, for the authors.
-    definition: "Of the chosen requests that record a time to first token, the share whose time to first token is at "
-      + "most this many seconds, counted in bins a quarter of a doubling wide over the trace weeks that hold a chosen "
-      + "day.",
+    definition: "The share of the chosen requests whose first token came within a given time, among those that record "
+      + "it, over the trace weeks that hold a chosen day. The times are counted in bins a quarter of a doubling wide, "
+      + "so the tiles' p50 and p90 are within about 9%.",
     x: Object.freeze({ label: "Time to first token", log: true, tickFormat: formatTtftTick }),
     valueLabel: "TTFT",
     valueFormat: formatSignificantSeconds,

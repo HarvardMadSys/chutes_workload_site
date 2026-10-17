@@ -20,12 +20,14 @@ bars over the chosen days, by family while no family is chosen, by model
 once a family is and by endpoint group once a model is; under the bars
 two sliders, From and To, over the trace's days, each writing its day,
 which set the day range (one slider pushed past the other moves the
-other along), the bars and the tiles following as a slider moves; and
-three distribution cards, the input tokens, the output tokens and the
-time to first token of the chosen requests as CDFs on a log x axis, one
-line per series of the bars in its colour, over the trace weeks that
-hold a chosen day, each card's caption saying which days those weeks
-span. The tiles: requests; average input tokens; average output tokens;
+other along), the bars, the tiles and the distribution cards following
+as a slider moves; and three distribution cards, the input tokens, the
+output tokens and the time to first token of the chosen requests as
+CDFs on a log x axis, one line in its colour per series of the bars
+that has a chosen request recording the card's value, over the trace
+weeks that hold a chosen day, each card's caption saying which days
+those weeks span, and a card none of whose chosen requests records its
+value saying so in its chart's place. The tiles: requests; average input tokens; average output tokens;
 and average TTFT with the share of the chosen requests that record it;
 an average SHALL divide by the requests that have the value; and under
 each average, once the distributions have arrived, its p50 and p90 read
@@ -33,13 +35,15 @@ from the distributions' bins (a quarter-doubling wide, so about 9%
 either way), written to two significant figures after "≈". The choice
 SHALL live in the URL query string as `family`, `model`, `endpoint`,
 `metric`, `from` and `to` (the first and last chosen day, `YYYY-MM-DD`),
-the default (everything, requests, the whole trace) writing no key; a
+the default (everything, requests, the whole trace) writing no key, and
+a day at the trace's first or last day writing no `from` or `to`; a
 `model` without a `family`, or not among that family's entries, SHALL be
-ignored; a `from` or `to` outside the trace's days SHALL be clipped to
-them, and a `from` after its `to` SHALL be ignored with it. A period
-button SHALL set `from` and `to` to its quarter's first and last day
-within the trace, and SHALL show pressed while the range equals its
-quarter, All while the range is the whole trace. The keys SHALL be read
+ignored; a `from` or `to` outside the trace's days SHALL be clamped to
+the trace's nearer end, and a `from` after its `to`, once clamped, SHALL
+be ignored with it. A period button SHALL set `from` and `to` to its
+quarter's first and last day within the trace, and SHALL show pressed
+while the range equals its quarter, All while the range is the whole
+trace. The keys SHALL be read
 when the page opens and when Back or Forward returns to a history entry;
 no other key SHALL be read or rewritten. The section SHALL draw the bars
 and the tiles from the `explore/daily_by_family` answer while no family
@@ -58,7 +62,7 @@ distributions. A bar SHALL take no click.
 
 #### Scenario: Choosing a model
 - **WHEN** the visitor, with DeepSeek chosen, chooses "deepseek-ai/DeepSeek-V3-0324-TEE"
-- **THEN** the bars SHALL show that model's requests per day split by endpoint group, the tiles its requests, averages and TTFT share, the distribution cards one line per endpoint group, and the URL SHALL read `?family=deepseek&model=<its id>`
+- **THEN** the bars SHALL show that model's requests per day split by endpoint group, the tiles its requests, averages and TTFT share, the token cards one line per endpoint group and the time to first token card one per streaming group, the groups that record it, and the URL SHALL read `?family=deepseek&model=<its id>`
 
 #### Scenario: Choosing a period
 - **WHEN** the visitor presses "Q3 '25"
@@ -66,7 +70,7 @@ distributions. A bar SHALL take no click.
 
 #### Scenario: Dragging the range
 - **WHEN** the visitor drags the From slider to 2025-11-03 and the To slider to 2025-11-30
-- **THEN** the bars SHALL show those days alone, the tiles SHALL sum them, no period button SHALL show pressed, the URL SHALL carry `from=2025-11-03&to=2025-11-30`, and the distribution cards SHALL cover the trace weeks that hold a day of November 3 to 30 and say so
+- **THEN** the bars SHALL show those days alone, the tiles SHALL sum them, no period button SHALL show pressed, the URL SHALL carry `from=2025-11-03&to=2025-11-30` once the slider is released, and the distribution cards SHALL cover the trace weeks that hold a day of November 3 to 30, their captions naming October 31 to December 4, 2025
 
 #### Scenario: Choosing a metric
 - **WHEN** the visitor chooses "Input tokens"
@@ -77,7 +81,7 @@ distributions. A bar SHALL take no click.
 - **THEN** the TTFT tile SHALL average those 490 and say 49% record it
 
 #### Scenario: Percentiles under the averages
-- **WHEN** the distributions of the chosen requests have arrived and their input tokens' p50 falls in the bin from 1,024 to 1,189 tokens
+- **WHEN** the distributions of the chosen requests have arrived and their input tokens' p50 falls in the bin from 1,024 to 1,218 tokens
 - **THEN** the input-tokens tile SHALL say "≈1,100 p50" by the bin's geometric middle, to two significant figures, with the p90 beside it
 
 #### Scenario: The distributions arrive after the bars
@@ -94,7 +98,11 @@ distributions. A bar SHALL take no click.
 
 #### Scenario: A range outside the trace
 - **WHEN** a visitor opens `index.html?from=2024-01-01&to=2025-05-01`
-- **THEN** the range SHALL be the trace's first day to 2025-05-01 and the URL SHALL be rewritten so
+- **THEN** the range SHALL be the trace's first day to 2025-05-01 and the URL SHALL be rewritten to `?to=2025-05-01`
+
+#### Scenario: A day beyond the trace
+- **WHEN** a visitor opens `index.html?from=2027-01-01`
+- **THEN** the range SHALL be the trace's last day alone, the sliders SHALL both stand on it, and the URL SHALL be rewritten to `?from=2026-04-12`
 
 #### Scenario: A model key without its family
 - **WHEN** a visitor opens `index.html?model=<a DeepSeek id>`

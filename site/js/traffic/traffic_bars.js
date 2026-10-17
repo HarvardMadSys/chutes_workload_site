@@ -72,7 +72,8 @@ const CHART_DEFINITION = "Requests, input tokens or output tokens, as the metric
 /**
  * The days of `days` (the range's, in order) whose month is written under bars `plotWidth` pixels wide: each that opens
  * a month, and the range's first day too when its day of the month is at most `LAST_NAMED_FIRST_DAY`, so a range that
- * starts in a month's first half names that month. On a plot narrower than `NARROW_PLOT_WIDTH`, more than
+ * starts in a month's first half names that month; and the range's first day alone when neither gives a tick, so a
+ * short range late in a month still names its month. On a plot narrower than `NARROW_PLOT_WIDTH`, more than
  * `MAX_NARROW_TICKS` ticks are thinned to every other one, from the first.
  */
 export function monthTicks(days, plotWidth) {
@@ -83,6 +84,9 @@ export function monthTicks(days, plotWidth) {
     if (opensMonth || opensRange) {
       ticks.push(day);
     }
+  }
+  if (ticks.length === 0 && days.length > 0) {
+    ticks.push(days[0]);
   }
   if (plotWidth < NARROW_PLOT_WIDTH && ticks.length > MAX_NARROW_TICKS) {
     return ticks.filter((tick, index) => index % 2 === 0);

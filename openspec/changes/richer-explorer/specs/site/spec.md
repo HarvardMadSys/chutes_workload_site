@@ -68,7 +68,7 @@ site/             exactly the files that are deployed
   js/pages/       the page's module
   js/landing/     the hero, the stats strip, the two mixes (by family and by endpoint), the cite and team sections
   js/explore/     the page's start, the legend of buttons, the topic tabs, the list of the Insights' topics
-  js/traffic/     the Traffic Explorer: its section, its filter, its controls, its day range and its distributions
+  js/traffic/     the Traffic Explorer: its section, its filter, its controls, its day range, its tiles, its bars, its distributions and their cards
   js/insights/    the figure cards and the topics: one module per Insights topic with its takeaway and its groups of cards, and the routing card's panels
   queries/        one .sql file per query answer, under explore/; under setup/ the queries of the derived tables; under trace/ the query of the trace table
   data/           built by make data and tracked: the query answers, the queries' hashes, the figure answers and their index

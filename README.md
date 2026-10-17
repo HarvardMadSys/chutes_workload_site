@@ -4,11 +4,12 @@ A static website for the Chutes production trace, the dataset of the paper
 *A Year in LLM Serving: Workload Evolution, Caching and Load-Balancing*: a
 year of LLM serving on Chutes, request by request. The site shows the
 trace's totals, its family and endpoint mixes, a Traffic
-Explorer of requests per day, and the paper's figures in six topics, drawn
-from their plot-ready tables.
+Explorer of requests and tokens per day over any range of days, with the
+distributions of the chosen requests, and the paper's figures in six
+topics, drawn from their plot-ready tables.
 
 The site is one HTML page, ES modules, a stylesheet, the JSON answers of
-five queries (the query that takes a family is answered once per family,
+seven queries (the two that take a family are answered once per family,
 one file per family) and of the paper's 48 plot-ready tables, with
 Observable Plot drawing every chart in the browser. There is no
 server code, no bundler and no database in the browser.
@@ -31,16 +32,35 @@ The one page, `index.html`, holds, in order:
   families by their requests, and Other), a model drop-down (once a family
   is chosen: its eight most requested named models and, where it has any,
   its other models, "Other DeepSeek", or "Rest of Other" in the family
-  Other), an endpoint drop-down and period buttons (All and the calendar quarters
-  Q2 '25 to Q1 '26), over the chosen requests per day as stacked bars, by
-  family, by model once a family is chosen and by endpoint group once a
-  model is, and four tiles that follow the choice: requests, average input
-  tokens, average output tokens, and average time to first token with the
-  share of requests that record it. The choice is kept in the URL as
-  `family`, `model`, `endpoint` and `period`
-  (`?family=deepseek&model=<chute id>&period=2025-q3#traffic`), so a view
-  can be shared as a link, and Back and Forward show the choice of the
-  entry they return to; the default, everything, writes no key.
+  Other), an endpoint drop-down, a metric drop-down (requests, input
+  tokens or output tokens) and period buttons (All and the calendar
+  quarters Q2 '25 to Q1 '26), each a preset of the day range. Under them
+  one card holds, from the top:
+  - four tiles that follow the choice: requests, average input tokens,
+    average output tokens, and average time to first token with the share
+    of requests that record it; once the distributions have arrived, each
+    average has its p50 and p90 under it, read from the distributions'
+    bins and so written after "≈" (within about 9%);
+  - the chosen metric per day as stacked bars, by family, by model once a
+    family is chosen and by endpoint group once a model is, under one
+    legend whose buttons hide a series in the bars and the three
+    distribution cards alike;
+  - two sliders, From and To, over the trace's days, which set the day
+    range (one pushed past the other moves it along); the tiles, the bars
+    and the distributions follow as a slider moves;
+  - three distribution cards: the input tokens, the output tokens and the
+    time to first token of the chosen requests as CDFs on a log axis, one
+    line per series of the bars whose requests record the value, over the
+    trace weeks that hold a chosen day, the caption naming the days those
+    weeks span.
+
+  The choice is kept in the URL as `family`, `model`, `endpoint`,
+  `metric`, `from` and `to`
+  (`?family=deepseek&metric=input_tokens&from=2025-07-01&to=2025-09-30#traffic`),
+  so a view can be shared as a link, and Back and Forward show the choice
+  of the entry they return to; the default, everything, requests over the
+  whole trace, writes no key, and a range that starts on the trace's first
+  day or ends on its last writes no `from` or no `to`.
 - **Insights** (`#insights`). The paper's figures in six topics that follow
   its sections, one shown at a time behind a row of tabs, the shown topic
   in the URL's hash: The workload at a glance (`#insights-overview`),
@@ -78,27 +98,32 @@ The one page, `index.html`, holds, in order:
 
 Every number is read from the paper's artifact repository
 ([HarvardMadSys/chutes_workload](https://github.com/HarvardMadSys/chutes_workload)),
-never from the trace. `make data` reads the artifact's committed query
-caches and plot-ready tables and writes the site's data ahead
+but for one table: the Traffic Explorer's distributions come from the
+released trace, which `make tables` reads once to build the site's trace
+table. `make data` reads the artifact's committed query caches and
+plot-ready tables and the trace table, and writes the site's data ahead
 of time; the browser runs no query, it fetches the answers and draws them.
 
 - **The answers** come from three caches under the artifact's
-  `data/paper/cache/`, its model names, `data/paper/chute_models.csv`, and
-  its family table, `data/paper/model_families.csv`. `make data` holds
-  each cache as a DuckDB table of its name, the model names as
-  `chute_models` and the family table as `model_families`, adds two
-  tables derived from them, and runs each query of `site/queries/explore/`
-  once, writing its rows to `site/data/all/explore/<query>.json`; the one
-  query that takes a family, `daily_by_model`, it runs once per family of
-  the `daily_by_family` answer, writing one file per family,
-  `site/data/all/explore/daily_by_model/<family slug>.json`
-  (`deepseek.json`, `gpt-oss.json`, …, `other.json`):
+  `data/paper/cache/`, its model names, `data/paper/chute_models.csv`, its
+  family table, `data/paper/model_families.csv`, and the site's trace
+  table, `tables/weekly_histograms.parquet`. `make data` holds each cache
+  as a DuckDB table of its name, the model names as `chute_models`, the
+  family table as `model_families` and the trace table as
+  `weekly_histograms`, adds two tables derived from them, eight tables in
+  all, and runs each query of `site/queries/explore/` once, writing its
+  rows to `site/data/all/explore/<query>.json`; the two queries that take
+  a family, `daily_by_model` and `histograms_by_model`, it runs once per
+  family of the `daily_by_family` answer, writing one file per family,
+  `site/data/all/explore/<query>/<family slug>.json` (`deepseek.json`,
+  `gpt-oss.json`, …, `other.json`):
 
   | Cache | What it holds | The answers drawn from it |
   |---|---|---|
   | `trace_totals` | one row: the first and last request, requests, input and output tokens, user ids, models, instances | `trace_totals`: the stats strip, and the months the hero and the footer count |
   | `daily_rollup` | one row per trace day, family, model (each of the family's eight most requested named models, the family's rest together) and endpoint group: requests, token sums, the TTFT sum, and how many requests recorded each | `daily_by_family` and `daily_by_model`: the Traffic Explorer; `family_mix`: the Overview's family mix |
   | `function_name_daily_requests` | one row per trace day and endpoint group: requests | `endpoint_mix`: the Overview's endpoint mix |
+  | `weekly_histograms`, the site's trace table | one row per trace week, family, model (as the daily rollup keeps them), endpoint group, metric and bin: the requests in the bin | `histograms_by_family` and `histograms_by_model`: the Traffic Explorer's distribution cards and the tiles' percentiles |
 
   The two derived tables are `trace_calendar`, each trace day's
   calendar day and each trace month's label (`site_data/months.py`); and
@@ -106,13 +131,37 @@ of time; the browser runs no query, it fetches the answers and draws them.
   the daily rollup's named models ranked within their family
   (`site/queries/setup/family_models.sql`), from which a family's answer
   takes its eight.
+- **The trace table**, `tables/weekly_histograms.parquet`, is the one
+  thing the site builds from the released trace, the dataset's 91 GB
+  Parquet file of 6.1 billion requests: `make tables` runs the one query
+  of `site/queries/trace/`, `weekly_histograms.sql`, over it and tracks
+  the result, 1.8 MB. A row is a trace week (seven trace days, counted
+  from the trace's first day), a family, a model (one of the family's
+  eight most requested named models, or the family's other models
+  together, as the daily rollup keeps them), an endpoint group, a metric
+  (`input_tokens`, `output_tokens` or `ttft`) and a bin, with the
+  requests in it. A bin is a quarter of a doubling: a value `v` is in bin
+  `floor(4 · log2(v))`, a token count of at most 1 in bin 0, and a TTFT is
+  binned only where it is positive, as the rollup counts it. Its sidecar,
+  `tables/weekly_histograms.json`, holds the query's hash and the trace's
+  and the table's row counts.
+- **The histogram answers.** `histograms_by_family` holds one row per
+  trace week, family, endpoint group and metric: the week's first
+  calendar day and two lists in bin order, the bins and the requests in
+  each, a family's models summed together. A family's
+  `histograms_by_model` holds the same per week, model (as
+  `daily_by_model` names it) and endpoint group.
 - **Model families.** The artifact's `data/paper/model_families.csv` is
   the one home of the family rule: a named model belongs to the family of
   the first pattern (by `match_order`) its name contains, case-insensitively,
   and every other model is in Other. The artifact applies the rule when it
-  writes the daily rollup, which carries each row's family; the site never
-  matches a name against a pattern, and orders the families by their
-  requests, Other last.
+  writes the daily rollup, which carries each row's family; the site's
+  answers never match a name against a pattern, and order the families by
+  their requests, Other last. The one query that does is the trace query,
+  since the trace's rows carry no family: it applies the same rule, and
+  `make test`, given the artifact's checkout, checks that the trace table's
+  requests per week, family, model and endpoint group equal the daily
+  rollup's counted requests, so the two applications agree.
 - **Trace months.** The caches count days from the trace's first request,
   written as 1970-01-01, so a cache's month is a month-long stretch of
   days from the trace's first day, not a calendar month. The site turns
@@ -134,7 +183,14 @@ of time; the browser runs no query, it fetches the answers and draws them.
   name, and its other models as "Other <family>") and endpoint group; each
   row holds the requests, the input and output token sums, the TTFT sum,
   and how many requests recorded each. An average divides by the requests
-  that record its value, not by every request.
+  that record its value, not by every request. Once the bars are drawn,
+  the explorer reads the histogram answer of the choice
+  (`histograms_by_family`, or the family's `histograms_by_model`), so the
+  bars never wait for it, and sums the bins of the trace weeks that hold a
+  chosen day, per series of the bars: a CDF's point is a bin's upper edge,
+  `2^((bin + 1) / 4)`, and the share of requests at or below it; a p50 or
+  p90 is the geometric middle of the bin where the running share reaches
+  it.
 - **User ids.** The stats strip says "User ids", not users: the release's
   anonymous user ids rotate every quarter, so one person can hold several,
   and the strip's count of ids exceeds the paper's count of people.
@@ -171,7 +227,10 @@ of time; the browser runs no query, it fetches the answers and draws them.
   module marks "placeholder" is not the paper's own.
 
 The queries filter, group, count and sum; none restates a definition the
-artifact owns (a user, a model's name, an endpoint group, a trace month).
+artifact owns (a user, a model's name, an endpoint group, a trace month),
+but the trace query, which applies the family rule and the endpoint
+groups to the trace as the artifact's rollup does, and is checked
+against it.
 A number no cache holds is added to the artifact as a cache, in its
 caching pattern, and then read here.
 
@@ -191,15 +250,36 @@ npm ci               # wrangler, for make deploy and npm run check
 
 `make test` passes the artifact's checkout to the Python tests as
 `ARTIFACT`; the test that compares the Insights' cards with the artifact's
-figure list, and the one that compares the shipped data with a rebuild,
-skip, saying so, where that checkout is not there.
+figure list, the one that compares the shipped data with a rebuild, and
+the one that compares the trace table with the daily rollup skip, saying
+so, where that checkout is not there.
 
 ## Building the data
 
-The data is rebuilt when the artifact's caches or figures change, or when a
-query under `site/queries/` changes. It takes a checkout of the artifact
+The data is built in two steps, each taking a checkout of the artifact
 repository, named with `ARTIFACT=`; the default is a checkout beside this
-repository, `../2027_chutes_repo_artifact`:
+repository, `../2027_chutes_repo_artifact`.
+
+**The trace table** is rebuilt only when the artifact's family table or
+its daily rollup's kept models change, or `site/queries/trace/weekly_histograms.sql`
+does. It also takes the released trace's Parquet file, named with
+`TRACE=`, which has no default:
+
+```bash
+make tables TRACE=<the released trace's Parquet file> ARTIFACT=<the artifact's checkout>   # tables/
+```
+
+It reads the trace once, on every thread, and writes
+`tables/weekly_histograms.parquet` and its sidecar; over the released
+trace it takes about half a minute and 16 GB of memory on a 344-thread
+machine, and a rebuild writes the same bytes. `make test` fails while
+the query's text differs from the hash in the sidecar, and, given the
+artifact's checkout, while the table disagrees with the daily rollup.
+Commit the two files, then build the answers.
+
+**The answers** are rebuilt when the artifact's caches or figures change,
+when the trace table is rebuilt, or when a query under
+`site/queries/explore/` or `site/queries/setup/` changes:
 
 ```bash
 make data ARTIFACT=<the artifact's checkout>   # site/data/
@@ -232,8 +312,8 @@ under the repository's Settings > Secrets and variables > Actions:
 
 With the repository variable `CLOUDFLARE_ACCOUNT_SUBDOMAIN` set there too,
 the workflow then asks the published site for the page (`/`), the daily
-by-family answer and one figure answer, and fails unless each answers 200 with
-its content type; without it, the run shows a warning that the site was
+by-family answer, the histogram answer by family and one figure answer,
+and fails unless each answers 200 with its content type; without it, the run shows a warning that the site was
 not checked. `make deploy` publishes the same way from a machine with `npm
 ci` done and the token in `CLOUDFLARE_API_TOKEN`; run `make test` first.
 `npm run check` is a dry run.
@@ -259,7 +339,7 @@ the rules, how the pieces fit together and the patterns to copy.
 README.md            this file
 CONTRIBUTING.md      the rules, how the pieces fit, the patterns to copy, and how to verify a change
 CLAUDE.md            a pointer to the two files above and the git rules
-Makefile             setup · setup-browser · data · serve · test · snapshots · deploy
+Makefile             setup · setup-browser · tables · data · serve · test · snapshots · deploy
 pyproject.toml       Python 3.12; pyarrow, pandas and duckdb; pytest and Playwright (pinned) for the tests
 package.json         sets ES modules for node --test; wrangler, the one dev dependency, deploys the site
 package-lock.json    wrangler's exact version and its dependencies', which npm ci installs
@@ -267,21 +347,27 @@ package-lock.json    wrangler's exact version and its dependencies', which npm c
 wrangler.jsonc       the Cloudflare Worker that serves site/ as static assets: its name and its hostnames
 .gitignore           what git leaves out: installed and generated folders, the tools' own folders, local secrets
 .github/workflows/deploy.yml
-                     deploys site/ on every push to main, then asks the published site for three files
-site_data/           builds site/data/ from the artifact's caches and plot-ready tables (make data)
+                     deploys site/ on every push to main, then asks the published site for four files
+site_data/           builds tables/ from the released trace (make tables), and site/data/ from the artifact's caches
+                     and plot-ready tables and tables/ (make data)
   __init__.py        the package's summary
   __main__.py        the command make data runs: reads the artifact, writes the answers and the figure answers
-  loading.py         reads the three caches, the model names and the family table into frames; a missing file stops
-                     the step
+  loading.py         reads the three caches, the model names and the family table into frames, and the trace table;
+                     a missing file stops the step
   months.py          the trace's start date, and the calendar of its trace days and trace months
   site_database.py   the site's database in DuckDB: the caches, model names and family table as tables, with
-                     trace_calendar and family_models
+                     trace_calendar and family_models, and the trace table as weekly_histograms
   answers.py         runs every query of site/queries/explore/, a family's query once per family, writes its
                      answers and the queries' hashes
   figure_answers.py  writes the plot-ready table of every figure the artifact lists as its answer, and their index
-  paths.py           the names of the files the step writes into site/data/
+  paths.py           the names of the files the two steps write, into site/data/ and into tables/
   tables.py          the command make tables runs: the trace query over the released trace, written as the trace
                      table and its sidecar
+tables/              built by make tables from the released trace, and tracked
+  weekly_histograms.parquet
+                     the trace table: the requests per trace week, family, model, endpoint group, metric and bin
+  weekly_histograms.json
+                     its sidecar: the trace query's hash, the trace's rows and the table's rows
 site/                exactly the files that are deployed
   index.html         the one page: header, hero, Overview, Traffic Explorer, Insights, Cite, Team, footer
   style.css          tokens, layout and components
@@ -326,7 +412,7 @@ site/                exactly the files that are deployed
     topic_tabs.js    the Insights' tabs, one topic shown at a time, the shown one in the URL's hash
     figure_sections.js
                      the Insights' six topics in the order of their tabs, and a topic's cards group by group
-  js/traffic/     the Traffic Explorer: its section, its filter, its controls, its bars, its day range, its tiles
+  js/traffic/        the Traffic Explorer: its section, its filter, its controls, its bars, its day range, its tiles
                      and its distributions
     traffic.js, traffic_controls.js, traffic_filter.js
                      the Traffic Explorer: its section; its controls, kept in step with the URL; its choice, its
@@ -344,27 +430,35 @@ site/                exactly the files that are deployed
     routing_panels.js
                      the load-balancing topic's routing simulation card: its series and eight panels
   queries/           one .sql file per answer or table
-    explore/         the five queries make data answers, one answer each, daily_by_model's one per family
+    explore/         the seven queries make data answers, one answer each, daily_by_model's and
+                     histograms_by_model's one per family
     setup/family_models.sql
                      the daily rollup's named models ranked within their family, held as the table family_models
-  data/all/          built by make data and tracked: the answers, explore/<query>.json and
-                     explore/daily_by_model/<family>.json, and queries.json; the figure answers,
+    trace/weekly_histograms.sql
+                     the trace query, which make tables runs over the released trace: the trace table
+  data/all/          built by make data and tracked: the answers, explore/<query>.json and, for the two family
+                     queries, explore/<query>/<family>.json, and queries.json; the figure answers,
                      figures/<figure>.json, and figures.json
 tests/               what make test runs
   conftest.py, fixture_artifact.py, fixture_plotdata.py, repository_root.py
                      the fixture artifact (a few rows of each cache, the model names, a figure list of ten figures,
-                     one per chart kind, with their plot-ready tables),
+                     one per chart kind, with their plot-ready tables) and a small trace whose requests add up to
+                     its daily rollup,
                      the database over it, the artifact's checkout as ARTIFACT, the tracked files, the root folder
   test_loading.py, test_months.py, test_site_database.py, test_main.py
                      the data step on the fixture artifact, against values counted by hand
   test_queries.py    every .sql file run over the fixture: its columns, the tables it reads, its numbers
-  test_answers.py    every answer written for the fixture equals its query run live; an edited query is stale
+  test_answers.py    every answer written for the fixture equals its query run live; a family's model answers sum to
+                     its rows by family, the histograms bin by bin; an edited query is stale
+  test_tables.py     the trace query over the fixture trace against histograms counted by hand, the builder and its
+                     sidecar, the hash check, and with ARTIFACT the tracked trace table against the daily rollup
   test_figure_answers.py
                      every figure answer written for the fixture equals its plot-ready table; a missing table stops
                      the step
   test_built_data.py
-                     the shipped data: tracked, the figure answers its index lists, every answer current, and
-                     with ARTIFACT the answers, the figure answers and their index the same bytes as a rebuild
+                     the shipped data: tracked, the figure answers its index lists, every answer current, the
+                     histograms by family counting each family's requests as the daily answer does, and with
+                     ARTIFACT the answers, the figure answers and their index the same bytes as a rebuild
   test_figures_registry.py
                      with ARTIFACT, every figure the artifact lists is one card's, or the share cards' legend
   test_repository.py
@@ -399,6 +493,9 @@ tests/               what make test runs
   insights_caching_balancing.test.js
                      the caching and balancing cards' axes, the eviction cards' tooltips listing every algorithm,
                      the occupancy's tooltip in hours and the user zooms' even split
+  traffic_period_buttons.test.js
+                     the Traffic Explorer's period buttons: their labels, a press choosing its quarter's days, the
+                     button pressed for a range, and a slider's range written to the URL
   explore_legend_shared.test.js
                      a legend that other charts follow: its first hidden set, each click's set told, and the note
                      of every series hidden in another chart

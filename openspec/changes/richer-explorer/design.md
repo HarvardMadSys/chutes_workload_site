@@ -21,15 +21,30 @@ The choice gains `from` and `to`, calendar days, and loses `period`. Two
 card, each over the trace's days by index (0 to the last day), each
 writing its day beside it. A slider moved past the other pushes the
 other along, so From is never after To. The `input` event redraws the
-tiles and the bars through one `requestAnimationFrame`, so a drag draws
-at most once a frame; the `change` event (release) writes the URL. The
-period buttons stay as presets: a press sets both sliders to its
-quarter's days within the trace (Q2 '25 is April 11 to June 30, 2025),
-All to the whole trace, and a button shows pressed when the range equals
-its days. The default, the whole trace, writes no key; a `from` or `to`
-outside the trace's days is clipped to them; a `from` after its `to` is
-ignored with it, and the URL is rewritten as the choice is read, as a
-model without its family is today.
+tiles, the bars and the distribution cards (from the histogram rows in
+hand) through one `requestAnimationFrame`, so a drag draws at most once
+a frame; the `change` event (release) writes the URL. The period
+buttons stay as presets: a press sets both sliders to its quarter's
+days within the trace (Q2 '25 is April 11 to June 30, 2025), All to the
+whole trace, and a button shows pressed when the range equals its days.
+The day range's rules live with the sliders, in `traffic_range.js`
+(`clippedRange`, `periodRange`, `pressedPeriod`), which the filter
+imports. The default, the whole trace, writes no key, and a day at the
+trace's end on its side writes none either (Q2 '25 writes only
+`to=2025-06-30`). A `from` or `to` outside the trace's days is clamped
+to the nearer end (`from=2027-01-01` gives the trace's last day,
+`to=2024-01-01` its first), and a day within the trace that has no row
+to the nearest trace day inside the range; a `from` after its `to`,
+once clamped, is ignored with it; and the URL is rewritten as the
+choice is read, as a model without its family is.
+
+The bars' x axis names months: it is ticked at each first of a month in
+the range, at the range's first day when that falls in its month's
+first half (`LAST_NAMED_FIRST_DAY`, the 15th; later, its label would
+crowd the next month's), and at the range's first day alone when
+neither gives a tick (a short range late in a month); on a plot
+narrower than 400 px, more than seven ticks are thinned to every other
+one, so the whole trace on a phone names every second month.
 
 Alternatives: a brush drawn on the bars' SVG (Plot has no brush; a
 hand-written one is pointer arithmetic and not keyboard-reachable); one
@@ -41,10 +56,11 @@ styled by the browser.
 
 `metric` chooses `requests` (the default, no key), `input_tokens` or
 `output_tokens`; the bars stack the column's sum per day and series. The
-chart's title, caption, tooltip label and tick format follow (
-"Input tokens per day", "Input tokens: 1.2B", `formatCountTick`). A token
-sum is over the requests that record it, which the caption says. The
-tiles do not change with the metric. The average TTFT is not a metric:
+chart's title, caption and tooltip label follow (`METRIC_WORDS` of
+`traffic_bars.js`: "Input tokens per day", "Input tokens: 1,234"); the
+counts are written by `formatCount` and ticked by `formatCountTick` for
+every metric. A token sum is over the requests that record it, which
+the caption says. The tiles do not change with the metric. The average TTFT is not a metric:
 it is not a sum, so it cannot stack.
 
 ### D3. The weekly histogram table, built once from the trace
@@ -92,9 +108,14 @@ per family (no smaller in all).
 
 `python -m site_data.tables --trace <parquet> --artifact <dir> --out
 tables` and `make tables TRACE=<path> ARTIFACT=<dir>`. The builder opens
-the site's database over the artifact as `make data` does (so
-`chute_models`, `model_families` and `family_models` are the same
-tables the answers use), adds the trace as the view `trace` through
+its own connection over the artifact and registers the site's seven
+tables through the code `make data` uses, `register_tables` of
+`site_database.py` (so `chute_models`, `model_families` and
+`family_models` are the same tables the answers use); the trace table
+is not among them, since it is what the builder makes, and `make data`
+registers it as the eighth (`open_database(frames, weekly_histograms)`,
+the table loaded by `load_trace_table`, not a field of the artifact's
+frames). It adds the trace as the view `trace` through
 DuckDB's Python API (`connection.read_parquet(path).create_view("trace")`:
 no path is written into SQL), runs `queries/trace/weekly_histograms.sql`
 on every thread (the one-thread rule is for the answers' float sums; the
@@ -112,11 +133,14 @@ insensitively, and `Other` for a match of none or no name, and keeps the
 chute id for the eight of `family_models` (rank at most 8), as the
 rollup keeps it. The rule now has two homes, the artifact's and this
 query. The check: with `ARTIFACT` set, a test sums the table's requests
-per week, family and endpoint group for each metric and compares them
-with the daily rollup's `input_counted`, `output_counted` and
-`ttft_counted` summed over the week's days; a model placed in another
-family by either rule fails it. The fixture trace makes the same check
-over a few rows without the artifact.
+per week, family, kept model (or the family's rest) and endpoint group
+for each metric and compares them with the daily rollup's
+`input_counted`, `output_counted` and `ttft_counted` summed over the
+week's days; a model placed in another family by either rule fails it.
+The fixture trace makes the same check over a few rows without the
+artifact, and a test over the tracked answers alone checks that the
+by-family histogram answer's requests per family and metric equal
+`daily_by_family`'s counted requests.
 
 ### D6. The histogram answers
 
@@ -156,12 +180,21 @@ and `cdf` the running share, drawn by the `lines` kind with `cdf: true`
 on a log x axis, the series' colours those of the bars' legend; and the
 p50 and p90, the geometric middle `2^((bin+0.5)/4)` of the bin in which
 the running share first reaches the percentile, written as `formatSignificant`
-to two figures after "≈". A series with no request in the range has no
-line and no percentile. The three cards are a grid under the sliders,
-inside the wide card: "Input tokens", "Output tokens" and "Time to first
-token", each a figure of the card pattern (`renderFigure`: title,
-caption, definition, rows) with the caption naming the weeks' days, as
-"Apr 11 to Jun 29, 2025, the trace weeks holding a chosen day".
+to two figures after "≈" (a TTFT by `formatSignificantSeconds`, "≈0.84
+s"). A series with no request in the range has no line and no
+percentile, and a line is drawn only for a series the bars' legend
+lists, so every line can be hidden as the bars are. The three cards are
+a grid under the sliders, inside the wide card
+(`traffic_distribution_cards.js`): "Input tokens", "Output tokens" and
+"Time to first token", each a figure of the card pattern
+(`renderFigure`: title, caption, definition, rows), the caption naming
+the days the weeks span, which follow from the range alone
+(`coveredDays`), as "Over October 31 – December 4, 2025, the trace
+weeks holding a chosen day." for November 3 to 30. A card's x axis is
+ticked at no more than four powers of ten (`logAxisTicks` with a
+maximum), a TTFT tick written "10 ms", "1 s", "100 s"; a card none of
+whose chosen requests records its value shows a note in its chart's
+place.
 
 ### D8. The bars never wait for the distributions
 
@@ -188,17 +221,49 @@ Measured before the change, the page served by Python's file server
 
 The by-family daily answer is 3.38 MB of the 4.58 MB; Cloudflare serves
 it gzipped at 466 KB, so the throttled figure overstates the published
-page. Task 5 repeats the measurement on the finished page: the bars'
-time must not be later, and the histogram answer must appear in the
-log after the bars have drawn.
+page.
+
+Measured after the change, on the finished page. The script above
+waited for the parts one after the other, so a part's time could not be
+earlier than the one before it; a second script times each part in the
+page (`performance.now()` from the navigation's start, the first
+animation frame it is drawn in) and records, by a wrapped `fetch`,
+whether the bars were drawn when each answer was requested. The first
+was run on this page, the second on this page and on the page before
+the change (`5df9edf`), three times each:
+
+| | Before | After |
+|---|---|---|
+| Bars drawn, local (the first script) | 1.26 s | 1.07 to 1.11 s |
+| Bars drawn, throttled (the first script) | 4.11 s | 4.03 to 4.15 s |
+| Bars drawn, local (timed in the page) | 0.88 to 1.25 s | 1.06 to 1.26 s |
+| Bars drawn, throttled (timed in the page) | 4.08 to 4.13 s | 4.13 to 4.16 s |
+| Distribution cards drawn, local / throttled | — | 1.33 to 1.39 s / 6.28 to 6.30 s |
+| Fetched | 104 requests, 4.58 MB | 110 requests, 6.99 MB |
+
+The bars are drawn no later: every difference is within a run's spread
+and under 0.2 s, which is noise. The six more requests are the
+histogram answer by family (2.37 MB) and the five new modules. In every
+run the explorer requested `daily_by_family.json` first (0.4 to 0.5 s
+local, 0.8 s throttled, the bars not drawn), then
+`histograms_by_family.json` (1.06 to 1.24 s local, 4.13 to 4.16 s throttled), the
+bars already drawn. Timed in the page, the shown topic is drawn at
+1.9 s throttled, before the bars, which the first script's order could
+not show.
 
 ### D9. The explorer's own folder
 
 `js/explore/` holds seven modules and the rules allow nine; the explorer
-grows by two. The explorer's modules move to `js/traffic/`: `traffic.js`
-(the section), `traffic_filter.js`, `traffic_controls.js`,
-`traffic_range.js` (the sliders) and `traffic_distributions.js`. The
-page module imports `runTraffic` from there; `js/explore/` keeps the
+grows by two. The explorer's modules move to `js/traffic/`, eight of them as built
+(the 300-line limit split two more off): `traffic.js` (the section and
+its flow), `traffic_filter.js` (the choice, its URL keys and the daily
+sums), `traffic_controls.js` (the drop-downs and the period buttons),
+`traffic_range.js` (the sliders and the day range's rules),
+`traffic_tiles.js` (the four tiles and their percentile notes),
+`traffic_bars.js` (the bars, their words and their month ticks),
+`traffic_distributions.js` (the bin maps, CDF rows and percentiles) and
+`traffic_distribution_cards.js` (the three cards). The page module
+imports `runTraffic` from there; `js/explore/` keeps the
 page's start, the legend, the topic tabs and the topics' list. The move
 is its own task and its own commit, with no other change, so its diff
 is a rename.
@@ -221,7 +286,14 @@ two-bin distribution; the loading order (the histogram answer is read
 after the bars' draw resolves, in a fake page). Snapshots: the
 explorer's units gain the metric and the sliders' texts, the three
 distribution charts' axes and the tiles' notes; `CHART_COUNTS` counts
-four charts in `#traffic`.
+four charts in `#traffic`. As built, the node tests sit one file per
+module (`traffic_range`, `traffic_tiles`, `traffic_bars`,
+`traffic_distributions`, `traffic_distribution_cards`), the period
+buttons' in `traffic_period_buttons.test.js` and the legend that other
+charts follow in `explore_legend_shared.test.js`; the explorer's
+snapshot units in `tests/snapshot_traffic.py`; the model-to-family
+histogram test sums bin by bin; and `tests/test_built_data.py` checks
+the tracked histogram answer by family against the tracked daily one.
 
 ## Alternatives not taken
 

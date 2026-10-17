@@ -35,14 +35,14 @@ binding, and `make test` checks the countable ones.
   No SQL is written in JavaScript or in the data step, and no query is
   assembled from strings. A query takes at most one parameter, the family
   (`$family`), bound by name by DuckDB and never written into the text. A
-  query reads the site's seven tables and nothing else (`SITE_TABLES` in
-  `tests/test_queries.py`):
+  query of `queries/explore/` or `queries/setup/` reads the site's eight
+  tables and nothing else (`SITE_TABLES` in `tests/test_queries.py`):
   - the artifact's three caches, each the table of its file's name:
     `trace_totals`, `daily_rollup` and `function_name_daily_requests`;
   - `chute_models`, the artifact's model names (`chute_id`, `name`), and
     `model_families`, its family table (`match_order`, `family`,
-    `pattern`), which the site never matches a name against: a row's
-    family is the daily rollup's;
+    `pattern`), which no answer matches a name against: a row's family is
+    the daily rollup's or the trace table's;
   - `trace_calendar`, made by `site_data/months.py`: each trace day's
     calendar day, its trace month and the calendar month that trace month
     is labelled with. It is the one place the data step computes a date; a
@@ -56,13 +56,24 @@ binding, and `make test` checks the countable ones.
     and those tests fail until it is;
   - `family_models`, the rows of `setup/family_models.sql`: the daily
     rollup's named models ranked within their family. A family's answer
-    takes its eight from it.
+    takes its eight from it;
+  - `weekly_histograms`, the site's trace table, `tables/weekly_histograms.parquet`,
+    which `make tables` builds and `make data` loads.
+
+  The one query over the trace, `queries/trace/weekly_histograms.sql`,
+  reads the view `trace` and `chute_models`, `model_families` and
+  `family_models`, and nothing else (`TRACE_QUERY_TABLES`, in the same
+  test file).
 - **Every definition comes from the artifact.** A query filters, groups,
   counts and sums; none restates a definition the artifact owns, and neither
   a query nor the browser decides what a user, a model's name, an endpoint
   group or a trace month is. A number no cache holds is
   added to the artifact as a cache, in its caching pattern, and then read
-  here. The site never reads the trace.
+  here. The one exception is the trace table: the site reads the
+  released trace once, in `make tables`, and its trace query applies the
+  artifact's family rule and endpoint groups to the trace's rows, held to
+  the artifact's by a test that compares the table with the daily rollup
+  (`tests/test_tables.py`). Nothing else reads the trace.
 - **No framework, no bundler, no npm dependency.** Plain HTML, CSS and ES
   modules. Libraries come from a CDN at exact versions, named only in
   `site/js/shared/libraries.js`.
@@ -72,9 +83,13 @@ binding, and `make test` checks the countable ones.
 ## How the site is put together
 
 ```
-make data:  the artifact's caches, chute_models.csv and model_families.csv  →  tables in DuckDB, with trace_calendar
-              and family_models  →  queries/explore/<query>.sql  →  data/all/explore/<query>.json (a family
-              query's data/all/explore/<query>/<family>.json, once per family) and data/all/queries.json
+make tables: the released trace as the view trace, and the artifact's chute_models.csv, model_families.csv and daily
+               rollup (for family_models)  →  queries/trace/weekly_histograms.sql  →  tables/weekly_histograms.parquet
+               and its sidecar, tables/weekly_histograms.json
+make data:  the artifact's caches, chute_models.csv and model_families.csv, and tables/weekly_histograms.parquet  →
+              eight tables in DuckDB, with trace_calendar and family_models  →  queries/explore/<query>.sql  →
+              data/all/explore/<query>.json (a family query's data/all/explore/<query>/<family>.json, once per
+              family) and data/all/queries.json
             the artifact's config/figures.json and data/paper/plotdata/<figure>.parquet  →  data/all/figures/<figure>.json
               and data/all/figures.json
 The page:   index.html  →  js/pages/explore.js  →  js/explore/start.js, the section modules and js/shared/
@@ -131,12 +146,16 @@ checks that each path it names exists.
   and last chosen day, `YYYY-MM-DD`). `traffic/traffic_filter.js` is their
   one home: `readTrafficChoice` reads them when the page starts, a value it
   does not know falling back to everything (a `model` with no `family`, or
-  not among the family's, too, and a day outside the trace's clipped to
-  it, by `traffic/traffic_range.js`; the URL is then rewritten so),
-  and `writeTrafficChoice` writes them on every change, through
+  not among the family's, too); the days follow the day range's rules of
+  `traffic/traffic_range.js` (`clippedRange`): a day outside the trace is
+  clamped to its nearer end, a `from` after its `to` is dropped with it,
+  and a range that starts on the trace's first day or ends on its last
+  writes no `from` or no `to`; the URL is then rewritten so. There is no
+  `period` key: a `period` is neither read nor written. `writeTrafficChoice`
+  writes the keys on every change, through
   `context.replaceQuery`, which replaces the history entry rather than
   adding one; a slider writes its range once released. The period
-  buttons set `from` and `to`. `traffic/traffic_controls.js` keeps the
+  buttons set `from` and `to` to their quarter's days within the trace. `traffic/traffic_controls.js` keeps the
   controls and the URL in step: on Back or Forward (`context.onReturn`) it
   reads the keys again, and an entry of another choice is shown and drawn.
   The default, everything, writes no key; a key the explorer does not read
@@ -195,7 +214,8 @@ family; `tests/test_queries.py` runs it with the family of
 by `make data`, once, over the whole trace: its rows in
 `data/all/explore/<query>.json`, and every answer is read by the page. A
 query that takes the family (`FAMILY_QUERIES` of `site_data/answers.py`,
-`explore/daily_by_model`) is answered once per family of
+`explore/daily_by_model` and `explore/histograms_by_model`) is answered
+once per family of
 `explore/daily_by_family`, each family bound as `$family` and its rows
 written to `data/all/explore/<query>/<family_slug>.json`, the slug being
 `daily_by_family`'s `family_slug` column, the one place a slug is made. A
@@ -208,6 +228,36 @@ page reads the answers, not the queries, and `tests/test_built_data.py`
 fails while a query's text differs from the one its answer was written
 from. `tests/test_answers.py` checks each answer written for the fixture
 against its query run live there.
+
+**A list-valued answer** (`site/queries/explore/histograms_by_family.sql`):
+a query whose rows hold lists builds each with DuckDB's ordered `list`,
+one list per column, all in one order:
+
+```sql
+       list(bin_requests.bin ORDER BY bin_requests.bin) AS bins,
+       list(bin_requests.requests ORDER BY bin_requests.bin) AS requests
+```
+
+The answer writes each list as a JSON array of numbers, and the page
+reads the two lists of a row together, the requests of `bins[i]` being
+`requests[i]`; the same information as a row per bin, in a fifth of the
+bytes. The page reads a histogram answer only after the bars it goes
+with are drawn, so the bars never wait for it.
+
+**The trace query** (`site/queries/trace/weekly_histograms.sql`): the one
+query over the released trace, run by `make tables` (`site_data/tables.py`)
+rather than `make data`. The trace is the view `trace`, made by DuckDB's
+Python API from the file `TRACE=` names, so no path is written into the
+SQL; the query reads it with `chute_models`, `model_families` and
+`family_models`, sorts its rows by every key so that a rebuild writes the
+same bytes, and its result is the trace table,
+`tables/weekly_histograms.parquet`, tracked. Its sidecar,
+`tables/weekly_histograms.json`, records the hash of the query's text
+and the trace's and the table's row counts; `tests/test_tables.py` fails
+while the hash differs from the query's text, as `all/queries.json` does
+for the answers. **Rerun `make tables` after editing it**, then `make
+data`. The query is tested over the fixture's small trace
+(`fixture_artifact.TRACE_REQUESTS`) against histograms counted by hand.
 
 **Adding a query.** Write `site/queries/explore/<name>.sql` as above; list
 its columns in `EXPECTED_COLUMNS` of `tests/test_queries.py` and test its
@@ -506,8 +556,8 @@ Insights' figures are drawn from their plot-ready tables.
   the chart (none where it has a single series, but a bands card, which
   shows its key there), its caption under the chart, and a Definition
   control that opens on its definition: alone on a figure card of the
-  Insights; with the line of rows it rests on in the two Overview mixes
-  and the Traffic Explorer's card.
+  Insights; with the line of rows it rests on in the two Overview mixes,
+  the Traffic Explorer's bars and its three distribution cards.
   A legend names only what is drawn. After each drawing the chart is named
   for a screen reader by its title and caption, `nameChart` in
   `shared/charts.js`.
@@ -515,10 +565,14 @@ Insights' figures are drawn from their plot-ready tables.
   (`axes/ticks.js`), which gives at most six or seven. The exception is an
   axis of months: the Traffic Explorer's is ticked at the first day of
   each month it shows, and at the range's first day when it falls in its
-  month's first half (`LAST_NAMED_FIRST_DAY`); on a plot narrower than
+  month's first half (`LAST_NAMED_FIRST_DAY`) or when the range holds no
+  first of a month; on a plot narrower than
   `NARROW_PLOT_WIDTH`, more than `MAX_NARROW_TICKS` ticks are thinned to
   every other one. Its labels are slanted so that thirteen fit a
-  card. A figure's axes are the paper's: its titles, its log scales,
+  card. The explorer's three distribution cards, a third of its card
+  each, tick their log x axes at no more than four powers of ten
+  (`MAX_CARD_TICKS`), a time to first token as "10 ms", "1 s" and, past
+  a minute, "100 s" (`formatTtftTick`). A figure's axes are the paper's: its titles, its log scales,
   ticked at the powers of ten (every second or more past
   `MAX_LOG_TICKS`), its limits, and its ticks where the card gives them,
   so that a phone's axis does not run its labels together. The one
@@ -544,6 +598,13 @@ make test       # the Python tests, the node tests and the snapshot test
 make snapshots  # when the change is meant to alter what the page shows
 make serve      # then open http://localhost:8000
 ```
+
+A change to the trace query, or to the artifact's family table or daily
+rollup's kept models, also runs `make tables TRACE=<the released
+trace's Parquet file> ARTIFACT=<the artifact's checkout>` first, then
+`make data`: it reads the 91 GB trace once, in about half a minute and
+16 GB of memory on a 344-thread machine, and `make test` with `ARTIFACT`
+then checks the table against the daily rollup.
 
 `make test` ends with the snapshot test (`tests/snapshot.py`): it opens
 six states of the page in headless Chromium (the page opened at each

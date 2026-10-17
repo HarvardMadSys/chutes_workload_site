@@ -32,6 +32,13 @@ test("a range starting late in a month does not name that month, whose label wou
   assert.deepEqual(monthTicks(days.slice(1), WIDE_PLOT), ["2025-05-01", "2025-06-01"]);
 });
 
+test("a range with no first of a month, starting late in one, names its month by its first day", () => {
+  const lateDays = ["2025-11-18", "2025-11-19", "2025-11-30"];
+  assert.deepEqual(monthTicks(lateDays, WIDE_PLOT), ["2025-11-18"]);
+  assert.deepEqual(monthTicks(["2025-11-29"], PHONE_PLOT), ["2025-11-29"]);
+  assert.deepEqual(monthTicks([], WIDE_PLOT), []);
+});
+
 test("the whole trace's bars write every month and its first on a wide plot, every other one on a phone's", () => {
   const days = ["2025-04-11", ...TRACE_MONTH_STARTS, "2026-04-12"];
   assert.deepEqual(monthTicks(days, WIDE_PLOT), ["2025-04-11", ...TRACE_MONTH_STARTS]);

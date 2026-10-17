@@ -1,11 +1,14 @@
 """The built data, as `make data` wrote it and git tracks it: every file of it tracked, the figure answers' index
 listing exactly the figure answers tracked, every query's answer there (a family query's one per family) and written
-from its current text, and the answers and the figure answers with their index the same as a rebuild from the
-artifact's checkout (`ARTIFACT`; skipped, saying so, without one) and the tracked trace table."""
+from its current text, the by-family histograms counting the requests the daily answer counts, and the answers and the
+figure answers with their index the same as a rebuild from the artifact's checkout (`ARTIFACT`; skipped, saying so,
+without one) and the tracked trace table."""
 
 import json
 import pathlib
+import typing
 
+import test_tables
 from repository_root import ROOT
 from site_data import answers, figure_answers, loading, paths, site_database
 
@@ -72,6 +75,41 @@ def test_a_family_query_has_one_answer_per_family_and_no_other() -> None:
 
 def test_every_answer_comes_from_its_query_s_current_text() -> None:
     assert answers.stale_queries(DATA_FOLDER) == [], "queries edited since make data last ran; run make data"
+
+
+class FamilyMetric(typing.NamedTuple):
+    """The requests of one family that record one metric."""
+
+    family: str
+    metric: str
+
+
+def test_the_histograms_by_family_count_the_requests_the_daily_answer_counts() -> None:
+    """Each family's requests in its histograms of a metric are the daily answer's requests that record the metric, so
+    the trace table and the daily rollup the bars are drawn from agree on every family."""
+    histograms = json.loads((DATA_FOLDER / paths.answer_file("explore/histograms_by_family")).read_text())
+    daily = json.loads((DATA_FOLDER / paths.answer_file("explore/daily_by_family")).read_text())
+    assert histogram_counts(histograms) == daily_counts(daily), "the histograms and the daily answer differ"
+
+
+def histogram_counts(rows: list[dict]) -> dict[FamilyMetric, int]:
+    """The requests of the by-family histogram answer's `rows` per family and metric, summed over weeks and bins."""
+    counts = {}
+    for row in rows:
+        key = FamilyMetric(row["family"], row["metric"])
+        counts[key] = counts.get(key, 0) + sum(row["requests"])
+    return counts
+
+
+def daily_counts(rows: list[dict]) -> dict[FamilyMetric, int]:
+    """The requests of the daily by-family answer's `rows` that record each metric, per family and metric; a family
+    none of whose requests records a metric is left out, as the histograms have no row for it."""
+    counts = {}
+    for row in rows:
+        for metric, column in test_tables.COUNTED_COLUMNS.items():
+            key = FamilyMetric(row["family"], metric)
+            counts[key] = counts.get(key, 0) + row[column]
+    return {key: count for key, count in counts.items() if count > 0}
 
 
 def test_the_answers_are_the_ones_the_artifact_gives(artifact_checkout: pathlib.Path, tmp_path: pathlib.Path) -> None:
