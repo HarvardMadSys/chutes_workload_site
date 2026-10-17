@@ -403,6 +403,14 @@ a[target="_blank"]::after {
   font-size: 0.85em;
 }
 
+/* A mark before a link's text: one em square on the baseline, in the link's colour; a margin parts it, as the arrow. */
+.link-mark {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  margin-right: 0.4em;
+}
+
 .site-footer {
   margin-top: 4rem;
   border-top: 1px solid var(--color-border);

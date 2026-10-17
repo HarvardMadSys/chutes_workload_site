@@ -5,6 +5,7 @@
  */
 
 import { AFFILIATION, monthCountText, TRAFFIC_EXPLORER_ANCHOR, URLS } from "../shared/layout.js";
+import { LINK_MARKS } from "../shared/link_marks.js";
 
 // The title, the dataset's name: its first phrase, and its second, drawn in the accent.
 const TITLE = "Chutes";
@@ -15,15 +16,15 @@ const LEDE_OPENING = "One year of production LLM serving on Chutes:";
 const LEDE_HOLDINGS = "every request's timing, tokens, model, user and instance.";
 
 // The buttons under the lede: the first two scroll to the page's own sections, the first of them the primary one; the
-// others leave the site.
+// others leave the site, each with the mark of `LINK_MARKS` it names before its text.
 const SITE_BUTTONS = Object.freeze([
   Object.freeze({ title: "Traffic Explorer", href: TRAFFIC_EXPLORER_ANCHOR, className: "button button--primary" }),
   Object.freeze({ title: "Insights", href: "#insights", className: "button" }),
 ]);
 const EXTERNAL_BUTTONS = Object.freeze([
-  Object.freeze({ title: "Dataset", url: URLS.dataset }),
-  Object.freeze({ title: "Paper", url: URLS.paper }),
-  Object.freeze({ title: "Code", url: URLS.code }),
+  Object.freeze({ title: "Dataset", url: URLS.dataset, mark: "huggingface" }),
+  Object.freeze({ title: "Paper", url: URLS.paper, mark: "document" }),
+  Object.freeze({ title: "Code", url: URLS.code, mark: "github" }),
 ]);
 
 /** Fill `container` with the hero's copy for the `monthCount` months the trace spans (null when not known). */
@@ -32,7 +33,8 @@ export function renderHero(container, monthCount) {
     (button) => `<a class="${button.className}" href="${button.href}">${button.title}</a>`,
   );
   const externalButtons = EXTERNAL_BUTTONS.map(
-    (button) => `<a class="button" href="${button.url}" target="_blank" rel="noopener">${button.title}</a>`,
+    (button) =>
+      `<a class="button" href="${button.url}" target="_blank" rel="noopener">${LINK_MARKS[button.mark]}${button.title}</a>`,
   );
   container.innerHTML = `
     <h1 id="hero-title">${TITLE} <em>${TITLE_ACCENT}</em></h1>

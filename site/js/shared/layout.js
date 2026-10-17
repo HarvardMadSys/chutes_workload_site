@@ -7,6 +7,8 @@
  * Explorer's choice kept; the footer's brand links the page with none.
  */
 
+import { LINK_MARKS } from "./link_marks.js";
+
 /** Every address outside the site that a page links, each written once. */
 export const URLS = Object.freeze({
   lab: "https://madsys.seas.harvard.edu/",
@@ -30,13 +32,13 @@ export const LINKED_SECTIONS = Object.freeze([
   Object.freeze({ anchor: "#cite", title: "Cite" }),
 ]);
 
-// The footer's "Elsewhere": the dataset, the paper, the code told apart from the lab's GitHub. The header links
-// nothing off the site; the hero and the footer do.
+// The footer's "Elsewhere": the dataset, the paper, the code told apart from the lab's GitHub, each with the mark of
+// `LINK_MARKS` it names. The header links nothing off the site; the hero and the footer do.
 const ELSEWHERE_LINKS = Object.freeze([
-  Object.freeze({ title: "Dataset", url: URLS.dataset }),
-  Object.freeze({ title: "Paper", url: URLS.paper }),
-  Object.freeze({ title: "Code (this trace)", url: URLS.code }),
-  Object.freeze({ title: "MadSys on GitHub", url: URLS.github }),
+  Object.freeze({ title: "Dataset", url: URLS.dataset, mark: "huggingface" }),
+  Object.freeze({ title: "Paper", url: URLS.paper, mark: "document" }),
+  Object.freeze({ title: "Code (this trace)", url: URLS.code, mark: "github" }),
+  Object.freeze({ title: "MadSys on GitHub", url: URLS.github, mark: "github" }),
 ]);
 
 /** The lab's name, written under the hero and in the footer, linking to the lab. */
@@ -135,12 +137,14 @@ function sectionLink(section, className) {
 }
 
 /**
- * The markup of a link off the site to `link`, `{ title, url }`, of the class `className` where one is given: it opens
- * in a new tab, without giving that tab a handle on this one, and the stylesheet ends it in an arrow.
+ * The markup of a link off the site to `link`, `{ title, url }` and optionally `mark`, the name of one of `LINK_MARKS`,
+ * of the class `className` where one is given: it opens in a new tab, without giving that tab a handle on this one,
+ * the mark, when named, comes before the text, and the stylesheet ends it in an arrow.
  */
 export function externalLink(link, className = null) {
   const classAttribute = className === null ? "" : ` class="${className}"`;
-  return `<a${classAttribute} href="${link.url}" target="_blank" rel="noopener">${link.title}</a>`;
+  const mark = link.mark === undefined ? "" : LINK_MARKS[link.mark];
+  return `<a${classAttribute} href="${link.url}" target="_blank" rel="noopener">${mark}${link.title}</a>`;
 }
 
 // A list of the footer's links under its title, which names the nav to a screen reader and is no heading of the page.

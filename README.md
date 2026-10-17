@@ -380,6 +380,7 @@ site/                exactly the files that are deployed
     charts.js        a chart's frame and ink, the loading and error states, the figure card's layout
     format.js        numbers and dates as the page writes them
     layout.js        the header and the footer, every address off the site, and the markup of a link to one
+    link_marks.js    the marks before the text of a link off the site: Hugging Face's, a document's and GitHub's
     series.js        a chart's shown rows and its legend; the models, the endpoint groups and the families as series;
                      the figure cards' fixed colours
     scrolling_row.js

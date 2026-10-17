@@ -32,7 +32,8 @@ test("the title is the page's h1, the hero section's label, and the five buttons
   const container = { innerHTML: "" };
   renderHero(container, 13);
   assert.match(container.innerHTML, /<h1 id="hero-title">Chutes <em>Production Trace<\/em><\/h1>/);
-  const buttons = [...container.innerHTML.matchAll(/<a class="button[^"]*" href="([^"]*)"[^>]*>([^<]*)<\/a>/g)];
+  // A button off the site opens with its mark, which link_marks.test.js checks.
+  const buttons = [...container.innerHTML.matchAll(/<a class="button[^"]*" href="([^"]*)"[^>]*>(?:<svg.*?<\/svg>)?([^<]*)<\/a>/g)];
   assert.deepEqual(buttons.map((match) => [match[2], match[1]]), [
     ["Traffic Explorer", "#traffic"],
     ["Insights", "#insights"],
