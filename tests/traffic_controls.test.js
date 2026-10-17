@@ -9,10 +9,7 @@ import { test } from "node:test";
 
 import { mountTrafficControls, renderControls } from "../site/js/traffic/traffic_controls.js";
 import { familyChoices, modelChoices, NO_FAMILY_MODEL_CHOICES } from "../site/js/traffic/traffic_filter.js";
-import { FakeElement, PAGE_ADDRESS } from "./fake_page.js";
-
-// The choice of everything: every family, every model, every endpoint group, requests, every day.
-const EVERYTHING = Object.freeze({ family: "", model: "", endpoint: "", metric: "", from: "", to: "" });
+import { EVERYTHING, FakeElement, PAGE_ADDRESS, useFakeDocument } from "./fake_page.js";
 
 // The trace's days, as far as the period buttons read them: its first and last, and each quarter's first and last.
 const DAYS = [
@@ -39,12 +36,6 @@ const KIN_MODELS = modelChoices(KIN_ROWS, "Kin");
 // The controls' entries with no family chosen, and what they are mounted with: the families and the trace's days.
 const NO_FAMILY_ENTRIES = { families: FAMILIES, models: NO_FAMILY_MODEL_CHOICES, days: DAYS };
 const MOUNT_ENTRIES = { families: FAMILIES, days: DAYS };
-
-/** Make a stand-in the global document for the test of `context`; node has none of its own. */
-function useFakeDocument(context) {
-  globalThis.document = { createElement: (tag) => new FakeElement(tag) };
-  context.after(() => delete globalThis.document);
-}
 
 /**
  * Make a stand-in the global window for the test of `context`, opened at `query`: `{ replaced, returns, drawn, asked,

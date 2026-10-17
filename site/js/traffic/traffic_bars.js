@@ -48,6 +48,7 @@ const TOKENS_NOTE = " Tokens are summed over the requests that record them.";
  */
 export const METRIC_WORDS = Object.freeze({
   "": Object.freeze({ title: "Requests per day", valueLabel: "Requests", note: "" }),
+  // placeholder: the token metrics' titles and value labels, for the authors.
   input_tokens: Object.freeze({ title: "Input tokens per day", valueLabel: "Input tokens", note: TOKENS_NOTE }),
   output_tokens: Object.freeze({ title: "Output tokens per day", valueLabel: "Output tokens", note: TOKENS_NOTE }),
 });
@@ -61,13 +62,14 @@ const CHART_CAPTIONS = Object.freeze({
   // placeholder: the choice may be the family's other models rather than one model, for the authors.
   endpoints: "each day of the chosen model, or of the family's other models, by endpoint group.",
 });
-// placeholder: the metric, the day range and the token sums, and the stacking by model reworded as the models caption
-// is, for the authors.
+// placeholder: the metric, the day range and the token sums, the stacking by model reworded as the models caption is,
+// and the tiles' percentiles, for the authors.
 const CHART_DEFINITION = "Requests, input tokens or output tokens, as the metric chooses, per calendar day of the "
   + "chosen family, model, endpoint group and days, stacked by family while no family is chosen, by model once one is "
   + "(up to eight of the family's most requested named models, and its other models where it has any), and by the "
   + "endpoint group they were sent to once a model is. Tokens are summed over the requests that record them. A model's "
-  + "family is the artifact's, by its name. An average in the tiles divides by the requests that record its value.";
+  + "family is the artifact's, by its name. An average in the tiles divides by the requests that record its value. The tiles' p50 and p90 are read from the "
+  + "distribution cards' bins, over the trace weeks that hold a chosen day.";
 
 /**
  * The days of `days` (the range's, in order) whose month is written under bars `plotWidth` pixels wide: each that opens

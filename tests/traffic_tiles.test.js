@@ -3,13 +3,7 @@ import { test } from "node:test";
 
 import { trafficSummary } from "../site/js/traffic/traffic_filter.js";
 import { NO_PERCENTILES, renderTiles, tileTexts } from "../site/js/traffic/traffic_tiles.js";
-import { FakeElement } from "./fake_page.js";
-
-/** Make a stand-in the global document for the test of `context`; node has none of its own. */
-function useFakeDocument(context) {
-  globalThis.document = { createElement: (tag) => new FakeElement(tag) };
-  context.after(() => delete globalThis.document);
-}
+import { FakeElement, useFakeDocument } from "./fake_page.js";
 
 // The whole trace's numbers, as the tiles take them.
 const SUMMARY = Object.freeze({

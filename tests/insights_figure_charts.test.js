@@ -24,7 +24,7 @@ import { FIGURE_SECTIONS, topicCards } from "../site/js/explore/figure_sections.
 import { sequentialColour, titledFrame } from "../site/js/shared/charts.js";
 import { SERIES_SLOTS } from "../site/js/theme/colours.js";
 import { SERIES_COLUMN } from "../site/js/shared/series.js";
-import { FakeElement, FakeFigureBody } from "./fake_page.js";
+import { FakeElement, FakeFigureBody, settled, useFakeDocument } from "./fake_page.js";
 
 const HOURS_IN_WINDOW = 31 * 24; // a raster's window: thirty-one days of hours
 // A stand-in for Plot's line mark, returning its name and the arguments it was given.
@@ -38,17 +38,6 @@ function cardOf(figure) {
 // A shipped answer's rows, read from its file as the page reads it over HTTP.
 function shippedAnswer(figure) {
   return JSON.parse(readFileSync(new URL(`../site/data/all/figures/${figure}.json`, import.meta.url), "utf8"));
-}
-
-/** Make a stand-in the global document for the test of `context`; node has none of its own. */
-function useFakeDocument(context) {
-  globalThis.document = { createElement: (tag) => new FakeElement(tag) };
-  context.after(() => delete globalThis.document);
-}
-
-/** Let a click's redraw, which runs after the click returns, settle. */
-function settle() {
-  return new Promise((resolve) => setImmediate(resolve));
 }
 
 test("the requests-per-day card's tooltip at day 120 gives the day with its date and its requests", () => {
@@ -135,7 +124,7 @@ test("hiding DeepSeek R1 in the input-tokens card's legend leaves the other line
   await drawWithLegend(body, figureLegend(card, rows, colours), drawChart, "line");
   const button = body.legendPlace.children.find((entry) => entry.children.includes("DeepSeek R1"));
   button.dispatch("click");
-  await settle();
+  await settled();
   const [before, after] = drawings;
   assert.equal(button.getAttribute("aria-pressed"), "false");
   assert.ok(before.some((point) => point[SERIES_COLUMN] === hiddenSeries));
@@ -242,7 +231,7 @@ test("the routing card's legend lists each policy once, and hiding Sticky hides 
   assert.deepEqual(labels, ["Round-robin", "Load-first", "Cache-first", "Sticky"]);
   const button = body.legendPlace.children.find((entry) => entry.children.includes("Sticky"));
   button.dispatch("click");
-  await settle();
+  await settled();
   const [before, after] = drawings;
   const isSticky = (point) => point[SERIES_COLUMN].endsWith(", Sticky");
   assert.deepEqual(seriesOf(before.filter(isSticky)), ["DeepSeek V3.2, Sticky", "MiniMax M2.5, Sticky"]);

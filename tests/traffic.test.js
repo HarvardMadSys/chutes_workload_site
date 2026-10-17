@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { runTraffic } from "../site/js/traffic/traffic.js";
-import { FakeElement, PAGE_ADDRESS } from "./fake_page.js";
+import { FakeElement, PAGE_ADDRESS, runFrames, settled } from "./fake_page.js";
 
 // The answer files the explorer reads: every family's rows, and the family Kin's by model.
 const FAMILY_FILE = "data/all/explore/daily_by_family.json";
@@ -78,11 +78,6 @@ function fetchedAnswer(rows) {
 function barsState(container) {
   const figure = container.children[1]?.children[1]?.children[0];
   return figure?.children[3]?.children[0]?.className ?? "none";
-}
-
-// Wait until every promise of the explorer that can settle has.
-function settled() {
-  return new Promise((resolve) => setImmediate(resolve));
 }
 
 test("the explorer loads until the URL's family is read; a family that cannot be, shows its error in the chart's place",
@@ -179,13 +174,6 @@ test("a period button stands the sliders on its days and draws them", async (con
 // The value of each tile, in order.
 function tileValues(tiles) {
   return tiles.children.map((tile) => tile.children[0].textContent);
-}
-
-// Run the animation frames asked for, as the browser does before it paints.
-function runFrames(frames) {
-  for (const frame of frames.splice(0)) {
-    frame();
-  }
 }
 
 test("a token metric titles the bars and closes their caption with the token note; the tiles stay the requests'",

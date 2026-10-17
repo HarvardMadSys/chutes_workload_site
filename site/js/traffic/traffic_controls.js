@@ -14,6 +14,7 @@
  * to the URL and the period buttons follow it, and the explorer is not asked to draw it again.
  */
 
+import { textElement } from "../shared/charts.js";
 import {
   endpointChoices, isSameChoice, metricChoices, NO_FAMILY_MODEL_CHOICES, readTrafficChoice, writeTrafficChoice,
 } from "./traffic_filter.js";
@@ -236,14 +237,4 @@ function fillSelect(select, entries, current) {
   }
   select.replaceChildren(...options);
   select.value = current;
-}
-
-// An element of `tagName` with the class `className` (none when "") holding `text`.
-function textElement(tagName, className, text) {
-  const element = document.createElement(tagName);
-  if (className !== "") {
-    element.className = className;
-  }
-  element.textContent = text;
-  return element;
 }

@@ -62,7 +62,7 @@ distributions. A bar SHALL take no click.
 
 #### Scenario: Choosing a model
 - **WHEN** the visitor, with DeepSeek chosen, chooses "deepseek-ai/DeepSeek-V3-0324-TEE"
-- **THEN** the bars SHALL show that model's requests per day split by endpoint group, the tiles its requests, averages and TTFT share, the token cards one line per endpoint group and the time to first token card one per streaming group, the groups that record it, and the URL SHALL read `?family=deepseek&model=<its id>`
+- **THEN** the bars SHALL show that model's requests per day split by endpoint group, the tiles its requests, averages and TTFT share, each distribution card one line per endpoint group whose chosen requests record its value, and the URL SHALL read `?family=deepseek&model=<its id>`
 
 #### Scenario: Choosing a period
 - **WHEN** the visitor presses "Q3 '25"

@@ -5,6 +5,7 @@ import {
   dashedBackground, drawWithLegend, hasLegend, isEverySeriesHidden, legendEntryNames, legendIndexForKey, mountLegend,
   toggledSeries,
 } from "../site/js/explore/legend.js";
+import { settled } from "./fake_page.js";
 
 /**
  * A stand-in for a page element: children, attributes, listeners and, for a figure's body, the place of its legend
@@ -62,11 +63,6 @@ class FakeElement {
 function useFakeDocument(context) {
   globalThis.document = { createElement: (tag) => new FakeElement(tag) };
   context.after(() => delete globalThis.document);
-}
-
-/** Let the clicks' redraws, which run after the click returns, settle. */
-function settle() {
-  return new Promise((resolve) => setImmediate(resolve));
 }
 
 // A legend of two series, as a figure's `legend` function returns one.
@@ -180,9 +176,9 @@ test("a chart with a legend is drawn with nothing hidden, then again with each c
   await drawWithLegend(body, LEGEND, (hidden) => drawnWith.push([...hidden]));
   const legendPlace = body.legendSlot;
   legendPlace.children[0].click();
-  await settle();
+  await settled();
   legendPlace.children[0].click();
-  await settle();
+  await settled();
   assert.deepEqual(drawnWith, [[], ["hermes"], []]);
 });
 
@@ -193,9 +189,9 @@ test("a click on an entry of names hides all of them in one drawing, and a secon
   await drawWithLegend(body, POLICY_LEGEND, (hidden) => drawnWith.push([...hidden].sort()), "line");
   assert.equal(body.legendSlot.children[0].children[0].style.background, "var(--series-3)");
   body.legendSlot.children[0].click();
-  await settle();
+  await settled();
   body.legendSlot.children[0].click();
-  await settle();
+  await settled();
   assert.deepEqual(drawnWith, [[], ["A, Sticky", "B, Sticky"], []]);
 });
 
@@ -207,7 +203,7 @@ test("a chart whose every series is hidden shows a note instead of being drawn",
   const legendPlace = body.legendSlot;
   legendPlace.children[0].click();
   legendPlace.children[1].click();
-  await settle();
+  await settled();
   assert.equal(draws, 2); // the first drawing and the one with hermes hidden
   assert.equal(body.children[0].className, "note");
 });
@@ -217,7 +213,7 @@ test("a new drawing of the chart starts with every series shown", async (context
   const earlierBody = new FakeElement("div");
   await drawWithLegend(earlierBody, LEGEND, () => undefined);
   earlierBody.legendSlot.children[0].click();
-  await settle();
+  await settled();
   const drawnWith = [];
   const body = new FakeElement("div");
   await drawWithLegend(body, LEGEND, (hidden) => drawnWith.push([...hidden]));
@@ -250,7 +246,7 @@ test("a drawing after a click that fails shows its error in the chart's place", 
   }
   await drawWithLegend(body, LEGEND, drawChart);
   body.legendSlot.children[0].click();
-  await settle();
+  await settled();
   assert.equal(body.children[0].className, "note is-error");
   assert.equal(body.children[0].textContent, "the chart could not be drawn");
 });

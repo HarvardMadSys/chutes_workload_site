@@ -2,18 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { drawShownSeries, drawWithLegend } from "../site/js/explore/legend.js";
-import { FakeElement, FakeFigureBody } from "./fake_page.js";
-
-/** Make a stand-in the global document for the test of `context`; node has none of its own. */
-function useFakeDocument(context) {
-  globalThis.document = { createElement: (tag) => new FakeElement(tag) };
-  context.after(() => delete globalThis.document);
-}
-
-// Wait until every promise a click started has settled.
-function settle() {
-  return new Promise((resolve) => setImmediate(resolve));
-}
+import { FakeElement, FakeFigureBody, settled, useFakeDocument } from "./fake_page.js";
 
 // A legend of two series, as the Traffic Explorer's bars give one.
 const LEGEND = {
@@ -34,9 +23,9 @@ test("a chart may start from a hidden set, its buttons not pressed, and tell eac
   await drawWithLegend(body, LEGEND, (hidden) => drawnWith.push([...hidden]), "square", shared);
   assert.deepEqual(pressedStates(body), ["true", "false"]);
   body.legendPlace.children[0].dispatch("click");
-  await settle();
+  await settled();
   body.legendPlace.children[1].dispatch("click");
-  await settle();
+  await settled();
   assert.deepEqual(drawnWith, [["pi"], ["hermes"]], "every series hidden shows the note, not the chart");
   assert.deepEqual(told, [["pi", "hermes"], ["hermes"]], "the set is told after each click, every series hidden too");
   assert.deepEqual(pressedStates(body), ["false", "true"]);

@@ -5,7 +5,9 @@ import { followHistory, placeTopic } from "../site/js/explore/start.js";
 import { mountTopicTabs } from "../site/js/explore/topic_tabs.js";
 import { mountTrafficControls } from "../site/js/traffic/traffic_controls.js";
 import { familyChoices, modelChoices } from "../site/js/traffic/traffic_filter.js";
-import { FakeElement, FakeHistory, PAGE_ADDRESS, shownIds, TOPIC_ANCHORS, topicSections } from "./fake_page.js";
+import {
+  FakeElement, FakeHistory, PAGE_ADDRESS, settled, shownIds, TOPIC_ANCHORS, topicSections,
+} from "./fake_page.js";
 
 // Two families, Qwen and Other, as the family drop-down offers them.
 const FAMILIES = familyChoices([
@@ -80,11 +82,6 @@ async function choose(page, index, value) {
   page.field(index).value = value;
   page.field(index).dispatch("change");
   await settled();
-}
-
-// Wait until every promise of the page that can settle has, as reading a family's models and following the history do.
-function settled() {
-  return new Promise((resolve) => setImmediate(resolve));
 }
 
 test("Back after a tab and a family shows the earlier entry's choice and topic; Forward the later's", async (context) => {

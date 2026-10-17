@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
@@ -53,6 +54,10 @@ test("the histogram rows of a choice are those of its model and endpoint group i
 });
 
 // The trace's first and last day.
+// The shipped histogram answer by family: the first day of each trace week it holds.
+const HISTOGRAM_ANSWER = new URL("../site/data/all/explore/histograms_by_family.json", import.meta.url);
+const WEEK_FIRST_DAYS = [...new Set(JSON.parse(readFileSync(HISTOGRAM_ANSWER, "utf8")).map((row) => row.first_day))];
+
 const TRACE_FIRST_DAY = "2025-04-11";
 const TRACE_LAST_DAY = "2026-04-12";
 
@@ -147,4 +152,12 @@ test("a percentile is written near, to two significant figures, and a missing on
   assert.equal(percentileText(binMiddle(40)), "≈1,100");
   assert.equal(percentileText(0.8374, formatSignificantSeconds), "≈0.84 s");
   assert.equal(percentileText(null), "—");
+});
+
+test("the week of each first day the shipped answer holds is the week the covered days start from", () => {
+  assert.ok(WEEK_FIRST_DAYS.length > 1);
+  for (const firstDay of WEEK_FIRST_DAYS) {
+    const covered = coveredDays({ from: firstDay, to: firstDay }, TRACE_FIRST_DAY, TRACE_LAST_DAY);
+    assert.equal(covered.firstDay, firstDay);
+  }
 });

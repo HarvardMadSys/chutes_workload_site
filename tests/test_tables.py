@@ -17,7 +17,6 @@ import fixture_artifact
 from repository_root import ROOT
 from site_data import answers, loading, paths, site_database, tables
 
-TABLES_FOLDER = ROOT / "tables"  # the tracked trace table and its sidecar, as make tables wrote them
 # Each metric of the trace table and the daily rollup's column counting the requests that recorded it.
 COUNTED_COLUMNS = {"input_tokens": "input_counted", "output_tokens": "output_counted", "ttft": "ttft_counted"}
 TRACE_EPOCH = pandas.Timestamp("1970-01-01")  # the trace's first day, from which its weeks count
@@ -158,26 +157,26 @@ def test_a_missing_trace_stops_naming_it_before_writing(artifact: pathlib.Path, 
 
 def test_the_trace_table_is_tracked(tracked_files: set[str]) -> None:
     for name in [paths.TRACE_TABLE_FILE, paths.TRACE_TABLE_SIDECAR_FILE]:
-        path = (TABLES_FOLDER / name).relative_to(ROOT).as_posix()
+        path = (loading.TABLES_FOLDER / name).relative_to(ROOT).as_posix()
         assert path in tracked_files, f"{path} is not tracked; run make tables and commit it"
 
 
 def test_the_tracked_table_comes_from_its_query_s_current_text() -> None:
-    sidecar = json.loads((TABLES_FOLDER / paths.TRACE_TABLE_SIDECAR_FILE).read_text())
+    sidecar = json.loads((loading.TABLES_FOLDER / paths.TRACE_TABLE_SIDECAR_FILE).read_text())
     query_hash = answers.query_text_hash(site_database.QUERIES_FOLDER, tables.QUERY)
     assert sidecar["query"] == query_hash, f"{tables.QUERY} was edited since the trace table was built; run make tables"
 
 
 def test_the_tracked_table_holds_the_rows_its_sidecar_counts() -> None:
-    sidecar = json.loads((TABLES_FOLDER / paths.TRACE_TABLE_SIDECAR_FILE).read_text())
-    assert pyarrow.parquet.read_metadata(TABLES_FOLDER / paths.TRACE_TABLE_FILE).num_rows == sidecar["rows"]
+    sidecar = json.loads((loading.TABLES_FOLDER / paths.TRACE_TABLE_SIDECAR_FILE).read_text())
+    assert pyarrow.parquet.read_metadata(loading.TABLES_FOLDER / paths.TRACE_TABLE_FILE).num_rows == sidecar["rows"]
 
 
 def test_the_tracked_table_agrees_with_the_artifact_s_rollup(artifact_checkout: pathlib.Path) -> None:
     """Each week's requests per family, kept model and endpoint group, metric by metric, are the daily rollup's
     counted requests over the week's days: the query's family rule places every model where the artifact's does, and
     keeps the chute ids the rollup keeps."""
-    table = pyarrow.parquet.read_table(TABLES_FOLDER / paths.TRACE_TABLE_FILE).to_pandas()
+    table = pyarrow.parquet.read_table(loading.TABLES_FOLDER / paths.TRACE_TABLE_FILE).to_pandas()
     rollup = rollup_counted_by_week(loading.load_artifact(artifact_checkout).daily_rollup)
     requests = table_requests_by_week(table)
     differing = []

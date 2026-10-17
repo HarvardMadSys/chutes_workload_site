@@ -103,3 +103,14 @@ test("a card draws the lines of the series the bars' legend lists, none of a ser
     const drawn = await drawDistributionCards(places, { rows, covered: COVERED, series: FAMILIES, legend }, new Set());
     assert.deepEqual(drawn.charts[2].rows.map((row) => row.series), ["Kin"]);
   });
+
+test("a card shows the no-value note where every series with a line is hidden and the others record no value",
+  async (context) => {
+    useFakeDocument(context);
+    const places = placeDistributionCards(new FakeElement("div"));
+    const rows = [{ week: 0, first_day: "2025-04-11", family: "Kin", metric: "ttft", bins: [0], requests: [3] }];
+    const distributions = { rows, covered: COVERED, series: FAMILIES, legend: LEGEND };
+    const drawn = await drawDistributionCards(places, distributions, new Set(["Kin"]));
+    const notes = drawn.charts.map((chart) => chart.body.children[0].textContent);
+    assert.deepEqual(notes, Array(3).fill("None of the chosen requests records this value."));
+  });

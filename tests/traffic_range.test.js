@@ -6,7 +6,7 @@ import {
   clippedFrom, clippedRange, clippedTo, mountRange, PERIODS, periodRange, pressedPeriod, pushedIndices,
   rangeOfIndices, sliderIndices,
 } from "../site/js/traffic/traffic_range.js";
-import { FakeElement } from "./fake_page.js";
+import { FakeElement, runFrames } from "./fake_page.js";
 
 // The shipped daily answer by family, and the trace's days, its days in order.
 const FAMILY_ANSWER = new URL("../site/data/all/explore/daily_by_family.json", import.meta.url);
@@ -114,13 +114,6 @@ function mountSliders(context, choice) {
 function sliderParts(field) {
   const [label, input, day] = field.children;
   return { label, input, day };
-}
-
-// Run the animation frames asked for, as the browser does before it paints.
-function runFrames(frames) {
-  for (const frame of frames.splice(0)) {
-    frame();
-  }
 }
 
 test("the two sliders run over the days' indices, each named and writing its day for all to read", (context) => {

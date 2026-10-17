@@ -20,6 +20,7 @@ import { drawShownSeries, hasLegend } from "../explore/legend.js";
 import { binTotals, cdfRows, metricBins, requestTotal } from "./traffic_distributions.js";
 
 // The y axis of every card: the share of the chosen requests at or below a value, in percent.
+// placeholder: its label, for the authors.
 const SHARE_OF_REQUESTS = Object.freeze({ label: "Share of requests" });
 
 // A TTFT tick of at least a minute is written in seconds, "100 s": a power of ten of seconds is no whole count of
@@ -46,6 +47,7 @@ export const DISTRIBUTION_CARDS = Object.freeze([
       + "record it, over the trace weeks that hold a chosen day. The tokens are counted in bins a quarter of a "
       + "doubling wide, so the tiles' p50 and p90 are within about 9%.",
     x: Object.freeze({ label: "Input tokens", log: true, tickFormat: formatCountTick }),
+    // placeholder: the tooltip's name for the value, for the authors.
     valueLabel: "Input tokens",
     valueFormat: formatWholeCount,
   }),
@@ -57,6 +59,7 @@ export const DISTRIBUTION_CARDS = Object.freeze([
       + "that record it, over the trace weeks that hold a chosen day. The tokens are counted in bins a quarter of a "
       + "doubling wide, so the tiles' p50 and p90 are within about 9%.",
     x: Object.freeze({ label: "Output tokens", log: true, tickFormat: formatCountTick }),
+    // placeholder: the tooltip's name for the value, for the authors.
     valueLabel: "Output tokens",
     valueFormat: formatWholeCount,
   }),
@@ -68,6 +71,7 @@ export const DISTRIBUTION_CARDS = Object.freeze([
       + "it, over the trace weeks that hold a chosen day. The times are counted in bins a quarter of a doubling wide, "
       + "so the tiles' p50 and p90 are within about 9%.",
     x: Object.freeze({ label: "Time to first token", log: true, tickFormat: formatTtftTick }),
+    // placeholder: the tooltip's name for the value, for the authors.
     valueLabel: "TTFT",
     valueFormat: formatSignificantSeconds,
   }),
@@ -158,7 +162,7 @@ export async function drawDistributionCurves(drawn, hidden) {
   const hiddenHere = hasLegend(drawn.legend.series) ? hidden : new Set();
   const drawings = [];
   for (const chart of drawn.charts) {
-    const drawing = drawShownSeries(chart.body, drawn.legend, hiddenHere, (hidden) => drawCurves(chart, drawn, hidden));
+    const drawing = drawShownSeries(chart.body, drawn.legend, hiddenHere, (shownHidden) => drawCurves(chart, drawn, shownHidden));
     // No one awaits a legend's press, so a chart that fails shows its error in its own place.
     drawings.push(drawing.catch((error) => showError(chart.body, error)));
   }
@@ -175,7 +179,8 @@ function listedRows(rows, legend) {
 // Draw `chart`'s CDF rows, one line per series not in `hidden`, in `drawn`'s legend colours, and name the chart; a
 // note where the choice keeps no request that records the card's value.
 async function drawCurves(chart, drawn, hidden) {
-  if (chart.rows.length === 0) {
+  const shownRows = chart.rows.filter((row) => !hidden.has(row.series));
+  if (shownRows.length === 0) {
     showNote(chart.body, NO_RECORDED_VALUE_NOTE);
     return;
   }

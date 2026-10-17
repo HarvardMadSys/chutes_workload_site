@@ -289,7 +289,7 @@ make test
 
 `make data` checks that every file it reads is there before it writes
 anything. It writes the answers (one file per query, and one file per
-family for the query that takes a family), `site/data/all/queries.json`
+family for each of the two queries that take a family), `site/data/all/queries.json`
 (the hash of the text of each query the answers depend on, which `make
 test` compares with the queries, so that an answer older than its query
 fails),

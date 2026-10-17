@@ -136,7 +136,9 @@ query. The check: with `ARTIFACT` set, a test sums the table's requests
 per week, family, kept model (or the family's rest) and endpoint group
 for each metric and compares them with the daily rollup's
 `input_counted`, `output_counted` and `ttft_counted` summed over the
-week's days; a model placed in another family by either rule fails it.
+week's days; a model placed in another family by either rule fails it. The endpoint
+grouping and the start-time filter are also restated in the trace query,
+and the same comparison holds them.
 The fixture trace makes the same check over a few rows without the
 artifact, and a test over the tracked answers alone checks that the
 by-family histogram answer's requests per family and metric equal

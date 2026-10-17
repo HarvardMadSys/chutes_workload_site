@@ -18,6 +18,27 @@ export const TOPIC_TITLES = Object.freeze([
 /** The address the fake page is opened at, before its query and anchor. */
 export const PAGE_ADDRESS = "http://localhost/index.html";
 
+/** The Traffic Explorer's choice of everything: every family, every model, every endpoint group, requests, every day. */
+export const EVERYTHING = Object.freeze({ family: "", model: "", endpoint: "", metric: "", from: "", to: "" });
+
+/** Make a stand-in the global document for the test of `context`; node has none of its own. */
+export function useFakeDocument(context) {
+  globalThis.document = { createElement: (tag) => new FakeElement(tag) };
+  context.after(() => delete globalThis.document);
+}
+
+/** Wait until every promise a click or a draw started, and that can settle, has: a redraw runs after its click returns. */
+export function settled() {
+  return new Promise((resolve) => setImmediate(resolve));
+}
+
+/** Run the animation frames asked for, as the browser does before it paints. */
+export function runFrames(frames) {
+  for (const frame of frames.splice(0)) {
+    frame();
+  }
+}
+
 /**
  * A stand-in for an element of the page, or for the window: its tag, id, attributes, classes, inline style, listeners,
  * children, text and value, and what the page's modules set on it.
