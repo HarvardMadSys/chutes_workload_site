@@ -343,7 +343,7 @@ table and the card's words.
   constants of its module.
 
 **The chart kinds** (`js/charts/`), nine modules, one per shape: the
-Overview's and the Traffic Explorer's `stacked_bars` and `donut`, and the
+Overview's `donut` and the Traffic Explorer's `stacked_bars`, and the
 figures' `lines` (a CDF among them), `bands`, `cells`, `raster`, `scatter`,
 `boxes` and `bars`, the stacked bars drawing the two monthly shares too.
 These nine chart modules are not quite a card's nine kinds: `CHART_KINDS`
@@ -454,14 +454,14 @@ Insights' figures are drawn from their plot-ready tables.
   `shared/charts.js`.
 - **Axis text.** A linear axis asks Plot for `TICK_COUNT` ticks
   (`axes/ticks.js`), which gives at most six or seven. The exception is an
-  axis of months: the Traffic Explorer's at the first day of each month it shows (and of a
-  quarter that starts mid-month), every other month for the whole trace
-  on a plot narrower than `NARROW_PLOT_WIDTH`; their labels are slanted
-  so that thirteen fit a card. A figure's axes are the paper's: its
-  titles, its log scales, ticked at the powers of ten (every second or
-  more past `MAX_LOG_TICKS`), its limits, and its ticks where the card
-  gives them, so that a phone's axis does not run its labels together.
-  One format per
+  axis of months: the Traffic Explorer's is ticked at the first day of
+  each month it shows (and of a quarter that starts mid-month), every
+  other month for the whole trace on a plot narrower than
+  `NARROW_PLOT_WIDTH`; their labels are slanted so that thirteen fit a
+  card. A figure's axes are the paper's: its titles, its log scales,
+  ticked at the powers of ten (every second or more past
+  `MAX_LOG_TICKS`), its limits, and its ticks where the card gives them,
+  so that a phone's axis does not run its labels together. One format per
   quantity: an axis's counts as "1k", "600M" (`formatCountTick`); a value
   in a legend, a tooltip, a tile or the stats strip with one decimal kept
   ("129.1k", "94.0%", "4.3 s", and three figures in billions, "2.04B"),

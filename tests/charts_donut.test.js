@@ -42,11 +42,11 @@ test("the centre names what its total counts, and says so once a slice is hidden
   assert.equal(centreUnit("users", 2), "shown users");
 });
 
-test("the endpoint donut sums each endpoint group's requests over the months", () => {
+test("the endpoint donut a donut sums a name's rows into one slice", () => {
   const rows = [
-    { month: "2025-04", endpoint: "chat", requests: 3 },
-    { month: "2025-05", endpoint: "chat", requests: 4 },
-    { month: "2025-05", endpoint: "completion", requests: 2 },
+    { day: 1, endpoint: "chat", requests: 3 },
+    { day: 2, endpoint: "chat", requests: 4 },
+    { day: 2, endpoint: "completion", requests: 2 },
   ];
   assert.deepEqual(donutSlices(rows, "endpoint", "requests", ["chat", "completion"]), [
     { name: "chat", count: 7 },

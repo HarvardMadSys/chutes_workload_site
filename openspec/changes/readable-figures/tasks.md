@@ -5,7 +5,7 @@ where a task changes what is drawn, the diff reviewed.
 
 ## 1. Lines, frames, axes and formats (shared)
 
-- [ ] 1.1 `shared/charts.js` `height`; `axes/ticks.js` `tipFormat`;
+- [x] 1.1 `shared/charts.js` `height`; `axes/ticks.js` `tipFormat`;
       `charts/lines.js`: CDFs linear with `Plot.pointer`, `tipAllSeries`,
       a panel's `series`; `shared/format.js`: `formatSignificant`,
       `formatDurationTick`, `formatHoursTick`, `formatTraceDay` and

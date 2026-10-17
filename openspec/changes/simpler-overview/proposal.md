@@ -21,8 +21,8 @@ should point to.
 - **A card's Definition is prose alone.** The control opens on the
   definition and nothing else: no link to the plot-ready table, no link
   to the artifact's README. A definition is a short description of what
-  the figure shows; one that names a cut-off or a count (a minimum
-  number of requests, a bin width) is shortened to the description.
+  the figure shows; one that names a cut-off used to pick its rows
+  or a bin width is shortened to the description.
 - **A see-also line.** The Cite section names, after its citation line,
   the blog post "A Year of LLM Traffic, in a Browser Tab", which
   explores the same trace interactively, with a link.
@@ -31,8 +31,8 @@ should point to.
 
 - Three Overview charts, three queries, their three answers (the
   trends), the `top_models` setup table and the monthly cache the site
-  no longer reads go; the model colours, which only they used, go with
-  them. The page requests three answers fewer.
+  no longer reads go; the model colours stay, as the Traffic Explorer
+  colours a family's models by them. The page requests three answers fewer.
 - The Definition control loses its two links; the snapshot test, which
   read a card's figure name from the plot-ready link, reads it from the
   card's own attribute instead.

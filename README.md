@@ -102,11 +102,11 @@ of time; the browser runs no query, it fetches the answers and draws them.
   requests, Other last.
 - **Trace months.** The caches count days from the trace's first request,
   written as 1970-01-01, so a cache's month is a month-long stretch of
-  days from the trace's first day, not a calendar month. The site labels
-  each trace month with the calendar month its first day falls in, from
-  the trace's start, 2025-04-11, one constant in `site_data/months.py`:
-  the thirteen bars read `2025-04` to `2026-04`, and the thirteenth holds
-  the trace's last two days.
+  days from the trace's first day, not a calendar month. The site turns
+  each trace day into its calendar day from the trace's start,
+  2025-04-11, one constant in `site_data/months.py`, for the daily
+  answers. The hero and the footer count the thirteen trace months from
+  `trace_totals`; no chart draws a bar per trace month or labels one.
 - **The Traffic Explorer** filters and sums the `daily_by_family` answer,
   and a family's `daily_by_model` answer once the family is chosen, in
   the browser. The first holds one row per calendar day, family and

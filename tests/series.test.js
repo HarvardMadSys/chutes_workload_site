@@ -9,12 +9,12 @@ import {
 import { assignColours, FAMILY_SLOTS, OTHER_SERIES, SERIES_SLOTS } from "../site/js/theme/colours.js";
 import { endpointColours, familyColours, modelColours } from "../site/js/theme/colours.js";
 
-// Two models' rows, two months each.
+// Two models' rows, two days each.
 const ROWS = [
-  { model: "qwen3", calendar_month: "2025-04", requests: 3 },
-  { model: "qwen3", calendar_month: "2025-05", requests: 40 },
-  { model: "glm-5", calendar_month: "2025-04", requests: 7 },
-  { model: "glm-5", calendar_month: "2025-05", requests: 12 },
+  { model: "qwen3", day: 1, requests: 3 },
+  { model: "qwen3", day: 2, requests: 40 },
+  { model: "glm-5", day: 1, requests: 7 },
+  { model: "glm-5", day: 2, requests: 12 },
 ];
 
 test("a long-format figure keeps the rows of the series not hidden, in their order", () => {

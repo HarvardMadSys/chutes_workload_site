@@ -6,15 +6,16 @@ context: |
   one-year Chutes production LLM-serving trace of the paper "A Year in LLM
   Serving: Workload Evolution, Caching and Load-Balancing". It has the
   layout and look of the FreeInference agentic trace site: a hero with a
-  stats strip, an Overview of mixes and trends, an explorer table, the
-  paper's figures in six topic tabs, Cite and Team. The paper's figures are
-  shown as the paper's own images, rendered from the artifact repository's
-  PDFs; the Overview, the stats and the explorer are drawn from small JSON
-  answers that a Python step computes from the artifact's committed query
-  caches. The 91 GB trace is never read. There is no server, no database
-  in the browser and no front-end build step. The artifact repository
-  (chutes_workload) owns every definition; this site reads its caches and
-  only filters, counts and draws.
+  stats strip, an Overview of two mixes (by family and by endpoint), a
+  Traffic Explorer of requests per day by family and model, the Insights'
+  figure cards in six topic tabs, Cite and Team. Every chart is drawn in
+  the browser by Observable Plot from small JSON answers: the Overview,
+  the stats and the explorer from answers a Python step computes from the
+  artifact's committed query caches, the Insights' cards from the
+  artifact's plot-ready figure answers. The 91 GB trace is never read.
+  There is no server, no database in the browser and no front-end build
+  step. The artifact repository (chutes_workload) owns every definition;
+  this site reads its caches and only filters, counts and draws.
 
   Engineering rules (binding; see openspec/specs/site):
   - It MUST NOT be complicated. Simple, readable and maintainable first.

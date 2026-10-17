@@ -26,9 +26,9 @@ test("the two donuts are the family mix and the endpoint mix", () => {
 
 test("the family mix's legend is the families in the family colours, in the answer's order, Other last", () => {
   const rows = [
-    { family: "DeepSeek", family_slug: "deepseek", requests: 50 },
-    { family: "Qwen", family_slug: "qwen", requests: 20 },
-    { family: "Other", family_slug: "other", requests: 30 },
+    { family: "DeepSeek", requests: 50 },
+    { family: "Qwen", requests: 20 },
+    { family: "Other", requests: 30 },
   ];
   const legend = mixLegend(MIXES[0], rows);
   assert.deepEqual(legend.series, [
