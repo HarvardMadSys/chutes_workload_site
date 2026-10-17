@@ -27,8 +27,8 @@ const MEDIAN_WIDTH = 2; // pixels; the median's tick, thicker than the whiskers
  * Draw `rows` into `body`, one box per series of `colours.series` (a Map from series name to colour, in legend order)
  * the rows hold, leaving out the series in `hidden`, and return the chart. Its named parameters:
  * - `x`: the box axis's options `{ label, tickRotate }`, `tickRotate` slanting the series' names.
- * - `y`: the card's axis options `{ label, log, domain, ticks, tickFormat }`; on a log y axis, a box with a statistic
- *   at or below zero is not drawn.
+ * - `y`: the card's axis options (`axes/ticks.js`); on a log y axis, a box with a statistic at or below zero is not
+ *   drawn.
  * - `labels`: each series' label on the axis and in the tooltip where it is written otherwise than its name.
  * - `valueLabel`: what a value is, the tooltip's heading; `valueFormat`: how a statistic is written there.
  * - `margins`: Plot margins in place of the frame's.

@@ -18,8 +18,8 @@ const CDF_COLUMN = "cdf"; // the column of a CDF answer holding the share at or 
 /**
  * Draw `rows` into `body`, one line per series of `colours.series` (a Map from series name to colour, in legend order)
  * the rows hold, leaving out the series in `hidden`, and return the chart. Its named parameters:
- * - `x`, `y`: the card's axis options `{ label, log, domain, ticks, tickFormat }`; a row with a value at or below zero
- *   on a log axis is not drawn, and a line is cut at a given domain's ends.
+ * - `x`, `y`: the card's axis options (`axes/ticks.js`); a row with a value at or below zero on a log axis is not
+ *   drawn, and a line is cut at a given domain's ends.
  * - `cdf`: true for a CDF answer, its `cdf` column drawn as y from 0 to 1, the axis in percent; its tooltip names the
  *   point nearest the pointer in x and y (`Plot.pointer`), another chart's the point nearest in x (`Plot.pointerX`).
  * - `series`: the names of the series drawn, a list, such as a panel's own (`chartParameters` of
@@ -153,8 +153,8 @@ export function allSeriesTips(points, parameters) {
 }
 
 /**
- * The tooltip at `x` of a chart that lists every series there: `x` as the x axis writes it, after its title, then one
- * line per point of `points` (the points at `x`), highest value first, its series' label (from `labels` where it has
+ * The tooltip at `x` of a chart that lists every series there: `x` as `axisValueText` writes it, then one line per
+ * point of `points` (the points at `x`), highest value first, its series' label (from `labels` where it has
  * one there) and its value: "Cache size: 315.4k", "Belady 0.923", "LRU 0.871".
  */
 export function allSeriesTipText(x, points, { x: xAxis = {}, valueFormat, labels = {} }) {
@@ -203,7 +203,7 @@ export function drawnSeries(points, colours) {
 
 /**
  * A point's tooltip, three lines: its series' label (from `labels` where it has one there, else its name), then its x
- * as the x axis writes it, after the axis's title, and its value, "Requests: 4.9M"; for a CDF, its value and the share
+ * as `axisValueText` writes it, and its value, "Requests: 4.9M"; for a CDF, its value and the share
  * at or below it, "Input tokens: 1.2k", "45.0% at or below".
  */
 export function lineTipText(row, { x: xAxis = {}, cdf = false, valueLabel, valueFormat, labels = {} }) {

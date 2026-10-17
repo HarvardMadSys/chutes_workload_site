@@ -19,8 +19,8 @@ const CATEGORY_CENTRE = 0.5; // a category's tick sits halfway between its cell'
 /**
  * Draw `rows` into `body` as one rectangle per row, filled by its value, and return the chart. It has no series:
  * `colours` and `hidden` are not read. Its named parameters:
- * - `x`, `y`: the card's axis options `{ label, log, domain, ticks, tickFormat }`; on a log axis, a cell with an edge
- *   at or below zero is not drawn.
+ * - `x`, `y`: the card's axis options (`axes/ticks.js`); on a log axis, a cell with an edge at or below zero is not
+ *   drawn.
  * - `xTicks`, `yTicks`: an axis's category names, in place of its ticks and their format, the cell from i to i + 1
  *   named by the i-th, "Mon"; every category is labelled, or, where the axis gives `ticks`, those of its indices.
  * - `scheme`: the colour scheme, "YlOrRd" when not given; `schemeStart`: the point of it, from 0 to 1, the lowest

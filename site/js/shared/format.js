@@ -23,6 +23,7 @@ const TWO_DECIMALS_BELOW = 0.1; // a duration under a tenth of a second keeps tw
 
 const MINUTES_PER_HOUR = 60; // how a time in minutes is split into hours and minutes
 const MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR; // how a trace day's fraction is read as a time of day
+// The units a duration is converted between.
 const MILLISECONDS_PER_SECOND = 1000;
 const SECONDS_PER_MINUTE = 60;
 const SECONDS_PER_HOUR = 3600;
@@ -136,6 +137,11 @@ export function formatSignificant(value) {
   return value.toLocaleString("en-US", { maximumSignificantDigits: 2 });
 }
 
+/** The calendar date of the whole trace day `day`, counted from `TRACE_FIRST_DAY` as day 0: 0 → "Apr 11, 2025". */
+export function formatTraceDate(day) {
+  return calendarDate(day * MINUTES_PER_DAY);
+}
+
 /**
  * A day of the trace, counted from `TRACE_FIRST_DAY` as day 0, with its calendar date: 150 → "Day 150 · Sep 8, 2025".
  * A day with a fraction, an hour's start, also gives its time of day in UTC, to the minute: 305.875 → "Day 305 · Feb
@@ -145,8 +151,7 @@ export function formatTraceDay(day) {
   const minutes = Math.round(day * MINUTES_PER_DAY);
   const wholeDay = Math.floor(minutes / MINUTES_PER_DAY);
   const minuteOfDay = minutes - wholeDay * MINUTES_PER_DAY;
-  const date = new Date(Date.parse(`${TRACE_FIRST_DAY}T00:00:00Z`) + minutes * MILLISECONDS_PER_MINUTE);
-  const dateText = date.toLocaleDateString("en-US", SHORT_DATE);
+  const dateText = calendarDate(minutes);
   if (minuteOfDay === 0) {
     return `Day ${wholeDay} · ${dateText}`;
   }
@@ -190,6 +195,12 @@ function longDate(day, withYear) {
   const date = new Date(`${day}T00:00:00Z`);
   const parts = { month: "long", day: "numeric", timeZone: "UTC" };
   return date.toLocaleDateString("en-US", withYear ? { ...parts, year: "numeric" } : parts);
+}
+
+// The calendar date, as "Sep 8, 2025", of the moment `minutes` minutes after the start of `TRACE_FIRST_DAY`.
+function calendarDate(minutes) {
+  const date = new Date(Date.parse(`${TRACE_FIRST_DAY}T00:00:00Z`) + minutes * MILLISECONDS_PER_MINUTE);
+  return date.toLocaleDateString("en-US", SHORT_DATE);
 }
 
 function oneDecimal(value) {

@@ -17,8 +17,7 @@ const DOT_OPACITY = 0.7; // a dot's fill opacity, so that dots lying on one anot
 /**
  * Draw `rows` into `body` as one dot per row, and return the chart. It has no series: `colours` and `hidden` are not
  * read. Its named parameters:
- * - `x`, `y`: the card's axis options `{ label, log, domain, ticks, tickFormat }`; on a log axis, a point at or below
- *   zero is not drawn.
+ * - `x`, `y`: the card's axis options (`axes/ticks.js`); on a log axis, a point at or below zero is not drawn.
  * - `scheme`: the diverging colour scheme, "RdBu" when not given; `colourDomain`: the values at its two ends, as
  *   `[-1, 1]`, else the values' own, centred on zero.
  * - `yReference`: a y value at which a dashed horizontal rule is drawn under the dots (`referenceRule` of

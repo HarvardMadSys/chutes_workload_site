@@ -362,15 +362,14 @@ decides; its pure functions (the rows drawn, the tooltip's text, a scale's
 options) are exported and tested in `tests/charts_<kind>.test.js`. A kind
 imports only from `shared/`, `axes/` and `theme/`. A kind takes only
 parameters two or more charts use, or a frame or axis setting (the bars'
-`margins`, `inset` and `xTickRotate`, the lines' `gap`). Every kind takes
-`height`, the chart's height in pixels, `CHART_HEIGHT` (240) when not
-given (`titledFrame` of `shared/charts.js`); the two cards of a grid row
-take the same height, so the row stays level. Every Plot kind
-but the raster has a tooltip, written by the kind's `…TipText` function,
-its x after the x axis's title (`axisValueText` of `axes/ticks.js`), or
-written by the axis's `tipFormat` alone where it gives one (a trace day
-with its date); the
-donut's slices carry their tooltip as an SVG `<title>` each. The lines
+`margins`, `inset` and `xTickRotate`, the lines' `gap`). Every Plot kind
+takes `height`, the chart's height in pixels, `CHART_HEIGHT` (240) when
+not given (`titledFrame` of `shared/charts.js`); the two cards of a grid
+row take the same height, so the row stays level. Every Plot kind but the
+raster has a tooltip, written by the kind's `…TipText` function, its x
+after the x axis's title (`axisValueText` of `axes/ticks.js`), or written
+by the axis's `tipFormat` alone where it gives one (a trace day with its
+date); the donut's slices carry their tooltip as an SVG `<title>` each. The lines
 kind joins a CDF's points with straight lines, its tooltip naming the
 point nearest the pointer in x and y; with `tipAllSeries` its tooltip
 lists every drawn series' value at the hovered x, highest first, and with

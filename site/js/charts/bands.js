@@ -35,8 +35,8 @@ const KEY_ENTRIES = Object.freeze([
  * Draw `rows` into `body` as the two bands and the median line, in the colour `parameters.colour` (a colour token,
  * the first series colour when not given), and return the chart. It has no series: `colours` and `hidden` are not
  * read. Its named parameters:
- * - `x`, `y`: the card's axis options `{ label, log, domain, ticks, tickFormat }`; on a log y axis, an x whose
- *   percentiles are not all above zero is not drawn.
+ * - `x`, `y`: the card's axis options (`axes/ticks.js`); on a log y axis, an x whose percentiles are not all above
+ *   zero is not drawn.
  * - `valueLabel`: what a value is, the tooltip's heading under the x; `valueFormat`: how a percentile is written there.
  * - `margins`: Plot margins in place of the frame's.
  * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `shared/charts.js`).

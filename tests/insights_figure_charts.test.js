@@ -23,6 +23,7 @@ import {
 } from "../site/js/insights/figure_card.js";
 import { FIGURE_SECTIONS } from "../site/js/insights/figure_sections.js";
 import { sequentialColour } from "../site/js/shared/charts.js";
+import { TRACE_FIRST_DAY } from "../site/js/shared/format.js";
 import { SERIES_SLOTS } from "../site/js/theme/colours.js";
 import { SERIES_COLUMN } from "../site/js/shared/series.js";
 import { FakeElement, FakeFigureBody } from "./fake_page.js";
@@ -221,4 +222,19 @@ test("the two user zooms have no legend: each of their panels holds one series, 
   const routing = cardOf("fig_routing_tradeoff");
   const rows = shippedAnswer(routing.figure);
   assert.equal(figureLegend(routing, rows, cardColours(routing, rows, null)).series.length, 8);
+});
+
+test("the trace's month names are the calendar months their first days fall in, counted from its first day", () => {
+  // As `site_data/months.py` counts them: trace month m starts as many days after the trace's first day as the
+  // m-th month of 1970 (1971 from the thirteenth) starts after 1970-01-01.
+  const firstDay = Date.parse(`${TRACE_FIRST_DAY}T00:00:00Z`);
+  const derived = [];
+  for (let month = 1; month <= TRACE_MONTHS; month += 1) {
+    const monthStart = Date.UTC(1970, month - 1, 1);
+    const calendarDay = new Date(firstDay + monthStart);
+    const name = calendarDay.toLocaleDateString("en-US", { month: "short", timeZone: "UTC" });
+    const year = String(calendarDay.getUTCFullYear()).slice(-2);
+    derived.push(`${name} '${year}`);
+  }
+  assert.deepEqual(TRACE_MONTH_NAMES, derived);
 });

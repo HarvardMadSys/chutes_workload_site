@@ -5,7 +5,8 @@ import { test } from "node:test";
 import {
   dateSpanText, formatCompactCount, formatCount, formatCountTick, formatDurationTick, formatHoursTick,
   formatMinutesTick, formatPercent, formatPercentage, formatQuantity, formatSeconds, formatSecondsTick, formatShare,
-  formatSignificant, formatThousandsTick, formatTraceDay, formatWholeCount, formatWholeCountTick, TRACE_FIRST_DAY,
+  formatSignificant, formatThousandsTick, formatTraceDate, formatTraceDay, formatWholeCount, formatWholeCountTick,
+  TRACE_FIRST_DAY,
 } from "../site/js/shared/format.js";
 
 test("a count gets thousands separators", () => {
@@ -121,6 +122,11 @@ test("minutes into a window are written as hours on an axis", () => {
   assert.equal(formatHoursTick(360), "6 h");
   assert.equal(formatHoursTick(0), "0 h");
   assert.equal(formatHoursTick(90), "1.5 h");
+});
+
+test("a trace day's calendar date counts from the trace's first day", () => {
+  assert.equal(formatTraceDate(0), "Apr 11, 2025");
+  assert.equal(formatTraceDate(150), "Sep 8, 2025");
 });
 
 test("a trace day is written with its date, and an hour's start with its time in UTC", () => {
