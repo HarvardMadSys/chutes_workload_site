@@ -19,10 +19,10 @@ const PERCENTILES = Object.freeze({
 
 test("the tiles write the requests as the stats strip does and each average over the requests that record it", () => {
   assert.deepEqual(tileTexts(SUMMARY, NO_PERCENTILES), [
-    { label: "Requests", value: "6.12B", notes: [] },
-    { label: "Avg input tokens", value: "5,847", notes: [] },
-    { label: "Avg output tokens", value: "412", notes: [] },
-    { label: "Avg TTFT", value: "2.3 s", notes: ["49% record it"] },
+    { key: "requests", label: "Requests", value: "6.12B", notes: [] },
+    { key: "input", label: "Avg input tokens", value: "5,847", notes: [] },
+    { key: "output", label: "Avg output tokens", value: "412", notes: [] },
+    { key: "ttft", label: "Avg TTFT", value: "2.3 s", notes: ["49% record it"] },
   ]);
 });
 
@@ -89,6 +89,21 @@ test("each tile shows its value, its label and its notes, each on a line, if any
     ["0.2 s", "Avg TTFT", "49% record it", "≈0.84 s p50 · — p90"],
   ]);
   assert.deepEqual(tileTextParts(list)[3].map((part) => part.className), ["", "", "tile-note", "tile-note"]);
+});
+
+test("each tile's text is written into the tile its data-tile names, wherever the tile stands", (context) => {
+  useFakeDocument(context);
+  const list = new FakeElement("ul");
+  placeTiles(list);
+  list.replaceChildren(...[...list.children].reverse());
+  renderTiles(list, SMALL_SUMMARY, PERCENTILES);
+  const labels = list.children.map((tile) => {
+    const [, label] = tile.children[0].children;
+    return [tile.getAttribute("data-tile"), label.textContent];
+  });
+  assert.deepEqual(labels, [
+    ["ttft", "Avg TTFT"], ["output", "Avg output tokens"], ["input", "Avg input tokens"], ["requests", "Requests"],
+  ]);
 });
 
 test("writing the tiles again leaves their charts' places as they are", (context) => {

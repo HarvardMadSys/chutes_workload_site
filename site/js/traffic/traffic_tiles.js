@@ -21,37 +21,41 @@ export const NO_PERCENTILES = Object.freeze({ input: null, output: null, ttft: n
 // The note under an average while its percentiles have not arrived.
 const PERCENTILES_LOADING_NOTE = "…";
 
-// The tiles in the order of `tileTexts`, each by its `data-tile` name, and whether it holds a chart of its value's
-// distribution: the requests' tile has none, as a request has no value to distribute.
+// The tiles in their order, each by its key (its `data-tile`, and the key of its entry of `tileTexts`), and whether it
+// holds a chart of its value's distribution: the requests' tile has none, as a request has no value to distribute.
 const TILES = Object.freeze([
-  Object.freeze({ name: "requests", hasChart: false }),
-  Object.freeze({ name: "input", hasChart: true }),
-  Object.freeze({ name: "output", hasChart: true }),
-  Object.freeze({ name: "ttft", hasChart: true }),
+  Object.freeze({ key: "requests", hasChart: false }),
+  Object.freeze({ key: "input", hasChart: true }),
+  Object.freeze({ key: "output", hasChart: true }),
+  Object.freeze({ key: "ttft", hasChart: true }),
 ]);
 
 /**
- * The four tiles' text for `summary` (as `trafficSummary` gives it) and `percentiles`: `[{ label, value, notes }]`,
- * the requests written as the stats strip writes them, an average with no value "—", and `notes` the lines under a
- * tile: under the TTFT the share that records it, "49% record it", then under each average its percentiles,
+ * The four tiles' text for `summary` (as `trafficSummary` gives it) and `percentiles`: `[{ key, label, value, notes
+ * }]`, `key` the tile's `data-tile` ("requests", "input", "output", "ttft"), the requests written as the stats strip
+ * writes them, an average with no value "—", and `notes` the lines under a tile: under the TTFT the share that
+ * records it, "49% record it", then under each average its percentiles,
  * "≈1,100 p50 · ≈4,200 p90". `percentiles` is null while they have not arrived, each such note then "…"; else
  * `{ input, output, ttft }`, each `{ p50, p90 }` (a null value written "—"), or null for no note.
  */
 export function tileTexts(summary, percentiles) {
   const share = summary.ttftShare === null ? MISSING_TEXT : formatPercent(summary.ttftShare);
   return [
-    { label: "Requests", value: formatCompactCount(summary.requests), notes: [] },
+    { key: "requests", label: "Requests", value: formatCompactCount(summary.requests), notes: [] },
     {
+      key: "input",
       label: "Avg input tokens",
       value: averageText(summary.inputAverage, formatWholeCount),
       notes: percentileNotes(percentiles, "input", formatSignificant),
     },
     {
+      key: "output",
       label: "Avg output tokens",
       value: averageText(summary.outputAverage, formatWholeCount),
       notes: percentileNotes(percentiles, "output", formatSignificant),
     },
     {
+      key: "ttft",
       label: "Avg TTFT",
       value: averageText(summary.ttftAverage, formatSeconds),
       notes: [`${share} record it`, ...percentileNotes(percentiles, "ttft", formatSignificantSeconds)],
@@ -68,9 +72,9 @@ export function tileTexts(summary, percentiles) {
 export function placeTiles(list) {
   const tiles = [];
   const chartPlaces = [];
-  for (const { name, hasChart } of TILES) {
+  for (const { key, hasChart } of TILES) {
     const tile = document.createElement("li");
-    tile.setAttribute("data-tile", name);
+    tile.setAttribute("data-tile", key);
     tile.append(textElement("div", "tile-text", ""));
     if (hasChart) {
       // The place is a figure's body, so the chart is drawn, counted and styled as every other chart is.
@@ -86,12 +90,14 @@ export function placeTiles(list) {
 }
 
 /**
- * Write into each tile's `div.tile-text` of `list` (as `placeTiles` laid it out) its entry of `tileTexts(summary,
- * percentiles)`: its value, its label and its notes, each on a line of its own. The tiles' charts are left as they are.
+ * Write into the `div.tile-text` of each tile of `list` (as `placeTiles` laid it out) its entry of `tileTexts(summary,
+ * percentiles)`, the tile whose `data-tile` is the entry's key: its value, its label and its notes, each on a line of
+ * its own. The tiles' charts are left as they are.
  */
 export function renderTiles(list, summary, percentiles) {
-  for (const [index, { label, value, notes }] of tileTexts(summary, percentiles).entries()) {
-    const text = list.children[index].children[0]; // the tile's text comes first, before its chart
+  for (const { key, label, value, notes } of tileTexts(summary, percentiles)) {
+    const tile = [...list.children].find((child) => child.getAttribute("data-tile") === key);
+    const text = tile.children[0]; // the tile's text comes first, before its chart
     text.replaceChildren(textElement("strong", "", value), textElement("span", "", label));
     for (const note of notes) {
       text.append(textElement("span", "tile-note", note));

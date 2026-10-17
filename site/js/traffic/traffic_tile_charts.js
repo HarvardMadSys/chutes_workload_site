@@ -26,7 +26,9 @@ const SHARE_OF_REQUESTS = Object.freeze({ label: "Share of requests", ticks: Obj
 // minutes, which `formatDurationTick` would write with three decimals.
 const SECONDS_PER_MINUTE = 60;
 
-// A tile's chart's height in pixels: under its number and notes, it is lower than a figure card's chart.
+// A tile's chart's height in pixels: under its number and notes, it is lower than a figure card's chart. The chart's
+// place keeps this height while it loads or shows a note, `.traffic-tiles .tile-chart`'s 140px in `style.css`;
+// change the two together.
 const TILE_CHART_HEIGHT = 140;
 
 // A tile's chart's side margins in pixels, in place of a figure card's: room for "100%" on the left and half of the

@@ -630,13 +630,13 @@ section[id] {
 
 .stats-grid strong,
 .stats-grid span,
-.traffic-tiles strong,
-.traffic-tiles span {
+.traffic-tiles .tile-text strong,
+.traffic-tiles .tile-text span {
   display: block;
 }
 
 .stats-grid strong,
-.traffic-tiles strong {
+.traffic-tiles .tile-text strong {
   font-family: var(--font-serif);
   font-size: 1.75rem;
   font-variant-numeric: tabular-nums;
@@ -646,7 +646,7 @@ section[id] {
 }
 
 .stats-grid span,
-.traffic-tiles span {
+.traffic-tiles .tile-text span {
   margin-top: 0.2rem;
   font-size: var(--font-size-smallest);
   color: var(--color-text-faint);
@@ -867,8 +867,10 @@ section[id] {
 }
 
 /* A tile is a column: its text at the top, and under it, at the tile's foot, its chart as wide as the tile, so the
-   charts' x axes line up across a row whose tiles' texts differ in lines. The chart's place is a figure's body, but
-   only as tall as its chart, so a loading line or a note takes no more room than it needs. */
+   charts' x axes line up across a row whose tiles' texts differ in lines. The chart's place is a figure's body, kept
+   as tall as a drawn chart, 140px (`TILE_CHART_HEIGHT` of `traffic/traffic_tile_charts.js`, in pixels as Plot draws
+   it, not rem; change the two together), so that its loading line, an error or a note does not shrink the tiles and
+   move the bars under them. */
 .traffic-tiles li {
   display: flex;
   flex-direction: column;
@@ -879,7 +881,7 @@ section[id] {
 }
 
 .traffic-tiles .tile-chart {
-  min-height: 0;
+  min-height: 140px;
   margin-top: 0.5rem;
 }
 
