@@ -127,13 +127,13 @@ checks that each path it names exists.
   (within the family, a named model's `chute_id`, or `other` for its other
   models), `endpoint` (an endpoint group: `chat`, `chat_stream`,
   `completion`, `completion_stream`, `other`) and `period` (`2025-q2`,
-  `2025-q3`, `2025-q4`, `2026-q1`). `explore/traffic_filter.js` is their
+  `2025-q3`, `2025-q4`, `2026-q1`). `traffic/traffic_filter.js` is their
   one home: `readTrafficChoice` reads them when the page starts, a value it
   does not know falling back to everything (a `model` with no `family`, or
   not among the family's, too, and the URL is then rewritten without it),
   and `writeTrafficChoice` writes them on every change, through
   `context.replaceQuery`, which replaces the history entry rather than
-  adding one. `explore/traffic_controls.js` keeps the controls and the URL
+  adding one. `traffic/traffic_controls.js` keeps the controls and the URL
   in step: on Back or Forward (`context.onReturn`) it reads the keys
   again, and an entry of another choice is shown and drawn. The default,
   everything, writes no key; a key the explorer does not read is left as

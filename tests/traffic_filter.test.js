@@ -5,7 +5,7 @@ import { test } from "node:test";
 import {
   choiceSeries, dailyRequests, endpointChoices, familyChoices, familyOrder, isSameChoice, modelChoices, modelOrder,
   OTHER_MODEL, PERIODS, periodDays, readTrafficChoice, rowsInChoice, trafficSummary, writeTrafficChoice,
-} from "../site/js/explore/traffic_filter.js";
+} from "../site/js/traffic/traffic_filter.js";
 import { ENDPOINT_SERIES, FAMILY_SERIES, MODEL_SERIES } from "../site/js/shared/series.js";
 import { familyColours, modelColours } from "../site/js/theme/colours.js";
 

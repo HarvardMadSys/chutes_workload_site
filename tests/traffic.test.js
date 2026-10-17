@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { dayMonth, monthTicks, renderTiles, runTraffic, tileTexts } from "../site/js/explore/traffic.js";
-import { trafficSummary } from "../site/js/explore/traffic_filter.js";
+import { dayMonth, monthTicks, renderTiles, runTraffic, tileTexts } from "../site/js/traffic/traffic.js";
+import { trafficSummary } from "../site/js/traffic/traffic_filter.js";
 import { FakeElement, PAGE_ADDRESS } from "./fake_page.js";
 
 /** Make a stand-in the global document for the test of `context`; node has none of its own. */

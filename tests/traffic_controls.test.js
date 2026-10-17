@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { mountTrafficControls, renderControls } from "../site/js/explore/traffic_controls.js";
-import { familyChoices, modelChoices, NO_FAMILY_MODEL_CHOICES } from "../site/js/explore/traffic_filter.js";
+import { mountTrafficControls, renderControls } from "../site/js/traffic/traffic_controls.js";
+import { familyChoices, modelChoices, NO_FAMILY_MODEL_CHOICES } from "../site/js/traffic/traffic_filter.js";
 import { FakeElement, PAGE_ADDRESS } from "./fake_page.js";
 
 // The choice of everything: every family, every model, every endpoint group, every day.

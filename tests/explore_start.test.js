@@ -3,8 +3,8 @@ import { test } from "node:test";
 
 import { followHistory, placeTopic } from "../site/js/explore/start.js";
 import { mountTopicTabs } from "../site/js/explore/topic_tabs.js";
-import { mountTrafficControls } from "../site/js/explore/traffic_controls.js";
-import { familyChoices, modelChoices } from "../site/js/explore/traffic_filter.js";
+import { mountTrafficControls } from "../site/js/traffic/traffic_controls.js";
+import { familyChoices, modelChoices } from "../site/js/traffic/traffic_filter.js";
 import { FakeElement, FakeHistory, PAGE_ADDRESS, shownIds, TOPIC_ANCHORS, topicSections } from "./fake_page.js";
 
 // Two families, Qwen and Other, as the family drop-down offers them.

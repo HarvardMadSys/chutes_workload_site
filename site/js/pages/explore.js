@@ -4,7 +4,7 @@
  */
 
 import { startPage } from "../explore/start.js";
-import { runTraffic } from "../explore/traffic.js";
+import { runTraffic } from "../traffic/traffic.js";
 import { runMixes } from "../landing/donuts.js";
 import { mountCopyButtons, renderCiteLine } from "../landing/cite.js";
 import { renderHero } from "../landing/hero.js";

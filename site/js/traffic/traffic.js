@@ -9,8 +9,8 @@
  * `explore/daily_by_model/<family_slug>` answer, read the first time the family is chosen and kept for the visit. The
  * families take their colours in the order of their requests, a family's models in the order of theirs, and the
  * endpoint groups from the Overview's order (`context.orders`). A change filters the rows once
- * (`explore/traffic_filter.js`, which defines the choice) and draws the tiles and bars again. The controls keep the
- * choice in the URL (`explore/traffic_controls.js`).
+ * (`traffic/traffic_filter.js`, which defines the choice) and draws the tiles and bars again. The controls keep the
+ * choice in the URL (`traffic/traffic_controls.js`).
  */
 
 import { readAnswer } from "../shared/answers.js";
@@ -20,7 +20,7 @@ import {
   MISSING_TEXT,
 } from "../shared/format.js";
 import { drawStackedBars, stackedBarsLegend } from "../charts/stacked_bars.js";
-import { drawWithLegend } from "./legend.js";
+import { drawWithLegend } from "../explore/legend.js";
 import { mountTrafficControls } from "./traffic_controls.js";
 import {
   choiceSeries, dailyRequests, familyChoices, familyOrder, modelChoices, modelOrder, periodDays, rowsInChoice,

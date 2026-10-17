@@ -7,7 +7,7 @@ import { statsRows } from "../site/js/landing/stats.js";
 import { donutSlices, namedSeries } from "../site/js/charts/donut.js";
 import { columnTotal } from "../site/js/shared/charts.js";
 import { formatCompactCount } from "../site/js/shared/format.js";
-import { familyOrder } from "../site/js/explore/traffic_filter.js";
+import { familyOrder } from "../site/js/traffic/traffic_filter.js";
 import {
   ENDPOINT_FIRST_SLOT, FAMILY_SLOTS, familyColours, OTHER_SERIES, SERIES_SLOTS,
 } from "../site/js/theme/colours.js";

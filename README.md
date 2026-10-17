@@ -322,13 +322,14 @@ site/                exactly the files that are deployed
   js/explore/        the page's start and its sections
     start.js         places the Insights' groups and cards and draws their tabs, draws the header and footer, runs
                      the sections, and follows Back and Forward
-    traffic.js, traffic_controls.js, traffic_filter.js
-                     the Traffic Explorer: its tiles and bars; its controls, kept in step with the URL; its
-                     choice, its URL keys and its sums
     legend.js        the legend of buttons that hides and shows a series
     topic_tabs.js    the Insights' tabs, one topic shown at a time, the shown one in the URL's hash
     figure_sections.js
                      the Insights' six topics in the order of their tabs, and a topic's cards group by group
+  js/traffic/     the Traffic Explorer: its section, its filter and its controls
+    traffic.js, traffic_controls.js, traffic_filter.js
+                     the Traffic Explorer: its tiles and bars; its controls, kept in step with the URL; its
+                     choice, its URL keys and its sums
   js/insights/       the figure cards and the topics
     figure_card.js   a card, its chart drawn from its answer by its kind
     card_series.js   a card's series: their order, each palette's colours, the card's legend
@@ -373,7 +374,7 @@ tests/               what make test runs
                      and no other topic's figure answers requested
   snapshots/         one folder per page state, one text file per unit, rewritten by make snapshots
   *.test.js          node --test: one file per JavaScript module with pure functions, named after the module it
-                     tests (explore_traffic.test.js for explore/traffic.js), and the checks of the whole page
+                     tests (traffic.test.js for traffic/traffic.js), and the checks of the whole page
                      below
   figure_words.test.js
                      the word counts of every card's insight, caption and definition, of each topic's takeaway,

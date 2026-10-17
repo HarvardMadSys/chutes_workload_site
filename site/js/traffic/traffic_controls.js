@@ -1,6 +1,6 @@
 /**
  * The Traffic Explorer's controls, a family drop-down, a model drop-down, an endpoint drop-down and the period buttons,
- * kept in step with the URL, which holds the explorer's choice (`explore/traffic_filter.js` defines the choice and its
+ * kept in step with the URL, which holds the explorer's choice (`traffic/traffic_filter.js` defines the choice and its
  * keys). The model drop-down is disabled until a family is chosen, and then offers the family's models, which come
  * from the family's answer. A change writes the new choice to the URL; Back or Forward to a history entry of another
  * choice shows that one. Either then hands the explorer the choice to draw, `{ family, model, endpoint, period }`.
