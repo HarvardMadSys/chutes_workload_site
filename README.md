@@ -113,11 +113,14 @@ of time; the browser runs no query, it fetches the answers and draws them.
   days from the trace's first day, not a calendar month. The site turns
   each trace day into its calendar day from the trace's start,
   2025-04-11, one constant in `site_data/months.py`, for the daily
-  answers. The hero and the footer count the thirteen trace months from
-  `trace_totals`. The Insights' monthly cards name a trace month by the
-  calendar month its first day falls in, "Apr '25" to "Apr '26", and star
-  the thirteenth, "Apr '26*", since it holds only the trace's last two
-  days (`site/js/insights/figure_card.js`).
+  answers; the browser holds the same day, `TRACE_FIRST_DAY` of
+  `site/js/shared/format.js`, for its dated tooltips, tested against
+  `trace_totals`. The hero and the footer count the thirteen trace months
+  from `trace_totals`. The Insights' monthly cards name a trace month by
+  the calendar month its first day falls in, "Apr '25" to "Apr '26", and
+  star the thirteenth, "Apr '26*", since it holds only the trace's last
+  two days, as each such card's definition says
+  (`site/js/insights/figure_card.js`).
 - **The Traffic Explorer** filters and sums the `daily_by_family` answer,
   and a family's `daily_by_model` answer once the family is chosen, in
   the browser. The first holds one row per calendar day, family and
@@ -371,10 +374,13 @@ tests/               what make test runs
                      cards drawn from their shipped answers as the spec describes them: a tooltip, a log axis, a
                      raster's rows and rules, a series hidden in a CDF card, a CDF's straight lines, the hourly lines'
                      gaps, the routing card's rows and policy legend, a bands card's key, the hit grid's all-cached
-                     row, the shared colour and the day and month axes
+                     row, the shared colour and the day axis
+  insights_month_axis.test.js
+                     the trace's month axis: its names, derived from the first day, the star of the partial last
+                     month explained in every definition on it, and its inset from the plot's edges
   insights_caching_balancing.test.js
                      the caching and balancing cards' axes, the eviction cards' tooltips listing every algorithm,
-                     and the user zooms' even split
+                     the occupancy's tooltip in hours and the user zooms' even split
   fake_page.js       the stand-ins for an element, a figure's body, the topic sections and the browser's
                      history that the node tests drive the page's modules with
   palette_contrast.test.js, palette.js

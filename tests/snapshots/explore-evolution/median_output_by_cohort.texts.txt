@@ -1,4 +1,4 @@
 title: Median output by cohort
 insight: Change in the median output is less pronounced across cohorts.
 caption: The percentile bands widen for later cohorts, showing greater variation across users in their typical output lengths.
-definition: Each user's median output tokens, by release cohort: the median over the cohort's users, with bands from the 25th to the 75th and the 10th to the 90th percentile.
+definition: Each user's median output tokens, by release cohort: the median over the cohort's users, with bands from the 25th to the 75th and the 10th to the 90th percentile. Cohort Apr '26* is the users first seen in the trace's last two days.

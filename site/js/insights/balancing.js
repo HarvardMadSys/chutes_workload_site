@@ -8,7 +8,7 @@
  */
 
 import {
-  formatCompactCount, formatCount, formatCountTick, formatHoursTick, formatPercentage, formatSecondsTick,
+  formatCompactCount, formatCount, formatCountTick, formatHours, formatHoursTick, formatPercentage, formatSecondsTick,
   formatWholeCountTick,
 } from "../shared/format.js";
 import { frozenCard, TRACE_DAY_AXIS } from "./figure_card.js";
@@ -18,9 +18,11 @@ import { frozenCard, TRACE_DAY_AXIS } from "./figure_card.js";
 const HOURLY_GAP = 1.5 / 24;
 
 // The occupancy's x axis: the minutes of its 24-hour window, which starts at 17:00 UTC on day 317 of the trace,
-// labelled every sixth hour as the paper's, written as hours elapsed, "6 h", so that no tick reads as a clock time.
+// labelled every sixth hour as the paper's, written as hours elapsed, "6 h", so that no tick reads as a clock time; a
+// cell's minute in its tooltip is in hours too, to a tenth, "13.9 h".
 const WINDOW_AXIS = Object.freeze({
   label: "Hours into the window", ticks: [0, 360, 720, 1080, 1440], tickFormat: formatHoursTick,
+  tipFormat: formatHours,
 });
 
 // The instance load's axis of the two P90 grids, labelled every second power of ten as the paper's.
@@ -65,11 +67,18 @@ function routingSeries(model) {
   return ROUTING_POLICIES.map((policy) => `${model}, ${policy}`);
 }
 
+// `model` as a panel title writes it, its words joined by non-breaking spaces, so that a title that wraps keeps the
+// name whole, the one part of it that tells the two rows apart.
+function unbrokenName(model) {
+  return model.replaceAll(" ", "\u00a0");
+}
+
 // The routing panels' x axes: the cache size of an instance, on the paper's 10³ to past 10⁶, and the instances.
 const CACHE_SIZE_AXIS = { label: "Instance cache size", log: true, domain: [1e3, 6e6], tickFormat: formatCountTick };
 const INSTANCES_AXIS = { label: "Instances", ticks: [5, 10, 15, 20], tickFormat: String };
 
-// DeepSeek V3.2's y domains in the routing panels, each a little past its lines' ends, so that no line lies on an axis.
+// DeepSeek V3.2's y domains in the routing panels: hit ratio (a) from zero, as the paper's; the others a little past
+// their lines' ends, so that no line lies on the axis line.
 const DEEPSEEK_ROUTING_DOMAINS = {
   hitRatio: [0, 0.55], // its highest hit ratio is 0.50
   replication: [0.9, 2.0], // its replication runs from 1 to 1.94
@@ -92,25 +101,26 @@ function routingRow(model, domains) {
   const hitRatio = { label: "Token hit ratio", domain: domains.hitRatio };
   const replication = { label: "Replication ratio", domain: domains.replication };
   const imbalance = { label: "Load imbalance (%)", domain: domains.imbalance };
+  const name = unbrokenName(model);
   return [
     {
       panel: "a",
-      title: `(a) Hit ratio vs cache size · ${model}`,
+      title: `(a) Hit ratio vs cache size · ${name}`,
       chart: { series, x: CACHE_SIZE_AXIS, y: hitRatio, valueLabel: "Token hit ratio" },
     },
     {
       panel: "b",
-      title: `(b) Replication vs cache size · ${model}`,
+      title: `(b) Replication vs cache size · ${name}`,
       chart: { series, x: CACHE_SIZE_AXIS, y: replication, valueLabel: "Replication ratio" },
     },
     {
       panel: "c",
-      title: `(c) Replication vs instance count · ${model}`,
+      title: `(c) Replication vs instance count · ${name}`,
       chart: { series, x: INSTANCES_AXIS, y: replication, valueLabel: "Replication ratio" },
     },
     {
       panel: "d",
-      title: `(d) Imbalance vs instance count · ${model}`,
+      title: `(d) Imbalance vs instance count · ${name}`,
       chart: { series, x: INSTANCES_AXIS, y: imbalance, valueLabel: "Load imbalance (%)" },
     },
   ];
@@ -148,7 +158,8 @@ export const BALANCING_TOPIC = Object.freeze({
       chart: {
         x: TRACE_DAY_AXIS,
         gap: HOURLY_GAP,
-        // From zero, so the last days' single instance does not lie on the axis, to past the most, 17.
+        // From zero, so the last days' single instance does not lie on the axis, to past the most, 17; labelled every
+        // five, the zero among them.
         y: { label: "Active instances", domain: [0, 18], ticks: [0, 5, 10, 15] },
         valueLabel: "Active instances",
         valueFormat: formatCount,

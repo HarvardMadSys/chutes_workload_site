@@ -45,8 +45,15 @@ binding, and `make test` checks the countable ones.
     family is the daily rollup's;
   - `trace_calendar`, made by `site_data/months.py`: each trace day's
     calendar day, its trace month and the calendar month that trace month
-    is labelled with. It is the one place a date is computed; a query joins
-    it rather than doing date arithmetic;
+    is labelled with. It is the one place the data step computes a date; a
+    query joins it rather than doing date arithmetic. The site's
+    JavaScript holds two copies for its axes and tooltips: the trace's
+    first day, `TRACE_FIRST_DAY` of `shared/format.js`, which
+    `tests/format.test.js` checks against the shipped `trace_totals`, and
+    the months' names, `TRACE_MONTH_NAMES` of `insights/figure_card.js`,
+    which `tests/insights_month_axis.test.js` derives from that first
+    day by `months.py`'s rule; a change to the calendar is made in both,
+    and those tests fail until it is;
   - `family_models`, the rows of `setup/family_models.sql`: the daily
     rollup's named models ranked within their family. A family's answer
     takes its eight from it.
@@ -340,7 +347,10 @@ table and the card's words.
 - *Shared axes and colours.* A constant two cards share, such as the count
   colour (`COUNT_COLOUR`), the trace's day axis (`TRACE_DAY_AXIS`, whose
   tooltip gives the day's date) or its month axis (`TRACE_MONTH_AXIS`,
-  ticked by the months' names, the partial thirteenth starred), is
+  ticked by the months' names, the partial thirteenth starred, and inset
+  from the plot's edges by its `inset` so its first name clears the y
+  axis's lowest label; a card on it says what the star means in its
+  definition), is
   exported once from `insights/figure_card.js`; one topic's axes are
   constants of its module.
 
@@ -363,7 +373,8 @@ pure functions (the rows drawn, the tooltip's text, a scale's options) are
 exported and tested in `tests/charts_<kind>.test.js`. A kind imports only
 from `shared/`, `axes/` and `theme/`. A kind takes only parameters two or
 more charts use, or a frame or axis setting (the bars' `margins`, `inset`
-and `xTickRotate`, the stacked bars' `segmentInset`, the lines' `gap`).
+and `xTickRotate`, the stacked bars' `segmentInset` and `xInset`, the
+lines' `gap`).
 Every Plot kind takes `height`, the chart's height in pixels,
 `CHART_HEIGHT` (240) when not given (`titledFrame` of `shared/charts.js`);
 the two cards of a grid row take the same height, so the row stays level.
@@ -372,7 +383,8 @@ Every Plot kind but the raster has a tooltip, written by the kind's
 `axes/ticks.js`), or written by the axis's `tipFormat` alone where it
 gives one (a trace day with its date; the stacked bars take it as
 `xTipFormat`, the Traffic Explorer's day bars writing the whole day where
-a tick names only the month); the donut's slices carry their tooltip as an
+a tick names only the month; the cells write each edge of a cell's range
+by it, after the axis's title); the donut's slices carry their tooltip as an
 SVG `<title>` each. The lines kind joins a CDF's points with straight
 lines, its tooltip naming the point nearest the pointer in x and y; with
 `tipAllSeries` its tooltip lists every drawn series' value at the hovered
@@ -448,7 +460,8 @@ Insights' figures are drawn from their plot-ready tables.
   equals x, is dashed by `DASH` of `shared/charts.js`; a reference level a
   card marks is a dashed rule in the label ink (`referenceRule`): the
   cells' and the scatter's `yReference`, the bars' `reference`, whose label
-  sits at the rule's right end. A scatter's dots are outlined in the axis
+  sits at the rule's right end; over cells it lies on a halo in the card's
+  colour (`haloedReferenceRule`), so its dashes read over any fill. A scatter's dots are outlined in the axis
   ink and a little transparent, so a near-white dot shows on either
   scheme. A bands card shows, in its legend's place, a key naming its two
   bands and its median (`bandKey`), not buttons. A raster's rows are
@@ -485,7 +498,8 @@ Insights' figures are drawn from their plot-ready tables.
   a duration in seconds (`formatCompactCount`, `formatShare`,
   `formatSeconds`). An axis of durations from milliseconds to hours is
   written "1 ms", "0.1 s", "15 min", "1 h" (`formatDurationTick`), of
-  minutes into a window as hours, "6 h" (`formatHoursTick`), a ratio to
+  minutes into a window as hours, "6 h" (`formatHoursTick`), and in a
+  tooltip to a tenth, "13.9 h" (`formatHours`), a ratio to
   two significant figures, "0.00047" (`formatSignificant`), and a trace
   day in a tooltip with its date, "Day 150 · Sep 8, 2025"
   (`formatTraceDay`).

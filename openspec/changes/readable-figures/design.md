@@ -10,20 +10,21 @@ or a card's layout.
 | Parameter | Where | What it decides |
 |---|---|---|
 | `height` | `shared/charts.js` `titledFrame` (every kind) | the chart's height in pixels, `CHART_HEIGHT` (240) when not given; the two cards of a grid row take the same value so the row stays level |
-| `x.tipFormat` / `y.tipFormat` | `axes/ticks.js` `axisValueText` | how an axis value is written in the tooltip when it differs from the ticks' format |
+| `x.tipFormat` / `y.tipFormat` | `axes/ticks.js` `axisValueText`, `charts/cells.js` | how an axis value is written in the tooltip when it differs from the ticks' format; the cells write each edge of a cell's range by it |
+| `x.inset` | `axes/ticks.js` `axisScale`; `xInset` of `charts/stacked_bars.js` | pixels the scale's first and last values sit in from the plot's edges (Plot's scale `inset`), so the first x label clears the lowest y label |
 | `tipAllSeries` | `charts/lines.js` | the tooltip at the hovered x lists every shown series' value, highest first; for charts of few x values whose lines coincide |
 | `series` on a panel entry | `insights/figure_card.js` `chartParameters` → `lines.js` | the panel draws only these series of the card's; the card's legend still lists them all |
 | `segmentInset` | `charts/stacked_bars.js` | pixels taken off the top and bottom of each segment, `BAR_INSET` when not given; 0 for shares, whose thin segments would vanish |
-| `yReference` | `charts/cells.js`, `charts/scatter.js` | a dashed horizontal rule at this y, in `DASH` and the axis colour |
+| `yReference` | `charts/cells.js`, `charts/scatter.js` | a dashed horizontal rule at this y, in `DASH` and the label ink (`currentColor`), on a halo in the card's colour over cells |
 | `reference` `{ value, label }` | `charts/bars.js` | a dashed horizontal rule with a short label at its right end |
-| `bands` key | `charts/bands.js` `bandKey(colour)` | a non-interactive key, "10th–90th", "25th–75th", "Median", placed by `drawFigureChart` in the legend place of a bands card |
+| `bands` key | `charts/bands.js` `bandKey(colour)` | a non-interactive key, "10th–90th percentile", "25th–75th", "Median", placed by `drawFigureChart` in the legend place of a bands card |
 
 Kinds also change without a parameter: a CDF's curve is linear (its
 answers are 101 percentile points, which the paper joins with lines) and
 its tooltip uses `Plot.pointer`, the point nearest in both x and y; the
 raster's y domain is `[-0.5, rows - 0.5]` so a tick sits on its row's
 centre, and rows at least 6 px tall are separated by a 2 px rule in the
-card's surface colour; the bands' opacities become 0.12 and 0.25 and
+card's surface colour; the bands' opacities become 0.18 and 0.25 and
 the median 2 px; the cells' tooltip writes a range whose two ends read
 the same once ("100%", not "100%–100%"); the scatter's dots take a 0.5 px
 axis-coloured outline and 0.7 opacity, so a near-white middle colour is
@@ -32,6 +33,7 @@ seen on both schemes.
 Formats, in `shared/format.js`: `formatSignificant(value)` (two
 significant figures, "0.00047"); `formatDurationTick(seconds)` ("1 ms",
 "0.1 s", "10 s", "15 min", "1 h"); `formatHoursTick(minutes)` ("6 h");
+`formatHours(minutes)` ("13.9 h", a tooltip's);
 `formatTraceDay(day)` ("Day 150 · Sep 8, 2025") from `TRACE_FIRST_DAY`,
 a constant whose comment names `site_data/months.py` as its source and
 which a node test checks against the shipped `trace_totals` answer's
@@ -44,7 +46,7 @@ trace (0 = Apr 11, 2025)" with `tipFormat: formatTraceDay`, moved from
 `balancing.js` and used by the overview's four daily cards and the
 balancing topic's three hourly cards; `TRACE_MONTH_AXIS` ticked at
 months 1, 7 and 13 (five names run together on a phone) and labelled
-"Apr '25", "Oct '25", "Apr '26", the
+"Apr '25", "Oct '25", "Apr '26", inset 20 px from the plot's edges, the
 thirteenth with a star, "Apr '26*", since it holds the trace's last two
 days (`PARTIAL_TRACE_MONTH = 13`), its title "Month"; the evolution
 topic's cohort axis takes the same names, titled "Release cohort (month
@@ -55,7 +57,8 @@ use the axis (the user's copy, placeholder).
 
 `balancing.js` gives the card eight panel entries: panels a–d drawing
 DeepSeek V3.2's four series, titled "(a) Hit ratio vs cache size ·
-DeepSeek V3.2" and so on, then the same four of MiniMax M2.5, each row
+DeepSeek V3.2" and so on, the model's name kept whole by non-breaking
+spaces, then the same four of MiniMax M2.5, each row
 built by `routingRow` from the model's name, which names its series and
 titles its panels; `dashed` goes. The y domains per row: (a) DeepSeek
 `[0, 0.55]`, MiniMax `[0, 0.7]`; (b) and (c) DeepSeek `[0.9, 2.0]`,
@@ -101,7 +104,8 @@ y titles "Per-user median input tokens" / "… output tokens"; the band
 key on the four band cards; the month names and star.
 
 Caching: the TTL card `isWide` so the two eviction cards share a row;
-its x ticks `[0.001, 0.1, 10, 900]` in `formatDurationTick`; the
+its x ticks `[0.001, 0.1, 10, 900]` in `formatDurationTick`, its domain
+from `3e-4`, so "1 ms" clears the corner; the
 eviction cards on `HIT_RATIO_AXIS` (0–1) with `tipAllSeries`; the
 per-model cells x `domain: [100, 2e8]`, ticks `[100, 1e4, 1e6, 1e8]`,
 the per-user `[10, 2e8]`, `[10, 1e3, 1e5, 1e7]`; the box card's bottom
@@ -109,7 +113,7 @@ margin stays 72 (at 52 its slanted model names ran 15 px past the
 chart's foot); the IAT band card's key and month names.
 
 Balancing: D3; the occupancy heat map's x in `formatHoursTick`, titled
-"Hours into the window"; active instances `domain: [0, 18]`; max/mean
+"Hours into the window", its tooltip in `formatHours`; active instances `domain: [0, 18]`; max/mean
 `domain: [1, 2.1]`; `schemeStart: 0.1` on the two latency grids; the
 user zooms' request-share panels with `reference: { value: 100 / N,
 label: "even split" }`, N the panel's instances (12 and 11).

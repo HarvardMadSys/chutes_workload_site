@@ -1,4 +1,4 @@
 title: Token share
 insight: Traffic spreads across more models over time.
 caption: The Others band grows in both charts: a larger fraction of requests and tokens comes from non-dominant models as more models are released and adopted.
-definition: The same models' share of each month's input plus output tokens.
+definition: The same models' share of each month's input plus output tokens. Apr '26* holds only the trace's last two days.

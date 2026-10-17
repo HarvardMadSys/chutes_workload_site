@@ -1,7 +1,7 @@
 // The Insights' cards drawn from their shipped answers, as the landing page's spec describes them: the value under the
 // pointer, a log axis, a raster, a hidden series of a CDF card, a CDF's straight lines, the hourly lines' gaps, the
 // routing card's rows of panels and its policy legend, a bands card's key, the hit-ratio grid's all-cached row, and
-// the colour and the day and month axes the cards share. Each reads a card as its topic lists it and its answer as the
+// the colour and the day axis the cards share. Each reads a card as its topic lists it and its answer as the
 // page reads it.
 
 import assert from "node:assert/strict";
@@ -19,19 +19,14 @@ import { axisTicks } from "../site/js/axes/ticks.js";
 import { cellTipText } from "../site/js/charts/cells.js";
 import { drawWithLegend, hasLegend } from "../site/js/explore/legend.js";
 import { cardColours, figureLegend } from "../site/js/insights/card_series.js";
-import {
-  chartParameters, COUNT_COLOUR, PARTIAL_TRACE_MONTH, TRACE_DAY_AXIS, TRACE_MONTH_AXIS, TRACE_MONTH_NAMES,
-  TRACE_MONTH_TICKS, traceMonthName,
-} from "../site/js/insights/figure_card.js";
+import { chartParameters, COUNT_COLOUR, TRACE_DAY_AXIS } from "../site/js/insights/figure_card.js";
 import { FIGURE_SECTIONS } from "../site/js/insights/figure_sections.js";
 import { sequentialColour, titledFrame } from "../site/js/shared/charts.js";
-import { TRACE_FIRST_DAY } from "../site/js/shared/format.js";
 import { SERIES_SLOTS } from "../site/js/theme/colours.js";
 import { SERIES_COLUMN } from "../site/js/shared/series.js";
 import { FakeElement, FakeFigureBody } from "./fake_page.js";
 
 const HOURS_IN_WINDOW = 31 * 24; // a raster's window: thirty-one days of hours
-const TRACE_MONTHS = 13; // the trace's months, 1 to 13
 // A stand-in for Plot's line mark, returning its name and the arguments it was given.
 const FAKE_LINE_PLOT = { line: (...args) => ["line", ...args] };
 
@@ -173,18 +168,6 @@ test("a count's colour is viridis on a log scale from a quarter along it, ticked
   assert.ok(Object.isFrozen(COUNT_COLOUR));
 });
 
-test("the trace's month axis labels the first, the middle and the last month by name, the partial last starred", () => {
-  assert.deepEqual(TRACE_MONTH_AXIS.ticks, TRACE_MONTH_TICKS);
-  assert.deepEqual(TRACE_MONTH_TICKS.map(TRACE_MONTH_AXIS.tickFormat), ["Apr '25", "Oct '25", "Apr '26*"]);
-  assert.equal(TRACE_MONTH_AXIS.label, "Month");
-  assert.equal(TRACE_MONTH_TICKS.at(-1), TRACE_MONTHS);
-  assert.equal(TRACE_MONTH_NAMES.length, TRACE_MONTHS);
-  assert.equal(PARTIAL_TRACE_MONTH, TRACE_MONTHS);
-  assert.equal(traceMonthName(12), "Mar '26");
-  assert.ok(Object.isFrozen(TRACE_MONTH_AXIS) && Object.isFrozen(TRACE_MONTH_TICKS));
-  assert.ok(Object.isFrozen(TRACE_MONTH_NAMES));
-});
-
 test("the overview's four daily lines and the three hourly lines share the trace's day axis", () => {
   const figures = [
     "fig_request_rate_day", "fig_token_rate_day", "fig_daily_unique_models", "fig_function_name_daily_requests",
@@ -224,7 +207,7 @@ function seriesOf(points) {
   return [...new Set(points.map((point) => point[SERIES_COLUMN]))].sort();
 }
 
-test("the routing card draws eight panels, a row of four per model, each its model's lines only, inside its axis", () => {
+test("the routing card draws eight panels, a row of four per model, each its model's lines only, under its top", () => {
   const card = cardOf("fig_routing_tradeoff");
   const rows = shippedAnswer(card.figure);
   const colours = cardColours(card, rows, null);
@@ -239,7 +222,10 @@ test("the routing card draws eight panels, a row of four per model, each its mod
     assert.deepEqual(seriesOf(drawn), seriesOf(panelRows), entry.title);
     assert.ok(drawn.every((point) => point.panel === entry.panel), entry.title);
     const [low, high] = parameters.y.domain;
-    assert.ok(drawn.every((point) => point.y > low && point.y < high), `${entry.title}: a line lies on its axis`);
+    assert.ok(drawn.every((point) => point.y < high), `${entry.title}: a line reaches its axis's top`);
+    // (a) from zero, as the paper's, its lowest lines just over the axis line; the others clear of their axis lines.
+    const isClear = entry.panel === "a" ? low === 0 : drawn.every((point) => point.y > low);
+    assert.ok(isClear, `${entry.title}: ${entry.panel === "a" ? "not from zero" : "a line lies on the axis line"}`);
   }
 });
 
@@ -282,19 +268,4 @@ test("the two user zooms have no legend: each of their panels holds one series, 
   const routing = cardOf("fig_routing_tradeoff");
   const rows = shippedAnswer(routing.figure);
   assert.equal(figureLegend(routing, rows, cardColours(routing, rows, null)).series.length, 4);
-});
-
-test("the trace's month names are the calendar months their first days fall in, counted from its first day", () => {
-  // As `site_data/months.py` counts them: trace month m starts as many days after the trace's first day as the
-  // m-th month of 1970 (1971 from the thirteenth) starts after 1970-01-01.
-  const firstDay = Date.parse(`${TRACE_FIRST_DAY}T00:00:00Z`);
-  const derived = [];
-  for (let month = 1; month <= TRACE_MONTHS; month += 1) {
-    const monthStart = Date.UTC(1970, month - 1, 1);
-    const calendarDay = new Date(firstDay + monthStart);
-    const name = calendarDay.toLocaleDateString("en-US", { month: "short", timeZone: "UTC" });
-    const year = String(calendarDay.getUTCFullYear()).slice(-2);
-    derived.push(`${name} '${year}`);
-  }
-  assert.deepEqual(TRACE_MONTH_NAMES, derived);
 });

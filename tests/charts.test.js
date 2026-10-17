@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  CHART_HEIGHT, chartFrame, chartName, chartWidth, colourScale, columnTotal, DASH, logColumns, panelRows, positiveRows,
-  REFERENCE_STYLE, referenceRule, sequentialColour, titledFrame,
+  CHART_HEIGHT, chartFrame, chartName, chartWidth, colourScale, columnTotal, DASH, haloedReferenceRule, logColumns,
+  panelRows, positiveRows, REFERENCE_HALO, REFERENCE_STYLE, referenceRule, sequentialColour, SURFACE_INK, titledFrame,
 } from "../site/js/shared/charts.js";
 import { assignColours } from "../site/js/theme/colours.js";
 
@@ -115,10 +115,16 @@ test("a log axis drops the rows at or below zero in its columns, an output-token
   assert.equal(positiveRows(rows, []).length, 3);
 });
 
-test("a reference rule is a dashed horizontal rule at its value in the label ink, and draws nothing without one", () => {
+test("a reference rule is a dashed horizontal rule at its value in the label ink, haloed over cells, or nothing", () => {
   const fakePlot = { ruleY: (...args) => ["ruleY", ...args] };
   assert.deepEqual(referenceRule(fakePlot, 1), ["ruleY", [1], REFERENCE_STYLE]);
   assert.deepEqual(referenceRule(fakePlot, undefined), ["ruleY", [], REFERENCE_STYLE]);
   assert.equal(REFERENCE_STYLE.strokeDasharray, DASH.join(","));
   assert.equal(REFERENCE_STYLE.stroke, "currentColor");
+  // Over cells, the same rule on a solid halo in the card's colour, drawn under it.
+  const haloed = haloedReferenceRule(fakePlot, 1);
+  assert.deepEqual(haloed, [["ruleY", [1], REFERENCE_HALO], ["ruleY", [1], REFERENCE_STYLE]]);
+  assert.equal(REFERENCE_HALO.stroke, SURFACE_INK);
+  const nothing = haloedReferenceRule(fakePlot, undefined);
+  assert.deepEqual(nothing, [["ruleY", [], REFERENCE_HALO], ["ruleY", [], REFERENCE_STYLE]]);
 });

@@ -118,7 +118,8 @@ export const CACHING_TOPIC = Object.freeze({
       title: "Per-user IAT over time",
       insight: "User IAT trends downwards over time.",
       caption: "Per-user inter-arrival time remains on the order of minutes for most of the trace, but declines toward early 2026 with a widened spread.",
-      definition: "Each user's time between consecutive requests (inter-arrival time, IAT), by trace month: the median over users of each user's median, with bands between the medians of each user's 10th and 90th and 25th and 75th percentiles.",
+      // placeholder: the last sentence explains the star of the partial last month.
+      definition: "Each user's time between consecutive requests (inter-arrival time, IAT), by trace month: the median over users of each user's median, with bands between the medians of each user's 10th and 90th and 25th and 75th percentiles. Apr '26* holds only the trace's last two days.",
       kind: "bands",
       chart: {
         x: TRACE_MONTH_AXIS,
@@ -157,9 +158,10 @@ export const CACHING_TOPIC = Object.freeze({
       definition: "Share of requests that follow the previous request of the same user and model within this time, weighted by request: the reuse a cache time-to-live (TTL) of that length would cover.",
       kind: "lines",
       chart: {
-        // Ticked at the thresholds the caption and the paper quote, about two decades apart, "1 ms" to "15 min".
+        // Ticked at 1 ms, where the coverage starts, and at the thresholds the paper quotes, 0.1 s, 10 s and 15 min,
+        // about two decades apart; from 0.3 ms, so "1 ms" clears the y axis's lowest label.
         x: {
-          label: "Time to live", log: true, domain: [1e-3, 1e4], ticks: [0.001, 0.1, 10, 900],
+          label: "Time to live", log: true, domain: [3e-4, 1e4], ticks: [0.001, 0.1, 10, 900],
           tickFormat: formatDurationTick,
         },
         y: { label: "Request-weighted coverage", domain: [0, 1], tickFormat: formatPercent },

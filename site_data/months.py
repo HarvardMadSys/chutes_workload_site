@@ -4,7 +4,9 @@ The trace's timestamps count from its first day, which the caches write as 1970-
 day and its month a trace month: `date_trunc('month')` in that 1970 time, month 1 being 1970-01 and month 13 1971-01.
 A trace month is a month-long stretch of days from the trace's first day, not a calendar month. `trace_calendar`
 gives each trace day its calendar day and each trace month the calendar month its first day falls in, which labels
-the whole trace month, as the paper's axes do. All the site's date arithmetic is here; the queries join the calendar.
+the whole trace month, as the paper's axes do. All the data step's date arithmetic is here; the queries join the
+calendar. The browser holds copies of the first day (`TRACE_FIRST_DAY`, `site/js/shared/format.js`) and the months'
+names (`TRACE_MONTH_NAMES`, `site/js/insights/figure_card.js`), which the node tests tie to this calendar.
 """
 
 import datetime

@@ -85,8 +85,16 @@ export const TRACE_MONTH_NAMES = Object.freeze([
 /** The trace month that holds only the trace's last two days, its name starred so a reader does not compare it. */
 export const PARTIAL_TRACE_MONTH = 13;
 
-/** A card's x axis of the trace's months, 1 to 13, ticked by their names (`traceMonthName`). */
-export const TRACE_MONTH_AXIS = Object.freeze({ label: "Month", ticks: TRACE_MONTH_TICKS, tickFormat: traceMonthName });
+// Pixels between the plot's edges and the first and last months, so that "Apr '25" clears the y axis's lowest label.
+const TRACE_MONTH_INSET = 20;
+
+/**
+ * A card's x axis of the trace's months, 1 to 13, ticked by their names (`traceMonthName`), its ends inset
+ * `TRACE_MONTH_INSET` pixels from the plot's.
+ */
+export const TRACE_MONTH_AXIS = Object.freeze({
+  label: "Month", ticks: TRACE_MONTH_TICKS, tickFormat: traceMonthName, inset: TRACE_MONTH_INSET,
+});
 
 // The kind whose card shows the key to its bands (`bandKey` of `charts/bands.js`) in place of a legend of buttons.
 const BANDS_KIND = "bands";

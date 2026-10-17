@@ -132,6 +132,11 @@ export function formatHoursTick(minutes) {
   return `${formatCount(minutes / MINUTES_PER_HOUR)} h`;
 }
 
+/** A time in minutes as hours with one decimal kept, as a tooltip writes it: 832 → "13.9 h", 360 → "6.0 h". */
+export function formatHours(minutes) {
+  return `${(minutes / MINUTES_PER_HOUR).toFixed(1)} h`;
+}
+
 /** A value to two significant figures, with separators: 0.000471 → "0.00047", 0.4712 → "0.47", 12.3 → "12". */
 export function formatSignificant(value) {
   return value.toLocaleString("en-US", { maximumSignificantDigits: 2 });

@@ -7,7 +7,7 @@
  */
 
 import {
-  logColumns, positiveRows, REFERENCE_STYLE, referenceRule, sequentialColour, titledFrame,
+  haloedReferenceRule, logColumns, positiveRows, REFERENCE_STYLE, sequentialColour, titledFrame,
 } from "../shared/charts.js";
 import {
   afterAxisTitle, axisMark, axisScale, axisText, axisTicks, colourLegendTicks, extent,
@@ -29,8 +29,9 @@ const CATEGORY_CENTRE = 0.5; // a category's tick sits halfway between its cell'
  *   which a cell of value zero is not drawn; `colourScale`: Plot's colour scale type otherwise, linear when not given.
  * - `diagonal`: true to draw a dashed line where y equals x, as a figure of input against output tokens marks them
  *   equal.
- * - `yReference`: a y value at which a dashed horizontal rule is drawn across the cells (`referenceRule` of
- *   `shared/charts.js`), as a coefficient of variation of 1 parts bursty from evenly spaced; none when not given.
+ * - `yReference`: a y value at which a dashed horizontal rule is drawn across the cells, on a halo in the card's
+ *   colour (`haloedReferenceRule` of `shared/charts.js`), as a coefficient of variation of 1 parts bursty from evenly
+ *   spaced; none when not given.
  * - `valueLabel`: what a value is, the colour legend's title and the tooltip's; `valueFormat`: how it is written there.
  * - `margins`: Plot margins in place of the frame's.
  * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `shared/charts.js`).
@@ -61,7 +62,7 @@ export async function drawCells(rows, body, colours, parameters) {
         shapeRendering: "crispEdges", // neighbouring cells meet without a seam of the card's colour between them
       }),
       Plot.line(diagonal, { x: "x", y: "y", ...REFERENCE_STYLE, clip: true }),
-      referenceRule(Plot, parameters.yReference),
+      haloedReferenceRule(Plot, parameters.yReference),
       axisMark(Plot, "x", xAxis, axisTicks(xAxis, xEdges)),
       axisMark(Plot, "y", yAxis, axisTicks(yAxis, yEdges)),
       Plot.tip(drawn, Plot.pointer({
@@ -110,9 +111,10 @@ export function drawnCells(rows, { x: xAxis = {}, y: yAxis = {}, colourLog = fal
 }
 
 /**
- * A cell's tooltip: its x and its y, each a category's name on an axis of names, else its range as its axis writes
- * it, "1k–2k", or its one value where both edges are written alike, "100%"; each after the axis's title where it has
- * one, "Input tokens: 1k–2k"; then its value, "Requests: 12.4k".
+ * A cell's tooltip: its x and its y, each a category's name on an axis of names, else its range, each edge written by
+ * the axis's `tipFormat` where it gives one, else as its ticks are, "1k–2k", or its one value where both edges are
+ * written alike, "100%"; each after the axis's title where it has one, "Input tokens: 1k–2k", since a range of two
+ * values does not name itself; then its value, "Requests: 12.4k".
  */
 export function cellTipText(cell, { x: xAxis = {}, y: yAxis = {}, valueLabel, valueFormat }) {
   const xText = edgesText(xAxis, cell.x_low, cell.x_high);
@@ -126,10 +128,15 @@ function edgesText(axis, low, high) {
   return afterAxisTitle(axis, text);
 }
 
-// The range from `low` to `high` as `axis` writes them, "30%–40%"; one value where the two read alike, "100%", since a
-// range from a value to itself says nothing more.
+// The range from `low` to `high` as `axis` writes them in a tooltip, "30%–40%"; one value where the two read alike,
+// "100%", since a range from a value to itself says nothing more.
 function rangeText(axis, low, high) {
-  const lowText = axisText(axis, low);
-  const highText = axisText(axis, high);
+  const lowText = edgeText(axis, low);
+  const highText = edgeText(axis, high);
   return lowText === highText ? lowText : `${lowText}–${highText}`;
+}
+
+// A cell's edge `value` as `axis` writes it in a tooltip: by its `tipFormat` where it gives one, else as its ticks.
+function edgeText(axis, value) {
+  return axis.tipFormat === undefined ? axisText(axis, value) : axis.tipFormat(value);
 }

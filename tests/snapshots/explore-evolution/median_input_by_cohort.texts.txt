@@ -1,4 +1,4 @@
 title: Median input by cohort
 insight: Newer user cohorts are more input-heavy.
 caption: Later cohorts have larger median input lengths, indicating that newer users typically submit longer prompts.
-definition: Each user's median input tokens, by release cohort, the month the user first appeared: the median over the cohort's users, with bands from the 25th to the 75th and the 10th to the 90th percentile.
+definition: Each user's median input tokens, by release cohort, the month the user first appeared: the median over the cohort's users, with bands from the 25th to the 75th and the 10th to the 90th percentile. Cohort Apr '26* is the users first seen in the trace's last two days.

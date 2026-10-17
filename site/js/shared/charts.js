@@ -16,11 +16,16 @@ export const BAR_INSET = 1;
  * where y equals x.
  */
 export const DASH = Object.freeze([4, 3]);
+/** The card's own colour, for a mark that parts or rings others: a raster's row rules, a label's halo. */
+export const SURFACE_INK = "var(--color-surface)";
 /**
  * The options of a reference line, the line where y equals x or a level a card marks: dashed by `DASH`, in the chart's
- * label ink, so it reads as part of the frame and not as a series.
+ * label ink, so it reads as part of the frame and not as a series. A level drawn over cells differs only in lying on a
+ * halo (`REFERENCE_HALO`), since dashes of that ink fade into a fill of like lightness.
  */
 export const REFERENCE_STYLE = Object.freeze({ stroke: "currentColor", strokeDasharray: DASH.join(",") });
+/** The halo under a level drawn over cells: a solid rule in the card's colour, 4 px wide, framing the dashes. */
+export const REFERENCE_HALO = Object.freeze({ stroke: SURFACE_INK, strokeWidth: 4 });
 
 // The Plot options every chart shares, so every chart has the same ink, in the page's own face: Plot's default face
 // draws a name's punctuation otherwise than the page's text does.
@@ -32,8 +37,6 @@ const PLOT_MARGINS = Object.freeze({ marginTop: 32, marginRight: 32, marginBotto
 export const GRID_STYLE = Object.freeze({ stroke: "var(--chart-grid)", strokeOpacity: 1 });
 /** The options of every chart's axes and its zero line: the axis ink, and an axis title with no arrow. */
 export const AXIS_STYLE = Object.freeze({ stroke: "var(--chart-axis)", labelArrow: "none" });
-/** The card's own colour, for a mark that parts or rings others: a raster's row rules, a label's halo. */
-export const SURFACE_INK = "var(--color-surface)";
 
 /**
  * The Plot options every chart starts from: its margins, its height (`height` pixels, `CHART_HEIGHT` when not given),
@@ -62,6 +65,15 @@ export function titledFrame(body, yLabel, margins, height = CHART_HEIGHT) {
  */
 export function referenceRule(Plot, value) {
   return Plot.ruleY(value === undefined ? [] : [value], REFERENCE_STYLE);
+}
+
+/**
+ * A reference rule drawn over cells: `referenceRule` at the y value `value`, on its halo, a rule in the card's colour
+ * under it (`REFERENCE_HALO`), so the dashes read over a fill of any colour; marks that draw nothing where `value` is
+ * not given.
+ */
+export function haloedReferenceRule(Plot, value) {
+  return [Plot.ruleY(value === undefined ? [] : [value], REFERENCE_HALO), referenceRule(Plot, value)];
 }
 
 /** Replace `container`'s content with the loading state. */

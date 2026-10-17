@@ -20,7 +20,8 @@ export const PERCENTILES = Object.freeze([
   Object.freeze({ column: "p90", label: "90th" }),
 ]);
 
-const OUTER_BAND_OPACITY = 0.12; // the 10th-to-90th band: light, so the inner band and the median read over it
+// The 10th-to-90th band: light, so the inner band and the median read over it, yet seen on the dark scheme's card too.
+const OUTER_BAND_OPACITY = 0.18;
 const INNER_BAND_OPACITY = 0.25; // the 25th-to-75th band, drawn over the outer one
 // How opaque the inner band reads where it lies over the outer one, as it always does: the key's swatch matches it.
 const INNER_BAND_SEEN_OPACITY = 1 - (1 - OUTER_BAND_OPACITY) * (1 - INNER_BAND_OPACITY);

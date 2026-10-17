@@ -2,10 +2,11 @@
  * A chart's axes: how many ticks a linear axis asks Plot for, the powers of ten a log axis is ticked at, Plot's scale
  * options for a card's axis, its axis and grid marks (a band axis's among them), a value written as its axis writes
  * it, alone or in a tooltip, and the ticks of a colour legend on a log scale. A card's axis options are `{ label, log,
- * domain, ticks, tickFormat, tipFormat }`, each optional: its title, whether it is a log axis, its `[low, high]`, the
- * values it ticks, how a tick is written, and how a value is written in a tooltip where that differs from a tick's,
- * the whole of the value's line, which then names the value itself (a trace day with its date, "Day 150 · Sep 8,
- * 2025"). All are plain functions, tested with `node --test`; a mark's is given Plot.
+ * domain, ticks, tickFormat, tipFormat, inset }`, each optional: its title, whether it is a log axis, its `[low,
+ * high]`, the values it ticks, how a tick is written, how a value is written in a tooltip where that differs from a
+ * tick's, the whole of the value's line, which then names the value itself (a trace day with its date, "Day 150 · Sep
+ * 8, 2025"), and the pixels its ends sit in from the plot's (Plot's scale `inset`), so an x axis's first label clears
+ * the y axis's lowest. All are plain functions, tested with `node --test`; a mark's is given Plot.
  */
 
 import { AXIS_STYLE, GRID_STYLE } from "../shared/charts.js";
@@ -97,7 +98,8 @@ export function axisTicks(axis, values) {
 
 /**
  * Plot's options for the scale of the card's axis options `axis` over the drawn `values`: a log scale where `axis.log`,
- * a point scale where the values are labels (text, such as a month, "2025-06"), and `axis.domain` where given.
+ * a point scale where the values are labels (text, such as a month, "2025-06"), and `axis.domain` and `axis.inset`
+ * where given.
  */
 export function axisScale(axis, values = []) {
   const scale = {};
@@ -109,6 +111,9 @@ export function axisScale(axis, values = []) {
   }
   if (axis.domain !== undefined) {
     scale.domain = axis.domain;
+  }
+  if (axis.inset !== undefined) {
+    scale.inset = axis.inset;
   }
   return scale;
 }

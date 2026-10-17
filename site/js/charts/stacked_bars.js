@@ -30,7 +30,8 @@ const KEY_SEPARATOR = "\u0000";
  *   where that differs from a tick's, alone, without the axis's title; `xTickRotate`: the angle of its ticks' labels
  *   in degrees, 0 (level) when not given, so that a label at every bar keeps clear of its neighbours.
  * - `xDomain`: every bar's x value, in order, each keeping its place even where no shown row falls on it; the shown
- *   rows' own x values when not given. `xTicks`: the x values ticked, every bar's when not given.
+ *   rows' own x values when not given. `xTicks`: the x values ticked, every bar's when not given. `xInset`: the pixels
+ *   the first and last bars sit in from the plot's edges, as an axis's `inset` (`axes/ticks.js`), none when not given.
  * - `inset`: the pixels taken off the left and the right of a bar, `BAR_INSET` when not given; 0 where a bar is a
  *   pixel or two wide, as a day's is over a year.
  * - `segmentInset`: the pixels taken off the top and the bottom of each segment, `BAR_INSET` when not given; 0 where
@@ -44,7 +45,7 @@ const KEY_SEPARATOR = "\u0000";
 export async function drawStackedBars(rows, body, colours, parameters, hidden) {
   const { xColumn, seriesColumn, valueColumn } = parameters;
   const { xLabel = null, yLabel = null, xTickFormat, xTickRotate = 0, yTickFormat, margins } = parameters;
-  const { xDomain, xTicks } = parameters;
+  const { xDomain, xTicks, xInset = 0 } = parameters;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
   const folded = foldedRows(rows, colours.series, { xColumn, seriesColumn, valueColumn });
@@ -52,7 +53,7 @@ export async function drawStackedBars(rows, body, colours, parameters, hidden) {
   const stacked = [...colours.series.keys()].filter((name) => shown.some((row) => row[seriesColumn] === name));
   const chart = Plot.plot({
     ...titledFrame(body, yLabel, margins, parameters.height),
-    x: { type: "band", domain: xDomain ?? distinct(shown.map((row) => row[xColumn])) },
+    x: { type: "band", domain: xDomain ?? distinct(shown.map((row) => row[xColumn])), inset: xInset },
     color: colourScale(colours.series, stacked),
     marks: [
       Plot.gridY({ ...GRID_STYLE, ticks: TICK_COUNT }),
