@@ -6,7 +6,7 @@ user writes is marked `// placeholder:` where this change adds any.
 
 ## 0. The trace table
 
-- [ ] 0.1 `site/queries/trace/weekly_histograms.sql` (design D3, D4,
+- [x] 0.1 `site/queries/trace/weekly_histograms.sql` (design D3, D4,
       D5): the view `trace`, `chute_models`, `model_families` and
       `family_models`, one row per week, family, kept chute id, endpoint
       group, metric and bin. `site_data/tables.py`: `python -m
@@ -25,7 +25,7 @@ user writes is marked `// placeholder:` where this change adds any.
 
 ## 1. The answers
 
-- [ ] 1.1 `site_data/loading.py` reads `tables/weekly_histograms.parquet`
+- [x] 1.1 `site_data/loading.py` reads `tables/weekly_histograms.parquet`
       (the `--tables` folder, default `tables/`); `site_database.py`
       registers `weekly_histograms`, eight tables;
       `queries/explore/histograms_by_family.sql` and
@@ -37,7 +37,7 @@ user writes is marked `// placeholder:` where this change adds any.
 
 ## 2. The explorer's folder
 
-- [ ] 2.1 Move `traffic.js`, `traffic_filter.js` and `traffic_controls.js`
+- [x] 2.1 Move `traffic.js`, `traffic_filter.js` and `traffic_controls.js`
       from `site/js/explore/` to `site/js/traffic/`, with their imports,
       their tests' imports, the page module, the README's layout and
       CONTRIBUTING; nothing else changes.
@@ -45,7 +45,7 @@ user writes is marked `// placeholder:` where this change adds any.
 
 ## 3. The day range and the metric
 
-- [ ] 3.1 `traffic_filter.js`: the choice holds `from`, `to` and `metric`
+- [x] 3.1 `traffic_filter.js`: the choice holds `from`, `to` and `metric`
       in place of `period`; `readTrafficChoice` clips the days to the
       trace's and drops a reversed pair; `periodRange` gives a period
       button's days; `rowsInChoice` keeps the days of the range;
@@ -64,7 +64,7 @@ user writes is marked `// placeholder:` where this change adds any.
 
 ## 4. The distributions
 
-- [ ] 4.1 `traffic_distributions.js` (design D7, D8): read the histogram
+- [x] 4.1 `traffic_distributions.js` (design D7, D8): read the histogram
       answer of the choice after the bars are drawn; fold the rows of
       the weeks holding a chosen day into one bin map per series and
       metric; the CDF rows at the bins' upper edges for the `lines` kind
@@ -82,7 +82,7 @@ user writes is marked `// placeholder:` where this change adds any.
 
 ## 5. Words, measurement and documents
 
-- [ ] 5.1 The explorer's guide line, the cards' titles, captions and
+- [x] 5.1 The explorer's guide line, the cards' titles, captions and
       definitions as placeholders for the authors; the loading
       measurement of design D8 repeated on the finished page and
       recorded there; README (what the site shows, where the numbers

@@ -162,7 +162,8 @@ export async function drawDistributionCurves(drawn, hidden) {
   const hiddenHere = hasLegend(drawn.legend.series) ? hidden : new Set();
   const drawings = [];
   for (const chart of drawn.charts) {
-    const drawing = drawShownSeries(chart.body, drawn.legend, hiddenHere, (shownHidden) => drawCurves(chart, drawn, shownHidden));
+    const drawing = drawShownSeries(chart.body, drawn.legend, hiddenHere,
+      (shownHidden) => drawCurves(chart, drawn, shownHidden));
     // No one awaits a legend's press, so a chart that fails shows its error in its own place.
     drawings.push(drawing.catch((error) => showError(chart.body, error)));
   }
