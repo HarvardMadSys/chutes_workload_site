@@ -14,10 +14,8 @@ const SELECTORS = [
   "#insights-balancing",
 ];
 
-// How many cards each topic holds: a card for each panel of the paper's figures of its section.
-const CARD_COUNTS = [5, 8, 10, 6, 9, 9];
-
-// How many cards each group of each topic holds, in the order of the topics and of their groups.
+// How many cards each group of each topic holds, in the order of the topics and of their groups: a card for each panel
+// of the paper's figures of the topic's section.
 const GROUP_CARD_COUNTS = [[4, 1], [3, 2, 3], [4, 4, 2], [2, 2, 2], [4, 3, 2], [6, 2, 1]];
 
 // The fields of a topic, of a group, and of a card: its words, each a string, then its kind and its chart's
@@ -31,8 +29,8 @@ const OPTIONAL_CARD_FIELDS = ["panels", "legend", "series", "palette", "isWide"]
 const SHARE_LEGEND = "fig_top10_model_monthly_share_legend";
 const SHARE_PANELS = ["fig_top10_model_monthly_request_share", "fig_top10_model_monthly_token_share"];
 
-// The wide cards, in the topics' order: the output-to-input ratio and the TTL coverage, each the last of its group
-// after a pair, which would otherwise sit alone in half a row, and the routing simulation's panels.
+// The wide cards, in the topics' order, as the spec's table marks them: the output-to-input ratio and the TTL
+// coverage, each a log axis of many decades, and the routing simulation's eight panels.
 const WIDE_CARDS = ["fig_output_input_ratio_cdf_by_model", "fig_iat_pair_ttl_coverage", "fig_routing_tradeoff"];
 
 // Every card of every topic.
@@ -53,10 +51,8 @@ function figureUses() {
   return uses;
 }
 
-test("the six topics are in the order of their tabs, with a card for each panel of their section", () => {
+test("the six topics are in the order of their tabs", () => {
   assert.deepEqual(FIGURE_SECTIONS.map((topic) => topic.selector), SELECTORS);
-  assert.deepEqual(FIGURE_SECTIONS.map((topic) => topicCards(topic).length), CARD_COUNTS);
-  assert.equal(everyCard().length, 47);
 });
 
 test("a topic has its selector, takeaway and groups, and a group its heading, takeaway and cards, and no other", () => {
@@ -71,10 +67,17 @@ test("a topic has its selector, takeaway and groups, and a group its heading, ta
   }
 });
 
-test("every topic holds its cards in groups of the paper's runs, none empty", () => {
+test("every topic holds its cards in groups of the paper's runs", () => {
   const groupCardCounts = FIGURE_SECTIONS.map((topic) => topic.groups.map((group) => group.cards.length));
   assert.deepEqual(groupCardCounts, GROUP_CARD_COUNTS);
-  assert.ok(groupCardCounts.flat().every((count) => count > 0));
+});
+
+test("no group is empty", () => {
+  for (const topic of FIGURE_SECTIONS) {
+    for (const group of topic.groups) {
+      assert.ok(group.cards.length > 0, `${topic.selector}: ${group.heading}`);
+    }
+  }
 });
 
 test("topicCards lists a topic's cards group by group, each group's in its order", () => {
@@ -82,14 +85,12 @@ test("topicCards lists a topic's cards group by group, each group's in its order
   assert.deepEqual(topicCards(topic), ["first", "second", "third"]);
 });
 
-test("every card is in exactly one group of one topic", () => {
+test("no card object is held by two groups", () => {
   const groups = FIGURE_SECTIONS.flatMap((topic) => topic.groups);
   for (const card of everyCard()) {
     const holding = groups.filter((group) => group.cards.includes(card));
     assert.equal(holding.length, 1, card.figure);
   }
-  const figures = everyCard().map((card) => card.figure);
-  assert.equal(new Set(figures).size, figures.length);
 });
 
 test("a card has every field, each a string, its chart's parameters, and no field but the optional ones", () => {

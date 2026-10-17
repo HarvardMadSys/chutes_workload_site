@@ -1,8 +1,8 @@
 /**
- * The Explore page's start: it places the Insights' cards and draws their topic tabs, draws the header and the footer,
- * then runs the page's sections, once, from their answer files. The topics (`explore/figure_sections.js`) are shown
- * one at a time behind the tabs of the `#topic-tabs` row (`explore/topic_tabs.js`); a topic's figures are drawn from
- * their answers the first time it is shown, so a topic never shown requests none.
+ * The Explore page's start: it places the Insights' groups and cards and draws their topic tabs, draws the header and
+ * the footer, then runs the page's sections, once, from their answer files. The topics (`explore/figure_sections.js`)
+ * are shown one at a time behind the tabs of the `#topic-tabs` row (`explore/topic_tabs.js`); a topic's figures are
+ * drawn from their answers the first time it is shown, so a topic never shown requests none.
  *
  * The page's module names its sections, each `{ id, run }`: the id of its place in `index.html` and the function that
  * runs it, which shows its loading state at once and then draws its answer. A section runs as `run(container,

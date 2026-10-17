@@ -41,10 +41,9 @@ test("the TTL card's axis is ticked at 1 ms and at the paper's thresholds, 0.1 s
   assert.ok(xAxis.domain[0] < xAxis.ticks[0]);
 });
 
-test("the eviction pair shares a row after the wide TTL card, on one hit-ratio axis from 0 to 1", () => {
-  const cards = topicCards(FIGURE_SECTIONS.find((topic) => topic.selector === "#insights-caching"));
-  assert.deepEqual(cards.slice(-3).map((card) => card.figure), ["fig_iat_pair_ttl_coverage", ...EVICTION_CARDS]);
-  assert.equal(cards.at(-3).isWide, true);
+test("the eviction pair, the caching topic's last group, shares its row on one hit-ratio axis from 0 to 1", () => {
+  const groups = FIGURE_SECTIONS.find((topic) => topic.selector === "#insights-caching").groups;
+  assert.deepEqual(groups.at(-1).cards.map((card) => card.figure), EVICTION_CARDS);
   for (const figure of EVICTION_CARDS) {
     assert.equal(cardOf(figure).isWide, undefined, figure);
     assert.deepEqual(chartParameters(cardOf(figure)).y.domain, [0, 1], figure);

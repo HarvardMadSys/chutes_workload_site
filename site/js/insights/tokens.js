@@ -113,7 +113,7 @@ export const TOKENS_TOPIC = Object.freeze({
             // A ratio to two significant figures, as the site writes one: "0.0047".
             valueFormat: formatSignificant,
           },
-          // Wide, so it does not sit alone in half a row under the two length CDFs of its group.
+          // Wide, as the spec's table sets it, so its log axis of five decades and more, 0.0005 to 100, has the room.
           isWide: true,
         }),
       ]),

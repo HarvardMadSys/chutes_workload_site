@@ -91,8 +91,8 @@ checks that each path it names exists.
   (`#insights`), Cite (`#cite`) and Team.
 - The page's module, `js/pages/explore.js`, lists its sections in
   `SECTIONS`, each `{ id, run }`, and calls `startPage` of
-  `explore/start.js` with them. `startPage` places the Insights' cards and
-  their tabs, draws the header and the footer, and runs each section as
+  `explore/start.js` with them. `startPage` places the Insights' groups
+  and cards and their tabs, draws the header and the footer, and runs each section as
   `run(container, context)`; `context` is described in `explore/start.js`.
   Its `orders` are the rows of `explore/family_mix` and
   `explore/endpoint_mix`, asked for once: the donuts' rows, and the order
@@ -117,9 +117,11 @@ checks that each path it names exists.
   through `context.onReturn`. `explore/figure_sections.js` lists the topics in
   `FIGURE_SECTIONS`, one module each in `js/insights/`, and `index.html`
   holds, under the Insights heading and its `#topic-tabs` row, a section
-  with a heading and a card grid for each, its id the topic's anchor. A
-  topic's answers are fetched the first time it is shown, so a topic never
-  shown requests none.
+  with a heading for each, its id the topic's anchor. `placeTopic` of
+  `explore/start.js` writes the rest of a topic's section: its takeaway,
+  then for each group its heading (an `h3`), its takeaway and a card grid
+  of its cards, each card's title an `h4`. A topic's answers are fetched
+  the first time it is shown, so a topic never shown requests none.
 - **The Traffic Explorer's URL keys.** The explorer's choice is the URL's
   `family` (a family's slug, `daily_by_family`'s `family_slug`), `model`
   (within the family, a named model's `chute_id`, or `other` for its other
@@ -222,13 +224,31 @@ with a comment, helpers below the exports, and a `node --test` file with one
 frozen dataclass for anything that crosses a boundary, and functions that
 each do one job.
 
+**A topic and its groups.** A topic of the Insights holds its cards in
+groups, each a run of the paper's figures that says one thing together:
+
+```js
+{ selector, takeaway, groups: [{ heading, takeaway, cards }] }
+```
+
+A topic's `selector` is its section in `index.html`; its `takeaway`, the
+paper's finding for its section in plain words, is one sentence of at
+most thirty words, written under its heading. A group's `heading` is at
+most six words, with no full stop; its `takeaway`, what its figures show
+and what that means for a serving system, is at most two sentences and
+forty words; its `cards` are in the paper's order. A topic module
+freezes the topic, each group and each `cards` list, and
+`topicCards(topic)` of `explore/figure_sections.js` lists a topic's
+cards group by group, the one way the tests list them.
+`tests/figure_words.test.js` counts these limits and a card's below;
+`TOPIC_FIELDS` and `GROUP_FIELDS` in
+`tests/insights_figure_sections.test.js` list the fields.
+
 **A figure card.** Every figure of the Insights is drawn by the site from
 its answer, the artifact's plot-ready table, by one frozen card object of
 the fields below, and of no other:
 `CARD_FIELDS` and `OPTIONAL_CARD_FIELDS` in
-`tests/insights_figure_sections.test.js` list them. A topic is `{ selector,
-takeaway, cards }`, its `takeaway` the topic's finding in one sentence of
-at most twenty words, written under its heading.
+`tests/insights_figure_sections.test.js` list them.
 
 - `figure`: the figure's name, its file name in the artifact's
   `config/figures.json` without `.pdf`; the card draws
@@ -308,12 +328,16 @@ table and the card's words.
    columns of one kind, commits it as
    `data/paper/plotdata/<figure>.parquet` and lists the figure in its
    `config/figures.json`.
-2. **The card**, in its topic's module of `js/insights/`, in the paper's
-   order: its words, its `kind`, and in `chart` the paper's axes (titles,
-   log scales, limits and ticks) and its kind's parameters, with `panels`,
-   `legend`, `series` or `palette` where the figure needs them. Raise its
-   topic's count in `CARD_COUNTS` of
-   `tests/insights_figure_sections.test.js`, which also checks that the
+2. **The card**, in its topic's module of `js/insights/`, in the group
+   whose run it belongs to, in the paper's order: its words, its `kind`,
+   and in `chart` the paper's axes (titles, log scales, limits and ticks)
+   and its kind's parameters, with `panels`, `legend`, `series` or
+   `palette` where the figure needs them. A figure that says something no
+   group says starts a group of its own, with a heading and a takeaway (a
+   `// placeholder:` comment above them where they are not the paper's
+   words). Raise its group's count in `GROUP_CARD_COUNTS` of
+   `tests/insights_figure_sections.test.js`, or add the new group's count
+   there in its place, which also checks that the
    cards draw every answer of the index once (the shared legend is named by
    two cards); `tests/insights_figure_cards.test.js` checks that its answer
    has its kind's columns; `tests/figure_words.test.js` counts the words of
@@ -325,7 +349,8 @@ table and the card's words.
    lists it in `site/data/all/figures.json`, and commit `site/data` with
    the change.
 4. **The snapshots.** Run `make snapshots` and commit `tests/snapshots`
-   with the change: a new card adds units; no other unit may move.
+   with the change: a new card adds units, a new group a heading and a
+   takeaway to its topic's text unit; no other unit may move.
 
 **The patterns a card copies.**
 
@@ -473,12 +498,13 @@ Insights' figures are drawn from their plot-ready tables.
   written once, "100%". In a card grid, a chart with no legend sits at the
   foot of its row, so the x axes of a row line up.
 - **One axis.** Two measures of different scale are two charts.
-- **The card.** A chart's card shows its title, its caption, its legend
-  above the chart (none where it has a single series, but a bands card,
-  which shows its key there), and a Definition control that opens on its
-  definition: alone on a figure card of the Insights; with the line of
-  rows it rests on in the two Overview mixes and the Traffic Explorer's
-  card.
+- **The card.** A chart's card shows its title (on the Insights an `h4`
+  under its group's heading, with its insight under it), its legend above
+  the chart (none where it has a single series, but a bands card, which
+  shows its key there), its caption under the chart, and a Definition
+  control that opens on its definition: alone on a figure card of the
+  Insights; with the line of rows it rests on in the two Overview mixes
+  and the Traffic Explorer's card.
   A legend names only what is drawn. After each drawing the chart is named
   for a screen reader by its title and caption, `nameChart` in
   `shared/charts.js`.
@@ -491,7 +517,10 @@ Insights' figures are drawn from their plot-ready tables.
   card. A figure's axes are the paper's: its titles, its log scales,
   ticked at the powers of ten (every second or more past
   `MAX_LOG_TICKS`), its limits, and its ticks where the card gives them,
-  so that a phone's axis does not run its labels together. One format per
+  so that a phone's axis does not run its labels together. The one
+  exception is the per-user inter-arrival band card, on a linear axis to
+  `IAT_CAP_SECONDS` (400 s) that clips its bands, so that the median's
+  move over the year shows. One format per
   quantity: an axis's counts as "1k", "600M" (`formatCountTick`); a value
   in a legend, a tooltip, a tile or the stats strip with one decimal kept
   ("129.1k", "94.0%", "4.3 s", and three figures in billions, "2.04B"),

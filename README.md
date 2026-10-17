@@ -43,12 +43,18 @@ The one page, `index.html`, holds, in order:
   entry they return to; the default, everything, writes no key.
 - **Insights** (`#insights`). The paper's figures in six topics that follow
   its sections, one shown at a time behind a row of tabs, the shown topic
-  in the URL's hash: Workload overview (`#insights-overview`), Token shape
-  and latency (`#insights-tokens`), Users and models (`#insights-users`),
-  Workload evolution (`#insights-evolution`), Prefix caching
-  (`#insights-caching`) and Load balancing (`#insights-balancing`). Each of
-  the 47 cards draws one of the paper's figures in the browser from its
-  plot-ready table, with the paper's axes, log scales and limits, in the
+  in the URL's hash: The workload at a glance (`#insights-overview`),
+  Request shape and latency (`#insights-tokens`), Users and models
+  (`#insights-users`), A year of change (`#insights-evolution`), Prefix
+  caching (`#insights-caching`) and Load balancing
+  (`#insights-balancing`). A topic opens with its takeaway, the paper's
+  finding for its section in plain words, and holds its cards in groups,
+  each a run of the paper's figures under a heading and a plain takeaway
+  of what they show together and what that means for a serving system.
+  Each of the 47 cards draws one of the paper's figures in the browser
+  from its plot-ready table, with the paper's axes, log scales and limits
+  (but the per-user inter-arrival band card, on a linear axis to 400 s
+  that clips its bands, where the paper's is logarithmic), in the
   page's colours, light or dark: a title, an insight, the chart, as wide
   as its card, and a caption; a tooltip with the values under the pointer
   (on the two eviction-algorithm cards, every algorithm's at the hovered
@@ -311,8 +317,8 @@ site/                exactly the files that are deployed
     cite.js, team.js
                      the citation's sentence and copy buttons; the lab and the authors
   js/explore/        the page's start and its sections
-    start.js         places the Insights' cards and tabs, draws the header and footer, runs the sections, and
-                     follows Back and Forward
+    start.js         places the Insights' groups and cards and draws their tabs, draws the header and footer, runs
+                     the sections, and follows Back and Forward
     traffic.js, traffic_controls.js, traffic_filter.js
                      the Traffic Explorer: its tiles and bars; its controls, kept in step with the URL; its
                      choice, its URL keys and its sums
@@ -367,7 +373,8 @@ tests/               what make test runs
                      tests (explore_traffic.test.js for explore/traffic.js), and the checks of the whole page
                      below
   figure_words.test.js
-                     the word counts of every card's insight, caption and definition, and of each takeaway
+                     the word counts of every card's insight, caption and definition, of each topic's takeaway,
+                     and of each group's heading and takeaway
   insights_figure_cards.test.js
                      every card's kind, and its shipped answer holding that kind's columns
   insights_card_series.test.js

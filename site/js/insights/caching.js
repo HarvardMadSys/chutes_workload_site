@@ -188,7 +188,8 @@ export const CACHING_TOPIC = Object.freeze({
             valueLabel: "Requests covered",
             valueFormat: formatShare,
           },
-          // Wide, so it does not sit alone in half a row under the two inter-arrival cards of its group.
+          // Wide, as the spec's table sets it, so its log axis of over seven decades, 0.3 ms to nearly three hours,
+          // has the room.
           isWide: true,
         }),
       ]),

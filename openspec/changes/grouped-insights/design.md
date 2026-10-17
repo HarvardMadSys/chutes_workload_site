@@ -2,14 +2,21 @@
 
 ## D1. The model: topic → group → card
 
-A topic (`insights/figure_sections.js`) is `{ selector, takeaway,
-groups }`; a group is `{ heading, takeaway, cards }`. `placeTopic`
+A topic is `{ selector, takeaway, groups }`; a group is `{ heading,
+takeaway, cards }`. The list of topics moves to
+`explore/figure_sections.js`, beside the page's start that places them,
+since `js/insights/`, taking `routing_panels.js` (below), would
+otherwise hold ten modules, one past the folder limit. `placeTopic`
 (`explore/start.js`) writes, after the topic's takeaway, for each group
 a heading (`h3.figure-group-title`), its takeaway
 (`p.figure-group-takeaway`) and a card grid; a card's title becomes an
-`h4` (`renderFigure` takes the heading tag already). `drawShownTopic`
-draws every card of every group. The six topic modules keep their
+`h4` (`renderFigure` takes the heading tag already).
+`placeTopic` returns the topic's section and every card of its groups,
+and `drawShownTopic` draws that list. The six topic modules keep their
 cards and wrap them in groups; the index's six `h2` take the new names.
+The routing simulation card's series and eight panels move from
+`insights/balancing.js` to `insights/routing_panels.js`, which keeps the
+balancing module under 300 lines once its groups are added.
 `figure_sections.js` exports `topicCards(topic)` (every card of the
 topic in order) so the tests and the snapshot keep one way to list them.
 
