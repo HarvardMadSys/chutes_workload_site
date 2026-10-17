@@ -38,6 +38,8 @@ const ELSEWHERE_LINKS = Object.freeze([
   Object.freeze({ title: "Dataset", url: URLS.dataset }),
   Object.freeze({ title: "Paper", url: URLS.paper }),
   Object.freeze({ title: "Code (this trace)", url: URLS.code }),
+  // The blog post that explores the same trace in the browser, by its own title.
+  Object.freeze({ title: "A Year of LLM Traffic, in a Browser Tab", url: URLS.blog }),
   Object.freeze({ title: "MadSys on GitHub", url: URLS.github }),
 ]);
 

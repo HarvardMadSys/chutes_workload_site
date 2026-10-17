@@ -82,7 +82,7 @@ test("the footer names the lab under its line, linking to it", () => {
 
 test("the footer lists the sections on this site and the places elsewhere", () => {
   assert.deepEqual(footerList("On this site"), ["Overview", "Traffic Explorer", "Insights", "Cite"]);
-  assert.deepEqual(footerList("Elsewhere"), ["Dataset", "Paper", "Code (this trace)", "MadSys on GitHub"]);
+  assert.deepEqual(footerList("Elsewhere"), ["Dataset", "Paper", "Code (this trace)", "A Year of LLM Traffic, in a Browser Tab", "MadSys on GitHub"]);
 });
 
 test("the footer's section links lead where the header's do, by anchor alone", () => {

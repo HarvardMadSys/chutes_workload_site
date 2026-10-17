@@ -1,6 +1,5 @@
 Cite
 If the trace supports your work, please cite A Year in LLM Serving, the paper that introduces it.
-See also A Year of LLM Traffic, in a Browser Tab, Kasi Vandanapu's interactive exploration of the same trace.
 BIBTEX · CHUTES PRODUCTION TRACE
 Copy
 @misc{nixon2026year,

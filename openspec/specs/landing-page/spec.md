@@ -162,16 +162,15 @@ artifact's checkout is given.
 
 ### Requirement: Cite, Team and footer
 The page SHALL end with a Cite section holding the paper's BibTeX in a
-block with a copy button, its lines wrapping rather than scrolling, and
-under its citation sentence one see-also sentence naming, with a link,
-the blog post "A Year of LLM Traffic, in a Browser Tab", which explores
-the same trace in the browser; a Team section naming Harvard MadSys and
+block with a copy button, its lines wrapping rather than scrolling; a Team section naming Harvard MadSys and
 collaborators and the paper's authors with their affiliations as names,
 not links; and a footer with the brand line "Chutes Production Trace",
 one line of the user's words whose month count is read from
 `trace_totals` in digits, the lab's name "Harvard SEAS · MadSys Lab"
-linking to the lab, and the on-site and elsewhere links, and nothing
-else: no copyright line and no policy links. Every link that leaves the
+linking to the lab, and the on-site and elsewhere links (the dataset,
+the paper, the code, the blog post "A Year of LLM Traffic, in a Browser
+Tab" that explores the same trace in the browser, and the lab on GitHub),
+and nothing else: no copyright line and no policy links. Every link that leaves the
 site SHALL show an arrow after its text.
 
 #### Scenario: Copying the citation
@@ -179,7 +178,7 @@ site SHALL show an arrow after its text.
 - **THEN** the BibTeX SHALL be on the clipboard unchanged
 
 #### Scenario: A link off the site
-- **WHEN** the visitor looks at the hero's Paper button, the see-also link or the footer's Dataset link
+- **WHEN** the visitor looks at the hero's Paper button or the footer's Dataset or blog-post link
 - **THEN** each SHALL end in an arrow, and the Traffic Explorer link SHALL not
 
 ### Requirement: Figure cards are drawn from their answers

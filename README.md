@@ -65,9 +65,7 @@ The one page, `index.html`, holds, in order:
   two monthly share cards take their series' order from the paper's shared
   legend, the 48th table.
 - **Cite** (`#cite`) and **Team**: the paper's citation as BibTeX with a
-  copy button and a see-also line linking the blog post that explores the
-  trace in the browser, and the lab, its collaborators and the paper's
-  authors.
+  copy button, and the lab, its collaborators and the paper's authors.
 
 ## Where the numbers come from
 
@@ -311,7 +309,7 @@ site/                exactly the files that are deployed
                      the title, lede and buttons; the stats strip of the trace's totals
     donuts.js        the Overview's family and endpoint mixes
     cite.js, team.js
-                     the citation's sentence, its see-also line and copy buttons; the lab and the authors
+                     the citation's sentence and copy buttons; the lab and the authors
   js/explore/        the page's start and its sections
     start.js         places the Insights' cards and tabs, draws the header and footer, runs the sections, and
                      follows Back and Forward
