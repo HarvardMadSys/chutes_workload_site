@@ -159,9 +159,8 @@ sum and count), `daily_by_model` (for the family given: one row per
 day, model and endpoint group, the model one of the family's eight with
 its chute id and name, or "Other <family>" with a null id, with the same
 measures), `histograms_by_family` (one row per trace week, family,
-endpoint group and metric, with the week's first calendar day, the
-family's slug, and two lists in bin order, the bins and the requests in
-each) and `histograms_by_model` (for the family given: the same per
+endpoint group and metric, with the week's first calendar day and two
+lists in bin order, the bins and the requests in each) and `histograms_by_model` (for the family given: the same per
 week, model and endpoint group, the model as `daily_by_model` names it).
 Every query SHALL be read by the page. The page SHALL draw
 from the answers alone and run no query.
