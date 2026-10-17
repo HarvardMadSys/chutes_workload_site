@@ -1,7 +1,7 @@
 # landing-page Specification
 
 ## Purpose
-TBD - created by archiving change chutes-site. Update Purpose after archive.
+What the one page shows a visitor, section by section: the hero and stats strip, the Overview's two mixes, the Traffic Explorer by family and model, the Insights' figure cards drawn from the paper's figures, the Cite and Team sections and the footer.
 
 ## Requirements
 

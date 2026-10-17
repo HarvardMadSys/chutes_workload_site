@@ -1,7 +1,7 @@
 # site Specification
 
 ## Purpose
-TBD - created by archiving change chutes-site. Update Purpose after archive.
+How the site is built and kept: the repository's layout and rules, the data step from the artifact's committed files to the query and figure answers, the tests, the look and the deployment.
 
 ## Requirements
 
