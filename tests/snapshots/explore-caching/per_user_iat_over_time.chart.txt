@@ -1,5 +1,5 @@
 name: Per-user IAT over time: User IAT trends downwards over time.
 x-axis: Apr '25 | Oct '25 | Apr '26*
-y-axis: 1 s | 10 s | 100 s | 1000 s
+y-axis: 0 | 100 | 200 | 300 | 400
 x-axis title: Month
-y-axis title: Inter-arrival time
+y-axis title: Inter-arrival time (s)

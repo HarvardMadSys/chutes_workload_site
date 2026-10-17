@@ -39,7 +39,7 @@ const KEY_ENTRIES = Object.freeze([
  * the first series colour when not given), and return the chart. It has no series: `colours` and `hidden` are not
  * read. Its named parameters:
  * - `x`, `y`: the card's axis options (`axes/ticks.js`); on a log y axis, an x whose percentiles are not all above
- *   zero is not drawn.
+ *   zero is not drawn; where either gives a domain, the bands and the median are clipped to the frame.
  * - `valueLabel`: what a value is, the tooltip's heading under the x; `valueFormat`: how a percentile is written there.
  * - `margins`: Plot margins in place of the frame's.
  * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `shared/charts.js`).
@@ -54,6 +54,8 @@ export async function drawBands(rows, body, colours, parameters) {
   const xValues = drawn.map((row) => row.x);
   const xTicks = axisTicks(xAxis, xValues);
   const yTicks = axisTicks(yAxis, [...drawn.map((row) => row.p10), ...drawn.map((row) => row.p90)]);
+  // A band past a domain's end would be drawn over the axis titles; the frame cuts it off instead.
+  const clip = xAxis.domain !== undefined || yAxis.domain !== undefined;
   const chart = Plot.plot({
     ...titledFrame(body, yAxis.label ?? null, margins, parameters.height),
     x: axisScale(xAxis, xValues),
@@ -62,9 +64,9 @@ export async function drawBands(rows, body, colours, parameters) {
       gridMark(Plot, "y", yTicks),
       axisMark(Plot, "x", xAxis, xTicks),
       axisMark(Plot, "y", yAxis, yTicks),
-      Plot.areaY(drawn, { x: "x", y1: "p10", y2: "p90", fill: colour, fillOpacity: OUTER_BAND_OPACITY }),
-      Plot.areaY(drawn, { x: "x", y1: "p25", y2: "p75", fill: colour, fillOpacity: INNER_BAND_OPACITY }),
-      Plot.line(drawn, { x: "x", y: "p50", stroke: colour, strokeWidth: MEDIAN_WIDTH }),
+      Plot.areaY(drawn, { x: "x", y1: "p10", y2: "p90", fill: colour, fillOpacity: OUTER_BAND_OPACITY, clip }),
+      Plot.areaY(drawn, { x: "x", y1: "p25", y2: "p75", fill: colour, fillOpacity: INNER_BAND_OPACITY, clip }),
+      Plot.line(drawn, { x: "x", y: "p50", stroke: colour, strokeWidth: MEDIAN_WIDTH, clip }),
       Plot.tip(drawn, Plot.pointerX({ x: "x", y: "p50", title: (row) => bandTipText(row, parameters) })),
     ],
   });

@@ -31,6 +31,10 @@ const ORACLE = Object.freeze(["Belady (size-aware)"]);
 // The three highlighted models, without the global series: the boxes of the per-user IAT.
 const HIGHLIGHTED_MODELS = Object.freeze(HIGHLIGHTED_SERIES.filter((name) => name !== "Global"));
 
+// The top of the per-user IAT band card's linear y axis, in seconds: the 90th percentile passes it in the last months
+// and is cut off there, so that a linear axis shows the median's move, which a log axis hid.
+const IAT_CAP_SECONDS = 400;
+
 /** The Prefix caching topic. */
 export const CACHING_TOPIC = Object.freeze({
   selector: "#insights-caching",
@@ -62,7 +66,8 @@ export const CACHING_TOPIC = Object.freeze({
           figure: "fig_request_token_hit_rate_cdf_by_model",
           title: "Model token hit ratio",
           insight: "Cache behavior differs sharply across models.",
-          caption: "The two DeepSeek models have many requests with zero cache hits, while MiniMax-M2.5 shows a broader distribution, with many requests at intermediate to high hit ratios.",
+          // placeholder: "most" and "near-zero" as the answer shows, and what MiniMax-M2.5 is used for, are the site's.
+          caption: "Most requests to the two DeepSeek models have near-zero cache hits, while MiniMax-M2.5, used for coding and agents, shows a broader distribution, with many requests at intermediate to high hit ratios.",
           definition: "Share of requests whose token hit ratio is at most this value, over all requests and for the three highlighted models.",
           kind: "cdf",
           series: HIGHLIGHTED_SERIES,
@@ -136,8 +141,7 @@ export const CACHING_TOPIC = Object.freeze({
           kind: "bands",
           chart: {
             x: TRACE_MONTH_AXIS,
-            // The paper's limits: a third of a decade past the lowest 10th percentile and the highest 90th.
-            y: { label: "Inter-arrival time", log: true, domain: [0.34, 1350], tickFormat: formatSecondsTick },
+            y: { label: "Inter-arrival time (s)", domain: [0, IAT_CAP_SECONDS] },
             valueLabel: "Per-user IAT",
             valueFormat: formatSeconds,
           },
@@ -147,7 +151,8 @@ export const CACHING_TOPIC = Object.freeze({
           title: "Per-user IAT across models",
           // placeholder: the paragraph's lead-in is on the IAT over time card; this is its sentence on this panel.
           insight: "The recurrence pattern also varies significantly by model.",
-          caption: "MiniMax-M2.5 has the lowest per-user IAT, consistent with coding or agentic workflows; DeepSeek R1 has the longest, which may reflect more human-paced reasoning interactions.",
+          // placeholder: the caption names all three profiles, DeepSeek V3.2 and MiniMax-M2.5's rapid succession added.
+          caption: "MiniMax-M2.5 has the lowest per-user IAT, consistent with coding or agentic workflows sending requests in rapid succession; DeepSeek R1 has the longest, which may reflect more human-paced reasoning interactions. DeepSeek V3.2 falls between.",
           definition: "For each highlighted model, a box plot over users of each user's median time between consecutive requests to that model.",
           kind: "boxes",
           series: HIGHLIGHTED_MODELS,

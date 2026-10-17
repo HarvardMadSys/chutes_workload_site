@@ -1,8 +1,8 @@
-// The Prefix caching and Load balancing topics' cards read as the paper's figures: the TTL card's ticks at 1 ms and
-// at the thresholds the paper quotes, its axis starting under 1 ms, the eviction pair on one 0-to-1 axis with every
-// algorithm in its tooltip, the cache profiles' request axes, the occupancy's hours on its ticks and in its tooltip,
-// and the user zooms' even split. Each reads a card as its topic lists it and, where it needs one, its answer as the
-// page reads it.
+// The Prefix caching and Load balancing topics' cards read as the paper's figures: the per-user IAT band card's linear
+// axis to 400 s, the TTL card's ticks at 1 ms and at the thresholds the paper quotes, its axis starting under 1 ms, the
+// eviction pair on one 0-to-1 axis with every algorithm in its tooltip, the cache profiles' request axes, the
+// occupancy's hours on its ticks and in its tooltip, and the user zooms' even split. Each reads a card as its topic
+// lists it and, where it needs one, its answer as the page reads it.
 
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -94,4 +94,15 @@ test("a user zoom's request-share panel marks an even split over the instances o
     assert.deepEqual(requestShare.reference, { value: 100 / instances, label: "even split" }, figure);
     assert.equal(tokenHit.reference, undefined, figure);
   }
+});
+
+test("the per-user IAT band card's y axis is linear from 0 to 400 s, its median within it, its 90th past it late on", () => {
+  const { y: yAxis } = chartParameters(cardOf("fig_iat_monthly_per_user_band"));
+  assert.equal(yAxis.log, undefined);
+  assert.deepEqual(yAxis.domain, [0, 400]);
+  assert.equal(yAxis.label, "Inter-arrival time (s)");
+  // The axis shows every month's median, and the 90th percentile, cut off at its top, passes it in some month.
+  const rows = shippedAnswer("fig_iat_monthly_per_user_band");
+  assert.ok(rows.every((row) => row.p50 < yAxis.domain[1]));
+  assert.ok(rows.some((row) => row.p90 > yAxis.domain[1]));
 });
