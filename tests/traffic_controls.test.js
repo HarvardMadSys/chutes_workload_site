@@ -1,3 +1,9 @@
+/**
+ * The Traffic Explorer's controls (`traffic/traffic_controls.js`): the drop-downs, their entries and changes, the URL's
+ * choice they open on and write, and Back and Forward. The period buttons and the sliders' released range are tested
+ * in `traffic_period_buttons.test.js`.
+ */
+
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
@@ -136,21 +142,6 @@ test("a drop-down's change chooses its value; a family's empties the model", (co
   ]);
 });
 
-test("the button whose days are the range is pressed alone; a press presses it and chooses its days", (context) => {
-  useFakeDocument(context);
-  const row = new FakeElement("div");
-  const chosen = [];
-  const choice = { ...EVERYTHING, from: "2026-01-01", to: "2026-03-31" };
-  renderControls(row, choice, NO_FAMILY_ENTRIES, (part) => chosen.push(part));
-  const buttons = controlsOf(row).periods.children;
-  assert.deepEqual(pressedButtons(row), ["false", "false", "false", "false", "true"]);
-  buttons[2].dispatch("click");
-  assert.deepEqual(pressedButtons(row), ["false", "false", "true", "false", "false"]);
-  buttons[1].dispatch("click");
-  assert.deepEqual(chosen, [{ from: "2025-07-01", to: "2025-09-30" }, { from: "", to: "2025-06-30" }]);
-  assert.equal(controlsOf(row).periods.getAttribute("role"), "group");
-});
-
 test("the controls open on the URL's choice; a change writes it, other keys kept, and draws it", async (context) => {
   useFakeDocument(context);
   const page = useFakeWindow(context, "?tab=x&from=2025-07-01&to=2025-09-30&metric=input_tokens#traffic");
@@ -187,25 +178,6 @@ test("a model key without its family or outside it is ignored, a day outside the
     globalThis.window.location = new URL(`${PAGE_ADDRESS}?family=kin&model=id-z&from=2025-10-01&to=2025-07-01`);
     await mountTrafficControls(new FakeElement("div"), MOUNT_ENTRIES, page.context, page.explorer);
     assert.deepEqual(page.replaced, ["to=2025-09-30", "family=kin"], "a from after its to is dropped with it");
-  });
-
-test("the sliders' range, once released, is written to the URL and presses its button, and is not drawn again",
-  async (context) => {
-    useFakeDocument(context);
-    const page = useFakeWindow(context, "?endpoint=chat");
-    const row = new FakeElement("div");
-    const controls = await mountTrafficControls(row, MOUNT_ENTRIES, page.context, page.explorer);
-    controls.chooseRange({ from: "2025-10-01", to: "2025-12-31" });
-    assert.deepEqual(page.replaced, ["endpoint=chat&from=2025-10-01&to=2025-12-31"]);
-    assert.deepEqual(pressedButtons(row), ["false", "false", "false", "true", "false"]);
-    controls.chooseRange({ from: "2025-10-01", to: "2025-12-01" });
-    assert.deepEqual(pressedButtons(row), ["false", "false", "false", "false", "false"]);
-    assert.deepEqual(page.drawn, []);
-    const { metric } = controlsOf(row);
-    metric.value = "input_tokens";
-    metric.dispatch("change");
-    const range = { from: "2025-10-01", to: "2025-12-01" };
-    assert.deepEqual(page.drawn, [{ ...EVERYTHING, endpoint: "chat", metric: "input_tokens", ...range }]);
   });
 
 test("choosing a family reads its models into the model drop-down, then writes and draws it", async (context) => {

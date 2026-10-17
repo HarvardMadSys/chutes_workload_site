@@ -514,9 +514,10 @@ Insights' figures are drawn from their plot-ready tables.
 - **Axis text.** A linear axis asks Plot for `TICK_COUNT` ticks
   (`axes/ticks.js`), which gives at most six or seven. The exception is an
   axis of months: the Traffic Explorer's is ticked at the first day of
-  each month it shows (and of a range's first day, but the whole trace's), every
-  other month for the whole trace on a plot narrower than
-  `NARROW_PLOT_WIDTH`; their labels are slanted so that thirteen fit a
+  each month it shows, and at the range's first day when it falls in its
+  month's first half (`LAST_NAMED_FIRST_DAY`); on a plot narrower than
+  `NARROW_PLOT_WIDTH`, more than `MAX_NARROW_TICKS` ticks are thinned to
+  every other one. Its labels are slanted so that thirteen fit a
   card. A figure's axes are the paper's: its titles, its log scales,
   ticked at the powers of ten (every second or more past
   `MAX_LOG_TICKS`), its limits, and its ticks where the card gives them,

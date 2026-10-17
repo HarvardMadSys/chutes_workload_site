@@ -91,6 +91,8 @@ test("days outside the trace's, or at its ends, are clipped to them; a from afte
   assert.deepEqual(readQuery("from=2024-01-01&to=2025-05-01"), { ...EVERYTHING, to: "2025-05-01" });
   assert.deepEqual(readQuery("from=2025-04-11&to=2026-04-12"), EVERYTHING);
   assert.deepEqual(readQuery("from=2027-01-01&to=2024-01-01"), EVERYTHING);
+  assert.deepEqual(readQuery("from=2027-01-01"), { ...EVERYTHING, from: "2026-04-12" });
+  assert.deepEqual(readQuery("to=2024-01-01"), { ...EVERYTHING, to: "2025-04-11" });
   assert.deepEqual(readQuery("from=2025-09-30&to=2025-07-01"), EVERYTHING);
   const oneDay = { ...EVERYTHING, from: "2025-07-01", to: "2025-07-01" };
   assert.deepEqual(readQuery("from=2025-07-01&to=2025-07-01"), oneDay);

@@ -18,9 +18,15 @@ const DAILY_MARGINS = Object.freeze({ marginLeft: 52, marginRight: 8, marginBott
 // The angle of the month labels under the bars, in degrees, so that thirteen fit a card.
 const MONTH_LABEL_ANGLE = -45;
 
-// A plot narrower than this, in pixels, writes every other month under the whole trace's bars: on a phone its twelve
-// slanted labels would overlap. A quarter's three or four months fit at any width.
+// A plot narrower than this, in pixels, is a phone's: a long range's twelve slanted labels would overlap there.
 const NARROW_PLOT_WIDTH = 400;
+
+// On a narrow plot, more ticks than this are thinned to every other one. A quarter's three or four fit at any width.
+const MAX_NARROW_TICKS = 7;
+
+// A range's first day names its month when it falls in the month's first half; later, the next month's label would
+// sit too close to it.
+const LAST_NAMED_FIRST_DAY = "15";
 
 // No gap between the bars: over the whole trace a day's bar is a pixel or two wide, and a gap would take all of it.
 const DAY_BAR_INSET = 0;
@@ -35,9 +41,12 @@ const NO_REQUESTS_NOTE = "No requests in this choice.";
 // placeholder: what a token metric's bars sum, closing its caption, for the authors.
 const TOKENS_NOTE = " Tokens are summed over the requests that record them.";
 
-// The bars' words for each metric, by its value in a choice: the chart's title; what a bar counts, named in its
-// tooltip ("Input tokens: 1,234") and opening the caption; and the caption's closing note.
-const METRIC_WORDS = Object.freeze({
+/**
+ * The bars' words for each metric of `METRICS` (`traffic/traffic_filter.js`), by its value in a choice: the chart's
+ * title; what a bar counts, named in its tooltip ("Input tokens: 1,234") and opening the caption; and the caption's
+ * closing note.
+ */
+export const METRIC_WORDS = Object.freeze({
   "": Object.freeze({ title: "Requests per day", valueLabel: "Requests", note: "" }),
   input_tokens: Object.freeze({ title: "Input tokens per day", valueLabel: "Input tokens", note: TOKENS_NOTE }),
   output_tokens: Object.freeze({ title: "Output tokens per day", valueLabel: "Output tokens", note: TOKENS_NOTE }),
@@ -62,21 +71,20 @@ const CHART_DEFINITION = "Requests, input tokens or output tokens, as the metric
 
 /**
  * The days of `days` (the range's, in order) whose month is written under bars `plotWidth` pixels wide: each that opens
- * a month, and for a range that is not the whole trace (`isWholeTrace` false) its first day too, so a range that starts
- * mid-month names its first day's month. The whole trace does not, as on a phone the trace's first day would crowd the
- * next month's label; and the whole trace on a plot narrower than `NARROW_PLOT_WIDTH` keeps every other month, from
- * the first.
+ * a month, and the range's first day too when its day of the month is at most `LAST_NAMED_FIRST_DAY`, so a range that
+ * starts in a month's first half names that month. On a plot narrower than `NARROW_PLOT_WIDTH`, more than
+ * `MAX_NARROW_TICKS` ticks are thinned to every other one, from the first.
  */
-export function monthTicks(days, isWholeTrace, plotWidth) {
+export function monthTicks(days, plotWidth) {
   const ticks = [];
   for (const [index, day] of days.entries()) {
     const opensMonth = day.slice(DAY_OF_MONTH_START) === "01";
-    const opensRange = index === 0 && !isWholeTrace;
+    const opensRange = index === 0 && day.slice(DAY_OF_MONTH_START) <= LAST_NAMED_FIRST_DAY;
     if (opensMonth || opensRange) {
       ticks.push(day);
     }
   }
-  if (isWholeTrace && plotWidth < NARROW_PLOT_WIDTH) {
+  if (plotWidth < NARROW_PLOT_WIDTH && ticks.length > MAX_NARROW_TICKS) {
     return ticks.filter((tick, index) => index % 2 === 0);
   }
   return ticks;
@@ -111,8 +119,7 @@ export async function drawBars(place, { choice, family, chosen, requests, days, 
     showNote(body, NO_REQUESTS_NOTE);
     return { series, legend };
   }
-  const isWholeTrace = choice.from === "" && choice.to === "";
-  const drawing = { days: periodDays(days, choice), isWholeTrace, series, colours: legend.colours, words };
+  const drawing = { days: periodDays(days, choice), series, colours: legend.colours, words };
   await drawWithLegend(body, legend, (hidden) => drawDayBars(daily, body, drawing, hidden), "square", shared);
   return { series, legend };
 }
@@ -124,7 +131,7 @@ async function drawDayBars(daily, body, bars, hidden) {
     xColumn: "day",
     xLabel: null,
     xDomain: bars.days,
-    xTicks: monthTicks(bars.days, bars.isWholeTrace, chartWidth(body)),
+    xTicks: monthTicks(bars.days, chartWidth(body)),
     xTickFormat: dayMonth,
     xTipFormat: String, // a bar's tooltip names its whole day, where its tick names only the month
     xTickRotate: MONTH_LABEL_ANGLE,

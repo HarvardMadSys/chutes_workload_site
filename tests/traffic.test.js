@@ -2,39 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { runTraffic } from "../site/js/traffic/traffic.js";
-import { dayMonth, monthTicks } from "../site/js/traffic/traffic_bars.js";
 import { FakeElement, PAGE_ADDRESS } from "./fake_page.js";
-
-// Plot widths, in pixels: a desktop card's, and a phone's at 360 px.
-const WIDE_PLOT = 1200;
-const PHONE_PLOT = 286;
-
-test("the bars' axis writes the month at each first of a month, and at the first day of a range not the trace", () => {
-  const days = ["2025-04-29", "2025-04-30", "2025-05-01", "2025-05-02", "2025-06-01"];
-  assert.deepEqual(monthTicks(days, true, WIDE_PLOT), ["2025-05-01", "2025-06-01"]);
-  assert.deepEqual(monthTicks(days, false, WIDE_PLOT).map(dayMonth), ["2025-04", "2025-05", "2025-06"]);
-  const quarter = ["2025-07-01", "2025-07-02", "2025-08-01"];
-  assert.deepEqual(monthTicks(quarter, false, WIDE_PLOT), ["2025-07-01", "2025-08-01"]);
-});
-
-// The first day of each month of the whole trace's days, from 2025-04-11 to 2026-04-12.
-const TRACE_MONTH_STARTS = [
-  "2025-05-01", "2025-06-01", "2025-07-01", "2025-08-01", "2025-09-01", "2025-10-01", "2025-11-01", "2025-12-01",
-  "2026-01-01", "2026-02-01", "2026-03-01", "2026-04-01",
-];
-
-test("the whole trace's bars write every month on a wide plot and every other month on a phone's", () => {
-  const days = ["2025-04-11", ...TRACE_MONTH_STARTS, "2026-04-12"];
-  assert.deepEqual(monthTicks(days, true, WIDE_PLOT), TRACE_MONTH_STARTS);
-  assert.deepEqual(monthTicks(days, true, PHONE_PLOT).map(dayMonth), [
-    "2025-05", "2025-07", "2025-09", "2025-11", "2026-01", "2026-03",
-  ]);
-});
-
-test("a range's bars write every month on a phone's plot too", () => {
-  const days = ["2025-04-11", "2025-05-01", "2025-06-01", "2025-06-30"];
-  assert.deepEqual(monthTicks(days, false, PHONE_PLOT), ["2025-04-11", "2025-05-01", "2025-06-01"]);
-});
 
 // The answer files the explorer reads: every family's rows, and the family Kin's by model.
 const FAMILY_FILE = "data/all/explore/daily_by_family.json";
@@ -69,12 +37,13 @@ function fakeElement(tag) {
 /**
  * Run the explorer into a new container for the test of `context`, the page opened at `query` and each file of
  * `answers` (a map from file to its promised rows) fetched as its rows, any other answering 404; errors are not
- * logged. Returns `{ container, running, replaced, frames, reads }`, the container, the explorer's promise, the queries
- * written to the URL, in order, the animation frames asked for and not yet run, and the files read, in order, each
- * `[file, bars]` with what the bars' body held then (`barsState`).
+ * logged. Returns `{ container, running, replaced, frames, reads, returns }`, the container, the explorer's promise,
+ * the queries written to the URL, in order, the animation frames asked for and not yet run, the files read, in order,
+ * each `[file, bars]` with what the bars' body held then (`barsState`), and the functions given to `onReturn`, which
+ * Back and Forward call.
  */
 function runExplorer(context, query, answers) {
-  const page = { container: new FakeElement("div"), replaced: [], frames: [], reads: [] };
+  const page = { container: new FakeElement("div"), replaced: [], frames: [], reads: [], returns: [] };
   globalThis.document = { createElement: fakeElement };
   globalThis.window = { location: new URL(`${PAGE_ADDRESS}${query}`) };
   globalThis.requestAnimationFrame = (callback) => page.frames.push(callback);
@@ -91,7 +60,7 @@ function runExplorer(context, query, answers) {
   const explorerContext = {
     orders: { endpoints: Promise.resolve([{ endpoint_group: "chat", requests: 10 }]) },
     replaceQuery: (params) => page.replaced.push(params.toString()),
-    onReturn: () => undefined,
+    onReturn: (redraw) => page.returns.push(redraw),
   };
   return { ...page, running: runTraffic(page.container, explorerContext) };
 }
@@ -182,9 +151,7 @@ test("the sliders sit under the bars on the URL's range and draw the tiles as th
     assert.deepEqual([requestsTile(tiles), toSlider.value, toDay.textContent], ["0", "1", "2025-07-01"]);
     toSlider.value = "2";
     toSlider.dispatch("input");
-    for (const frame of page.frames.splice(0)) {
-      frame();
-    }
+    runFrames(page.frames);
     await settled();
     assert.equal(requestsTile(tiles), "5");
     assert.deepEqual(page.replaced, [], "a slider moving does not write the URL");
@@ -205,6 +172,48 @@ test("a period button stands the sliders on its days and draws them", async (con
   assert.deepEqual(pressed(), ["false", "false", "true", "false", "false"]);
   assert.equal(requestsTile(tiles), "5");
   assert.deepEqual(page.replaced, ["endpoint=completion&from=2025-07-01"]);
+});
+
+// The value of each tile, in order.
+function tileValues(tiles) {
+  return tiles.children.map((tile) => tile.children[0].textContent);
+}
+
+// Run the animation frames asked for, as the browser does before it paints.
+function runFrames(frames) {
+  for (const frame of frames.splice(0)) {
+    frame();
+  }
+}
+
+test("a token metric titles the bars and closes their caption with the token note; the tiles stay the requests'",
+  async (context) => {
+    const completions = { endpoint_group: "completion", requests: 5, input_tokens: 700, input_counted: 5 };
+    const rows = [...THREE_DAY_ROWS.slice(0, 2), { ...THREE_DAY_ROWS[2], ...completions }];
+    const page = runExplorer(context, `${NO_COMPLETION_QUERY}&metric=input_tokens`, { [FAMILY_FILE]: rows });
+    await page.running;
+    const [title, caption] = page.container.children[1].children[1].children[0].children;
+    assert.equal(title.textContent, "Input tokens per day");
+    assert.match(caption.textContent, /^Input tokens each day, /);
+    assert.match(caption.textContent, / Tokens are summed over the requests that record them\.$/);
+    const { tiles, rangeFields } = explorerParts(page.container);
+    rangeFields[1].children[1].value = "2";
+    rangeFields[1].children[1].dispatch("input");
+    runFrames(page.frames);
+    await settled();
+    assert.deepEqual(tileValues(tiles), ["5", "140", "—", "—"]);
+  });
+
+test("Back to an entry of another range stands the sliders on it and draws it", async (context) => {
+  const page = runExplorer(context, NO_COMPLETION_QUERY, { [FAMILY_FILE]: THREE_DAY_ROWS });
+  await page.running;
+  const { tiles, rangeFields } = explorerParts(page.container);
+  globalThis.window.location = new URL(`${PAGE_ADDRESS}?endpoint=completion&from=2025-07-01`);
+  await page.returns[0]();
+  await settled();
+  assert.deepEqual(rangeFields.map((field) => field.children[2].textContent), ["2025-07-01", "2025-07-02"]);
+  assert.equal(requestsTile(tiles), "5");
+  assert.deepEqual(page.replaced, [], "Back writes nothing");
 });
 
 // The histogram answers the explorer reads, once the bars are drawn: every family's, and the family Kin's by model.

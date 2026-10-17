@@ -39,13 +39,18 @@ test("the period pressed is the one whose range is the choice's, none for anothe
   assert.equal(pressedPeriod({ from: "2025-04-12", to: "2025-06-30" }, TRACE_DAYS), null);
 });
 
-test("a day outside the trace's, at its end or empty is the trace's end; one between two the nearer inside", () => {
-  for (const day of ["", "2025-06-30", "2025-07-10", "2025-07-01"]) {
+test("an empty day, a day at the trace's end on its side or beyond it, is that end, written \"\"", () => {
+  for (const day of ["", "2025-06-30", "2025-07-01"]) {
     assert.equal(clippedFrom(day, GAPPED_DAYS), "", day);
   }
-  for (const day of ["", "2025-06-30", "2025-07-10", "2025-07-09"]) {
+  for (const day of ["", "2025-07-10", "2025-07-09"]) {
     assert.equal(clippedTo(day, GAPPED_DAYS), "", day);
   }
+});
+
+test("a day beyond the trace's other end is clamped to that end; one between two trace days the nearer inside", () => {
+  assert.equal(clippedFrom("2025-07-10", GAPPED_DAYS), "2025-07-09");
+  assert.equal(clippedTo("2025-06-30", GAPPED_DAYS), "2025-07-01");
   assert.equal(clippedFrom("2025-07-04", GAPPED_DAYS), "2025-07-05");
   assert.equal(clippedTo("2025-07-04", GAPPED_DAYS), "2025-07-03");
   assert.equal(clippedFrom("2025-07-03", GAPPED_DAYS), "2025-07-03");
@@ -54,8 +59,8 @@ test("a day outside the trace's, at its end or empty is the trace's end; one bet
 test("a day that is not YYYY-MM-DD is placed among the days by its order as text", () => {
   assert.equal(clippedFrom("2025-07-04 noon", GAPPED_DAYS), "2025-07-05");
   assert.equal(clippedTo("2025-07-04 noon", GAPPED_DAYS), "2025-07-03");
-  assert.equal(clippedFrom("next week", GAPPED_DAYS), "");
-  assert.equal(clippedTo("2025-07", GAPPED_DAYS), "");
+  assert.equal(clippedFrom("next week", GAPPED_DAYS), "2025-07-09");
+  assert.equal(clippedTo("2025-07", GAPPED_DAYS), "2025-07-01");
 });
 
 test("a range whose from is after its to once clipped is the whole trace", () => {
@@ -63,6 +68,8 @@ test("a range whose from is after its to once clipped is the whole trace", () =>
   assert.deepEqual(clippedRange("2025-07-04", "2025-07-04", GAPPED_DAYS), { from: "", to: "" });
   assert.deepEqual(clippedRange("2025-07-03", "2025-07-03", GAPPED_DAYS), { from: "2025-07-03", to: "2025-07-03" });
   assert.deepEqual(clippedRange("2024-01-01", "2025-07-05", GAPPED_DAYS), { from: "", to: "2025-07-05" });
+  assert.deepEqual(clippedRange("2027-01-01", "", GAPPED_DAYS), { from: "2025-07-09", to: "" });
+  assert.deepEqual(clippedRange("2027-01-01", "2024-01-01", GAPPED_DAYS), { from: "", to: "" });
 });
 
 test("the sliders stand on the indices of the range's days, the trace's ends for an empty day", () => {
