@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  drawTileCharts, drawTileCurves, formatTtftTick, MAX_TILE_TICKS, showChartsError, showChartsLoading, TILE_CHARTS,
+  drawTileCharts, drawTileCurves, formatTtftTick, showChartsError, showChartsLoading, TILE_CHARTS,
 } from "../site/js/traffic/traffic_tile_charts.js";
 import { FakeElement, useFakeDocument } from "./fake_page.js";
 
@@ -45,11 +45,14 @@ test("the three charts draw the input tokens, output tokens and TTFT, each over 
   ]);
 });
 
-test("each chart's log x axis is ticked at no more than four powers of ten within its domain", () => {
-  assert.equal(MAX_TILE_TICKS, 4);
+test("each chart's log x axis is ticked at its listed ticks, from its domain's start to its end", () => {
   const ticks = TILE_CHARTS.map((chart) => chart.x.ticks);
-  assert.deepEqual(ticks, [[1, 100, 10_000, 1_000_000], [1, 100, 10_000], [0.01, 1, 100]]);
-  assert.ok(TILE_CHARTS.every((chart) => chart.x.log));
+  assert.deepEqual(ticks, [[1, 100, 10_000, 1_000_000], [1, 1_000, 100_000], [0.01, 1, 100]]);
+  for (const chart of TILE_CHARTS) {
+    assert.ok(chart.x.log);
+    assert.deepEqual([chart.x.ticks[0], chart.x.ticks.at(-1)], chart.x.domain, `${chart.metric}: both ends labelled`);
+  }
+  assert.deepEqual(TILE_CHARTS[1].x.ticks.map(TILE_CHARTS[1].x.tickFormat), ["1", "1k", "100k"]);
   assert.deepEqual(TILE_CHARTS[2].x.ticks.map(TILE_CHARTS[2].x.tickFormat), ["10 ms", "1 s", "100 s"]);
 });
 

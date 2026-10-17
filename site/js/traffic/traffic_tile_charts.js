@@ -13,7 +13,6 @@ import { nameChart, showError, showErrorNote, showLoading, showNote } from "../s
 import {
   formatCount, formatCountTick, formatDurationTick, formatSignificantSeconds, formatWholeCount,
 } from "../shared/format.js";
-import { logAxisTicks } from "../axes/ticks.js";
 import { drawLines } from "../charts/lines.js";
 import { drawShownSeries, hasLegend } from "../explore/legend.js";
 import { binTotals, cdfRows } from "./traffic_distributions.js";
@@ -27,9 +26,6 @@ const SHARE_OF_REQUESTS = Object.freeze({ label: "Share of requests", ticks: Obj
 // minutes, which `formatDurationTick` would write with three decimals.
 const SECONDS_PER_MINUTE = 60;
 
-/** The most ticks a chart's x axis writes: a chart is a tile's width, and the decades' labels would crowd it. */
-export const MAX_TILE_TICKS = 4;
-
 // A tile's chart's height in pixels: under its number and notes, it is lower than a figure card's chart.
 const TILE_CHART_HEIGHT = 140;
 
@@ -37,13 +33,18 @@ const TILE_CHART_HEIGHT = 140;
 // last x tick's label on the right, so the plot keeps most of a tile's width.
 const TILE_CHART_MARGINS = Object.freeze({ marginLeft: 52, marginRight: 20 });
 
-// The x domains, the same for every choice. Over the whole trace, at the bins' upper edges:
-// 99.9% of the requests send at most 131,072 input tokens, and all at most 112,863,206;
+// The x domains, the same for every choice, each with its ticks: evenly spaced decades, at most four so the labels do
+// not crowd a tile's width, from the domain's start to its end so each axis names both its ends.
+// Over the whole trace, at the bins' upper edges, 99.9% of the requests send at most 131,072 input tokens, and all at
+// most 112,863,206;
 const INPUT_TOKENS_DOMAIN = Object.freeze([1, 1_000_000]);
+const INPUT_TOKENS_TICKS = Object.freeze([1, 100, 10_000, 1_000_000]);
 // 99.9% are answered with at most 11,585 output tokens, and all with at most 8,388,608;
 const OUTPUT_TOKENS_DOMAIN = Object.freeze([1, 100_000]);
+const OUTPUT_TOKENS_TICKS = Object.freeze([1, 1_000, 100_000]);
 // 0.1% have a TTFT of at most 0.088 s, 99.9% of at most 64 s, and all of at most 4,096 s.
 const TTFT_DOMAIN = Object.freeze([0.01, 100]);
+const TTFT_TICKS = Object.freeze([0.01, 1, 100]);
 
 // placeholder: the note in place of a tile's chart when the choice keeps no request that records its value, for the
 // authors.
@@ -51,15 +52,15 @@ const NO_RECORDED_VALUE_NOTE = "None of the chosen requests records this value."
 
 /**
  * The three charts, in the order of their tiles: the metric of the histogram rows each draws, its accessible name, its
- * x axis (a log one over its fixed domain, ticked at no more than `MAX_TILE_TICKS` of its powers of ten) and what its
- * tooltip names a value and how it writes it.
+ * x axis (a log one over its fixed domain, ticked at its listed ticks, the first the domain's start and the last its
+ * end) and what its tooltip names a value and how it writes it.
  */
 export const TILE_CHARTS = Object.freeze([
   Object.freeze({
     metric: "input_tokens",
     // placeholder: the chart's name for a screen reader, for the authors.
     name: "Input tokens distribution",
-    x: logAxis("Input tokens", INPUT_TOKENS_DOMAIN, formatCountTick),
+    x: logAxis("Input tokens", INPUT_TOKENS_DOMAIN, INPUT_TOKENS_TICKS, formatCountTick),
     // placeholder: the tooltip's name for the value, for the authors.
     valueLabel: "Input tokens",
     valueFormat: formatWholeCount,
@@ -68,7 +69,7 @@ export const TILE_CHARTS = Object.freeze([
     metric: "output_tokens",
     // placeholder: the chart's name for a screen reader, for the authors.
     name: "Output tokens distribution",
-    x: logAxis("Output tokens", OUTPUT_TOKENS_DOMAIN, formatCountTick),
+    x: logAxis("Output tokens", OUTPUT_TOKENS_DOMAIN, OUTPUT_TOKENS_TICKS, formatCountTick),
     // placeholder: the tooltip's name for the value, for the authors.
     valueLabel: "Output tokens",
     valueFormat: formatWholeCount,
@@ -77,7 +78,7 @@ export const TILE_CHARTS = Object.freeze([
     metric: "ttft",
     // placeholder: the chart's name for a screen reader, for the authors.
     name: "Time to first token distribution",
-    x: logAxis("Time to first token", TTFT_DOMAIN, formatTtftTick),
+    x: logAxis("Time to first token", TTFT_DOMAIN, TTFT_TICKS, formatTtftTick),
     // placeholder: the tooltip's name for the value, for the authors.
     valueLabel: "TTFT",
     valueFormat: formatSignificantSeconds,
@@ -89,10 +90,9 @@ export function formatTtftTick(seconds) {
   return seconds < SECONDS_PER_MINUTE ? formatDurationTick(seconds) : `${formatCount(seconds)} s`;
 }
 
-// The options of a chart's log x axis titled `label` over `domain`, ticked at no more than `MAX_TILE_TICKS` of its
-// powers of ten (`logAxisTicks`), each written by `tickFormat`.
-function logAxis(label, domain, tickFormat) {
-  return Object.freeze({ label, log: true, domain, ticks: logAxisTicks(domain, MAX_TILE_TICKS), tickFormat });
+// The options of a chart's log x axis titled `label` over `domain`, ticked at `ticks`, each written by `tickFormat`.
+function logAxis(label, domain, ticks, tickFormat) {
+  return Object.freeze({ label, log: true, domain, ticks, tickFormat });
 }
 
 /** Show the loading state in each of the charts' `places`. */
