@@ -123,12 +123,14 @@ const THREE_DAY_ROWS = [
   dayRow({ day: "2025-07-02", family: "Kin", family_slug: "kin", endpoint_group: "completion", requests: 5 }),
 ];
 
-// The explorer's parts in the fake page: `{ tiles, rangeFields, periodButtons }`, the tiles' list, the From and To
-// sliders' fields (each its name, slider and day) and the period buttons.
+// The explorer's parts in the fake page: `{ tiles, handles, rangeDays, periodButtons }`, the tiles' list, the day
+// range's From and To inputs, the From and To days under the track's ends, and the period buttons.
 function explorerParts(container) {
   const [controls, card] = container.children;
   const [tiles, , rangeRow] = card.children;
-  return { tiles, rangeFields: rangeRow.children, periodButtons: controls.children[4].children[1].children };
+  const [track, dayRow] = rangeRow.children;
+  const [, ...handles] = track.children; // the bar between the handles comes first
+  return { tiles, handles, rangeDays: dayRow.children, periodButtons: controls.children[4].children[1].children };
 }
 
 // The value of the requests' tile.
@@ -139,12 +141,13 @@ function requestsTile(tiles) {
 // Opened on the completions of the trace's first two days, which hold none, the bars are a note node can draw.
 const NO_COMPLETION_QUERY = "?endpoint=completion&to=2025-07-01";
 
-test("the sliders sit under the bars on the URL's range and draw the tiles as they move, writing it once released",
+test("the handles sit under the bars on the URL's range and draw the tiles as they move, writing it once released",
   async (context) => {
     const page = runExplorer(context, NO_COMPLETION_QUERY, { [FAMILY_FILE]: THREE_DAY_ROWS });
     await page.running;
-    const { tiles, rangeFields } = explorerParts(page.container);
-    const [, toSlider, toDay] = rangeFields[1].children;
+    const { tiles, handles, rangeDays } = explorerParts(page.container);
+    const [, toSlider] = handles;
+    const [, toDay] = rangeDays;
     assert.deepEqual([requestsTile(tiles), toSlider.value, toDay.textContent], ["0", "1", "2025-07-01"]);
     toSlider.value = "2";
     toSlider.dispatch("input");
@@ -156,15 +159,15 @@ test("the sliders sit under the bars on the URL's range and draw the tiles as th
     assert.deepEqual(page.replaced, ["endpoint=completion"]);
   });
 
-test("a period button stands the sliders on its days and draws them", async (context) => {
+test("a period button stands the handles on its days and draws them", async (context) => {
   const page = runExplorer(context, NO_COMPLETION_QUERY, { [FAMILY_FILE]: THREE_DAY_ROWS });
   await page.running;
-  const { tiles, rangeFields, periodButtons } = explorerParts(page.container);
+  const { tiles, handles, periodButtons } = explorerParts(page.container);
   const pressed = () => periodButtons.map((button) => button.getAttribute("aria-pressed"));
   assert.deepEqual(pressed(), ["false", "false", "false", "false", "false"]);
   periodButtons[2].dispatch("click");
   await settled();
-  const sliderValues = rangeFields.map((field) => field.children[1].value);
+  const sliderValues = handles.map((handle) => handle.value);
   assert.deepEqual(sliderValues, ["1", "2"], "Q3 '25 is the trace's days from July 1");
   assert.deepEqual(pressed(), ["false", "false", "true", "false", "false"]);
   assert.equal(requestsTile(tiles), "5");
@@ -186,22 +189,22 @@ test("a token metric titles the bars and closes their caption with the token not
     assert.equal(title.textContent, "Input tokens per day");
     assert.match(caption.textContent, /^Input tokens each day, /);
     assert.match(caption.textContent, / Tokens are summed over the requests that record them\.$/);
-    const { tiles, rangeFields } = explorerParts(page.container);
-    rangeFields[1].children[1].value = "2";
-    rangeFields[1].children[1].dispatch("input");
+    const { tiles, handles } = explorerParts(page.container);
+    handles[1].value = "2";
+    handles[1].dispatch("input");
     runFrames(page.frames);
     await settled();
     assert.deepEqual(tileValues(tiles), ["5", "140", "—", "—"]);
   });
 
-test("Back to an entry of another range stands the sliders on it and draws it", async (context) => {
+test("Back to an entry of another range stands the handles on it and draws it", async (context) => {
   const page = runExplorer(context, NO_COMPLETION_QUERY, { [FAMILY_FILE]: THREE_DAY_ROWS });
   await page.running;
-  const { tiles, rangeFields } = explorerParts(page.container);
+  const { tiles, rangeDays } = explorerParts(page.container);
   globalThis.window.location = new URL(`${PAGE_ADDRESS}?endpoint=completion&from=2025-07-01`);
   await page.returns[0]();
   await settled();
-  assert.deepEqual(rangeFields.map((field) => field.children[2].textContent), ["2025-07-01", "2025-07-02"]);
+  assert.deepEqual(rangeDays.map((day) => day.textContent), ["2025-07-01", "2025-07-02"]);
   assert.equal(requestsTile(tiles), "5");
   assert.deepEqual(page.replaced, [], "Back writes nothing");
 });
@@ -265,10 +268,10 @@ test("a failed histogram read shows its error in the cards, logged once, the not
     await page.running;
     assert.deepEqual(cardStates(page.container), ["note is-error", "note is-error", "note is-error"]);
     assert.equal(console.error.mock.callCount(), 1);
-    const { tiles, rangeFields } = explorerParts(page.container);
+    const { tiles, handles } = explorerParts(page.container);
     assert.deepEqual(tiles.children.map((tile) => tile.children.length), [2, 2, 2, 3], "only the TTFT's share");
     answers[HISTOGRAMS_FILE] = [];
-    rangeFields[1].children[1].dispatch("input");
+    handles[1].dispatch("input");
     runFrames(page.frames);
     await settled();
     assert.deepEqual(page.reads.map(([file]) => file), [FAMILY_FILE, HISTOGRAMS_FILE, HISTOGRAMS_FILE]);

@@ -890,49 +890,126 @@ section[id] {
   }
 }
 
-/* The day range under the bars: the From and To sliders side by side, each between its name and its day and taking
-   the rest of its field's width; on a phone (below) one under the other, each slider on a line of its own under its
-   name and day, so that it takes the card's width. */
+/* The day range under the bars: one track as wide as the card, with the From and To handles on one drawn bar, the
+   bar between them in the accent, and under it the From day at the left end and the To day at the right. */
 .traffic-range {
-  display: flex;
-  gap: 0.5rem 2rem;
   margin-top: 0.75rem;
 }
 
-.range-field {
-  display: flex;
-  flex: 1 1 0;
-  align-items: center;
-  gap: 0.75rem;
-  min-width: 0;
+.range-track {
+  position: relative;
+  height: 1.5rem;
 }
 
-/* The names as wide as the longer, so stacked sliders start level. */
-.range-field label {
-  flex: 0 0 2.5rem;
+/* The bar the handles run along, centred in the track. */
+.range-track::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 4px;
+  transform: translateY(-50%);
+  border-radius: 2px;
+  background: var(--color-border);
 }
 
-.range-field input {
-  flex: 1 1 auto;
-  min-width: 0;
+/* The bar between the handles; the script sets its left and right ends. */
+.range-span {
+  position: absolute;
+  top: 50%;
+  height: 4px;
+  transform: translateY(-50%);
+  border-radius: 2px;
+  background: var(--color-accent);
+}
+
+/* Both inputs cover the track, their own tracks hidden, so that only their thumbs, the handles, are drawn and take
+   the pointer: a press on the bar between them reaches neither. */
+.range-track input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
   margin: 0;
-  accent-color: var(--color-accent);
+  background: none;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
-@media (max-width: 40rem) {
-  .traffic-range {
-    flex-direction: column;
-  }
+.range-track input::-webkit-slider-runnable-track {
+  height: 100%;
+  border: none;
+  background: transparent;
+}
 
-  .range-field {
-    flex-wrap: wrap;
-    row-gap: 0.25rem;
-  }
+.range-track input::-moz-range-track {
+  border: none;
+  background: transparent;
+}
 
-  .range-field input {
-    order: 1;
-    flex-basis: 100%;
-  }
+.range-track input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-top: calc((1.5rem - 1.125rem) / 2); /* WebKit sets the thumb at the track's top; this centres it */
+  border: 2px solid var(--color-surface);
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-border);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.range-track input::-moz-range-thumb {
+  box-sizing: border-box;
+  width: 1.125rem;
+  height: 1.125rem;
+  border: 2px solid var(--color-surface);
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-border);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+/* A handle focused from the keyboard shows the ring a focused button shows, on the handle rather than the track. */
+.range-track input:focus-visible {
+  outline: none;
+}
+
+.range-track input:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.range-track input:focus-visible::-moz-range-thumb {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* The To input, the track's second, is drawn above the From, so that handles standing together part when dragged
+   right; on the last day both, the script marks the track and the From is drawn on top, the one that can move. */
+.range-track input:first-of-type {
+  z-index: 1;
+}
+
+.range-track input:last-of-type {
+  z-index: 2;
+}
+
+.range-track.from-on-top input:first-of-type {
+  z-index: 2;
+}
+
+.range-track.from-on-top input:last-of-type {
+  z-index: 1;
+}
+
+.range-days {
+  display: flex;
+  justify-content: space-between;
 }
 
 /* The three distribution cards under the sliders, side by side, one under the other on a narrower screen (below). */

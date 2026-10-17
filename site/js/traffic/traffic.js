@@ -1,15 +1,15 @@
 /**
  * The Traffic Explorer: a row of controls (a family drop-down, a model drop-down, an endpoint drop-down, a metric
  * drop-down, period buttons) over one wide card of four tiles (`traffic/traffic_tiles.js`), the chosen metric per day
- * as stacked bars with their legend (`traffic/traffic_bars.js`), under the bars the From and To sliders of the day
- * range (`traffic/traffic_range.js`), and under them three distribution cards
- * (`traffic/traffic_distribution_cards.js`), whose series the bars' legend hides and shows with the bars'.
+ * as stacked bars with their legend (`traffic/traffic_bars.js`), under the bars the day range's slider
+ * (`traffic/traffic_range.js`), and under it three distribution cards (`traffic/traffic_distribution_cards.js`), whose
+ * series the bars' legend hides and shows with the bars'.
  *
  * Its rows come from the `explore/daily_by_family` answer, read once, and from a family's
  * `explore/daily_by_model/<family_slug>` answer, read the first time the family is chosen and kept for the visit. The
  * families take their colours in the order of their requests, a family's models in the order of theirs, and the
  * endpoint groups from the Overview's order (`context.orders`). A change filters the rows once
- * (`traffic/traffic_filter.js`, which defines the choice) and draws the tiles and bars again; so does a slider as it
+ * (`traffic/traffic_filter.js`, which defines the choice) and draws the tiles and bars again; so does the slider as it
  * moves. Once the bars are drawn, the cards and the tiles' percentiles are drawn from the histogram answer, read and
  * kept as the daily ones are. The controls keep the choice in the URL (`traffic/traffic_controls.js`).
  */
@@ -129,7 +129,8 @@ async function readFamilyAnswer(view, family) {
   return { name, rows, models: modelChoices(rows, name) };
 }
 
-// The wide card: the tiles above the figure, the sliders under it, and the distribution cards' grid under them.
+// The wide card: the tiles above the figure, the day range's slider under it, and the distribution cards' grid under
+// them.
 function explorerCard(view) {
   const card = document.createElement("article");
   card.className = "card traffic-card";

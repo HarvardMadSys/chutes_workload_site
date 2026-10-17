@@ -1,16 +1,17 @@
 /**
- * The Traffic Explorer's day range: its days within the trace's, the period buttons' ranges, and the two sliders under
- * the bars, From and To, that set it. A range is `{ from, to }`, as a choice holds it (`traffic/traffic_filter.js`):
- * the first and last chosen day, "YYYY-MM-DD", each "" for the trace's end on its side. `days` are the trace's days in
- * order, the distinct days of the daily answer by family; a slider stands on a day's index in them.
- *
- * A slider moved past the other pushes it along, so From is never after To. While a slider moves, the explorer is
- * handed the range to draw at most once an animation frame; on its release, the range to keep in the URL.
+ * The Traffic Explorer's day range: its days within the trace's, the period buttons' ranges, and the slider under the
+ * bars, one track with two handles, From and To, that sets it. A range is `{ from, to }`, as a choice holds it
+ * (`traffic/traffic_filter.js`): the first and last chosen day, "YYYY-MM-DD", each "" for the trace's end on its side.
+ * `days` are the trace's days in order, the distinct days of the daily answer by family; a handle stands on a day's
+ * index in them. Each handle is a native range input, the two laid over one track, so the browser gives each its
+ * dragging, its Tab stop and its arrow keys. A handle moved past the other pushes it along, so From is never after To.
+ * While a handle moves, the explorer is handed the range to draw at most once an animation frame; on its release, the
+ * range to keep in the URL.
  */
 
 import { textElement } from "../shared/charts.js";
 
-// The sliders' names, and the ids that tie each name to its slider.
+// The handles' names, read out by a screen reader, and their inputs' ids.
 const FROM_NAME = "From";
 const TO_NAME = "To";
 const FROM_ID = "traffic-range-from";
@@ -120,14 +121,18 @@ export function rangeOfIndices(days, fromIndex, toIndex) {
 }
 
 /**
- * Fill `container` with the From and To sliders over the trace's `days`, standing on the range of `choice`, each
- * between its name and its day. Moving a slider calls `onInput(range)` with the range shown, once at the next animation
- * frame however often it moves before then; releasing it calls `onChange(range)`. Returns `{ show(choice) }`, which
- * moves the sliders to the range of a choice set elsewhere, by a period button or Back and Forward, calling neither.
+ * Fill `container` with the day range's slider over the trace's `days`, standing on the range of `choice`: one track
+ * holding the bar between the handles and the From and To inputs laid over each other, and under it the From day at
+ * its left end and the To day at its right. Moving a handle calls `onInput(range)` with the range shown, once at the
+ * next animation frame however often it moves before then; releasing it calls `onChange(range)`. Returns
+ * `{ show(choice) }`, which moves the handles to the range of a choice set elsewhere, by a period button or Back and
+ * Forward, calling neither.
  */
 export function mountRange(container, days, choice, { onInput, onChange }) {
   const sliders = {
     days,
+    track: textElement("div", "range-track", ""),
+    span: textElement("div", "range-span", ""),
     from: rangeSlider(FROM_NAME, FROM_ID, days),
     to: rangeSlider(TO_NAME, TO_ID, days),
     isInputPending: false, // a frame is asked for, which will hand on the range shown then
@@ -138,29 +143,28 @@ export function mountRange(container, days, choice, { onInput, onChange }) {
     input.addEventListener("input", () => moveSlider(sliders, moved, onInput));
     input.addEventListener("change", () => onChange(shownRange(sliders)));
   }
-  container.replaceChildren(sliders.from.field, sliders.to.field);
+  sliders.track.append(sliders.span, sliders.from.input, sliders.to.input);
+  const dayRow = textElement("div", "range-days", "");
+  dayRow.append(sliders.from.day, sliders.to.day);
+  container.replaceChildren(sliders.track, dayRow);
   return { show: (shown) => showIndices(sliders, sliderIndices(days, shown)) };
 }
 
-// A slider over the indices of `days`, under the name `name` that labels it, with the day it stands on beside it:
-// `{ field, input, day }`, the field holding the three, the slider and the day's text.
+// One handle of the track over the indices of `days`, named `name` for a screen reader, and the text of the day it
+// stands on: `{ input, day }`.
 function rangeSlider(name, id, days) {
-  const label = textElement("label", "control-field-name", name);
-  label.htmlFor = id;
   const input = document.createElement("input");
   input.id = id;
   input.type = "range";
+  input.setAttribute("aria-label", name);
   // The bounds come before a value is set, since a range input clamps its value to them.
   input.setAttribute("min", "0");
   input.setAttribute("max", String(days.length - 1));
   input.setAttribute("step", "1");
-  const day = textElement("span", "range-day", "");
-  const field = textElement("div", "range-field", "");
-  field.append(label, input, day);
-  return { field, input, day };
+  return { input, day: textElement("span", "range-day", "") };
 }
 
-// The slider `moved` has moved: push the other along if passed, write both days, and hand the range on at the next
+// The handle `moved` has moved: push the other along if passed, write both days, and hand the range on at the next
 // frame.
 function moveSlider(sliders, moved, onInput) {
   const fromIndex = Number(sliders.from.input.value);
@@ -176,10 +180,17 @@ function moveSlider(sliders, moved, onInput) {
   });
 }
 
-// Stand the sliders at `fromIndex` and `toIndex`, each writing its day beside it and for a screen reader.
+// Stand the handles at `fromIndex` and `toIndex`, each writing its day under the track and for a screen reader, the
+// bar between them spanning the two.
 function showIndices(sliders, { fromIndex, toIndex }) {
+  const lastIndex = sliders.days.length - 1;
   showIndex(sliders.from, sliders.days[fromIndex], fromIndex);
   showIndex(sliders.to, sliders.days[toIndex], toIndex);
+  sliders.span.style.left = `${(fromIndex / lastIndex) * 100}%`;
+  sliders.span.style.right = `${100 - (toIndex / lastIndex) * 100}%`;
+  // The To input is drawn above the From, so that handles standing together part when dragged right. Both on the last
+  // day, only From can move away, so From is drawn on top there; were To on top, it would drag From along with it.
+  sliders.track.classList.toggle("from-on-top", fromIndex === toIndex && toIndex === lastIndex);
 }
 
 function showIndex(slider, day, index) {
@@ -188,7 +199,7 @@ function showIndex(slider, day, index) {
   slider.day.textContent = day;
 }
 
-// The range the sliders stand on.
+// The range the handles stand on.
 function shownRange(sliders) {
   return rangeOfIndices(sliders.days, Number(sliders.from.input.value), Number(sliders.to.input.value));
 }

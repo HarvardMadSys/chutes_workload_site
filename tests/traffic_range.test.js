@@ -88,10 +88,10 @@ test("a slider moved past the other pushes it along to its own index", () => {
 });
 
 /**
- * Mount the sliders over `GAPPED_DAYS` standing on `choice` in a fake page for the test of `context`:
- * `{ container, from, to, handle, inputs, changes, frames }`, the sliders' row, each slider's `{ label, input, day }`,
- * the handle `mountRange` returns, the ranges handed to `onInput` and to `onChange`, and the animation frames asked for
- * and not yet run.
+ * Mount the slider over `GAPPED_DAYS` standing on `choice` in a fake page for the test of `context`:
+ * `{ container, track, span, from, to, handle, inputs, changes, frames }`, the range's row, its track, the bar between
+ * the handles, each handle's `{ input, day }`, the handle `mountRange` returns, the ranges handed to `onInput` and to
+ * `onChange`, and the animation frames asked for and not yet run.
  */
 function mountSliders(context, choice) {
   const frames = [];
@@ -106,31 +106,60 @@ function mountSliders(context, choice) {
     onInput: (range) => page.inputs.push(range),
     onChange: (range) => page.changes.push(range),
   });
-  const [from, to] = page.container.children.map(sliderParts);
-  return { ...page, from, to };
+  const [track, dayRow] = page.container.children;
+  const [span, fromInput, toInput] = track.children;
+  const [fromDay, toDay] = dayRow.children;
+  return { ...page, track, span, from: { input: fromInput, day: fromDay }, to: { input: toInput, day: toDay } };
 }
 
-// A slider's field as `{ label, input, day }`: its name, the slider and its day's text.
-function sliderParts(field) {
-  const [label, input, day] = field.children;
-  return { label, input, day };
-}
+test("the range is one track holding the bar and the two handles, over a row of the days at its ends", (context) => {
+  const page = mountSliders(context, { from: "2025-07-03", to: "" });
+  assert.deepEqual(page.container.children.map((child) => child.className), ["range-track", "range-days"]);
+  assert.deepEqual(page.track.children.map((child) => child.tag), ["div", "input", "input"]);
+  assert.equal(page.span.className, "range-span");
+  assert.deepEqual([page.from.day.className, page.to.day.className], ["range-day", "range-day"]);
+  assert.deepEqual([page.from.day.textContent, page.to.day.textContent], ["2025-07-03", "2025-07-09"]);
+});
 
-test("the two sliders run over the days' indices, each named and writing its day for all to read", (context) => {
+test("the two handles run over the days' indices, each named and reading out its day", (context) => {
   const page = mountSliders(context, { from: "2025-07-03", to: "" });
   const expected = [[page.from, "From", "1", "2025-07-03"], [page.to, "To", "4", "2025-07-09"]];
   for (const [slider, name, value, day] of expected) {
-    assert.equal(slider.label.textContent, name);
-    assert.equal(slider.label.htmlFor, slider.input.id);
+    assert.equal(slider.input.getAttribute("aria-label"), name);
     assert.equal(slider.input.type, "range");
     assert.deepEqual(["min", "max", "step"].map((name) => slider.input.getAttribute(name)), ["0", "4", "1"]);
     assert.equal(slider.input.value, value);
     assert.equal(slider.input.getAttribute("aria-valuetext"), day);
-    assert.equal(slider.day.textContent, day);
   }
+  assert.deepEqual([page.from.input.id, page.to.input.id], ["traffic-range-from", "traffic-range-to"]);
 });
 
-test("a slider moved past the other pushes it, and the moves of a frame hand on its last range once", (context) => {
+test("the bar between the handles spans their indices, in percent of the track", (context) => {
+  const page = mountSliders(context, { from: "2025-07-03", to: "2025-07-07" });
+  assert.deepEqual([page.span.style.left, page.span.style.right], ["25%", "25%"]);
+  page.handle.show({ from: "", to: "" });
+  assert.deepEqual([page.span.style.left, page.span.style.right], ["0%", "0%"]);
+  page.from.input.value = "4";
+  page.from.input.dispatch("input");
+  assert.deepEqual([page.span.style.left, page.span.style.right], ["100%", "0%"]);
+});
+
+test("the From handle is drawn on top only while both handles stand on the last day", (context) => {
+  const page = mountSliders(context, { from: "", to: "" });
+  assert.equal(page.track.classes.has("from-on-top"), false);
+  page.from.input.value = "4";
+  page.from.input.dispatch("input");
+  assert.equal(page.track.classes.has("from-on-top"), true);
+  page.from.input.value = "3";
+  page.from.input.dispatch("input");
+  assert.equal(page.track.classes.has("from-on-top"), false);
+  page.handle.show({ from: "2025-07-01", to: "2025-07-01" });
+  assert.equal(page.track.classes.has("from-on-top"), false, "both on the first day, To stays on top");
+  page.handle.show({ from: "2025-07-09", to: "" });
+  assert.equal(page.track.classes.has("from-on-top"), true);
+});
+
+test("a handle moved past the other pushes it, and the moves of a frame hand on its last range once", (context) => {
   const page = mountSliders(context, { from: "", to: "2025-07-05" });
   page.from.input.value = "3";
   page.from.input.dispatch("input");
@@ -149,14 +178,14 @@ test("a slider moved past the other pushes it, and the moves of a frame hand on 
   assert.deepEqual(page.changes, []);
 });
 
-test("a slider released hands on its range; one shown from elsewhere moves them and hands on nothing", (context) => {
+test("a handle released hands on its range; one shown from elsewhere moves both and hands on nothing", (context) => {
   const page = mountSliders(context, { from: "", to: "" });
   page.to.input.value = "2";
   page.to.input.dispatch("change");
   assert.deepEqual(page.changes, [{ from: "", to: "2025-07-05" }]);
   page.handle.show({ from: "2025-07-03", to: "2025-07-07" });
   assert.deepEqual([page.from.input.value, page.to.input.value], ["1", "3"]);
-  assert.equal(page.from.day.textContent, "2025-07-03");
+  assert.deepEqual([page.from.day.textContent, page.to.day.textContent], ["2025-07-03", "2025-07-07"]);
   assert.equal(page.to.input.getAttribute("aria-valuetext"), "2025-07-07");
   assert.equal(page.changes.length, 1);
   assert.deepEqual([page.inputs, page.frames], [[], []]);

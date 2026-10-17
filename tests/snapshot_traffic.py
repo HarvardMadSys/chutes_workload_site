@@ -1,8 +1,8 @@
 """The Traffic Explorer's snapshot units, read from the Explore page as it opens, nothing chosen: its controls, its
 tiles with their notes, its bars' texts and legend, its bars' axes, its day range and its three distribution cards.
 Each is the text written to its file, as `snapshot_units.py` writes the page's other units: a control's choice as
-`field: choice | selected=…`, a slider as `name: day | value=… | max=…`, a distribution card as an Insights card. Every
-reading function takes a Playwright page and reads it as it is now.
+`field: choice | selected=…`, a handle of the day range as `name: day | value=… | max=…`, a distribution card as an
+Insights card. Every reading function takes a Playwright page and reads it as it is now.
 """
 
 from snapshot_units import (
@@ -12,7 +12,8 @@ from snapshot_units import (
 TRAFFIC = "#traffic-explorer"  # the Traffic Explorer: its controls, then its card of tiles, bars, range and cards
 TRAFFIC_BARS = "#traffic-explorer .traffic-bars"  # the bars' figure, with their legend
 TRAFFIC_TILES = "#traffic-explorer .traffic-tiles li"
-TRAFFIC_RANGE_FIELDS = "#traffic-explorer .traffic-range .range-field"  # the From and To sliders, each in its field
+TRAFFIC_RANGE_INPUTS = "#traffic-explorer .traffic-range .range-track input"  # the From and To handles, in order
+TRAFFIC_RANGE_DAYS = "#traffic-explorer .traffic-range .range-day"  # the From and To days under the track's ends
 TRAFFIC_DISTRIBUTIONS = "#traffic-explorer .distribution-card"  # the three distribution cards, in their order
 
 
@@ -31,14 +32,13 @@ def control_lines(page) -> str:
 
 
 def range_lines(page) -> str:
-    """The Traffic Explorer's day range: one line per slider, its name, the day it writes beside it, its value (the
-    day's index among the trace's days) and its largest value."""
+    """The Traffic Explorer's day range: one line per handle, From then To, its name for a screen reader, the day
+    written under its end of the track, its value (the day's index among the trace's days) and its largest value."""
     lines = []
-    for field in page.locator(TRAFFIC_RANGE_FIELDS).all():
-        name = plain_text(field.locator(".control-field-name").inner_text())
-        day = plain_text(field.locator(".range-day").inner_text())
-        slider = field.locator("input")
-        lines.append(f"{name}: {day} | value={slider.input_value()} | max={slider.get_attribute('max')}")
+    days = page.locator(TRAFFIC_RANGE_DAYS).all_inner_texts()
+    for handle, day in zip(page.locator(TRAFFIC_RANGE_INPUTS).all(), days, strict=True):
+        name = handle.get_attribute("aria-label")
+        lines.append(f"{name}: {plain_text(day)} | value={handle.input_value()} | max={handle.get_attribute('max')}")
     return "\n".join(lines)
 
 
