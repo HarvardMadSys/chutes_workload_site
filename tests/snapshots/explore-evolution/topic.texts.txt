@@ -1,8 +1,14 @@
-tab: 01 Workload overview | selected=false
-tab: 02 Token shape and latency | selected=false
+tab: 01 The workload at a glance | selected=false
+tab: 02 Request shape and latency | selected=false
 tab: 03 Users and models | selected=false
-tab: 04 Workload evolution | selected=true
+tab: 04 A year of change | selected=true
 tab: 05 Prefix caching | selected=false
 tab: 06 Load balancing | selected=false
-heading: 04 Workload evolution
-takeaway: Dominant models turn over, global outputs become shorter, and newer users show larger and more variable token lengths.
+heading: 04 A year of change
+takeaway: Over the year the leading models change, outputs get shorter and newer users send longer inputs.
+group: Dominant models turn over
+group: Inputs stay, outputs shrink
+group: Newer users send more input
+group takeaway: DeepSeek V3-0324 and R1 lead early, Qwen3-32B and DeepSeek V3.2 later, and the long tail of other models grows.
+group takeaway: Monthly input lengths hold in the thousands of tokens while the median output falls below a hundred.
+group takeaway: Users who arrived later in the year have longer inputs and more varied token profiles.

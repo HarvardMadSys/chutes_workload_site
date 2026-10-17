@@ -1,0 +1,95 @@
+/**
+ * The Load balancing topic's routing simulation figure, as its card's `series` and `panels` (`[{ panel, title, chart
+ * }]`, as `insights/figure_card.js` defines a card's panels): two rows, one per model, of four panels each, every panel
+ * drawing the model's four routing policies. The words are the figure's own; a line marked "placeholder" is not the
+ * paper's own, for the authors to review.
+ */
+
+import { formatCountTick } from "../shared/format.js";
+
+// The routing figure's two models, as its answer's series and its panel titles name them.
+const ROUTING_DEEPSEEK = "DeepSeek V3.2";
+const ROUTING_MINIMAX = "MiniMax M2.5";
+// The routing figure's four policies, in the paper's legend order, each in its policy's colour (`palette: "policies"`),
+// whose legend lists each policy once for both models.
+const ROUTING_POLICIES = ["Round-robin", "Load-first", "Cache-first", "Sticky"];
+
+// The routing figure's series of `model`, one per policy, named as its answer names them: "<model>, <policy>".
+function routingSeries(model) {
+  return ROUTING_POLICIES.map((policy) => `${model}, ${policy}`);
+}
+
+// `model` as a panel title writes it, its words joined by non-breaking spaces, so that a title that wraps keeps the
+// name whole, the one part of it that tells the two rows apart.
+function unbrokenName(model) {
+  return model.replaceAll(" ", "\u00a0");
+}
+
+// The routing panels' x axes: the cache size of an instance, on the paper's 10³ to past 10⁶, and the instances.
+const CACHE_SIZE_AXIS = { label: "Instance cache size", log: true, domain: [1e3, 6e6], tickFormat: formatCountTick };
+const INSTANCES_AXIS = { label: "Instances", ticks: [5, 10, 15, 20], tickFormat: String };
+
+// DeepSeek V3.2's y domains in the routing panels: hit ratio (a) from zero, as the paper's; the others a little past
+// their lines' ends, so that no line lies on the axis line.
+const DEEPSEEK_ROUTING_DOMAINS = {
+  hitRatio: [0, 0.55], // its highest hit ratio is 0.50
+  replication: [0.9, 2.0], // its replication runs from 1 to 1.94
+  imbalance: [0, 2.5], // its highest load imbalance is 2.4%
+};
+
+// MiniMax M2.5's y domains in the routing panels, as DeepSeek V3.2's.
+const MINIMAX_ROUTING_DOMAINS = {
+  hitRatio: [0, 0.7], // its highest hit ratio is 0.64
+  replication: [0.9, 2.7], // its replication runs from 1 to 2.62
+  imbalance: [0, 4.5], // its highest load imbalance is 4.3%
+};
+
+// The routing figure's row of one model, its four panels: hit ratio (a) and replication (b) against cache size,
+// replication (c) and load imbalance (d) against the instances, each drawing only the model's four series, titled
+// with `model` and on the y domains of `domains`.
+// placeholder: the panel titles are the figure's own subcaptions, for the authors to confirm.
+function routingRow(model, domains) {
+  const series = routingSeries(model);
+  const hitRatio = { label: "Token hit ratio", domain: domains.hitRatio };
+  const replication = { label: "Replication ratio", domain: domains.replication };
+  const imbalance = { label: "Load imbalance (%)", domain: domains.imbalance };
+  const name = unbrokenName(model);
+  return [
+    {
+      panel: "a",
+      title: `(a) Hit ratio vs cache size · ${name}`,
+      chart: { series, x: CACHE_SIZE_AXIS, y: hitRatio, valueLabel: "Token hit ratio" },
+    },
+    {
+      panel: "b",
+      title: `(b) Replication vs cache size · ${name}`,
+      chart: { series, x: CACHE_SIZE_AXIS, y: replication, valueLabel: "Replication ratio" },
+    },
+    {
+      panel: "c",
+      title: `(c) Replication vs instance count · ${name}`,
+      chart: { series, x: INSTANCES_AXIS, y: replication, valueLabel: "Replication ratio" },
+    },
+    {
+      panel: "d",
+      title: `(d) Imbalance vs instance count · ${name}`,
+      chart: { series, x: INSTANCES_AXIS, y: imbalance, valueLabel: "Load imbalance (%)" },
+    },
+  ];
+}
+
+/**
+ * The routing figure's series, in the order drawn and listed: DeepSeek V3.2's four policies, then MiniMax M2.5's, each
+ * "<model>, <policy>" as the answer names it.
+ */
+export function routingFigureSeries() {
+  return [...routingSeries(ROUTING_DEEPSEEK), ...routingSeries(ROUTING_MINIMAX)];
+}
+
+/** The routing figure's eight panels: DeepSeek V3.2's row of four, then MiniMax M2.5's. */
+export function routingFigurePanels() {
+  return [
+    ...routingRow(ROUTING_DEEPSEEK, DEEPSEEK_ROUTING_DOMAINS),
+    ...routingRow(ROUTING_MINIMAX, MINIMAX_ROUTING_DOMAINS),
+  ];
+}

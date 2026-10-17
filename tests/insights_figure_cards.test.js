@@ -6,7 +6,7 @@ import {
   CHART_KINDS, chartParameters, drawFigureChart, frozenCard, newCardElement, renderFigureCard,
 } from "../site/js/insights/figure_card.js";
 import { PALETTES } from "../site/js/insights/card_series.js";
-import { FIGURE_SECTIONS } from "../site/js/insights/figure_sections.js";
+import { FIGURE_SECTIONS, topicCards } from "../site/js/explore/figure_sections.js";
 
 // The columns a figure answer of each chart kind holds: the plot-ready tables' contract.
 const KIND_COLUMNS = Object.freeze({
@@ -38,7 +38,7 @@ function shippedAnswer(figure) {
 
 // Every card of every topic.
 function everyCard() {
-  return FIGURE_SECTIONS.flatMap((topic) => topic.cards);
+  return FIGURE_SECTIONS.flatMap(topicCards);
 }
 
 // The columns of `rows` missing from at least one row: none for an answer of the kind's columns.
@@ -192,7 +192,7 @@ test("a card shows its title, insight, legend place, chart place, caption and De
     "figure-title", "figure-insight", "figure-legend legend", "figure-body", "figure-caption", "figure-definition",
   ]);
   const [title, insight, , place, caption] = figure.children;
-  assert.deepEqual([title.tag, title.textContent], ["h3", CARD.title]);
+  assert.deepEqual([title.tag, title.textContent], ["h4", CARD.title]);
   assert.equal(insight.textContent, CARD.insight);
   assert.equal(caption.textContent, CARD.caption);
   assert.equal(place, body);

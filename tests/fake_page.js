@@ -11,7 +11,7 @@ export const TOPIC_ANCHORS = Object.freeze([
 
 /** The topics' titles, as their headings give them after the number. */
 export const TOPIC_TITLES = Object.freeze([
-  "Workload overview", "Token shape and latency", "Users and models", "Workload evolution", "Prefix caching",
+  "The workload at a glance", "Request shape and latency", "Users and models", "A year of change", "Prefix caching",
   "Load balancing",
 ]);
 

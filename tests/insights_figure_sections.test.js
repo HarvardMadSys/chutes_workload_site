@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { FIGURE_SECTIONS } from "../site/js/insights/figure_sections.js";
+import { FIGURE_SECTIONS, topicCards } from "../site/js/explore/figure_sections.js";
 import { CHART_HEIGHT } from "../site/js/shared/charts.js";
 
 // The figure answers the data step wrote, as their index lists them: each figure's row count, by name.
@@ -17,9 +17,13 @@ const SELECTORS = [
 // How many cards each topic holds: a card for each panel of the paper's figures of its section.
 const CARD_COUNTS = [5, 8, 10, 6, 9, 9];
 
-// The fields of a topic, and of a card: its words, each a string, then its kind and its chart's parameters; a card
-// may also have the optional ones.
-const TOPIC_FIELDS = ["selector", "takeaway", "cards"];
+// How many cards each group of each topic holds, in the order of the topics and of their groups.
+const GROUP_CARD_COUNTS = [[4, 1], [3, 2, 3], [4, 4, 2], [2, 2, 2], [4, 3, 2], [6, 2, 1]];
+
+// The fields of a topic, of a group, and of a card: its words, each a string, then its kind and its chart's
+// parameters; a card may also have the optional ones.
+const TOPIC_FIELDS = ["selector", "takeaway", "groups"];
+const GROUP_FIELDS = ["heading", "takeaway", "cards"];
 const CARD_FIELDS = ["figure", "title", "insight", "caption", "definition", "kind"];
 const OPTIONAL_CARD_FIELDS = ["panels", "legend", "series", "palette", "isWide"];
 
@@ -27,13 +31,13 @@ const OPTIONAL_CARD_FIELDS = ["panels", "legend", "series", "palette", "isWide"]
 const SHARE_LEGEND = "fig_top10_model_monthly_share_legend";
 const SHARE_PANELS = ["fig_top10_model_monthly_request_share", "fig_top10_model_monthly_token_share"];
 
-// The wide cards, in the topics' order: the output-to-input ratio, so the latency cards after it pair in rows, the TTL
-// coverage, so the two eviction cards after it pair, and the routing simulation's panels.
+// The wide cards, in the topics' order: the output-to-input ratio and the TTL coverage, each the last of its group
+// after a pair, which would otherwise sit alone in half a row, and the routing simulation's panels.
 const WIDE_CARDS = ["fig_output_input_ratio_cdf_by_model", "fig_iat_pair_ttl_coverage", "fig_routing_tradeoff"];
 
 // Every card of every topic.
 function everyCard() {
-  return FIGURE_SECTIONS.flatMap((topic) => topic.cards);
+  return FIGURE_SECTIONS.flatMap(topicCards);
 }
 
 // How many times each figure is used: once for a card's figure, once more for each card it is the legend of.
@@ -51,15 +55,41 @@ function figureUses() {
 
 test("the six topics are in the order of their tabs, with a card for each panel of their section", () => {
   assert.deepEqual(FIGURE_SECTIONS.map((topic) => topic.selector), SELECTORS);
-  assert.deepEqual(FIGURE_SECTIONS.map((topic) => topic.cards.length), CARD_COUNTS);
+  assert.deepEqual(FIGURE_SECTIONS.map((topic) => topicCards(topic).length), CARD_COUNTS);
   assert.equal(everyCard().length, 47);
 });
 
-test("a topic has its selector, takeaway and cards, and no other field", () => {
+test("a topic has its selector, takeaway and groups, and a group its heading, takeaway and cards, and no other", () => {
   for (const topic of FIGURE_SECTIONS) {
     assert.deepEqual(Object.keys(topic), TOPIC_FIELDS, topic.selector);
     assert.equal(typeof topic.takeaway, "string", topic.selector);
+    for (const group of topic.groups) {
+      assert.deepEqual(Object.keys(group), GROUP_FIELDS, `${topic.selector}: ${group.heading}`);
+      assert.equal(typeof group.heading, "string", topic.selector);
+      assert.equal(typeof group.takeaway, "string", `${topic.selector}: ${group.heading}`);
+    }
   }
+});
+
+test("every topic holds its cards in groups of the paper's runs, none empty", () => {
+  const groupCardCounts = FIGURE_SECTIONS.map((topic) => topic.groups.map((group) => group.cards.length));
+  assert.deepEqual(groupCardCounts, GROUP_CARD_COUNTS);
+  assert.ok(groupCardCounts.flat().every((count) => count > 0));
+});
+
+test("topicCards lists a topic's cards group by group, each group's in its order", () => {
+  const topic = { groups: [{ cards: ["first", "second"] }, { cards: ["third"] }] };
+  assert.deepEqual(topicCards(topic), ["first", "second", "third"]);
+});
+
+test("every card is in exactly one group of one topic", () => {
+  const groups = FIGURE_SECTIONS.flatMap((topic) => topic.groups);
+  for (const card of everyCard()) {
+    const holding = groups.filter((group) => group.cards.includes(card));
+    assert.equal(holding.length, 1, card.figure);
+  }
+  const figures = everyCard().map((card) => card.figure);
+  assert.equal(new Set(figures).size, figures.length);
 });
 
 test("a card has every field, each a string, its chart's parameters, and no field but the optional ones", () => {
@@ -101,18 +131,21 @@ function heldObjects(value) {
   return objects;
 }
 
-test("the topics and their cards cannot be changed, nor their charts, panels and the panels' charts", () => {
+test("the topics, their groups and cards cannot be changed, nor the cards' charts, panels and panels' charts", () => {
   assert.ok(Object.isFrozen(FIGURE_SECTIONS));
   for (const topic of FIGURE_SECTIONS) {
-    assert.ok(Object.isFrozen(topic) && Object.isFrozen(topic.cards), topic.selector);
-    for (const card of topic.cards) {
+    assert.ok(Object.isFrozen(topic) && Object.isFrozen(topic.groups), topic.selector);
+    for (const group of topic.groups) {
+      assert.ok(Object.isFrozen(group) && Object.isFrozen(group.cards), `${topic.selector}: ${group.heading}`);
+    }
+    for (const card of topicCards(topic)) {
       const unfrozen = heldObjects(card).filter((part) => !Object.isFrozen(part));
       assert.deepEqual(unfrozen, [], `${card.figure} holds an object that can be changed`);
     }
   }
 });
 
-// The rows of a topic's two-column grid, in the topic's order: the others two by two, a wide card alone on a row of
+// The rows of a group's two-column grid, in the group's order: the others two by two, a wide card alone on a row of
 // its own, after a card left alone on the row before it.
 function gridRows(cards) {
   const rows = [];
@@ -139,8 +172,8 @@ function gridRows(cards) {
 }
 
 test("the two cards of a grid row draw their charts at one height, so the row stays level", () => {
-  for (const topic of FIGURE_SECTIONS) {
-    for (const row of gridRows(topic.cards)) {
+  for (const group of FIGURE_SECTIONS.flatMap((topic) => topic.groups)) {
+    for (const row of gridRows(group.cards)) {
       // A card that gives no height draws at the frame's, so it is compared as that.
       const heights = row.map((card) => card.chart.height ?? CHART_HEIGHT);
       assert.ok(heights.every((height) => height === heights[0]), `${row.map((card) => card.figure)}: ${heights}`);

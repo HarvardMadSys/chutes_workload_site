@@ -1,8 +1,14 @@
-tab: 01 Workload overview | selected=false
-tab: 02 Token shape and latency | selected=true
+tab: 01 The workload at a glance | selected=false
+tab: 02 Request shape and latency | selected=true
 tab: 03 Users and models | selected=false
-tab: 04 Workload evolution | selected=false
+tab: 04 A year of change | selected=false
 tab: 05 Prefix caching | selected=false
 tab: 06 Load balancing | selected=false
-heading: 02 Token shape and latency
-takeaway: Requests are often prompt-heavy while decode dominates latency, and each highlighted model has a distinctive profile.
+heading: 02 Request shape and latency
+takeaway: Requests are prompt-heavy and latency is mostly decode; the three highlighted models are slow for different reasons.
+group: Three model profiles
+group: Latency is mostly decode
+group: What drives latency
+group takeaway: DeepSeek R1 (reasoning) writes long outputs, MiniMax M2.5 (coding and agents) reads long inputs and answers briefly, DeepSeek V3.2 (general chat) sits near the global curve.
+group takeaway: End-to-end latency spans orders of magnitude, and the time to the first token is usually a small share of it.
+group takeaway: Duration grows with output length, time to first token with input length, and caching cuts it only for long inputs.

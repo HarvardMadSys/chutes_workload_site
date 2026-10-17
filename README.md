@@ -318,12 +318,16 @@ site/                exactly the files that are deployed
                      choice, its URL keys and its sums
     legend.js        the legend of buttons that hides and shows a series
     topic_tabs.js    the Insights' tabs, one topic shown at a time, the shown one in the URL's hash
+    figure_sections.js
+                     the Insights' six topics in the order of their tabs, and a topic's cards group by group
   js/insights/       the figure cards and the topics
-    figure_sections.js, figure_card.js
-                     the six topics in the order of their tabs; a card, its chart drawn from its answer by its kind
+    figure_card.js   a card, its chart drawn from its answer by its kind
     card_series.js   a card's series: their order, each palette's colours, the card's legend
     overview.js, tokens.js, users.js, evolution.js, caching.js, balancing.js
-                     one module per topic: its takeaway, its cards' words, kinds and charts' parameters
+                     one module per topic: its takeaway, its groups' headings and takeaways, its cards' words,
+                     kinds and charts' parameters
+    routing_panels.js
+                     the load-balancing topic's routing simulation card: its series and eight panels
   queries/           one .sql file per answer or table
     explore/         the five queries make data answers, one answer each, daily_by_model's one per family
     setup/family_models.sql

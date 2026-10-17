@@ -1,8 +1,14 @@
-tab: 01 Workload overview | selected=false
-tab: 02 Token shape and latency | selected=false
+tab: 01 The workload at a glance | selected=false
+tab: 02 Request shape and latency | selected=false
 tab: 03 Users and models | selected=true
-tab: 04 Workload evolution | selected=false
+tab: 04 A year of change | selected=false
 tab: 05 Prefix caching | selected=false
 tab: 06 Load balancing | selected=false
 heading: 03 Users and models
-takeaway: Users and models exhibit distinct temporal access patterns, and model burstiness is often persistent and correlated.
+takeaway: Users and models each have their own rhythm of access and bursts, and busy or quiet spells tend to last, which serving decisions can use.
+group: Same volume, different breadth
+group: Access patterns
+group: Burstiness is persistent
+group takeaway: Models and users with similar request counts differ by orders of magnitude in how many users or models they touch, and in their token shape.
+group takeaway: Some users stick to a few models or return on a schedule, others spread out or burst, and popular models see both.
+group takeaway: Most models arrive in bursts, and busy or quiet hours follow each other, so colocation and autoscaling can plan on it.

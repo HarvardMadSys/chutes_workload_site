@@ -260,8 +260,8 @@ export function positiveRows(rows, columns) {
   return rows.filter((row) => columns.every((column) => row[column] > 0));
 }
 
-// An element of `tagName` with the class `className` holding `text`.
-function textElement(tagName, className, text) {
+/** A new element of the tag `tagName`, of the class `className`, holding `text` as its text. */
+export function textElement(tagName, className, text) {
   const element = document.createElement(tagName);
   element.className = className;
   element.textContent = text;

@@ -1,6 +1,6 @@
 /**
  * The Explore page's start: it places the Insights' cards and draws their topic tabs, draws the header and the footer,
- * then runs the page's sections, once, from their answer files. The topics (`insights/figure_sections.js`) are shown
+ * then runs the page's sections, once, from their answer files. The topics (`explore/figure_sections.js`) are shown
  * one at a time behind the tabs of the `#topic-tabs` row (`explore/topic_tabs.js`); a topic's figures are drawn from
  * their answers the first time it is shown, so a topic never shown requests none.
  *
@@ -18,9 +18,10 @@
  */
 
 import { readAnswer } from "../shared/answers.js";
+import { textElement } from "../shared/charts.js";
 import { mountHeader, renderFooter, queryString } from "../shared/layout.js";
 import { drawFigureChart, newCardElement, renderFigureCard } from "../insights/figure_card.js";
-import { FIGURE_SECTIONS } from "../insights/figure_sections.js";
+import { FIGURE_SECTIONS } from "./figure_sections.js";
 import { mountTopicTabs } from "./topic_tabs.js";
 
 /**
@@ -50,8 +51,8 @@ export function followHistory(showEntryTopic) {
 }
 
 /**
- * Write each topic's takeaway and place its cards, each card's chart loading, then draw the topic tabs; return the
- * tabs' `showEntryTopic`. A topic's charts are drawn the first time it is shown (`drawShownTopic`).
+ * Write each topic's takeaway and place its groups and their cards, each card's chart loading, then draw the topic
+ * tabs; return the tabs' `showEntryTopic`. A topic's charts are drawn the first time it is shown (`drawShownTopic`).
  */
 function mountInsights() {
   const topics = FIGURE_SECTIONS.map(placeTopic);
@@ -61,28 +62,43 @@ function mountInsights() {
 }
 
 /**
- * Write `topic`'s takeaway under its heading and place its cards in its grid, each with its words and its chart's place
- * loading; return `{ section, cards }`, its section element and its cards, each `{ card, body }`.
+ * Write `topic`'s takeaway under its heading, then, for each of its groups in order, the group's heading, its takeaway
+ * and a grid of its cards, each card with its words and its chart's place loading; return `{ section, cards }`, its
+ * section element and every card of its groups, each `{ card, body }`. The section holds its heading alone until
+ * then, so each part is appended after it.
  */
-function placeTopic(topic) {
+export function placeTopic(topic) {
   const section = document.querySelector(topic.selector);
-  const takeaway = document.createElement("p");
-  takeaway.className = "topic-takeaway";
-  takeaway.textContent = topic.takeaway;
-  section.querySelector("h2").after(takeaway);
-  const grid = section.querySelector(".card-grid");
+  section.append(textElement("p", "topic-takeaway", topic.takeaway));
   const cards = [];
-  for (const card of topic.cards) {
-    const element = newCardElement(card);
-    grid.append(element);
-    cards.push({ card, body: renderFigureCard(element, card) });
+  for (const group of topic.groups) {
+    cards.push(...placeGroup(section, group));
   }
   return { section, cards };
 }
 
 /**
- * Draw the charts of the topic of `topics` shown now, unless `drawnSections` holds its section, which it then does;
- * each card reads its answer and shows its own error where it cannot.
+ * Append `group` to `section`: its heading, an `h3` under the topic's `h2`, its takeaway, and a grid of its cards, each
+ * card's title an `h4` under the group's heading; return its cards, each `{ card, body }`, the body its chart's place.
+ */
+function placeGroup(section, group) {
+  const grid = document.createElement("div");
+  grid.className = "card-grid";
+  const heading = textElement("h3", "figure-group-title", group.heading);
+  section.append(heading, textElement("p", "figure-group-takeaway", group.takeaway), grid);
+  const cards = [];
+  for (const card of group.cards) {
+    const element = newCardElement(card);
+    grid.append(element);
+    cards.push({ card, body: renderFigureCard(element, card) });
+  }
+  return cards;
+}
+
+/**
+ * Draw the charts of every card of every group of the topic of `topics` shown now (each `{ section, cards }`, as
+ * `placeTopic` returns it), unless `drawnSections` holds its section, which it then does; each card reads its answer
+ * and shows its own error where it cannot.
  */
 function drawShownTopic(topics, drawnSections) {
   const shown = topics.find((topic) => !topic.section.hidden);

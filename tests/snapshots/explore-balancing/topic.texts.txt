@@ -1,8 +1,14 @@
-tab: 01 Workload overview | selected=false
-tab: 02 Token shape and latency | selected=false
+tab: 01 The workload at a glance | selected=false
+tab: 02 Request shape and latency | selected=false
 tab: 03 Users and models | selected=false
-tab: 04 Workload evolution | selected=false
+tab: 04 A year of change | selected=false
 tab: 05 Prefix caching | selected=false
 tab: 06 Load balancing | selected=true
 heading: 06 Load balancing
-takeaway: LLM serving faces a fundamental tension between cache locality and load balance: stickiness preserves locality but conflicts with balancing.
+takeaway: Routing for cache locality fights load balancing: spreading a user over instances duplicates cache state, keeping them together costs a little imbalance.
+group: Balanced on average, not every hour
+group: Locality against balance
+group: Cache-aware routing
+group takeaway: The fleet shrinks with token load, imbalance grows as it does, and the busiest instances pay in time to first token.
+group takeaway: Under low load a user stays on one instance and keeps their cache; under high load the router spreads them and duplicates it.
+group takeaway: Larger caches raise hit ratios only when routing keeps a session together; the price is a few percent of imbalance.

@@ -154,10 +154,12 @@ summary:focus-visible {
   display: none !important;
 }
 
-/* Headings in the display serif, set close and balanced over their lines, as Open Data sets them. */
+/* Headings in the display serif, set close and balanced over their lines, as Open Data sets them; an Insights card's
+   title is an h4, sized by its class. */
 h1,
 h2,
-h3 {
+h3,
+h4 {
   font-family: var(--font-serif);
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -1175,7 +1177,7 @@ section[id] {
   border-bottom-color: var(--color-accent);
 }
 
-/* A topic's number before its heading, in the eyebrow's monospace and the accent: "01 Workload overview". */
+/* A topic's number before its heading, in the eyebrow's monospace and the accent: "01 The workload at a glance". */
 .topic-number {
   margin-right: 0.25rem; /* with the space after it, the gap the title keeps from the number */
   font-family: var(--font-mono);
@@ -1195,9 +1197,24 @@ section[id] {
   color: var(--color-text-muted);
 }
 
-/* On a phone the takeaway steps down to the body's size, so a twenty-word sentence takes three lines, not four. */
+/* A group of a topic's cards: its heading in the display serif, between the topic's heading and a card's title in
+   size, with room above it that parts it from the group before; its takeaway as the topic's, close under it. */
+.figure-group-title {
+  margin: 1rem 0 0;
+  font-size: 1.375rem;
+}
+
+.figure-group-takeaway {
+  margin: -0.5rem 0 0;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+/* On a phone the takeaways step down to the body's size, so a thirty-word sentence takes fewer lines. */
 @media (max-width: 40rem) {
-  .topic-takeaway {
+  .topic-takeaway,
+  .figure-group-takeaway {
     font-size: 1rem;
   }
 }

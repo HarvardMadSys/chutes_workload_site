@@ -1,7 +1,7 @@
 /**
  * A card of the Insights: one of the paper's figures, drawn by the site from the figure's answer, its plot-ready rows.
  * A card is `{ figure, title, insight, caption, definition, kind, chart, panels?, legend?, series?, palette?,
- * isWide? }` (`insights/figure_sections.js` lists the topics, each card made by `frozenCard`): `figure` the figure's
+ * isWide? }` (`explore/figure_sections.js` lists the topics, each card made by `frozenCard`): `figure` the figure's
  * name, its answer being `data/all/figures/<figure>.json`; `kind` the chart kind that draws it, a key of `CHART_KINDS`;
  * `chart` the parameters handed to the kind's draw function (`js/charts/<kind>.js` says what each decides); `panels`,
  * for a figure of several panels, `[{ panel, title, chart }]`, one chart per entry drawn from the rows whose `panel`
@@ -118,9 +118,9 @@ export function newCardElement(card) {
 }
 
 /**
- * Fill `container` with `card`'s words, as every figure card is laid out (`renderFigure` of `shared/charts.js`), and
- * return its body, the place of its chart, showing the loading state. Its Definition control opens on the definition
- * alone.
+ * Fill `container` with `card`'s words, as every figure card is laid out (`renderFigure` of `shared/charts.js`), its
+ * title an `h4` under its group's `h3`, and return its body, the place of its chart, showing the loading state. Its
+ * Definition control opens on the definition alone.
  */
 export function renderFigureCard(container, card) {
   const body = renderFigure(container, {
@@ -128,6 +128,7 @@ export function renderFigureCard(container, card) {
     insight: card.insight,
     caption: card.caption,
     definition: card.definition,
+    heading: "h4",
   });
   showLoading(body);
   return body;

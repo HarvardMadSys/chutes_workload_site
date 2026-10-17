@@ -1,8 +1,12 @@
-tab: 01 Workload overview | selected=true
-tab: 02 Token shape and latency | selected=false
+tab: 01 The workload at a glance | selected=true
+tab: 02 Request shape and latency | selected=false
 tab: 03 Users and models | selected=false
-tab: 04 Workload evolution | selected=false
+tab: 04 A year of change | selected=false
 tab: 05 Prefix caching | selected=false
 tab: 06 Load balancing | selected=false
-heading: 01 Workload overview
-takeaway: Production load is non-stationary and cannot be summarized by request count alone.
+heading: 01 The workload at a glance
+takeaway: Demand changes all year, in volume, in which models are active and in how the API is called; one request rate would not describe it.
+group: Demand over the year
+group: The weekly rhythm
+group takeaway: Requests and tokens rise through 2025 and fall into 2026, the set of active models swings, and chat overtakes completion calls.
+group takeaway: Through all of it traffic keeps a weekly and daily cycle, busiest in UTC afternoons.

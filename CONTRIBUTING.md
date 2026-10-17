@@ -114,7 +114,7 @@ checks that each path it names exists.
   before. `explore/start.js` is the page's one listener of `popstate`
   (`followHistory`): on Back or Forward it shows the entry's topic, draws
   the header from the entry's query and tells each section that asked
-  through `context.onReturn`. `insights/figure_sections.js` lists the topics in
+  through `context.onReturn`. `explore/figure_sections.js` lists the topics in
   `FIGURE_SECTIONS`, one module each in `js/insights/`, and `index.html`
   holds, under the Insights heading and its `#topic-tabs` row, a section
   with a heading and a card grid for each, its id the topic's anchor. A

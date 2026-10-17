@@ -1,11 +1,16 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { FIGURE_SECTIONS } from "../site/js/insights/figure_sections.js";
+import { FIGURE_SECTIONS, topicCards } from "../site/js/explore/figure_sections.js";
 
 // Every card of every topic.
 function everyCard() {
-  return FIGURE_SECTIONS.flatMap((topic) => topic.cards);
+  return FIGURE_SECTIONS.flatMap(topicCards);
+}
+
+// Every group of every topic.
+function everyGroup() {
+  return FIGURE_SECTIONS.flatMap((topic) => topic.groups);
 }
 
 // A sentence ends at a full stop, a question mark or an exclamation mark followed by a space; a line break also
@@ -15,7 +20,10 @@ const SENTENCE_BREAK = /[.?!] |\n/;
 const MAX_INSIGHT_WORDS = 20; // an insight states one finding or implication before the figure
 const MAX_CAPTION_WORDS = 40; // a caption gives evidence for the insight in up to three short sentences
 const MAX_DEFINITION_WORDS = 60; // short sentences leave room to explain units and essential assumptions
-const MAX_TAKEAWAY_WORDS = 20; // a takeaway is the topic's finding, one line under its heading on a desktop
+const MAX_TAKEAWAY_WORDS = 30; // a topic's takeaway is the paper's finding for its section, more than a lead-in
+const MAX_GROUP_HEADING_WORDS = 6; // a group's heading names what its figures show, at a glance
+const MAX_GROUP_TAKEAWAY_WORDS = 40; // a group's takeaway says what its figures show and what that means for serving
+const MAX_GROUP_TAKEAWAY_SENTENCES = 2; // the finding, and what it means
 const MAX_SENTENCES = 3; // a caption's or a definition's sentences
 
 // The sentences of `text`, split at each sentence break.
@@ -70,8 +78,24 @@ test("every card has a definition of at most three sentences and sixty words", (
   }
 });
 
-test("every topic has a takeaway of one sentence, at most twenty words", () => {
+test("every topic has a takeaway of one sentence, at most thirty words", () => {
   for (const topic of FIGURE_SECTIONS) {
     assertWords(topic.takeaway, topic.selector, "takeaway", { sentences: 1, words: MAX_TAKEAWAY_WORDS });
+  }
+});
+
+test("every group has a heading of at most six words, with no full stop", () => {
+  for (const group of everyGroup()) {
+    assert.ok(group.heading.length > 0, "a group's heading says something");
+    assert.ok(!group.heading.endsWith("."), `${group.heading}: a heading ends with no full stop`);
+    const words = wordCount(group.heading);
+    assert.ok(words <= MAX_GROUP_HEADING_WORDS, `${group.heading}: a heading of ${words} words`);
+  }
+});
+
+test("every group has a takeaway of at most two sentences and forty words", () => {
+  const limits = { sentences: MAX_GROUP_TAKEAWAY_SENTENCES, words: MAX_GROUP_TAKEAWAY_WORDS };
+  for (const group of everyGroup()) {
+    assertWords(group.takeaway, group.heading, "takeaway", limits);
   }
 });

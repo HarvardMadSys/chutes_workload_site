@@ -47,6 +47,14 @@ CARD_TEXTS = (
     ("rows", ".figure-rows"),
 )
 
+# The texts of an Insights topic, as `CARD_TEXTS`: its heading and takeaway, then its groups' headings and takeaways.
+TOPIC_TEXTS = (
+    ("heading", "h2"),
+    ("takeaway", ".topic-takeaway"),
+    ("group", ".figure-group-title"),
+    ("group takeaway", ".figure-group-takeaway"),
+)
+
 # Every entry of a legend, in the order shown: a series button of a figure, or an entry of a bands chart's key.
 LEGEND_ENTRIES = ".legend-button, .band-key-entry"
 LEGEND_MARK = ".legend-swatch"  # the colour mark inside a legend entry
@@ -223,12 +231,12 @@ def cards_units(cards, card_units) -> dict[str, str]:
 
 
 def topic_units(page, topic: str) -> dict[str, str]:
-    """The units of the Insights' topic section `topic` (its id): the tabs and its heading, then every card of it."""
+    """The units of the Insights' topic section `topic` (its id): the tabs, its `TOPIC_TEXTS`, then each card."""
     tabs = []
     for tab in page.locator("#topic-tabs [role=tab]").all():
         tabs.append(f"tab: {plain_text(tab.inner_text())} | selected={tab.get_attribute('aria-selected')}")
     section = page.locator(f"#{topic}")
-    heading = labelled_texts(section, (("heading", "h2"), ("takeaway", ".topic-takeaway")))
+    heading = labelled_texts(section, TOPIC_TEXTS)
     units = {"topic.texts": "\n".join(tabs) + "\n" + heading}
     units.update(cards_units(section.locator(".card-grid > .card"), figure_card_units))
     return units

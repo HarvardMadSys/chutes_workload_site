@@ -20,7 +20,7 @@ const TAB_ID_PREFIX = "tab-";
 /**
  * The topics of the sections `figureSections` name (each `{ selector }`, the selector of a topic's section), read from
  * their headings on the page: `[{ anchor, number, title }]`, the section's id, its number ("01") and its title
- * ("Workload overview").
+ * ("The workload at a glance").
  */
 function pageTopics(figureSections) {
   const topics = [];
@@ -82,7 +82,7 @@ export function tabIndexForKey(key, index, count) {
   return null;
 }
 
-/** A tab for `topic` (as `pageTopics` returns it): a button, "01 Workload overview", that controls its section. */
+/** A tab for `topic` (as `pageTopics` returns it): a button, "01 The workload at a glance", that controls its section. */
 export function topicTab(topic) {
   const tab = document.createElement("button");
   tab.type = "button";

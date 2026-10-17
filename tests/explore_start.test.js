@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { followHistory } from "../site/js/explore/start.js";
+import { followHistory, placeTopic } from "../site/js/explore/start.js";
 import { mountTopicTabs } from "../site/js/explore/topic_tabs.js";
 import { mountTrafficControls } from "../site/js/explore/traffic_controls.js";
 import { familyChoices, modelChoices } from "../site/js/explore/traffic_filter.js";
@@ -117,4 +117,56 @@ test("Back after a choice and then a tab keeps the choice, which is not drawn ag
   assert.equal(page.drawn.length, 1);
   assert.match(page.header.innerHTML, /href="index\.html\?endpoint=chat"/);
   assert.deepEqual(shownIds(page.sections), ["insights-overview"]);
+});
+
+// An element of a figure card as the fake page builds it: a fake element with a place for the figure's name, whose
+// `querySelector` finds a stand-in for any part, as a card's Definition control looks up its text.
+class FakeCardPart extends FakeElement {
+  constructor(tag) {
+    super(tag);
+    this.dataset = {};
+  }
+
+  querySelector() {
+    return new FakeElement();
+  }
+}
+
+// A card as a topic lists it, its figure `figure`.
+function cardOf(figure) {
+  return { figure, title: `Title of ${figure}`, insight: "An insight.", caption: "A caption.", definition: "Rows." };
+}
+
+// A topic of two groups, of two cards and of one.
+const TOPIC = {
+  selector: "#insights-overview",
+  takeaway: "The topic's finding.",
+  groups: [
+    { heading: "First group", takeaway: "What the first shows.", cards: [cardOf("fig_a"), cardOf("fig_b")] },
+    { heading: "Second group", takeaway: "What the second shows.", cards: [cardOf("fig_c")] },
+  ],
+};
+
+test("a topic is placed as its takeaway, then each group's heading, takeaway and its cards, titled h4", (context) => {
+  const section = new FakeElement("section", "insights-overview");
+  globalThis.document = { querySelector: () => section, createElement: (tag) => new FakeCardPart(tag) };
+  context.after(forgetThePage);
+  const placed = placeTopic(TOPIC);
+  const parts = section.children.map((part) => [part.tag, part.className, part.textContent]);
+  assert.deepEqual(parts, [
+    ["p", "topic-takeaway", "The topic's finding."],
+    ["h3", "figure-group-title", "First group"],
+    ["p", "figure-group-takeaway", "What the first shows."],
+    ["div", "card-grid", ""],
+    ["h3", "figure-group-title", "Second group"],
+    ["p", "figure-group-takeaway", "What the second shows."],
+    ["div", "card-grid", ""],
+  ]);
+  const grids = [section.children[3], section.children[6]];
+  assert.deepEqual(grids[0].children.map((card) => card.dataset.figure), ["fig_a", "fig_b"]);
+  assert.deepEqual(grids[1].children.map((card) => card.dataset.figure), ["fig_c"]);
+  const [title] = grids[0].children[0].children[0].children;
+  assert.deepEqual([title.tag, title.className, title.textContent], ["h4", "figure-title", "Title of fig_a"]);
+  assert.equal(placed.section, section);
+  assert.deepEqual(placed.cards.map((placedCard) => placedCard.card.figure), ["fig_a", "fig_b", "fig_c"]);
 });

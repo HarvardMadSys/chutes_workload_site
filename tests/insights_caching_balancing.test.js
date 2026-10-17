@@ -13,14 +13,14 @@ import { cellTipText } from "../site/js/charts/cells.js";
 import { allSeriesTips, drawnPoints } from "../site/js/charts/lines.js";
 import { cardColours } from "../site/js/insights/card_series.js";
 import { chartParameters } from "../site/js/insights/figure_card.js";
-import { FIGURE_SECTIONS } from "../site/js/insights/figure_sections.js";
+import { FIGURE_SECTIONS, topicCards } from "../site/js/explore/figure_sections.js";
 
 const EVICTION_CARDS = ["fig_hit_ratio_minimax_m25", "fig_hit_ratio_deepseek_v32"];
 const USER_ZOOMS = ["fig_lb_user_zoom_top", "fig_lb_user_zoom_min"];
 
 // The card that draws `figure`, as its topic lists it.
 function cardOf(figure) {
-  return FIGURE_SECTIONS.flatMap((topic) => topic.cards).find((card) => card.figure === figure);
+  return FIGURE_SECTIONS.flatMap(topicCards).find((card) => card.figure === figure);
 }
 
 // A shipped answer's rows, read from its file as the page reads it over HTTP.
@@ -42,7 +42,7 @@ test("the TTL card's axis is ticked at 1 ms and at the paper's thresholds, 0.1 s
 });
 
 test("the eviction pair shares a row after the wide TTL card, on one hit-ratio axis from 0 to 1", () => {
-  const cards = FIGURE_SECTIONS.find((topic) => topic.selector === "#insights-caching").cards;
+  const cards = topicCards(FIGURE_SECTIONS.find((topic) => topic.selector === "#insights-caching"));
   assert.deepEqual(cards.slice(-3).map((card) => card.figure), ["fig_iat_pair_ttl_coverage", ...EVICTION_CARDS]);
   assert.equal(cards.at(-3).isWide, true);
   for (const figure of EVICTION_CARDS) {

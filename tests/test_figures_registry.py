@@ -11,15 +11,15 @@ import subprocess
 from repository_root import ROOT
 from site_data import figure_answers
 
-FIGURE_SECTIONS_MODULE = ROOT / "site" / "js" / "insights" / "figure_sections.js"
+FIGURE_SECTIONS_MODULE = ROOT / "site" / "js" / "explore" / "figure_sections.js"
 SHARE_LEGEND = "fig_top10_model_monthly_share_legend"  # the legend answer whose order the two share cards take
 SHARE_CARD_COUNT = 2  # the monthly request share and the monthly token share
 
 # A node script that prints, as JSON, `{"figures": [...], "legends": [...]}`: every card's figure, and the legend each
 # card naming one names.
 CARD_FIGURES_SCRIPT = """
-const { FIGURE_SECTIONS } = await import(process.argv[1]);
-const cards = FIGURE_SECTIONS.flatMap((topic) => topic.cards);
+const { FIGURE_SECTIONS, topicCards } = await import(process.argv[1]);
+const cards = FIGURE_SECTIONS.flatMap(topicCards);
 const legends = cards.filter((card) => card.legend !== undefined).map((card) => card.legend);
 console.log(JSON.stringify({ figures: cards.map((card) => card.figure), legends }));
 """

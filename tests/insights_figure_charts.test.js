@@ -20,7 +20,7 @@ import { cellTipText } from "../site/js/charts/cells.js";
 import { drawWithLegend, hasLegend } from "../site/js/explore/legend.js";
 import { cardColours, figureLegend } from "../site/js/insights/card_series.js";
 import { chartParameters, COUNT_COLOUR, TRACE_DAY_AXIS } from "../site/js/insights/figure_card.js";
-import { FIGURE_SECTIONS } from "../site/js/insights/figure_sections.js";
+import { FIGURE_SECTIONS, topicCards } from "../site/js/explore/figure_sections.js";
 import { sequentialColour, titledFrame } from "../site/js/shared/charts.js";
 import { SERIES_SLOTS } from "../site/js/theme/colours.js";
 import { SERIES_COLUMN } from "../site/js/shared/series.js";
@@ -32,7 +32,7 @@ const FAKE_LINE_PLOT = { line: (...args) => ["line", ...args] };
 
 // The card that draws `figure`, as its topic lists it.
 function cardOf(figure) {
-  return FIGURE_SECTIONS.flatMap((topic) => topic.cards).find((card) => card.figure === figure);
+  return FIGURE_SECTIONS.flatMap(topicCards).find((card) => card.figure === figure);
 }
 
 // A shipped answer's rows, read from its file as the page reads it over HTTP.

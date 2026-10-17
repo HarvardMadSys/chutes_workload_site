@@ -39,7 +39,7 @@ function done() {
 
 test("a tab is a button in the tab role, controlling its topic's section", () => {
   globalThis.document = { createElement: () => new FakeElement() };
-  const tab = topicTab({ anchor: "insights-tokens", number: "02", title: "Token shape and latency" });
+  const tab = topicTab({ anchor: "insights-tokens", number: "02", title: "Request shape and latency" });
   delete globalThis.document;
   assert.equal(tab.type, "button");
   assert.equal(tab.id, "tab-insights-tokens");
