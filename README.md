@@ -50,9 +50,17 @@ The one page, `index.html`, holds, in order:
   the 47 cards draws one of the paper's figures in the browser from its
   plot-ready table, with the paper's axes, log scales and limits, in the
   page's colours, light or dark: a title, an insight, the chart, as wide
-  as its card, and a caption; a tooltip with the values under the pointer,
-  but on the four rasters, which are drawn as one image each; and, where
+  as its card, and a caption; a tooltip with the values under the pointer
+  (on the two eviction-algorithm cards, every algorithm's at the hovered
+  cache size), but on the four rasters, which are drawn as one image each,
+  their rows ticked at their centres and parted by thin rules; and, where
   it has more than one series, a legend whose buttons hide and show them.
+  A bands card shows in the legend's place a key to its two bands and its
+  median. The routing simulation draws its eight panels as two rows of
+  four, one row per model, and its legend has a button per policy, which
+  hides that policy in both rows. The daily and hourly cards count days
+  from the trace's first, their tooltips writing each day's date; the
+  monthly cards name a month as the trace months below are named.
   Behind a Definition control is its definition, and nothing else. The
   two monthly share cards take their series' order from the paper's shared
   legend, the 48th table.
@@ -106,7 +114,10 @@ of time; the browser runs no query, it fetches the answers and draws them.
   each trace day into its calendar day from the trace's start,
   2025-04-11, one constant in `site_data/months.py`, for the daily
   answers. The hero and the footer count the thirteen trace months from
-  `trace_totals`; no chart draws a bar per trace month or labels one.
+  `trace_totals`. The Insights' monthly cards name a trace month by the
+  calendar month its first day falls in, "Apr '25" to "Apr '26", and star
+  the thirteenth, "Apr '26*", since it holds only the trace's last two
+  days (`site/js/insights/figure_card.js`).
 - **The Traffic Explorer** filters and sums the `daily_by_family` answer,
   and a family's `daily_by_model` answer once the family is chosen, in
   the browser. The first holds one row per calendar day, family and
@@ -281,7 +292,7 @@ site/                exactly the files that are deployed
     stacked_bars.js  the Traffic Explorer's bars and the two monthly share cards
     donut.js         the family and endpoint mixes
     lines.js         a line per series, a CDF among them
-    bands.js         a value's median and its two percentile bands
+    bands.js         a value's median and its two percentile bands, and their key
     cells.js         a grid of rectangles shaded by their values
     raster.js        a dense grid of cells drawn as one image, as hours by users
     scatter.js       a dot per point, shaded on a scale diverging from zero
@@ -358,7 +369,12 @@ tests/               what make test runs
                      a card's series' order, the colours each palette gives them, and its legend
   insights_figure_charts.test.js
                      cards drawn from their shipped answers as the spec describes them: a tooltip, a log axis, a
-                     raster, a series hidden in a CDF card, the hourly lines' gaps, the shared colour and month axis
+                     raster's rows and rules, a series hidden in a CDF card, a CDF's straight lines, the hourly lines'
+                     gaps, the routing card's rows and policy legend, a bands card's key, the hit grid's all-cached
+                     row, the shared colour and the day and month axes
+  insights_caching_balancing.test.js
+                     the caching and balancing cards' axes, the eviction cards' tooltips listing every algorithm,
+                     and the user zooms' even split
   fake_page.js       the stand-ins for an element, a figure's body, the topic sections and the browser's
                      history that the node tests drive the page's modules with
   palette_contrast.test.js, palette.js

@@ -1,3 +1,3 @@
 10th–90th percentile | legend-swatch background: var(--series-1); opacity: 0.12;
-25th–75th | legend-swatch background: var(--series-1); opacity: 0.25;
+25th–75th | legend-swatch background: var(--series-1); opacity: 0.34;
 Median | legend-swatch is-line background: var(--series-1); opacity: 1;

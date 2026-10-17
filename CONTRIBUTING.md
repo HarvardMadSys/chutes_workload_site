@@ -262,8 +262,9 @@ highlighted models in fixed colours, `FIXED_SERIES_COLOURS` of
 `shared/series.js`, the others the free slots of its palette in the order
 of its `series`, else the answer's), places a legend of buttons where there
 is more than one series (none where each panel holds one series, which
-its title names), and draws the chart by its kind at the card's width. A topic makes each card with `frozenCard` of the same module, which
-freezes the card and every object it holds, its chart and panels included.
+its title names), and draws the chart by its kind at the card's width. A
+topic makes each card with `frozenCard` of the same module, which freezes
+the card and every object it holds, its chart and panels included.
 
 ```js
 frozenCard({
@@ -275,7 +276,8 @@ frozenCard({
   kind: "lines",
   chart: {
     x: TRACE_DAY_AXIS,
-    y: { label: "Requests per day", tickFormat: formatCountTick },
+    // From zero, so the caption's growth reads at its true ratio; the busiest day, 34.9M, sits under the top.
+    y: { label: "Requests per day", domain: [0, 36e6], tickFormat: formatCountTick },
     valueLabel: "Requests",
     valueFormat: formatCompactCount,
   },
@@ -344,36 +346,38 @@ table and the card's words.
 
 **The chart kinds** (`js/charts/`), nine modules, one per shape: the
 Overview's `donut` and the Traffic Explorer's `stacked_bars`, and the
-figures' `lines` (a CDF among them), `bands`, `cells`, `raster`, `scatter`,
-`boxes` and `bars`, the stacked bars drawing the two monthly shares too.
-These nine chart modules are not quite a card's nine kinds: `CHART_KINDS`
-of `insights/figure_card.js` names `cdf`, drawn by `lines`, and no
-`donut`, which only the Overview draws, for its two mixes, by family and by
-endpoint. Each module exports one draw
-function of one interface,
-`draw<Kind>(rows, body, colours, parameters, hidden)`: the rows of its
-answer, the place to draw into, `colours.series` (the Map of its series'
-colours in the legend's order), its named parameters (a card's `chart`,
-with its kind's and a panel's) and the Set of series its legend hides; it
-replaces the place's content with one Plot chart, but the donut, which is
-plain SVG of its own drawing. Its module's header says
-what rows it takes and its draw function's JSDoc what each parameter
-decides; its pure functions (the rows drawn, the tooltip's text, a scale's
-options) are exported and tested in `tests/charts_<kind>.test.js`. A kind
-imports only from `shared/`, `axes/` and `theme/`. A kind takes only
-parameters two or more charts use, or a frame or axis setting (the bars'
-`margins`, `inset` and `xTickRotate`, the lines' `gap`). Every Plot kind
-takes `height`, the chart's height in pixels, `CHART_HEIGHT` (240) when
-not given (`titledFrame` of `shared/charts.js`); the two cards of a grid
-row take the same height, so the row stays level. Every Plot kind but the
-raster has a tooltip, written by the kind's `…TipText` function, its x
-after the x axis's title (`axisValueText` of `axes/ticks.js`), or written
-by the axis's `tipFormat` alone where it gives one (a trace day with its
-date); the donut's slices carry their tooltip as an SVG `<title>` each. The lines
-kind joins a CDF's points with straight lines, its tooltip naming the
-point nearest the pointer in x and y; with `tipAllSeries` its tooltip
-lists every drawn series' value at the hovered x, highest first, and with
-`series` it draws only the series named (a panel's own).
+figures' `lines` (a CDF among them), `bands`, `cells`, `raster`,
+`scatter`, `boxes` and `bars`, the stacked bars drawing the two monthly
+shares too. These nine chart modules are not quite a card's nine kinds:
+`CHART_KINDS` of `insights/figure_card.js` names `cdf`, drawn by `lines`,
+and no `donut`, which only the Overview draws, for its two mixes, by
+family and by endpoint. Each module exports one draw function of one
+interface, `draw<Kind>(rows, body, colours, parameters, hidden)`: the rows
+of its answer, the place to draw into, `colours.series` (the Map of its
+series' colours in the legend's order), its named parameters (a card's
+`chart`, with its kind's and a panel's) and the Set of series its legend
+hides; it replaces the place's content with one Plot chart, but the donut,
+which is plain SVG of its own drawing. Its module's header says what rows
+it takes and its draw function's JSDoc what each parameter decides; its
+pure functions (the rows drawn, the tooltip's text, a scale's options) are
+exported and tested in `tests/charts_<kind>.test.js`. A kind imports only
+from `shared/`, `axes/` and `theme/`. A kind takes only parameters two or
+more charts use, or a frame or axis setting (the bars' `margins`, `inset`
+and `xTickRotate`, the stacked bars' `segmentInset`, the lines' `gap`).
+Every Plot kind takes `height`, the chart's height in pixels,
+`CHART_HEIGHT` (240) when not given (`titledFrame` of `shared/charts.js`);
+the two cards of a grid row take the same height, so the row stays level.
+Every Plot kind but the raster has a tooltip, written by the kind's
+`…TipText` function, its x after the x axis's title (`axisValueText` of
+`axes/ticks.js`), or written by the axis's `tipFormat` alone where it
+gives one (a trace day with its date; the stacked bars take it as
+`xTipFormat`, the Traffic Explorer's day bars writing the whole day where
+a tick names only the month); the donut's slices carry their tooltip as an
+SVG `<title>` each. The lines kind joins a CDF's points with straight
+lines, its tooltip naming the point nearest the pointer in x and y; with
+`tipAllSeries` its tooltip lists every drawn series' value at the hovered
+x, highest first, and with `series` it draws only the series named (a
+panel's own).
 
 ## JavaScript style
 
@@ -457,10 +461,11 @@ Insights' figures are drawn from their plot-ready tables.
   foot of its row, so the x axes of a row line up.
 - **One axis.** Two measures of different scale are two charts.
 - **The card.** A chart's card shows its title, its caption, its legend
-  above the chart (none where it has a single series), and a Definition
-  control that opens on its definition: alone on a figure card of the
-  Insights; with the line of rows it rests on in the two Overview mixes
-  and the Traffic Explorer's card.
+  above the chart (none where it has a single series, but a bands card,
+  which shows its key there), and a Definition control that opens on its
+  definition: alone on a figure card of the Insights; with the line of
+  rows it rests on in the two Overview mixes and the Traffic Explorer's
+  card.
   A legend names only what is drawn. After each drawing the chart is named
   for a screen reader by its title and caption, `nameChart` in
   `shared/charts.js`.

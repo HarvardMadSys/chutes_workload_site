@@ -13,7 +13,7 @@ import {
 } from "../site/js/charts/lines.js";
 import { bandKey, bandsColour } from "../site/js/charts/bands.js";
 import {
-  pooledGrid, rasterColourDomain, rasterGrid, rasterYDomain, rowBoundaries,
+  pooledGrid, rasterColourDomain, rasterGrid, rasterYDomain, rowBoundaries, rowRules,
 } from "../site/js/charts/raster.js";
 import { axisTicks } from "../site/js/axes/ticks.js";
 import { cellTipText } from "../site/js/charts/cells.js";
@@ -24,7 +24,7 @@ import {
   TRACE_MONTH_TICKS, traceMonthName,
 } from "../site/js/insights/figure_card.js";
 import { FIGURE_SECTIONS } from "../site/js/insights/figure_sections.js";
-import { sequentialColour } from "../site/js/shared/charts.js";
+import { sequentialColour, titledFrame } from "../site/js/shared/charts.js";
 import { TRACE_FIRST_DAY } from "../site/js/shared/format.js";
 import { SERIES_SLOTS } from "../site/js/theme/colours.js";
 import { SERIES_COLUMN } from "../site/js/shared/series.js";
@@ -106,6 +106,10 @@ test("the periodic user's raster ticks its model rows on their centres and parts
   assert.deepEqual([low, high], [-0.5, grid.height - 0.5]);
   assert.equal(rowBoundaries(grid.height).length, grid.height - 1);
   assert.ok(rowBoundaries(grid.height).every((boundary) => boundary > low && boundary < high));
+  // At the card's own plot height its rows are tall enough to be parted: a rule at every boundary.
+  const frame = titledFrame(new FakeFigureBody(), card.chart.y.label, card.chart.margins, card.chart.height);
+  const plotHeight = frame.height - frame.marginTop - frame.marginBottom;
+  assert.deepEqual(rowRules({ ruleY: (values) => values }, grid.height, plotHeight), rowBoundaries(grid.height));
 });
 
 test("a bands card's key names its two bands and its median in the card's colour, with no legend of buttons", (context) => {

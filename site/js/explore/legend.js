@@ -1,7 +1,7 @@
 /**
- * The legend of a chart of more than one series, as one button per series: a click hides the series, or shows it again,
- * and the chart is drawn anew from the rows it already has, with no query. A hidden series' button is struck through
- * and not pressed.
+ * The legend of a chart of more than one series, as one button per entry, an entry being one series or, with `names`,
+ * several: a click hides the entry's series, or shows them again, and the chart is drawn anew from the rows it already
+ * has, with no query. A hidden entry's button is struck through and not pressed.
  *
  * A legend is `{ series, colours, dashed? }`: the entries it lists, `[{ name, label, names? }]`, `name` being the
  * series' value in the rows and `label` the text its button shows, their colours, a Map from an entry's name to its
@@ -19,7 +19,7 @@ import { DASH, legendPlace, showError, showNote } from "../shared/charts.js";
 // The note in place of a chart whose every series is hidden.
 const EVERY_SERIES_HIDDEN_NOTE = "Every series is hidden: click one in the legend to show it.";
 
-// A legend lists at least this many series: with one there is nothing to choose between, and the chart stays as it is.
+// A legend lists at least this many entries: with one there is nothing to choose between, and the chart stays as it is.
 const MIN_SERIES_IN_LEGEND = 2;
 
 // The name a screen reader gives a legend's group of buttons.
@@ -85,7 +85,7 @@ export function toggledSeries(hidden, names) {
   return toggled;
 }
 
-/** True when `series` (`[{ name }]`) is long enough to be given a legend: two series or more. */
+/** True when `series` (`[{ name }]`, a legend's entries) is long enough to be given a legend: two entries or more. */
 export function hasLegend(series) {
   return series.length >= MIN_SERIES_IN_LEGEND;
 }

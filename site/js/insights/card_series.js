@@ -1,8 +1,8 @@
 /**
  * A figure card's series (`insights/figure_card.js` defines a card): the order they take their colours in, the colours
  * each of the card's palettes gives them, and the card's legend. A card's answer rows name their series in `series`;
- * a Map from series name to colour, in the order drawn, crosses to the chart and its legend. Pure functions, tested
- * with `node --test`.
+ * a Map from series name to colour, in the order drawn, crosses to the chart and its legend (the policies' legend
+ * takes a Map from policy to colour, its entries being policies). Pure functions, tested with `node --test`.
  */
 
 import { distinct, panelRows } from "../shared/charts.js";

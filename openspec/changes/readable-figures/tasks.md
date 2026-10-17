@@ -18,7 +18,7 @@ where a task changes what is drawn, the diff reviewed.
 
 ## 2. Cells, scatter, raster, bars, bands, stacked bars (shared)
 
-- [ ] 2.1 `charts/cells.js`: `yReference`, the collapsed range text;
+- [x] 2.1 `charts/cells.js`: `yReference`, the collapsed range text;
       `charts/scatter.js`: `yReference`, outline and opacity;
       `charts/raster.js`: centred rows, row rules; `charts/bars.js`:
       `reference`; `charts/bands.js`: `bandKey`, the opacities, the
@@ -29,7 +29,7 @@ where a task changes what is drawn, the diff reviewed.
 
 ## 3. The routing simulation and the policy legend
 
-- [ ] 3.1 Design D3: `balancing.js`'s eight panels and y domains,
+- [x] 3.1 Design D3: `balancing.js`'s eight panels and y domains,
       `card_series.js`'s policy legend, `explore/legend.js`'s `names`,
       `policyColours`; the Insights spec's routing wording; tests.
       *Verify:* the card shows eight panels in two rows, four legend
@@ -37,26 +37,26 @@ where a task changes what is drawn, the diff reviewed.
 
 ## 4. The overview and tokens topics
 
-- [ ] 4.1 Design D4 and D5 for `overview.js` and `tokens.js`; snapshots.
+- [x] 4.1 Design D4 and D5 for `overview.js` and `tokens.js`; snapshots.
       *Verify:* the seasonality's rows read Sun..Sat; the ratio card is
       wide; the hit grid's top row reads "100%".
 
 ## 5. The users and evolution topics
 
-- [ ] 5.1 Design D4 and D5 for `users.js` and `evolution.js`; snapshots.
+- [x] 5.1 Design D4 and D5 for `users.js` and `evolution.js`; snapshots.
       *Verify:* the rasters' ticks sit on row centres; the band cards
       show the key; the share bars have no white stripes.
 
 ## 6. The caching and balancing topics
 
-- [ ] 6.1 Design D4 and D5 for `caching.js` and `balancing.js` (the
+- [x] 6.1 Design D4 and D5 for `caching.js` and `balancing.js` (the
       cards other than the routing one); snapshots.
       *Verify:* the eviction pair shares a row on a 0–1 axis; the TTL
       ticks read "1 ms … 15 min"; the zooms show the even-split line.
 
 ## 7. Docs and close
 
-- [ ] 7.1 README and CONTRIBUTING for the new parameters and kinds'
+- [x] 7.1 README and CONTRIBUTING for the new parameters and kinds'
       behaviour; the tasks ticked; the authors' list of D6 kept in the
       change for the user.
       *Verify:* `make test` green; `openspec validate readable-figures

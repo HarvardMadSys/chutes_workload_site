@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { FIGURE_SECTIONS } from "../site/js/insights/figure_sections.js";
+import { CHART_HEIGHT } from "../site/js/shared/charts.js";
 
 // The figure answers the data step wrote, as their index lists them: each figure's row count, by name.
 const INDEX = JSON.parse(readFileSync(new URL("../site/data/all/figures.json", import.meta.url), "utf8"));
@@ -140,7 +141,8 @@ function gridRows(cards) {
 test("the two cards of a grid row draw their charts at one height, so the row stays level", () => {
   for (const topic of FIGURE_SECTIONS) {
     for (const row of gridRows(topic.cards)) {
-      const heights = row.map((card) => card.chart.height);
+      // A card that gives no height draws at the frame's, so it is compared as that.
+      const heights = row.map((card) => card.chart.height ?? CHART_HEIGHT);
       assert.ok(heights.every((height) => height === heights[0]), `${row.map((card) => card.figure)}: ${heights}`);
     }
   }

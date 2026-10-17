@@ -1,7 +1,7 @@
 /**
  * The Insights' fourth topic, Workload evolution: the paper's monthly model mix, monthly token-length bands and the
  * token lengths of each release cohort of users, as `insights/figure_sections.js` defines a topic. The two share
- * panels show the legend the paper draws once above both. The words are the paper's and the definitions the artifact
+ * cards show the legend the paper draws once above both. The words are the paper's and the definitions the artifact
  * README's; a line marked "placeholder" is not the paper's own, for the authors to review.
  * A card's kind and chart say how its figure is drawn from its answer, as `insights/figure_card.js` defines them.
  */
@@ -10,7 +10,7 @@ import { formatCountTick, formatPercent, formatShare, formatWholeCount } from ".
 import { SERIES_SLOTS } from "../theme/colours.js";
 import { frozenCard, TRACE_MONTH_AXIS, TRACE_MONTH_TICKS } from "./figure_card.js";
 
-// The legend of the two monthly share panels: the ten most requested models and Others.
+// The legend of the two monthly share cards: the ten most requested models and Others.
 const SHARE_LEGEND = "fig_top10_model_monthly_share_legend";
 
 // The colours of the bands, as the paper's: input tokens in the first series colour, a blue, output in the second, an
@@ -98,7 +98,7 @@ export const EVOLUTION_TOPIC = Object.freeze({
       kind: "bands",
       chart: {
         x: TRACE_MONTH_AXIS,
-        // From 7, so the 10th percentiles of 10 tokens sit above the frame, to 1,500, over the highest 90th, 1.2k.
+        // From 7, so the 10th percentiles of 10 tokens clear the frame's foot, to 1,500, over the highest 90th, 1.2k.
         y: { label: "Output tokens", log: true, domain: [7, 1500], tickFormat: formatCountTick },
         colour: OUTPUT_COLOUR,
         valueLabel: "Output tokens",

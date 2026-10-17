@@ -53,11 +53,17 @@ const LOW_LOAD_SHARE_TOP = 34.5; // 1.25 × 27.6%
 const HIGH_LOAD_INSTANCES = 12;
 const LOW_LOAD_INSTANCES = 11;
 
-// The routing figure's eight series, a policy of the four for each of the two models, in the paper's legend order,
-// each in its policy's colour (`palette: "policies"`), whose legend lists each policy once for both models.
+// The routing figure's two models, as its answer's series and its panel titles name them.
+const ROUTING_DEEPSEEK = "DeepSeek V3.2";
+const ROUTING_MINIMAX = "MiniMax M2.5";
+// The routing figure's four policies, in the paper's legend order, each in its policy's colour (`palette: "policies"`),
+// whose legend lists each policy once for both models.
 const ROUTING_POLICIES = ["Round-robin", "Load-first", "Cache-first", "Sticky"];
-const ROUTING_DEEPSEEK = ROUTING_POLICIES.map((policy) => `DeepSeek V3.2, ${policy}`);
-const ROUTING_MINIMAX = ROUTING_POLICIES.map((policy) => `MiniMax M2.5, ${policy}`);
+
+// The routing figure's series of `model`, one per policy, named as its answer names them: "<model>, <policy>".
+function routingSeries(model) {
+  return ROUTING_POLICIES.map((policy) => `${model}, ${policy}`);
+}
 
 // The routing panels' x axes: the cache size of an instance, on the paper's 10³ to past 10⁶, and the instances.
 const CACHE_SIZE_AXIS = { label: "Instance cache size", log: true, domain: [1e3, 6e6], tickFormat: formatCountTick };
@@ -70,7 +76,7 @@ const DEEPSEEK_ROUTING_DOMAINS = {
   imbalance: [0, 2.5], // its highest load imbalance is 2.4%
 };
 
-// MiniMax-M2.5's y domains in the routing panels, as DeepSeek V3.2's.
+// MiniMax M2.5's y domains in the routing panels, as DeepSeek V3.2's.
 const MINIMAX_ROUTING_DOMAINS = {
   hitRatio: [0, 0.7], // its highest hit ratio is 0.64
   replication: [0.9, 2.7], // its replication runs from 1 to 2.62
@@ -78,10 +84,11 @@ const MINIMAX_ROUTING_DOMAINS = {
 };
 
 // The routing figure's row of one model, its four panels: hit ratio (a) and replication (b) against cache size,
-// replication (c) and load imbalance (d) against the instances, each drawing only `series`, the model's four, titled
+// replication (c) and load imbalance (d) against the instances, each drawing only the model's four series, titled
 // with `model` and on the y domains of `domains`.
 // placeholder: the panel titles are the figure's own subcaptions, for the authors to confirm.
-function routingRow(series, model, domains) {
+function routingRow(model, domains) {
+  const series = routingSeries(model);
   const hitRatio = { label: "Token hit ratio", domain: domains.hitRatio };
   const replication = { label: "Replication ratio", domain: domains.replication };
   const imbalance = { label: "Load imbalance (%)", domain: domains.imbalance };
@@ -170,7 +177,8 @@ export const BALANCING_TOPIC = Object.freeze({
       // placeholder: the overview paragraph has no lead-in; this is its sentence on this panel.
       insight: "Load is balanced in aggregate, but not perfectly balanced at every instant.",
       caption: "On the busiest day most active instances remain busy with similar per-minute request rates, while a small number become quiet around mid-day.",
-      definition: "Requests per instance of DeepSeek-V3-0324 and minute, over the 24 hours with the most active instances.",
+      // placeholder: the window's start, which the axis no longer shows, for the authors to confirm.
+      definition: "Requests per instance of DeepSeek-V3-0324 and minute, over the 24 hours with the most active instances, from 17:00 UTC on day 317 of the trace.",
       kind: "cells",
       chart: {
         x: WINDOW_AXIS,
@@ -257,12 +265,12 @@ export const BALANCING_TOPIC = Object.freeze({
       caption: "Cache-aware routing turns larger KV caches into higher hit ratios and less replication, while cache-blind policies remain highly replicated. Cache-first routing pays a modest load imbalance.",
       definition: "A simulated fleet of LRU caches replaying DeepSeek V3.2 (top) and MiniMax-M2.5 (bottom) under four routing policies: hit ratio (a) and replication (b) against cache size on 20 instances; replication (c) and load imbalance (d) against the number of instances.",
       kind: "lines",
-      series: [...ROUTING_DEEPSEEK, ...ROUTING_MINIMAX],
+      series: [...routingSeries(ROUTING_DEEPSEEK), ...routingSeries(ROUTING_MINIMAX)],
       palette: "policies",
       chart: { markers: true, valueFormat: formatCount },
       panels: [
-        ...routingRow(ROUTING_DEEPSEEK, "DeepSeek V3.2", DEEPSEEK_ROUTING_DOMAINS),
-        ...routingRow(ROUTING_MINIMAX, "MiniMax-M2.5", MINIMAX_ROUTING_DOMAINS),
+        ...routingRow(ROUTING_DEEPSEEK, DEEPSEEK_ROUTING_DOMAINS),
+        ...routingRow(ROUTING_MINIMAX, MINIMAX_ROUTING_DOMAINS),
       ],
       isWide: true,
     }),

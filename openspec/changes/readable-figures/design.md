@@ -53,19 +53,20 @@ use the axis (the user's copy, placeholder).
 
 ## D3. The routing simulation as two rows
 
-`balancing.js` gives the card eight panel entries: panels a–d with
-`series: ROUTING_DEEPSEEK` titled "(a) Hit ratio vs cache size ·
-DeepSeek V3.2" and so on, then the same four with `ROUTING_MINIMAX`;
-`dashed` goes. The y domains per row: (a) DeepSeek `[0, 0.55]`, MiniMax
-`[0, 0.7]`; (b) and (c) DeepSeek `[0.9, 2.0]`, MiniMax `[0.9, 2.7]`; (d)
-DeepSeek `[0, 2.5]`, MiniMax `[0, 4.5]`, so no line lies on an axis.
-`card_series.js`: for the `policies` palette the legend lists each
-policy once, labelled by the policy, and hiding a policy hides its
-series in both rows (`figureLegend` returns, per entry, the names it
-toggles; `explore/legend.js` entries gain an optional `names` list, the
-entry's `name` by default). `policyColours` gives Round-robin, the
-cache-blind baseline, the Other grey and the three others well-separated
-slots (1, 8, 3), checked by the contrast test.
+`balancing.js` gives the card eight panel entries: panels a–d drawing
+DeepSeek V3.2's four series, titled "(a) Hit ratio vs cache size ·
+DeepSeek V3.2" and so on, then the same four of MiniMax M2.5, each row
+built by `routingRow` from the model's name, which names its series and
+titles its panels; `dashed` goes. The y domains per row: (a) DeepSeek
+`[0, 0.55]`, MiniMax `[0, 0.7]`; (b) and (c) DeepSeek `[0.9, 2.0]`,
+MiniMax `[0.9, 2.7]`; (d) DeepSeek `[0, 2.5]`, MiniMax `[0, 4.5]`, so no
+line lies on an axis. `card_series.js`: for the `policies` palette the
+legend lists each policy once, labelled by the policy, and hiding a
+policy hides its series in both rows (`figureLegend` returns, per entry,
+the names it toggles; `explore/legend.js` entries gain an optional
+`names` list, the entry's `name` by default). `policyColours` gives
+Round-robin, the cache-blind baseline, the Other grey and the three
+others well-separated slots (1, 8, 3), checked by the contrast test.
 
 ## D4. Each topic's cards
 
@@ -79,18 +80,20 @@ a row line up.
 
 Tokens: the ratio card `isWide` so the rows pair (input | output),
 (ratio), (end-to-end | TTFT share), (duration grid | TTFT grid), (hit
-grid); input axis `domain: [10, 1e6]`, ticks 100 … 100k; ratio tooltip
-`formatSignificant`; the hit-ratio grid's y ticks `[0, .2, .4, .6, .8,
-1.05]` written as percentages with 1.05 and above as "100%", so the
-all-cached row is labelled at its centre; `height: 320` on the three
-grids.
+grid); input axis `domain: [10, 1e6]`, ticks 100 … 100k; the ratio axis
+ticked `[0.01, 0.1, 1, 10, 100]` (a tick at 0.001 met 0.01's label on a
+phone), its tooltip `formatSignificant`; the hit-ratio grid's y ticks
+`[0, .2, .4, .6, .8, 1.05]` written as percentages with 1.05 and above
+as "100%", so the all-cached row is labelled at its centre;
+`height: 320` on the three grids.
 
-Users: `height` 340 on the four density cards and the two burstiness
-cards, 400 on the two user rasters and the two input/output cards; x
-ticks every decade on the users' input/output card and on the two
-burstiness cards (`[10, 100, 1e3, 1e4, 1e5]`); `yReference: 1` on the
-burstiness pair; axis titles "Median input tokens" / "Median output
-tokens"; the model rasters' definitions lose the sampling sentence.
+Users: `height` 340 on the two density cards and the two burstiness
+cards, 400 on the two rasters of a model's users and the two
+input/output cards; x ticks every decade on the users' input/output card
+and on the two burstiness cards (`[10, 100, 1e3, 1e4, 1e5]`);
+`yReference: 1` on the burstiness pair; axis titles "Median input
+tokens" / "Median output tokens"; the model rasters' definitions lose
+the sampling sentence.
 
 Evolution: `segmentInset: 0` on the two share cards; y domains `[10,
 30e3]` and `[7, 1500]` on the monthly interval cards; the cohort cards'
@@ -102,7 +105,8 @@ its x ticks `[0.001, 0.1, 10, 900]` in `formatDurationTick`; the
 eviction cards on `HIT_RATIO_AXIS` (0–1) with `tipAllSeries`; the
 per-model cells x `domain: [100, 2e8]`, ticks `[100, 1e4, 1e6, 1e8]`,
 the per-user `[10, 2e8]`, `[10, 1e3, 1e5, 1e7]`; the box card's bottom
-margin 52; the IAT band card's key and month names.
+margin stays 72 (at 52 its slanted model names ran 15 px past the
+chart's foot); the IAT band card's key and month names.
 
 Balancing: D3; the occupancy heat map's x in `formatHoursTick`, titled
 "Hours into the window"; active instances `domain: [0, 18]`; max/mean
@@ -113,11 +117,14 @@ label: "even split" }`, N the panel's instances (12 and 11).
 ## D5. Copy corrected on the site, marked placeholder
 
 "binned into hexagons" → "binned into cells of a log grid" (the cells
-are squares: users 01–04 and 09, caching 03–04, balancing 05–06); the
-token-share caption's "in both panels" → "in both charts"; the model
-rasters' "At most 800 of the model's users are shown, picked by a seeded
-shuffle" dropped (all 230 and 540 are shown); the seasonality's "in
-millions" dropped.
+are squares: users 01–04 and 09, caching 03–04, balancing 05–06), and on
+the two balancing grids "each hexagon coloured" → "each cell coloured";
+the occupancy's definition names its window's start, "from 17:00 UTC on
+day 317 of the trace", which its axis, now hours into the window, no
+longer shows; the token-share caption's "in both panels" → "in both
+charts"; the model rasters' "At most 800 of the model's users are shown,
+picked by a seeded shuffle" dropped (all 230 and 540 are shown); the
+seasonality's "in millions" dropped.
 
 ## D6. For the authors (not changed)
 

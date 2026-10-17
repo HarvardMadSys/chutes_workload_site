@@ -6,7 +6,9 @@
  * `value`; a multi-panel figure's rows also name their `panel`.
  */
 
-import { AXIS_STYLE, BAR_INSET, colourScale, distinct, referenceRule, titledFrame } from "../shared/charts.js";
+import {
+  AXIS_STYLE, BAR_INSET, SURFACE_INK, colourScale, distinct, referenceRule, titledFrame,
+} from "../shared/charts.js";
 import { axisMark, axisValueText, bandAxisMark, gridMark } from "../axes/ticks.js";
 import { SERIES_COLUMN, shownSeriesRows } from "../shared/series.js";
 
@@ -75,7 +77,7 @@ export function referenceMarks(Plot, reference) {
     textAnchor: "end",
     dy: REFERENCE_LABEL_RISE,
     fill: "currentColor",
-    stroke: "var(--color-surface)",
+    stroke: SURFACE_INK,
     strokeWidth: LABEL_HALO_WIDTH,
     paintOrder: "stroke",
   });

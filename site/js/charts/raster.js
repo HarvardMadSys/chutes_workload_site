@@ -9,7 +9,7 @@
  * centred on its tick, and rows tall enough are parted by rules in the card's colour (`rowRules`).
  */
 
-import { sequentialColour, titledFrame } from "../shared/charts.js";
+import { SURFACE_INK, sequentialColour, titledFrame } from "../shared/charts.js";
 import { axisMark, axisTicks, colourLegendTicks, extent } from "../axes/ticks.js";
 
 const DEFAULT_SCHEME = "Blues"; // a raster's colour scheme when the card names none: few requests light, many dark
@@ -93,7 +93,7 @@ export function rowBoundaries(rows) {
 export function rowRules(Plot, rows, plotHeight) {
   const isTallEnough = plotHeight / rows >= MIN_ROW_HEIGHT_FOR_RULES;
   const boundaries = isTallEnough ? rowBoundaries(rows) : [];
-  return Plot.ruleY(boundaries, { stroke: "var(--color-surface)", strokeWidth: ROW_RULE_WIDTH });
+  return Plot.ruleY(boundaries, { stroke: SURFACE_INK, strokeWidth: ROW_RULE_WIDTH });
 }
 
 /**

@@ -1,4 +1,4 @@
 title: Per-instance occupancy
 insight: Load is balanced in aggregate, but not perfectly balanced at every instant.
 caption: On the busiest day most active instances remain busy with similar per-minute request rates, while a small number become quiet around mid-day.
-definition: Requests per instance of DeepSeek-V3-0324 and minute, over the 24 hours with the most active instances.
+definition: Requests per instance of DeepSeek-V3-0324 and minute, over the 24 hours with the most active instances, from 17:00 UTC on day 317 of the trace.

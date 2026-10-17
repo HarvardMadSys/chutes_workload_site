@@ -1394,11 +1394,10 @@ section[id] {
   border-radius: 0;
 }
 
-/* The key of a bands chart, in its legend's place: its entries laid out as a legend's buttons are, but not buttons. */
+/* The key of a bands chart, in its legend's place: its entries laid out by the legend as its buttons are, but not
+   buttons. */
 .band-key {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 1rem;
+  display: contents;
 }
 
 .band-key-entry {

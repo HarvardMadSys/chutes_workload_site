@@ -32,6 +32,8 @@ const PLOT_MARGINS = Object.freeze({ marginTop: 32, marginRight: 32, marginBotto
 export const GRID_STYLE = Object.freeze({ stroke: "var(--chart-grid)", strokeOpacity: 1 });
 /** The options of every chart's axes and its zero line: the axis ink, and an axis title with no arrow. */
 export const AXIS_STYLE = Object.freeze({ stroke: "var(--chart-axis)", labelArrow: "none" });
+/** The card's own colour, for a mark that parts or rings others: a raster's row rules, a label's halo. */
+export const SURFACE_INK = "var(--color-surface)";
 
 /**
  * The Plot options every chart starts from: its margins, its height (`height` pixels, `CHART_HEIGHT` when not given),

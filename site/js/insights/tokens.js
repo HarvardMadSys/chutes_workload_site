@@ -56,7 +56,7 @@ export const TOKENS_TOPIC = Object.freeze({
       series: HIGHLIGHTED_SERIES,
       chart: {
         // From 10, under which fewer than 1% of requests fall, to 1M, past every series' 99th percentile; the decades
-        // from 100 to 100k are ticked, the axis's ends left bare so a phone's labels do not meet its neighbours'.
+        // 100 to 100k ticked and the ends left bare, since a label at either end would crowd its neighbour on a phone.
         x: {
           label: "Input tokens", log: true, domain: [10, 1e6], ticks: [100, 1e3, 1e4, 1e5], tickFormat: formatCountTick,
         },
@@ -104,7 +104,7 @@ export const TOKENS_TOPIC = Object.freeze({
         dashed: ["Global"],
         labels: HIGHLIGHTED_LABELS,
         valueLabel: "Ratio",
-        // Two significant figures, so a ratio well under one reads "0.0047", not "0".
+        // A ratio to two significant figures, as the site writes one: "0.0047".
         valueFormat: formatSignificant,
       },
       // Wide, so the latency CDFs and then the two latency grids each share a row, as the paper sets them side by side.

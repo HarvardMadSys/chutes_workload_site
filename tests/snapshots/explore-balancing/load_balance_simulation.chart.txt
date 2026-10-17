@@ -26,22 +26,22 @@ x-axis: 5 | 10 | 15 | 20
 y-axis: 0.0 | 0.5 | 1.0 | 1.5 | 2.0 | 2.5
 x-axis title: Instances
 y-axis title: Load imbalance (%)
-panel: (a) Hit ratio vs cache size · MiniMax-M2.5
+panel: (a) Hit ratio vs cache size · MiniMax M2.5
 x-axis: 1k | 10k | 100k | 1M
 y-axis: 0.0 | 0.2 | 0.4 | 0.6
 x-axis title: Instance cache size
 y-axis title: Token hit ratio
-panel: (b) Replication vs cache size · MiniMax-M2.5
+panel: (b) Replication vs cache size · MiniMax M2.5
 x-axis: 1k | 10k | 100k | 1M
 y-axis: 1.0 | 1.5 | 2.0 | 2.5
 x-axis title: Instance cache size
 y-axis title: Replication ratio
-panel: (c) Replication vs instance count · MiniMax-M2.5
+panel: (c) Replication vs instance count · MiniMax M2.5
 x-axis: 5 | 10 | 15 | 20
 y-axis: 1.0 | 1.5 | 2.0 | 2.5
 x-axis title: Instances
 y-axis title: Replication ratio
-panel: (d) Imbalance vs instance count · MiniMax-M2.5
+panel: (d) Imbalance vs instance count · MiniMax M2.5
 x-axis: 5 | 10 | 15 | 20
 y-axis: 0 | 1 | 2 | 3 | 4
 x-axis title: Instances

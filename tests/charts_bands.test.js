@@ -45,7 +45,9 @@ test("the key lists a light band, a darker band and the median line, in the char
   assert.equal(key.className, "band-key");
   const [outer, inner, median] = key.children.map((entry) => entry.children[0]);
   assert.deepEqual(key.children.map((entry) => entry.children[1]), ["10th–90th percentile", "25th–75th", "Median"]);
-  assert.deepEqual([outer.style.opacity, inner.style.opacity, median.style.opacity], ["0.12", "0.25", "1"]);
+  // The inner swatch is as opaque as the inner band reads over the outer one: 1 - 0.88 × 0.75.
+  const opacities = [outer, inner, median].map((swatch) => Number(swatch.style.opacity).toFixed(2));
+  assert.deepEqual(opacities, ["0.12", "0.34", "1.00"]);
   assert.equal(median.className, "legend-swatch is-line");
   assert.ok([outer, inner, median].every((swatch) => swatch.style.background === "var(--series-2)"));
 });

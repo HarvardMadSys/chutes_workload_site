@@ -22,12 +22,14 @@ export const PERCENTILES = Object.freeze([
 
 const OUTER_BAND_OPACITY = 0.12; // the 10th-to-90th band: light, so the inner band and the median read over it
 const INNER_BAND_OPACITY = 0.25; // the 25th-to-75th band, drawn over the outer one
+// How opaque the inner band reads where it lies over the outer one, as it always does: the key's swatch matches it.
+const INNER_BAND_SEEN_OPACITY = 1 - (1 - OUTER_BAND_OPACITY) * (1 - INNER_BAND_OPACITY);
 const MEDIAN_WIDTH = 2; // pixels; the median is the line a reader follows, so it is drawn heavier than Plot's 1.5
 
 // The key's three entries, in the order it lists them: the outer band, the inner band and the median.
 const KEY_ENTRIES = Object.freeze([
   Object.freeze({ label: "10th–90th percentile", opacity: OUTER_BAND_OPACITY, isLine: false }),
-  Object.freeze({ label: "25th–75th", opacity: INNER_BAND_OPACITY, isLine: false }),
+  Object.freeze({ label: "25th–75th", opacity: INNER_BAND_SEEN_OPACITY, isLine: false }),
   Object.freeze({ label: "Median", opacity: 1, isLine: true }),
 ]);
 
@@ -76,8 +78,8 @@ export function bandsColour({ colour = SERIES_SLOTS[0] }) {
 
 /**
  * The key of a bands chart drawn in `colour`: an element of the class `band-key` holding three entries, not buttons,
- * each a swatch drawn as its part of the chart is and its name: "10th–90th percentile" (a light square), "25th–75th"
- * (a darker square) and "Median" (a short line).
+ * each a swatch drawn as its part of the chart is seen and its name: "10th–90th percentile" (a light square),
+ * "25th–75th" (a darker square, as the inner band reads over the outer one) and "Median" (a short line).
  */
 export function bandKey(colour) {
   const key = document.createElement("div");
