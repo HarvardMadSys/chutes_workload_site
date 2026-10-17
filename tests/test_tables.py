@@ -52,34 +52,41 @@ FIXTURE_HISTOGRAMS = [
 
 
 class WeekGroup(typing.NamedTuple):
-    """A trace week's requests of one family and endpoint group that recorded one metric."""
+    """A trace week's requests of one family, kept model (None for the family's other models) and endpoint group that
+    recorded one metric."""
 
     week: int
     family: str
+    chute_id: str | None
     endpoint_group: str
     metric: str
 
 
+def kept_chute(chute_id: object) -> str | None:
+    """A kept model's chute id as a key: the id, or None where pandas holds a missing one."""
+    return None if pandas.isna(chute_id) else chute_id
+
+
 def table_requests_by_week(table: pandas.DataFrame) -> dict[WeekGroup, int]:
-    """The trace table's requests per week, family, endpoint group and metric, summed over models and bins."""
-    sums = table.groupby(["week", "family", "endpoint_group", "metric"])["requests"].sum()
+    """The trace table's requests per week, family, kept model, endpoint group and metric, summed over bins."""
+    sums = table.groupby(["week", "family", "chute_id", "endpoint_group", "metric"], dropna=False)["requests"].sum()
     requests = {}
-    for (week, family, endpoint_group, metric), value in sums.items():
-        requests[WeekGroup(int(week), family, endpoint_group, metric)] = int(value)
+    for (week, family, chute_id, endpoint_group, metric), value in sums.items():
+        requests[WeekGroup(int(week), family, kept_chute(chute_id), endpoint_group, metric)] = int(value)
     return requests
 
 
 def rollup_counted_by_week(daily_rollup: pandas.DataFrame) -> dict[WeekGroup, int]:
-    """The daily rollup's counted requests per trace week, family, endpoint group and metric: each metric's counted
-    column summed over the week's days; a group none of whose requests recorded the metric is left out, as the table
-    has no row for it."""
+    """The daily rollup's counted requests per trace week, family, kept model, endpoint group and metric: each
+    metric's counted column summed over the week's days; a group none of whose requests recorded the metric is left
+    out, as the table has no row for it."""
     weeks = (daily_rollup["day"] - TRACE_EPOCH).dt.days // DAYS_PER_WEEK
     counted = {}
     for metric, column in COUNTED_COLUMNS.items():
-        sums = daily_rollup.groupby([weeks, "family", "function_group"])[column].sum()
-        for (week, family, endpoint_group), value in sums.items():
+        sums = daily_rollup.groupby([weeks, "family", "chute_id", "function_group"], dropna=False)[column].sum()
+        for (week, family, chute_id, endpoint_group), value in sums.items():
             if value > 0:
-                counted[WeekGroup(int(week), family, endpoint_group, metric)] = int(value)
+                counted[WeekGroup(int(week), family, kept_chute(chute_id), endpoint_group, metric)] = int(value)
     return counted
 
 
@@ -167,10 +174,14 @@ def test_the_tracked_table_holds_the_rows_its_sidecar_counts() -> None:
 
 
 def test_the_tracked_table_agrees_with_the_artifact_s_rollup(artifact_checkout: pathlib.Path) -> None:
-    """Each week's requests per family and endpoint group, metric by metric, are the daily rollup's counted requests
-    over the week's days: the query's family rule places every model where the artifact's does."""
+    """Each week's requests per family, kept model and endpoint group, metric by metric, are the daily rollup's
+    counted requests over the week's days: the query's family rule places every model where the artifact's does, and
+    keeps the chute ids the rollup keeps."""
     table = pyarrow.parquet.read_table(TABLES_FOLDER / paths.TRACE_TABLE_FILE).to_pandas()
     rollup = rollup_counted_by_week(loading.load_artifact(artifact_checkout).daily_rollup)
     requests = table_requests_by_week(table)
-    differing = sorted(group for group in rollup.keys() | requests.keys() if rollup.get(group) != requests.get(group))
+    differing = []
+    for group in sorted(rollup.keys() | requests.keys(), key=str):  # a key holds None, so it is sorted as text
+        if rollup.get(group) != requests.get(group):
+            differing.append(group)
     assert differing == [], f"{len(differing)} groups differ from the rollup, the first {differing[:5]}"

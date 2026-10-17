@@ -85,7 +85,7 @@ def test_a_query_reads_only_the_site_s_tables(name: str) -> None:
 
 
 def test_every_query_is_over_the_site_s_tables_or_is_the_trace_query() -> None:
-    assert site_query_names() + [tables.QUERY] == sorted(EXPECTED_COLUMNS)
+    assert set(EXPECTED_COLUMNS) - set(site_query_names()) == {tables.QUERY}
 
 
 def test_the_trace_query_reads_only_the_trace_and_the_models_and_families() -> None:

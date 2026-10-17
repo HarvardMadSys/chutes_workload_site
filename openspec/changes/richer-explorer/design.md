@@ -61,12 +61,17 @@ one; the CDF at a bin's upper edge is exact.
 
 Measured by `make tables` over the released trace (6,122,413,756 rows,
 the 91 GB Parquet file) on this machine with DuckDB 1.5.6, on every
-thread:
+thread (344). The query reads the trace once: one projection gives each
+request its three bins and UNPIVOT makes a row per metric. A first form,
+three UNION ALL branches over a shared step, gave the same bytes but
+DuckDB held that step's rows whole (129 to 130 s, 744 to 751 GB peak;
+`AS NOT MATERIALIZED` changed nothing, and under a 32 GB memory limit it
+spilled and failed). The adopted UNPIVOT form:
 
 | | |
 |---|---|
-| Query, count and write | 129 s (`make tables`: 2 min 55 s) |
-| Peak memory | 744 GB (DuckDB holds the query's `requests` step whole) |
+| Query, count and write | 30 s (`make tables`: 31 s) |
+| Peak memory | 16 GB resident (16 GB under a 32 GB limit, no spill) |
 | Rows | 676,243 |
 | Weeks, families, kept models | 53, 11, 71 |
 | Parquet | 1.8 MB (1,810,956 bytes) |

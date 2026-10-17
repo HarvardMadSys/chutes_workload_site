@@ -26,11 +26,12 @@ data:
 TRACE ?=
 
 # Build the trace table, tables/weekly_histograms.parquet, and its sidecar from the released trace and the artifact's
-# model names, family table and daily rollup (minutes over the whole trace). Rerun it, and commit the two files, when
-# the family table, the daily rollup's kept models or site/queries/trace/weekly_histograms.sql changed.
+# model names, family table and daily rollup (about 16 GB of memory and half a minute on 344 threads). Rerun it, and
+# commit the two files, when the family table, the daily rollup's kept models or
+# site/queries/trace/weekly_histograms.sql changed.
 tables:
 	@if [ -z "$(TRACE)" ]; then echo "set TRACE=<the released trace's Parquet file>"; exit 1; fi
-	$(PYTHON) -m site_data.tables --trace $(TRACE) --artifact $(ARTIFACT) --out tables
+	$(PYTHON) -m site_data.tables --trace "$(TRACE)" --artifact "$(ARTIFACT)" --out tables
 
 # Serve the site locally at http://localhost:8000 with Python's own file server.
 serve:
