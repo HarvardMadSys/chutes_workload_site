@@ -41,14 +41,14 @@ site/             exactly the files that are deployed
   index.html      the one page
   style.css       tokens, layout and components
   favicon.svg     the brand mark, for the browser tab
-  js/shared/      the answers, the libraries, formatting, charts, series, the layout, the scrolling row
+  js/shared/      the answers, the libraries, formatting, charts, series, the layout, the link marks, the scrolling row
   js/charts/      the nine chart kinds: donut, stacked_bars, lines, bands, cells, raster, scatter, boxes, bars
   js/axes/        the ticks of the charts' axes
   js/theme/       the site's colours as the style tokens give them
   js/pages/       the page's module
   js/landing/     the hero, the stats strip, the two mixes (by family and by endpoint), the cite and team sections
   js/explore/     the page's start, the legend of buttons, the topic tabs, the list of the Insights' topics
-  js/traffic/     the Traffic Explorer: its section, its filter, its controls, its day range, its tiles, its bars, its distributions and their cards
+  js/traffic/     the Traffic Explorer: its section, its filter, its controls, its day range, its tiles and their charts, its bars, its distributions
   js/insights/    the figure cards and the topics: one module per Insights topic with its takeaway and its groups of cards, and the routing card's panels
   queries/        one .sql file per query answer, under explore/; under setup/ the queries of the derived tables; under trace/ the query of the trace table
   data/           built by make data and tracked: the query answers, the queries' hashes, the figure answers and their index

@@ -6,7 +6,7 @@ user writes is marked `// placeholder:` where this change adds any.
 
 ## 1. Marks on the links off the site
 
-- [ ] 1.1 `shared/link_marks.js` with the three marks of design D5;
+- [x] 1.1 `shared/link_marks.js` with the three marks of design D5;
       `landing/hero.js` and `shared/layout.js` write each link off the
       site with its mark before the text and the arrow after; the
       `.link-mark` rule. Node test of design D7; `make snapshots` if a
@@ -16,7 +16,7 @@ user writes is marked `// placeholder:` where this change adds any.
 
 ## 2. One slider
 
-- [ ] 2.1 `traffic_range.js`: the two inputs laid over one track of
+- [x] 2.1 `traffic_range.js`: the two inputs laid over one track of
       design D1, the days at the track's ends, the push rule and the
       events unchanged; the `.traffic-range` rules; `traffic.js` places
       the one row. Node tests of design D7; `make snapshots`.
@@ -26,7 +26,7 @@ user writes is marked `// placeholder:` where this change adds any.
 
 ## 3. The distributions in the tiles
 
-- [ ] 3.1 `traffic_tiles.js` leaves a chart place in the input, output
+- [x] 3.1 `traffic_tiles.js` leaves a chart place in the input, output
       and TTFT tiles; `traffic_tile_charts.js` (from
       `traffic_distribution_cards.js`) draws the three CDFs there with
       the fixed domains and ticks of design D3, the loading, error and
@@ -41,7 +41,7 @@ user writes is marked `// placeholder:` where this change adds any.
 
 ## 4. The explorer first, the rest after
 
-- [ ] 4.1 Measure the page before the change with the scripts of
+- [x] 4.1 Measure the page before the change with the scripts of
       design D4, plain and gzipped; then `explore/start.js` draws the
       shown topic once the sections have settled, the page's head
       preloads the daily answer, and the order of design D4 holds;
@@ -54,7 +54,7 @@ user writes is marked `// placeholder:` where this change adds any.
 
 ## 5. Documents and the spec's values
 
-- [ ] 5.1 README and CONTRIBUTING (the one slider, the tiles' charts,
+- [x] 5.1 README and CONTRIBUTING (the one slider, the tiles' charts,
       the loading order, the link marks, `js/traffic/`'s modules), the
       `site` spec's layout line, the spec's scenario values as built,
       design D4's tables filled.
