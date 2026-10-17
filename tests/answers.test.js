@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { readAnswer } from "../site/js/shared/answers.js";
+import { FAMILY_QUERY } from "../site/js/traffic/traffic.js";
 
 // The trace totals' answer as the data step writes it: whole numbers as JSON numbers, a ratio as a float.
 const ANSWER_TEXT = '[{"requests":10967,"input_tokens":207377727534,"hit_ratio":0.63,"month":"2025-04"}]';
@@ -40,4 +42,17 @@ test("a figure's answer is read from its file under data/all/figures/", async (c
   context.mock.method(globalThis, "fetch", fakeFetch({ "data/all/figures/fig_request_rate_day.json": rows }, asked));
   assert.deepEqual(await readAnswer("figures/fig_request_rate_day"), JSON.parse(rows));
   assert.deepEqual(asked, ["data/all/figures/fig_request_rate_day.json"]);
+});
+
+/** The `href` of every `<link rel="preload">` in the page's head, in order. */
+function preloadedFiles() {
+  const page = readFileSync(new URL("../site/index.html", import.meta.url), "utf8");
+  return [...page.matchAll(/<link rel="preload" href="([^"]+)"/g)].map((match) => match[1]);
+}
+
+test("the page's head preloads the file of the answer the explorer reads first, and nothing else", async (context) => {
+  const asked = [];
+  context.mock.method(globalThis, "fetch", fakeFetch({}, asked));
+  await assert.rejects(readAnswer(FAMILY_QUERY));
+  assert.deepEqual(preloadedFiles(), asked);
 });

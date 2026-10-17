@@ -28,7 +28,7 @@ import { mountTopicTabs } from "./topic_tabs.js";
 /**
  * Start the Explore page: draw its topic tabs, header and footer and its `sections`, and call `showMonthCount` with the
  * number of months the trace spans, null until the trace totals give it; once the sections have drawn, draw the shown
- * topic's figures. Settles once the sections have drawn.
+ * topic's figures. Settles once the sections have drawn or failed.
  */
 export async function startPage({ sections, showMonthCount }) {
   const insights = mountInsights();
@@ -37,9 +37,10 @@ export async function startPage({ sections, showMonthCount }) {
   showMonthCount(null);
   renderPageHeader();
   const context = sectionContext(pageHistory);
-  await Promise.all([showMonths(context.totals, showMonthCount), runEverySection(sections, context)]);
+  // Settled, not all fulfilled: the shown topic is drawn whatever a section did.
+  await Promise.allSettled([showMonths(context.totals, showMonthCount), runEverySection(sections, context)]);
   // The shown topic's figures wait for the sections, so that the explorer's answers, the page's largest, have the
-  // line to themselves first: the topic is below the fold.
+  // line to themselves first.
   insights.drawShown();
   scrollToAnchor();
 }

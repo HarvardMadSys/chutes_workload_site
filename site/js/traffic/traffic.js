@@ -26,9 +26,10 @@ import { mountRange } from "./traffic_range.js";
 import { drawTileCharts, drawTileCurves, showChartsError, showChartsLoading } from "./traffic_tile_charts.js";
 import { NO_PERCENTILES, placeTiles, renderTiles } from "./traffic_tiles.js";
 
-// The answers the explorer draws from: one row per calendar day, family and endpoint group; and, per family, the
-// folder of its rows per calendar day, model and endpoint group, each family's file named by its slug.
-const FAMILY_QUERY = "explore/daily_by_family";
+// The answers the explorer draws from: one row per calendar day, family and endpoint group, the first it reads, which
+// the page's head preloads; and, per family, the folder of its rows per calendar day, model and endpoint group, each
+// family's file named by its slug.
+export const FAMILY_QUERY = "explore/daily_by_family";
 const FAMILY_MODELS_QUERY = "explore/daily_by_model";
 // The histogram answers the distributions are drawn from: one row per trace week, family, endpoint group and metric;
 // and, per family, the folder of its rows per trace week, model, endpoint group and metric, named by its slug.

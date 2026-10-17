@@ -199,7 +199,9 @@ const ENDPOINT_ROWS = [{ endpoint_group: "chat", requests: 10 }];
 /** A promise with its `resolve`, `{ promise, resolve }`, for an answer the test lets arrive. */
 function deferred() {
   const parts = {};
-  parts.promise = new Promise((resolve) => Object.assign(parts, { resolve }));
+  parts.promise = new Promise((resolve) => {
+    parts.resolve = resolve;
+  });
   return parts;
 }
 
@@ -246,7 +248,7 @@ function startedExplorePage(context, answers) {
   return { reads, tabs: tabsRow.children, started };
 }
 
-// The answers of the figures of `topic`'s cards, in the order of its groups and cards.
+/** The answer files of the figures of `topic`'s cards, in the order of its groups and cards. */
 function topicFigureFiles(topic) {
   const files = [];
   for (const group of topic.groups) {
@@ -257,7 +259,7 @@ function topicFigureFiles(topic) {
   return files;
 }
 
-// The reads of `reads` from the figures' folder, in order.
+/** The files of `reads` in the figures' folder, in order. */
 function figureReads(reads) {
   return reads.filter((file) => file.startsWith(FIGURES_FOLDER));
 }

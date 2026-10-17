@@ -142,24 +142,50 @@ The preload is used: the daily answer is fetched once, from the head,
 0.7 s earlier on the slow line, with no warning in the console, and the
 tiles are drawn 0.6 to 0.7 s earlier. The bars are drawn no later but
 gain little, 0.1 s gzipped (within the spread of an earlier set of runs
-before the change, 1.62 to 1.83 s) and nothing plain, because the charting library is imported when the first
-chart is drawn and its module graph from the CDN (48 modules, 241 KB,
-in import chains six deep) takes 0.6 s throttled: the Insights' first figure
-used to start that import at 0.8 s, and now the bars start it once the
-daily answer has arrived, so the library, not the answer, is the bars'
-last wait, the case the `modulepreload` below is to be reconsidered
-for. The shown topic's figures are requested once the explorer's tile
-charts are drawn, which moves the topic from 1.9 s to 2.7 s gzipped and
-6.7 s plain on the slow line.
+before the change, 1.62 to 1.83 s) and nothing plain, because the
+charting library is imported when the first chart is drawn and its
+module graph from the CDN (48 modules, 241 KB, in import chains six
+deep) takes 0.6 s throttled: the Insights' first figure used to start
+that import at 0.8 s, and now the bars start it once the daily answer
+has arrived, so the library, not the answer, is the bars' last wait. The
+shown topic's figures are requested once the explorer's tile charts are
+drawn, which moves the topic from 1.9 s to 2.7 s gzipped and 6.7 s plain
+on the slow line.
+
+The page's module therefore starts the library's load itself, before
+`startPage`, by `import("../shared/libraries.js")`, so the URL keeps its
+one home; a failure is left to each chart, which shows it in its own
+place. Measured after that, throttled, three runs each:
+
+| | After, plain | After, gzipped | After, library started early, plain | After, library started early, gzipped |
+|---|---|---|---|---|
+| Bars drawn | 4.14 to 4.18 | 1.71 to 1.73 | 3.71 to 3.72 | 1.58 to 1.61 |
+| Tiles drawn | 3.37 to 3.38 | 0.96 | 3.61 to 3.62 | 0.96 to 0.98 |
+| Tile charts drawn | 6.30 to 6.33 | 2.43 to 2.46 | 5.84 to 5.85 | 2.31 to 2.36 |
+| Shown topic drawn | 6.67 to 6.72 | 2.73 to 2.75 | 6.20 to 6.21 | 2.61 to 2.66 |
+
+The library now loads from 0.7 to 1.45 s gzipped, beside the daily
+answer (done at 0.7 s), and the bars are drawn 0.1 s later than the
+library, 0.25 s earlier than before the change; plain, the library is
+in hand long before the 3.4 MB answer arrives at 3.5 s, and the bars
+follow it at 3.7 s, 0.4 s earlier than before (the tiles 0.25 s later
+than without the early load, as the library shares the line). The
+Insights' opening topic is drawn later than before the change, 2.6 s
+gzipped and 6.2 s plain on the slow line against 1.9 s, as the
+proposal's pushback expected; plain it also waits for the 2.3 MB
+histogram answer, so the delay is more than the pushback's second or
+two. The server is Python's, HTTP/1.x, compressing with gzip on the
+fly; Cloudflare serves HTTP/2 and may choose Brotli, so the gzipped
+columns approximate the published page rather than reproduce it.
 
 What is not done, and why: prefetching the other families' answers (20
 MB uncompressed for a choice most visitors never make; a family's
 answers arrive in under a second compressed); a columnar or split form
 of the daily answer (its 3.4 MB are 466 KB gzipped, and a split would
 make the tiles wait for a second file); a `modulepreload` of the
-charting library (its URL has one home, `shared/libraries.js`; to be
-reconsidered if the measurement shows the modules, not the answer, on
-the critical path).
+charting library (its URL has one home, `shared/libraries.js`; the
+measurement showed the library on the bars' critical path, and the
+page's module starts its import instead, as recorded above).
 
 ### D5. Marks on the links off the site
 

@@ -18,6 +18,9 @@ const SECTIONS = Object.freeze([
   Object.freeze({ id: "traffic-explorer", run: runTraffic }),
 ]);
 
+// The charting library is needed for the first chart, the explorer's bars: started here, it loads beside the daily
+// answer rather than after it. A failure is shown by each chart in its own place, as each chart imports it too.
+import("../shared/libraries.js").catch(() => undefined);
 renderTeam(document.querySelector("#team"));
 renderCiteLine(document.querySelector("#cite-line"));
 mountCopyButtons(document, navigator.clipboard);
