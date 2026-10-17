@@ -5,8 +5,14 @@ import { mountTrafficControls, renderControls } from "../site/js/traffic/traffic
 import { familyChoices, modelChoices, NO_FAMILY_MODEL_CHOICES } from "../site/js/traffic/traffic_filter.js";
 import { FakeElement, PAGE_ADDRESS } from "./fake_page.js";
 
-// The choice of everything: every family, every model, every endpoint group, every day.
-const EVERYTHING = Object.freeze({ family: "", model: "", endpoint: "", period: "" });
+// The choice of everything: every family, every model, every endpoint group, requests, every day.
+const EVERYTHING = Object.freeze({ family: "", model: "", endpoint: "", metric: "", from: "", to: "" });
+
+// The trace's days, as far as the period buttons read them: its first and last, and each quarter's first and last.
+const DAYS = [
+  "2025-04-11", "2025-06-30", "2025-07-01", "2025-09-30", "2025-10-01", "2025-12-31", "2026-01-01", "2026-03-31",
+  "2026-04-12",
+];
 
 // Two families in the order of their requests, Kin and Other, as `familyOrder` gives them.
 const FAMILIES = familyChoices([
@@ -23,6 +29,10 @@ const KIN_ROWS = [
 
 // The model drop-down's entries with Kin chosen.
 const KIN_MODELS = modelChoices(KIN_ROWS, "Kin");
+
+// The controls' entries with no family chosen, and what they are mounted with: the families and the trace's days.
+const NO_FAMILY_ENTRIES = { families: FAMILIES, models: NO_FAMILY_MODEL_CHOICES, days: DAYS };
+const MOUNT_ENTRIES = { families: FAMILIES, days: DAYS };
 
 /** Make a stand-in the global document for the test of `context`; node has none of its own. */
 function useFakeDocument(context) {
@@ -58,13 +68,18 @@ function modelsOf(page, family) {
   return KIN_MODELS;
 }
 
-// The controls row's four fields: the family, model and endpoint drop-downs and the period buttons.
+// The controls row's five fields: the family, model, endpoint and metric drop-downs and the period buttons.
 function controlsOf(row) {
-  const [familyField, modelField, endpointField, periodField] = row.children;
+  const [familyField, modelField, endpointField, metricField, periodField] = row.children;
   return {
     family: familyField.children[1], model: modelField.children[1], endpoint: endpointField.children[1],
-    periods: periodField.children[1],
+    metric: metricField.children[1], periods: periodField.children[1],
   };
+}
+
+// Whether each period button of the controls row `row` shows pressed, "true" or "false".
+function pressedButtons(row) {
+  return controlsOf(row).periods.children.map((button) => button.getAttribute("aria-pressed"));
 }
 
 // The options of a drop-down as `[value, text]`.
@@ -75,22 +90,25 @@ function optionsOf(select) {
 test("the family drop-down lists All families and the families; the model one waits for a family", (context) => {
   useFakeDocument(context);
   const row = new FakeElement("div");
-  renderControls(row, EVERYTHING, { families: FAMILIES, models: NO_FAMILY_MODEL_CHOICES }, () => undefined);
-  const { family, model, endpoint } = controlsOf(row);
+  renderControls(row, EVERYTHING, NO_FAMILY_ENTRIES, () => undefined);
+  const { family, model, endpoint, metric } = controlsOf(row);
   assert.deepEqual(optionsOf(family), [["", "All families"], ["kin", "Kin"], ["other", "Other"]]);
   assert.deepEqual(optionsOf(model), [["", "Choose a family"]]);
   assert.equal(model.disabled, true);
   assert.deepEqual(endpoint.children.map((option) => option.textContent), [
     "All endpoints", "Chat", "Chat stream", "Completion", "Completion stream", "Other",
   ]);
-  assert.deepEqual(row.children.map((field) => field.children[0].textContent), ["Family", "Model", "Endpoint", "Period"]);
+  const metrics = [["", "Requests"], ["input_tokens", "Input tokens"], ["output_tokens", "Output tokens"]];
+  assert.deepEqual(optionsOf(metric), metrics);
+  const names = row.children.map((field) => field.children[0].textContent);
+  assert.deepEqual(names, ["Family", "Model", "Endpoint", "Metric", "Period"]);
 });
 
 test("with a family chosen the model drop-down lists its models by requests, then Other <family>", (context) => {
   useFakeDocument(context);
   const row = new FakeElement("div");
   const choice = { ...EVERYTHING, family: "kin", model: "id-a" };
-  renderControls(row, choice, { families: FAMILIES, models: KIN_MODELS }, () => undefined);
+  renderControls(row, choice, { families: FAMILIES, models: KIN_MODELS, days: DAYS }, () => undefined);
   const { family, model } = controlsOf(row);
   assert.equal(family.value, "kin");
   assert.deepEqual(optionsOf(model), [["", "All Kin models"], ["id-b", "B"], ["id-a", "A"], ["other", "Other Kin"]]);
@@ -103,73 +121,98 @@ test("a drop-down's change chooses its value; a family's empties the model", (co
   const row = new FakeElement("div");
   const chosen = [];
   const choice = { ...EVERYTHING, family: "kin" };
-  renderControls(row, choice, { families: FAMILIES, models: KIN_MODELS }, (part) => chosen.push(part));
-  const { family, model, endpoint } = controlsOf(row);
+  renderControls(row, choice, { families: FAMILIES, models: KIN_MODELS, days: DAYS }, (part) => chosen.push(part));
+  const { family, model, endpoint, metric } = controlsOf(row);
   model.value = "id-b";
   model.dispatch("change");
   endpoint.value = "chat_stream";
   endpoint.dispatch("change");
+  metric.value = "output_tokens";
+  metric.dispatch("change");
   family.value = "other";
   family.dispatch("change");
-  assert.deepEqual(chosen, [{ model: "id-b" }, { endpoint: "chat_stream" }, { family: "other", model: "" }]);
+  assert.deepEqual(chosen, [
+    { model: "id-b" }, { endpoint: "chat_stream" }, { metric: "output_tokens" }, { family: "other", model: "" },
+  ]);
 });
 
-test("the chosen period's button alone is pressed; a press presses its button alone and chooses it", (context) => {
+test("the button whose days are the range is pressed alone; a press presses it and chooses its days", (context) => {
   useFakeDocument(context);
   const row = new FakeElement("div");
   const chosen = [];
-  const entries = { families: FAMILIES, models: NO_FAMILY_MODEL_CHOICES };
-  renderControls(row, { ...EVERYTHING, period: "2026-q1" }, entries, (part) => chosen.push(part));
+  const choice = { ...EVERYTHING, from: "2026-01-01", to: "2026-03-31" };
+  renderControls(row, choice, NO_FAMILY_ENTRIES, (part) => chosen.push(part));
   const buttons = controlsOf(row).periods.children;
-  const pressed = () => buttons.map((button) => button.getAttribute("aria-pressed"));
-  assert.deepEqual(buttons.map((button) => button.textContent), ["All", "Q2 '25", "Q3 '25", "Q4 '25", "Q1 '26"]);
-  assert.deepEqual(pressed(), ["false", "false", "false", "false", "true"]);
+  assert.deepEqual(pressedButtons(row), ["false", "false", "false", "false", "true"]);
   buttons[2].dispatch("click");
-  assert.deepEqual(pressed(), ["false", "false", "true", "false", "false"]);
-  assert.deepEqual(chosen, [{ period: "2025-q3" }]);
+  assert.deepEqual(pressedButtons(row), ["false", "false", "true", "false", "false"]);
+  buttons[1].dispatch("click");
+  assert.deepEqual(chosen, [{ from: "2025-07-01", to: "2025-09-30" }, { from: "", to: "2025-06-30" }]);
   assert.equal(controlsOf(row).periods.getAttribute("role"), "group");
 });
 
 test("the controls open on the URL's choice; a change writes it, other keys kept, and draws it", async (context) => {
   useFakeDocument(context);
-  const page = useFakeWindow(context, "?tab=x&period=2025-q3#traffic");
+  const page = useFakeWindow(context, "?tab=x&from=2025-07-01&to=2025-09-30&metric=input_tokens#traffic");
   const row = new FakeElement("div");
-  const opened = await mountTrafficControls(row, FAMILIES, page.context, page.explorer);
-  assert.deepEqual(opened, { ...EVERYTHING, period: "2025-q3" });
+  const opened = await mountTrafficControls(row, MOUNT_ENTRIES, page.context, page.explorer);
+  const range = { from: "2025-07-01", to: "2025-09-30" };
+  assert.deepEqual(opened.choice, { ...EVERYTHING, ...range, metric: "input_tokens" });
   assert.deepEqual(page.asked, []);
+  assert.deepEqual(pressedButtons(row), ["false", "false", "true", "false", "false"]);
   const { endpoint } = controlsOf(row);
   endpoint.value = "chat";
   endpoint.dispatch("change");
-  assert.deepEqual(page.replaced, ["tab=x&period=2025-q3&endpoint=chat"]);
-  assert.deepEqual(page.drawn, [{ ...EVERYTHING, endpoint: "chat", period: "2025-q3" }]);
+  assert.deepEqual(page.replaced, ["tab=x&from=2025-07-01&to=2025-09-30&metric=input_tokens&endpoint=chat"]);
+  assert.deepEqual(page.drawn, [{ ...EVERYTHING, ...range, endpoint: "chat", metric: "input_tokens" }]);
 });
 
 test("a URL's family and model open with the family's models read and the model chosen", async (context) => {
   useFakeDocument(context);
   const page = useFakeWindow(context, "?family=kin&model=id-b");
   const row = new FakeElement("div");
-  const opened = await mountTrafficControls(row, FAMILIES, page.context, page.explorer);
-  assert.deepEqual(opened, { ...EVERYTHING, family: "kin", model: "id-b" });
+  const opened = await mountTrafficControls(row, MOUNT_ENTRIES, page.context, page.explorer);
+  assert.deepEqual(opened.choice, { ...EVERYTHING, family: "kin", model: "id-b" });
   assert.deepEqual(page.asked, ["kin"]);
   assert.equal(controlsOf(row).model.value, "id-b");
   assert.deepEqual(page.replaced, [], "a URL the choice keeps whole is not rewritten");
 });
 
-test("a model key without its family, or outside it, is ignored and the URL rewritten without it", async (context) => {
-  useFakeDocument(context);
-  const page = useFakeWindow(context, "?model=id-a&period=2025-q3");
-  const opened = await mountTrafficControls(new FakeElement("div"), FAMILIES, page.context, page.explorer);
-  assert.deepEqual(opened, { ...EVERYTHING, period: "2025-q3" });
-  globalThis.window.location = new URL(`${PAGE_ADDRESS}?family=kin&model=id-z`);
-  await mountTrafficControls(new FakeElement("div"), FAMILIES, page.context, page.explorer);
-  assert.deepEqual(page.replaced, ["period=2025-q3", "family=kin"]);
-});
+test("a model key without its family or outside it is ignored, a day outside the trace clipped, and the URL rewritten",
+  async (context) => {
+    useFakeDocument(context);
+    const page = useFakeWindow(context, "?model=id-a&from=2024-01-01&to=2025-09-30");
+    const opened = await mountTrafficControls(new FakeElement("div"), MOUNT_ENTRIES, page.context, page.explorer);
+    assert.deepEqual(opened.choice, { ...EVERYTHING, to: "2025-09-30" });
+    globalThis.window.location = new URL(`${PAGE_ADDRESS}?family=kin&model=id-z&from=2025-10-01&to=2025-07-01`);
+    await mountTrafficControls(new FakeElement("div"), MOUNT_ENTRIES, page.context, page.explorer);
+    assert.deepEqual(page.replaced, ["to=2025-09-30", "family=kin"], "a from after its to is dropped with it");
+  });
+
+test("the sliders' range, once released, is written to the URL and presses its button, and is not drawn again",
+  async (context) => {
+    useFakeDocument(context);
+    const page = useFakeWindow(context, "?endpoint=chat");
+    const row = new FakeElement("div");
+    const controls = await mountTrafficControls(row, MOUNT_ENTRIES, page.context, page.explorer);
+    controls.chooseRange({ from: "2025-10-01", to: "2025-12-31" });
+    assert.deepEqual(page.replaced, ["endpoint=chat&from=2025-10-01&to=2025-12-31"]);
+    assert.deepEqual(pressedButtons(row), ["false", "false", "false", "true", "false"]);
+    controls.chooseRange({ from: "2025-10-01", to: "2025-12-01" });
+    assert.deepEqual(pressedButtons(row), ["false", "false", "false", "false", "false"]);
+    assert.deepEqual(page.drawn, []);
+    const { metric } = controlsOf(row);
+    metric.value = "input_tokens";
+    metric.dispatch("change");
+    const range = { from: "2025-10-01", to: "2025-12-01" };
+    assert.deepEqual(page.drawn, [{ ...EVERYTHING, endpoint: "chat", metric: "input_tokens", ...range }]);
+  });
 
 test("choosing a family reads its models into the model drop-down, then writes and draws it", async (context) => {
   useFakeDocument(context);
   const page = useFakeWindow(context, "?endpoint=chat");
   const row = new FakeElement("div");
-  await mountTrafficControls(row, FAMILIES, page.context, page.explorer);
+  await mountTrafficControls(row, MOUNT_ENTRIES, page.context, page.explorer);
   const { family, model } = controlsOf(row);
   family.value = "kin";
   family.dispatch("change");
@@ -185,19 +228,22 @@ test("a return to an entry of another choice shows and draws it, its family too;
   useFakeDocument(context);
   const page = useFakeWindow(context, "?family=kin&model=id-a");
   const row = new FakeElement("div");
-  await mountTrafficControls(row, FAMILIES, page.context, page.explorer);
+  await mountTrafficControls(row, MOUNT_ENTRIES, page.context, page.explorer);
   const [onReturn] = page.returns;
   await onReturn();
   assert.deepEqual(page.drawn, []);
-  globalThis.window.location = new URL(`${PAGE_ADDRESS}?endpoint=completion`);
+  globalThis.window.location = new URL(`${PAGE_ADDRESS}?endpoint=completion&from=2026-01-01&to=2026-03-31`);
   await onReturn();
-  assert.deepEqual(page.drawn, [{ ...EVERYTHING, endpoint: "completion" }]);
+  const range = { from: "2026-01-01", to: "2026-03-31" };
+  assert.deepEqual(page.drawn, [{ ...EVERYTHING, endpoint: "completion", ...range }]);
   assert.equal(controlsOf(row).family.value, "");
   assert.equal(controlsOf(row).model.disabled, true);
+  assert.deepEqual(pressedButtons(row), ["false", "false", "false", "false", "true"]);
   globalThis.window.location = new URL(`${PAGE_ADDRESS}?family=kin`);
   await onReturn();
   assert.deepEqual(page.drawn.at(-1), { ...EVERYTHING, family: "kin" });
   assert.equal(controlsOf(row).family.value, "kin");
+  assert.deepEqual(pressedButtons(row), ["true", "false", "false", "false", "false"]);
   assert.deepEqual(page.replaced, []);
 });
 
@@ -205,7 +251,7 @@ test("a family whose models cannot be read puts the family drop-down back on the
   useFakeDocument(context);
   const page = useFakeWindow(context, "?family=kin");
   const row = new FakeElement("div");
-  await mountTrafficControls(row, FAMILIES, page.context, page.explorer);
+  await mountTrafficControls(row, MOUNT_ENTRIES, page.context, page.explorer);
   const errors = [];
   page.explorer.onError = (error) => errors.push(error.message);
   page.explorer.modelsOf = () => Promise.reject(new Error("Other's answer was not read"));
@@ -223,7 +269,7 @@ test("a return whose family is still being read when the URL moves on is left fo
   useFakeDocument(context);
   const page = useFakeWindow(context, "?endpoint=chat");
   const row = new FakeElement("div");
-  await mountTrafficControls(row, FAMILIES, page.context, page.explorer);
+  await mountTrafficControls(row, MOUNT_ENTRIES, page.context, page.explorer);
   const [onReturn] = page.returns;
   const kinModels = Promise.withResolvers();
   page.explorer.modelsOf = () => kinModels.promise;
@@ -238,20 +284,15 @@ test("a return whose family is still being read when the URL moves on is left fo
   assert.equal(controlsOf(row).model.disabled, true);
 });
 
-test("a URL's family that cannot be read opens the controls without it, hands on the error and draws none",
+test("a URL's family that cannot be read opens the controls without it, the error given back to show",
   async (context) => {
     useFakeDocument(context);
     const page = useFakeWindow(context, "?family=kin&endpoint=chat");
-    const errors = [];
-    const failing = {
-      ...page.explorer,
-      modelsOf: async () => Promise.reject(new Error("no kin")),
-      onError: (error) => errors.push(error),
-    };
+    const failing = { ...page.explorer, modelsOf: async () => Promise.reject(new Error("no kin")) };
     const row = new FakeElement("div");
-    const opened = await mountTrafficControls(row, FAMILIES, page.context, failing);
-    assert.equal(opened, null);
-    assert.deepEqual(errors.map((error) => error.message), ["no kin"]);
+    const opened = await mountTrafficControls(row, MOUNT_ENTRIES, page.context, failing);
+    assert.deepEqual(opened.choice, { ...EVERYTHING, endpoint: "chat" });
+    assert.equal(opened.error.message, "no kin");
     assert.equal(controlsOf(row).family.value, "");
     assert.equal(controlsOf(row).model.disabled, true);
     assert.equal(controlsOf(row).endpoint.value, "chat");

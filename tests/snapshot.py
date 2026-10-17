@@ -2,10 +2,10 @@
 
 A snapshot is one folder per page state, `tests/snapshots/<state>/`, holding one text file per unit the state shows:
 each chart's SVG, or an Insights card's chart's name and tick labels, each legend's entries, each card's texts, the
-stats strip. `snapshot_units.py` names the states and says what each file holds. The states are the Explore page
-opened at each of its six Insights topics' anchors (`index.html#insights-tokens`), each in a fresh page. A unit that
-is the same in every state is written once, with the first state: the Explore page's hero, stats strip, Overview,
-Traffic Explorer, cite, team and footer.
+stats strip. `snapshot_units.py` names the states and says what each file holds, `snapshot_traffic.py` the Traffic
+Explorer's. The states are the Explore page opened at each of its six Insights topics' anchors
+(`index.html#insights-tokens`), each in a fresh page. A unit that is the same in every state is written once, with
+the first state: the Explore page's hero, stats strip, Overview, Traffic Explorer, cite, team and footer.
 
     .venv/bin/python tests/snapshot.py           # compare: fails naming each unit that changed (make test)
     .venv/bin/python tests/snapshot.py --write   # rewrite every file (make snapshots)
@@ -34,6 +34,7 @@ import threading
 
 import playwright.sync_api
 
+import snapshot_traffic
 import snapshot_units
 from repository_root import ROOT
 
@@ -177,7 +178,7 @@ def read_state(page, address: str, topic: str, with_page_units: bool) -> dict[st
         raise PageError(f"opened at #{topic}, the page requested other topics' answers: {', '.join(strays)}")
     units = snapshot_units.topic_units(page, topic)
     if with_page_units:
-        page_units = snapshot_units.explore_page_units(page)
+        page_units = snapshot_units.explore_page_units(page) | snapshot_traffic.traffic_units(page)
         shared = sorted(set(units) & set(page_units))
         if shared:
             raise snapshot_units.SharedTitleError(f"the topic and the page both show {', '.join(shared)}")

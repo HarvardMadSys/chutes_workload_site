@@ -81,10 +81,6 @@ COLOUR_LEGEND_TICK_LABELS = "g.tick text"
 PANEL = ".chart-panel"
 PANEL_TITLE = ".chart-panel-title"
 
-TRAFFIC = "#traffic-explorer"  # the Traffic Explorer: its controls, then its card of tiles, legend and bars
-TRAFFIC_CARD = "#traffic-explorer .traffic-card"
-TRAFFIC_TILES = "#traffic-explorer .traffic-tiles li"
-
 
 def state_names() -> list[str]:
     """The folder name of every state, in the order the states are read."""
@@ -258,36 +254,9 @@ def stats_lines(page) -> str:
     return "\n".join(lines)
 
 
-def control_lines(page) -> str:
-    """The Traffic Explorer's controls: one line per choice of each drop-down and per period button, each with whether
-    it is the one chosen."""
-    lines = []
-    for field in page.locator(f"{TRAFFIC} .control-field").all():
-        name = plain_text(field.locator(".control-field-name").inner_text())
-        for option in field.locator("option").all():
-            selected = option.evaluate("option => option.selected")
-            lines.append(f"{name}: {plain_text(option.inner_text())} | selected={str(selected).lower()}")
-        for button in field.locator("button").all():
-            lines.append(f"{name}: {plain_text(button.inner_text())} | pressed={button.get_attribute('aria-pressed')}")
-    return "\n".join(lines)
-
-
-def traffic_units(page) -> dict[str, str]:
-    """The Traffic Explorer's units as it opens, nothing chosen: its controls, tiles, texts, legend and its chart's
-    axes. The bars themselves, a rectangle for each day and series, are left to the tiles and the axes."""
-    card = page.locator(TRAFFIC_CARD)
-    return {
-        "traffic.controls": control_lines(page),
-        "traffic.tiles": "\n".join(plain_text(tile) for tile in page.locator(TRAFFIC_TILES).all_inner_texts()),
-        "traffic.texts": labelled_texts(card, CARD_TEXTS),
-        "traffic.legend": legend_lines(card),
-        "traffic.axes": axis_lines(card.locator(CHART)),
-    }
-
-
 def explore_page_units(page) -> dict[str, str]:
-    """The Explore page's units outside the Insights: hero, stats strip, Overview cards, Traffic Explorer, cite, team,
-    footer."""
+    """The Explore page's units outside the Insights and the Traffic Explorer (`snapshot_traffic.py`): hero, stats
+    strip, Overview cards, cite, team, footer."""
     units = {
         "hero": "\n".join(text_lines(page.locator("#hero"))),
         "stats": stats_lines(page),
@@ -296,5 +265,4 @@ def explore_page_units(page) -> dict[str, str]:
         "footer": "\n".join(text_lines(page.locator("#site-footer"))),
     }
     units.update(cards_units(page.locator("#mixes > .card"), figure_units))
-    units.update(traffic_units(page))
     return units

@@ -1,57 +1,19 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { dayMonth, monthTicks, renderTiles, runTraffic, tileTexts } from "../site/js/traffic/traffic.js";
-import { trafficSummary } from "../site/js/traffic/traffic_filter.js";
+import { dayMonth, monthTicks, runTraffic } from "../site/js/traffic/traffic.js";
 import { FakeElement, PAGE_ADDRESS } from "./fake_page.js";
-
-/** Make a stand-in the global document for the test of `context`; node has none of its own. */
-function useFakeDocument(context) {
-  globalThis.document = { createElement: (tag) => new FakeElement(tag) };
-  context.after(() => delete globalThis.document);
-}
-
-test("the tiles write the requests as the stats strip does and each average over the requests that record it", () => {
-  const summary = {
-    requests: 6_122_413_756, inputAverage: 5846.6, outputAverage: 412.2, ttftAverage: 2.31, ttftShare: 0.49,
-  };
-  assert.deepEqual(tileTexts(summary), [
-    { label: "Requests", value: "6.12B", note: "" },
-    { label: "Avg input tokens", value: "5,847", note: "" },
-    { label: "Avg output tokens", value: "412", note: "" },
-    { label: "Avg TTFT", value: "2.3 s", note: "49% record it" },
-  ]);
-});
-
-test("the tiles of a choice with no requests write no average and no share", () => {
-  const texts = tileTexts(trafficSummary([]));
-  assert.deepEqual(texts.map((tile) => tile.value), ["0", "—", "—", "—"]);
-  assert.equal(texts[3].note, "— record it");
-});
-
-test("each tile shows its value, its label and its note, if any", (context) => {
-  useFakeDocument(context);
-  const list = new FakeElement("ul");
-  renderTiles(list, { requests: 1000, inputAverage: 8, outputAverage: 3, ttftAverage: 0.2, ttftShare: 0.49 });
-  const texts = list.children.map((tile) => tile.children.map((part) => part.textContent));
-  assert.deepEqual(texts, [
-    ["1.0k", "Requests"],
-    ["8", "Avg input tokens"],
-    ["3", "Avg output tokens"],
-    ["0.2 s", "Avg TTFT", "49% record it"],
-  ]);
-});
 
 // Plot widths, in pixels: a desktop card's, and a phone's at 360 px.
 const WIDE_PLOT = 1200;
 const PHONE_PLOT = 286;
 
-test("the bars' axis writes the month at each first of a month, and at a quarter's first day", () => {
+test("the bars' axis writes the month at each first of a month, and at the first day of a range not the trace", () => {
   const days = ["2025-04-29", "2025-04-30", "2025-05-01", "2025-05-02", "2025-06-01"];
-  assert.deepEqual(monthTicks(days, "", WIDE_PLOT), ["2025-05-01", "2025-06-01"]);
-  assert.deepEqual(monthTicks(days, "2025-q2", WIDE_PLOT).map(dayMonth), ["2025-04", "2025-05", "2025-06"]);
+  assert.deepEqual(monthTicks(days, true, WIDE_PLOT), ["2025-05-01", "2025-06-01"]);
+  assert.deepEqual(monthTicks(days, false, WIDE_PLOT).map(dayMonth), ["2025-04", "2025-05", "2025-06"]);
   const quarter = ["2025-07-01", "2025-07-02", "2025-08-01"];
-  assert.deepEqual(monthTicks(quarter, "2025-q3", WIDE_PLOT), ["2025-07-01", "2025-08-01"]);
+  assert.deepEqual(monthTicks(quarter, false, WIDE_PLOT), ["2025-07-01", "2025-08-01"]);
 });
 
 // The first day of each month of the whole trace's days, from 2025-04-11 to 2026-04-12.
@@ -62,15 +24,15 @@ const TRACE_MONTH_STARTS = [
 
 test("the whole trace's bars write every month on a wide plot and every other month on a phone's", () => {
   const days = ["2025-04-11", ...TRACE_MONTH_STARTS, "2026-04-12"];
-  assert.deepEqual(monthTicks(days, "", WIDE_PLOT), TRACE_MONTH_STARTS);
-  assert.deepEqual(monthTicks(days, "", PHONE_PLOT).map(dayMonth), [
+  assert.deepEqual(monthTicks(days, true, WIDE_PLOT), TRACE_MONTH_STARTS);
+  assert.deepEqual(monthTicks(days, true, PHONE_PLOT).map(dayMonth), [
     "2025-05", "2025-07", "2025-09", "2025-11", "2026-01", "2026-03",
   ]);
 });
 
-test("a quarter's bars write every month on a phone's plot too", () => {
+test("a range's bars write every month on a phone's plot too", () => {
   const days = ["2025-04-11", "2025-05-01", "2025-06-01", "2025-06-30"];
-  assert.deepEqual(monthTicks(days, "2025-q2", PHONE_PLOT), ["2025-04-11", "2025-05-01", "2025-06-01"]);
+  assert.deepEqual(monthTicks(days, false, PHONE_PLOT), ["2025-04-11", "2025-05-01", "2025-06-01"]);
 });
 
 // The answer files the explorer reads: every family's rows, and the family Kin's by model.
@@ -106,24 +68,27 @@ function fakeElement(tag) {
 /**
  * Run the explorer into a new container for the test of `context`, the page opened at `query` and each file of
  * `answers` (a map from file to its promised rows) fetched as its rows, any other answering 404; errors are not
- * logged. Returns `{ container, running }`, the container and the explorer's promise.
+ * logged. Returns `{ container, running, replaced, frames }`, the container, the explorer's promise, the queries
+ * written to the URL, in order, and the animation frames asked for and not yet run.
  */
 function runExplorer(context, query, answers) {
+  const page = { container: new FakeElement("div"), replaced: [], frames: [] };
   globalThis.document = { createElement: fakeElement };
   globalThis.window = { location: new URL(`${PAGE_ADDRESS}${query}`) };
+  globalThis.requestAnimationFrame = (callback) => page.frames.push(callback);
   context.after(() => {
     delete globalThis.document;
     delete globalThis.window;
+    delete globalThis.requestAnimationFrame;
   });
   context.mock.method(console, "error", () => undefined);
   context.mock.method(globalThis, "fetch", async (file) => fetchedAnswer(answers[file]));
   const explorerContext = {
     orders: { endpoints: Promise.resolve([{ endpoint_group: "chat", requests: 10 }]) },
-    replaceQuery: () => undefined,
+    replaceQuery: (params) => page.replaced.push(params.toString()),
     onReturn: () => undefined,
   };
-  const container = new FakeElement("div");
-  return { container, running: runTraffic(container, explorerContext) };
+  return { ...page, running: runTraffic(page.container, explorerContext) };
 }
 
 // The response to fetching an answer whose promised rows are `rows`, or a 404 where there are none.
@@ -158,7 +123,8 @@ test("the explorer loads until the URL's family is read; a family that cannot be
 
 test("choosing a family not read before shows the chart loading until its answer arrives", async (context) => {
   const kin = deferred();
-  const page = runExplorer(context, "?period=2026-q1", { [FAMILY_FILE]: FAMILY_ROWS, [KIN_FILE]: kin.promise });
+  // No row is of the endpoint group chosen, so the bars, which node cannot draw without Plot, are a note.
+  const page = runExplorer(context, "?endpoint=completion", { [FAMILY_FILE]: FAMILY_ROWS, [KIN_FILE]: kin.promise });
   await page.running;
   const [controls, card] = page.container.children;
   const figure = card.children[1];
@@ -170,4 +136,61 @@ test("choosing a family not read before shows the chart loading until its answer
   kin.resolve(KIN_ROWS);
   await settled();
   assert.deepEqual(figure.children.map((child) => child.className), ["figure"]);
+});
+
+// Kin's requests on three days, the last of the endpoint group completion.
+const THREE_DAY_ROWS = [
+  dayRow({ day: "2025-06-30", family: "Kin", family_slug: "kin", requests: 10 }),
+  dayRow({ day: "2025-07-01", family: "Kin", family_slug: "kin", requests: 20 }),
+  dayRow({ day: "2025-07-02", family: "Kin", family_slug: "kin", endpoint_group: "completion", requests: 5 }),
+];
+
+// The explorer's parts in the fake page: `{ tiles, rangeFields, periodButtons }`, the tiles' list, the From and To
+// sliders' fields (each its name, slider and day) and the period buttons.
+function explorerParts(container) {
+  const [controls, card] = container.children;
+  const [tiles, , rangeRow] = card.children;
+  return { tiles, rangeFields: rangeRow.children, periodButtons: controls.children[4].children[1].children };
+}
+
+// The value of the requests' tile.
+function requestsTile(tiles) {
+  return tiles.children[0].children[0].textContent;
+}
+
+// Opened on the completions of the trace's first two days, which hold none, the bars are a note node can draw.
+const NO_COMPLETION_QUERY = "?endpoint=completion&to=2025-07-01";
+
+test("the sliders sit under the bars on the URL's range and draw the tiles as they move, writing it once released",
+  async (context) => {
+    const page = runExplorer(context, NO_COMPLETION_QUERY, { [FAMILY_FILE]: THREE_DAY_ROWS });
+    await page.running;
+    const { tiles, rangeFields } = explorerParts(page.container);
+    const [, toSlider, toDay] = rangeFields[1].children;
+    assert.deepEqual([requestsTile(tiles), toSlider.value, toDay.textContent], ["0", "1", "2025-07-01"]);
+    toSlider.value = "2";
+    toSlider.dispatch("input");
+    for (const frame of page.frames.splice(0)) {
+      frame();
+    }
+    await settled();
+    assert.equal(requestsTile(tiles), "5");
+    assert.deepEqual(page.replaced, [], "a slider moving does not write the URL");
+    toSlider.dispatch("change");
+    assert.deepEqual(page.replaced, ["endpoint=completion"]);
+  });
+
+test("a period button stands the sliders on its days and draws them", async (context) => {
+  const page = runExplorer(context, NO_COMPLETION_QUERY, { [FAMILY_FILE]: THREE_DAY_ROWS });
+  await page.running;
+  const { tiles, rangeFields, periodButtons } = explorerParts(page.container);
+  const pressed = () => periodButtons.map((button) => button.getAttribute("aria-pressed"));
+  assert.deepEqual(pressed(), ["false", "false", "false", "false", "false"]);
+  periodButtons[2].dispatch("click");
+  await settled();
+  const sliderValues = rangeFields.map((field) => field.children[1].value);
+  assert.deepEqual(sliderValues, ["1", "2"], "Q3 '25 is the trace's days from July 1");
+  assert.deepEqual(pressed(), ["false", "false", "true", "false", "false"]);
+  assert.equal(requestsTile(tiles), "5");
+  assert.deepEqual(page.replaced, ["endpoint=completion&from=2025-07-01"]);
 });

@@ -126,18 +126,21 @@ checks that each path it names exists.
   `family` (a family's slug, `daily_by_family`'s `family_slug`), `model`
   (within the family, a named model's `chute_id`, or `other` for its other
   models), `endpoint` (an endpoint group: `chat`, `chat_stream`,
-  `completion`, `completion_stream`, `other`) and `period` (`2025-q2`,
-  `2025-q3`, `2025-q4`, `2026-q1`). `traffic/traffic_filter.js` is their
+  `completion`, `completion_stream`, `other`), `metric` (`input_tokens`
+  or `output_tokens`; requests when absent) and `from` and `to` (the first
+  and last chosen day, `YYYY-MM-DD`). `traffic/traffic_filter.js` is their
   one home: `readTrafficChoice` reads them when the page starts, a value it
   does not know falling back to everything (a `model` with no `family`, or
-  not among the family's, too, and the URL is then rewritten without it),
+  not among the family's, too, and a day outside the trace's clipped to
+  it, by `traffic/traffic_range.js`; the URL is then rewritten so),
   and `writeTrafficChoice` writes them on every change, through
   `context.replaceQuery`, which replaces the history entry rather than
-  adding one. `traffic/traffic_controls.js` keeps the controls and the URL
-  in step: on Back or Forward (`context.onReturn`) it reads the keys
-  again, and an entry of another choice is shown and drawn. The default,
-  everything, writes no key; a key the explorer does not read is left as
-  it is; and the keys change nothing outside the explorer.
+  adding one; a slider writes its range once released. The period
+  buttons set `from` and `to`. `traffic/traffic_controls.js` keeps the
+  controls and the URL in step: on Back or Forward (`context.onReturn`) it
+  reads the keys again, and an entry of another choice is shown and drawn.
+  The default, everything, writes no key; a key the explorer does not read
+  is left as it is; and the keys change nothing outside the explorer.
 
 **Adding a section.** Give it a place in `index.html`, an element with an
 id, under a heading if it is a part of its own; write its module with
@@ -511,7 +514,7 @@ Insights' figures are drawn from their plot-ready tables.
 - **Axis text.** A linear axis asks Plot for `TICK_COUNT` ticks
   (`axes/ticks.js`), which gives at most six or seven. The exception is an
   axis of months: the Traffic Explorer's is ticked at the first day of
-  each month it shows (and of a quarter that starts mid-month), every
+  each month it shows (and of a range's first day, but the whole trace's), every
   other month for the whole trace on a plot narrower than
   `NARROW_PLOT_WIDTH`; their labels are slanted so that thirteen fit a
   card. A figure's axes are the paper's: its titles, its log scales,

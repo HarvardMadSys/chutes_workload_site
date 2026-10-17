@@ -1,37 +1,43 @@
 /**
- * The Traffic Explorer's controls, a family drop-down, a model drop-down, an endpoint drop-down and the period buttons,
- * kept in step with the URL, which holds the explorer's choice (`traffic/traffic_filter.js` defines the choice and its
- * keys). The model drop-down is disabled until a family is chosen, and then offers the family's models, which come
- * from the family's answer. A change writes the new choice to the URL; Back or Forward to a history entry of another
- * choice shows that one. Either then hands the explorer the choice to draw, `{ family, model, endpoint, period }`.
+ * The Traffic Explorer's controls, a family drop-down, a model drop-down, an endpoint drop-down, a metric drop-down and
+ * the period buttons, kept in step with the URL, which holds the explorer's choice (`traffic/traffic_filter.js` defines
+ * the choice and its keys). The model drop-down is disabled until a family is chosen, and then offers the family's
+ * models, which come from the family's answer. A period button sets the day range to its days and shows pressed while
+ * the range is its days (`traffic/traffic_range.js`). A change writes the new choice to the URL; Back or Forward to a
+ * history entry of another choice shows that one. Either then hands the explorer the choice to draw,
+ * `{ family, model, endpoint, metric, from, to }`.
  *
  * The explorer gives the controls `{ modelsOf, onChange, onError }`: `modelsOf(family)` resolves to the model
  * drop-down's entries (`modelChoices`') for the family whose slug is `family`; `onChange(choice)` draws a choice; and
- * `onError(error)` shows a family's answer that cannot be read.
+ * `onError(error)` shows a family's answer that cannot be read. The controls give the explorer `chooseRange(range)`,
+ * through which the sliders, which draw a range as they move, hand over the range they are released on: it is written
+ * to the URL and the period buttons follow it, and the explorer is not asked to draw it again.
  */
 
 import {
-  endpointChoices, isSameChoice, NO_FAMILY_MODEL_CHOICES, PERIODS, readTrafficChoice, writeTrafficChoice,
+  endpointChoices, isSameChoice, metricChoices, NO_FAMILY_MODEL_CHOICES, readTrafficChoice, writeTrafficChoice,
 } from "./traffic_filter.js";
+import { PERIODS, periodRange, pressedPeriod } from "./traffic_range.js";
 
 // The period field's name, which also names its group of buttons for a screen reader, and the id that ties the two.
 const PERIOD_FIELD_NAME = "Period";
 const PERIOD_NAME_ID = "traffic-period-name";
 
 /**
- * Draw the controls into `row` showing the URL's choice, `families` being the family drop-down's entries
- * (`familyChoices`'), and resolve to that choice once its family's models are read. A key of the URL the choice does
- * not keep, such as a model with no family or not among the family's, is then rewritten with `context.replaceQuery`.
- * If the URL's family cannot be read, the controls show the choice without it, as a failed choice of a family leaves
- * them, the error goes to `explorer.onError` and the promise resolves to null: there is no choice to draw.
- * A change writes the new choice to the URL the same way and calls `explorer.onChange(choice)`; a return to a history
- * entry (`context.onReturn`) whose URL holds another choice than the one shown draws the controls again showing it and
- * calls `explorer.onChange(choice)`.
+ * Draw the controls into `row` showing the URL's choice, `entries` being `{ families, days }`, the family drop-down's
+ * entries (`familyChoices`') and the trace's days, and resolve to `{ choice, error, chooseRange }` once the choice's
+ * family's models are read: the choice shown, null or the error of a URL's family that cannot be read, and the
+ * sliders' way in (see the module's comment). A key of the URL the choice does not keep, such as a model with no family
+ * or not among the family's, or a day outside the trace's, is then rewritten with `context.replaceQuery`. If the URL's
+ * family cannot be read, the controls show the choice without it, as a failed choice of a family leaves them, and the
+ * explorer is to show `error` rather than draw. A change writes the new choice to the URL the same way and calls
+ * `explorer.onChange(choice)`; a return to a history entry (`context.onReturn`) whose URL holds another choice than the
+ * one shown draws the controls again showing it and calls `explorer.onChange(choice)`.
  */
-export async function mountTrafficControls(row, families, context, explorer) {
+export async function mountTrafficControls(row, entries, context, explorer) {
   const params = new URLSearchParams(window.location.search);
-  const opened = await openedChoice(params, families, explorer.modelsOf);
-  const controls = { row, families, context, explorer, shown: opened.choice, models: opened.models };
+  const opened = await openedChoice(params, entries, explorer.modelsOf);
+  const controls = { row, ...entries, context, explorer, shown: opened.choice, models: opened.models };
   const written = writeTrafficChoice(params, opened.choice);
   // A family that could not be read stays in the URL, so that a reload tries it again.
   if (opened.error === null && written.toString() !== params.toString()) {
@@ -39,18 +45,16 @@ export async function mountTrafficControls(row, families, context, explorer) {
   }
   context.onReturn(() => showReturnedChoice(controls).catch(explorer.onError));
   drawControls(controls);
-  if (opened.error !== null) {
-    explorer.onError(opened.error);
-    return null;
-  }
-  return opened.choice;
+  return { choice: opened.choice, error: opened.error, chooseRange: (range) => chooseRange(controls, range) };
 }
 
 /**
  * Fill `row` with the controls showing `choice`: the family drop-down of `entries.families`, the model drop-down of
- * `entries.models` (disabled while no family is chosen), the endpoint drop-down and the period buttons, the chosen one
- * pressed. A change calls `onChoose` with the part of the choice it changes: `{ family, model: "" }`, `{ model }`,
- * `{ endpoint }` or `{ period }`. Returns the drop-downs of families and of models, `{ family, model }`.
+ * `entries.models` (disabled while no family is chosen), the endpoint and metric drop-downs and the period buttons over
+ * the trace's `entries.days`, the one whose days are the choice's pressed (`pressedPeriod`). A change calls `onChoose`
+ * with the part of the choice it changes: `{ family, model: "" }`, `{ model }`, `{ endpoint }`, `{ metric }` or a
+ * button's `{ from, to }`. Returns the drop-downs of families and of models and the period buttons,
+ * `{ family, model, periods }`.
  */
 export function renderControls(row, choice, entries, onChoose) {
   const family = choiceSelect(entries.families, choice.family);
@@ -60,22 +64,34 @@ export function renderControls(row, choice, entries, onChoose) {
   model.addEventListener("change", () => onChoose({ model: model.value }));
   const endpoint = choiceSelect(endpointChoices(), choice.endpoint);
   endpoint.addEventListener("change", () => onChoose({ endpoint: endpoint.value }));
-  const period = periodField(choice, onChoose);
+  const metric = choiceSelect(metricChoices(), choice.metric);
+  metric.addEventListener("change", () => onChoose({ metric: metric.value }));
+  const periods = periodButtons(choice, entries.days, onChoose);
   row.replaceChildren(
-    labelledField("Family", family), labelledField("Model", model), labelledField("Endpoint", endpoint), period,
+    labelledField("Family", family), labelledField("Model", model), labelledField("Endpoint", endpoint),
+    labelledField("Metric", metric), periodField(periods),
   );
-  return { family, model };
+  return { family, model, periods };
+}
+
+/** Press the period button of `buttons` that `pressedPeriod(choice, days)` gives alone; none where it gives none. */
+export function pressPeriodButtons(buttons, choice, days) {
+  const pressed = pressedPeriod(choice, days);
+  for (const [index, button] of buttons.entries()) {
+    button.setAttribute("aria-pressed", String(PERIODS[index] === pressed));
+  }
 }
 
 /**
  * The choice the URL's keys `params` name, `{ choice, models }`: the choice among the family drop-down's entries
- * `families` and the models of the URL's family, which `modelsOf` gives, and those models' entries.
+ * `entries.families`, the models of the URL's family, which `modelsOf` gives, and the trace's `entries.days`, and those
+ * models' entries.
  */
-async function urlChoice(params, families, modelsOf) {
+async function urlChoice(params, { families, days }, modelsOf) {
   const familyValues = families.map((entry) => entry.value);
-  const { family } = readTrafficChoice(params, familyValues, []);
+  const { family } = readTrafficChoice(params, familyValues, [], days);
   const models = await familyModels(modelsOf, family);
-  const choice = readTrafficChoice(params, familyValues, models.map((entry) => entry.value));
+  const choice = readTrafficChoice(params, familyValues, models.map((entry) => entry.value), days);
   return { choice, models };
 }
 
@@ -84,12 +100,12 @@ async function urlChoice(params, families, modelsOf) {
  * `error` null; if the URL's family's models cannot be read, the choice without the family, the model drop-down's
  * "Choose a family", and the error.
  */
-async function openedChoice(params, families, modelsOf) {
+async function openedChoice(params, entries, modelsOf) {
   try {
-    return { ...(await urlChoice(params, families, modelsOf)), error: null };
+    return { ...(await urlChoice(params, entries, modelsOf)), error: null };
   } catch (error) {
-    const familyValues = families.map((entry) => entry.value);
-    const choice = { ...readTrafficChoice(params, familyValues, []), family: "" };
+    const familyValues = entries.families.map((entry) => entry.value);
+    const choice = { ...readTrafficChoice(params, familyValues, [], entries.days), family: "" };
     return { choice, models: NO_FAMILY_MODEL_CHOICES, error };
   }
 }
@@ -99,9 +115,9 @@ async function familyModels(modelsOf, family) {
   return family === "" ? NO_FAMILY_MODEL_CHOICES : modelsOf(family);
 }
 
-// Draw the controls showing the choice shown, and keep their drop-downs of families and of models.
+// Draw the controls showing the choice shown, and keep their drop-downs of families and of models and their buttons.
 function drawControls(controls) {
-  const entries = { families: controls.families, models: controls.models };
+  const entries = { families: controls.families, models: controls.models, days: controls.days };
   const onChoose = (part) => choosePart(controls, part).catch(controls.explorer.onError);
   controls.selects = renderControls(controls.row, controls.shown, entries, onChoose);
 }
@@ -123,6 +139,14 @@ async function choosePart(controls, part) {
   controls.explorer.onChange(controls.shown);
 }
 
+// The sliders were released on `range`, which they have drawn: it joins the choice shown and is written to the URL,
+// and the period buttons follow it.
+function chooseRange(controls, range) {
+  controls.shown = { ...controls.shown, ...range };
+  controls.context.replaceQuery(writeTrafficChoice(new URLSearchParams(window.location.search), controls.shown));
+  pressPeriodButtons(controls.selects.periods, controls.shown, controls.days);
+}
+
 // The model drop-down's entries of `family`, just chosen in the family drop-down. If they cannot be read, the family
 // drop-down goes back to the family shown, which the URL and the model drop-down still hold, and the error is thrown
 // on; null if another family has been chosen since, as `choosePart` then leaves this one.
@@ -142,7 +166,8 @@ async function chosenFamilyModels(controls, family) {
 // topic, is left as drawn, so its legend keeps the series hidden in it.
 async function showReturnedChoice(controls) {
   const search = window.location.search;
-  const returned = await urlChoice(new URLSearchParams(search), controls.families, controls.explorer.modelsOf);
+  const entries = { families: controls.families, days: controls.days };
+  const returned = await urlChoice(new URLSearchParams(search), entries, controls.explorer.modelsOf);
   if (window.location.search !== search) {
     return; // the URL moved on while this entry's family was read, and the entry it moved to is shown instead
   }
@@ -155,31 +180,36 @@ async function showReturnedChoice(controls) {
   controls.explorer.onChange(returned.choice);
 }
 
-// The period buttons under their name, one per period, the chosen one pressed; a press presses its button alone.
-function periodField(choice, onChoose) {
+// One button per period, the one whose days are the range of `choice` pressed; a press chooses its days within the
+// trace's `days` and presses its button alone.
+function periodButtons(choice, days, onChoose) {
+  const buttons = PERIODS.map((period) => textElement("button", "period-button", period.label));
+  for (const [index, button] of buttons.entries()) {
+    const range = periodRange(PERIODS[index], days);
+    button.type = "button";
+    button.addEventListener("click", () => choosePeriod(buttons, range, days, onChoose));
+  }
+  pressPeriodButtons(buttons, choice, days);
+  return buttons;
+}
+
+// A period button was pressed: press it alone among `buttons` and choose its `range`.
+function choosePeriod(buttons, range, days, onChoose) {
+  pressPeriodButtons(buttons, range, days);
+  onChoose(range);
+}
+
+// The period buttons `buttons` under their name, as one field of the controls row, a group for a screen reader.
+function periodField(buttons) {
   const field = textElement("div", "control-field period-field", "");
   const name = textElement("span", "control-field-name", PERIOD_FIELD_NAME);
   name.id = PERIOD_NAME_ID;
   const group = textElement("div", "period-buttons", "");
   group.setAttribute("role", "group");
   group.setAttribute("aria-labelledby", PERIOD_NAME_ID);
-  const buttons = PERIODS.map((period) => textElement("button", "period-button", period.label));
-  for (const [index, button] of buttons.entries()) {
-    button.type = "button";
-    button.setAttribute("aria-pressed", String(PERIODS[index].value === choice.period));
-    button.addEventListener("click", () => choosePeriod(buttons, index, onChoose));
-  }
   group.append(...buttons);
   field.append(name, group);
   return field;
-}
-
-// Press the period button at `index` of `buttons` alone, and choose its period.
-function choosePeriod(buttons, index, onChoose) {
-  for (const [other, button] of buttons.entries()) {
-    button.setAttribute("aria-pressed", String(other === index));
-  }
-  onChoose({ period: PERIODS[index].value });
 }
 
 // `control` under its name in small capitals, as one field of the controls row.

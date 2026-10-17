@@ -326,10 +326,12 @@ site/                exactly the files that are deployed
     topic_tabs.js    the Insights' tabs, one topic shown at a time, the shown one in the URL's hash
     figure_sections.js
                      the Insights' six topics in the order of their tabs, and a topic's cards group by group
-  js/traffic/     the Traffic Explorer: its section, its filter and its controls
+  js/traffic/     the Traffic Explorer: its section, its filter, its controls, its day range and its tiles
     traffic.js, traffic_controls.js, traffic_filter.js
-                     the Traffic Explorer: its tiles and bars; its controls, kept in step with the URL; its
-                     choice, its URL keys and its sums
+                     the Traffic Explorer: its bars; its controls, kept in step with the URL; its choice, its
+                     URL keys and its sums
+    traffic_range.js, traffic_tiles.js
+                     the day range's sliders and period buttons' days; the four tiles
   js/insights/       the figure cards and the topics
     figure_card.js   a card, its chart drawn from its answer by its kind
     card_series.js   a card's series: their order, each palette's colours, the card's legend
@@ -367,7 +369,7 @@ tests/               what make test runs
   test_deployment.py
                      the Worker's settings, and the paths the deploy workflow checks are files of site/
   test_readme.py     every path this layout names exists
-  snapshot.py, snapshot_units.py, test_snapshot.py, test_snapshot_units.py
+  snapshot.py, snapshot_units.py, snapshot_traffic.py, test_snapshot.py, test_snapshot_units.py
                      the snapshot test: the page opened at each of the six topics in headless Chromium, each
                      unit it shows (a chart, a legend, a block of text; a card's chart as its name, panel titles,
                      colour legend, axis ticks and axis titles) read as text and compared with tests/snapshots/,

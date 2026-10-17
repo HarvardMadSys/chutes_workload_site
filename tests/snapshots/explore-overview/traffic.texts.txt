@@ -1,4 +1,4 @@
 title: Requests per day
 caption: Requests each day, by model family: the models in no family as Other.
-definition: Requests per calendar day of the chosen family, model, endpoint group and period, stacked by family while no family is chosen, by model once one is (up to eight of the family's most requested named models, and its other models where it has any), and by the endpoint group they were sent to once a model is. A model's family is the artifact's, by its name. An average in the tiles divides by the requests that record its value.
+definition: Requests, input tokens or output tokens, as the metric chooses, per calendar day of the chosen family, model, endpoint group and days, stacked by family while no family is chosen, by model once one is (up to eight of the family's most requested named models, and its other models where it has any), and by the endpoint group they were sent to once a model is. Tokens are summed over the requests that record them. A model's family is the artifact's, by its name. An average in the tiles divides by the requests that record its value.
 rows: 6,122,413,756 requests

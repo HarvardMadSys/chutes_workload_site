@@ -13,6 +13,12 @@ const FAMILIES = familyChoices([
   { family: "Other", family_slug: "other", requests: 5 },
 ]);
 
+// The trace's days, as far as the controls read them: its first and last.
+const DAYS = ["2025-04-11", "2026-04-12"];
+
+// The choice of everything: every family, every model, every endpoint group, requests, every day.
+const EVERYTHING = Object.freeze({ family: "", model: "", endpoint: "", metric: "", from: "", to: "" });
+
 // Qwen's daily answer by model: one named model and its other models, its counts zero but requests.
 const QWEN_ROWS = [
   { day: "2025-07-01", chute_id: "id-a", model: "A", endpoint_group: "chat", requests: 10 },
@@ -43,7 +49,7 @@ async function startedPage(context) {
   const pageHistory = followHistory(showEntryTopic);
   const controls = new FakeElement("div");
   const drawn = [];
-  await mountTrafficControls(controls, FAMILIES, pageHistory, {
+  await mountTrafficControls(controls, { families: FAMILIES, days: DAYS }, pageHistory, {
     modelsOf: async () => modelChoices(QWEN_ROWS, "Qwen"),
     onChange: (choice) => drawn.push(choice),
     onError: (error) => assert.fail(error),
@@ -92,7 +98,7 @@ test("Back after a tab and a family shows the earlier entry's choice and topic; 
   assert.equal(addressBar(), "");
   assert.equal(page.field(FAMILY_FIELD).value, "");
   assert.equal(page.field(MODEL_FIELD).disabled, true);
-  assert.deepEqual(page.drawn.at(-1), { family: "", model: "", endpoint: "", period: "" });
+  assert.deepEqual(page.drawn.at(-1), EVERYTHING);
   assert.match(page.header.innerHTML, /href="index\.html"/);
   assert.deepEqual(shownIds(page.sections), ["insights-overview"]);
   page.history.forward();
@@ -100,7 +106,7 @@ test("Back after a tab and a family shows the earlier entry's choice and topic; 
   assert.equal(addressBar(), "?family=qwen#insights-evolution");
   assert.equal(page.field(FAMILY_FIELD).value, "qwen");
   assert.equal(page.field(MODEL_FIELD).children[0].textContent, "All Qwen models");
-  assert.deepEqual(page.drawn.at(-1), { family: "qwen", model: "", endpoint: "", period: "" });
+  assert.deepEqual(page.drawn.at(-1), { ...EVERYTHING, family: "qwen" });
   assert.match(page.header.innerHTML, /href="index\.html\?family=qwen"/);
   assert.deepEqual(shownIds(page.sections), ["insights-evolution"]);
 });

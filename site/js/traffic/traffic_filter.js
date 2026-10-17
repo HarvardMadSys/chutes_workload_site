@@ -1,26 +1,31 @@
 /**
  * The Traffic Explorer's choice and what follows from it: the URL keys that hold it, the drop-downs' entries, the rows
- * it keeps, their sums for the tiles and their requests per day for the bars. These are plain functions, tested with
+ * it keeps, their sums for the tiles and their metric per day for the bars. These are plain functions, tested with
  * `node --test`.
  *
- * A choice is `{ family, model, endpoint, period }`, each "" for everything: `family` a family's slug; `model`, within
- * the family, a named model's `chute_id`, or `other` for the rows of the family's other models; `endpoint` an endpoint
- * group (`chat`, `chat_stream`, …); `period` a key of `PERIODS`. The rows are those of the `explore/daily_by_family`
- * answer while no family is chosen, `{ day, family, family_slug, endpoint_group, requests, input_tokens,
- * input_counted, output_tokens, output_counted, ttft_sum, ttft_counted }`, and those of the family's
- * `explore/daily_by_model/<family_slug>` answer once one is, `{ day, chute_id, model, endpoint_group, ... }` with the
- * same measures, `chute_id` null for the family's other models.
+ * A choice is `{ family, model, endpoint, metric, from, to }`, each "" for everything: `family` a family's slug;
+ * `model`, within the family, a named model's `chute_id`, or `other` for the rows of the family's other models;
+ * `endpoint` an endpoint group (`chat`, `chat_stream`, …); `metric` the value of one of `METRICS` ("" for requests);
+ * `from` and `to` the first and last chosen day, "YYYY-MM-DD", each "" for the trace's end on its side, within the
+ * trace's days (`traffic/traffic_range.js`). The rows are those of the `explore/daily_by_family` answer while no family
+ * is chosen, `{ day, family, family_slug, endpoint_group, requests, input_tokens, input_counted, output_tokens,
+ * output_counted, ttft_sum, ttft_counted }`, and those of the family's `explore/daily_by_model/<family_slug>` answer
+ * once one is, `{ day, chute_id, model, endpoint_group, ... }` with the same measures, `chute_id` null for the family's
+ * other models.
  */
 
 import { foldedRows } from "../charts/stacked_bars.js";
 import { ENDPOINT_LABELS, ENDPOINT_SERIES, FAMILY_SERIES, MODEL_SERIES } from "../shared/series.js";
 import { OTHER_NAME } from "../theme/colours.js";
+import { clippedRange } from "./traffic_range.js";
 
 // The URL keys the choice is written in, one value each.
 const FAMILY_KEY = "family";
 const MODEL_KEY = "model";
 const ENDPOINT_KEY = "endpoint";
-const PERIOD_KEY = "period";
+const METRIC_KEY = "metric";
+const FROM_KEY = "from";
+const TO_KEY = "to";
 
 /** The model of the rows of a family's models past its eight named ones, in a choice and in the URL. */
 export const OTHER_MODEL = "other";
@@ -37,35 +42,33 @@ const REST_OF_OTHER_TEXT = "Rest of Other";
 export const NO_FAMILY_MODEL_CHOICES = Object.freeze([Object.freeze({ value: "", text: "Choose a family" })]);
 
 /**
- * The periods, in the order of their buttons: All, then the calendar quarters the trace spans, each by its key in the
- * URL, its button's label and its first and last calendar day ("YYYY-MM-DD"), null for no bound. The trace starts on
- * April 11, 2025, so Q2 '25 holds its days from then; the trace's last twelve days, April 1 to 12, 2026, begin a
- * quarter the trace does not finish, so they are shown under All only.
+ * The metrics the bars stack, in the order of the metric drop-down: each by its value in a choice and in the URL (""
+ * for requests, the default), its drop-down text and the column of the daily answers it sums.
  */
-export const PERIODS = Object.freeze([
-  Object.freeze({ value: "", label: "All", firstDay: null, lastDay: null }),
-  Object.freeze({ value: "2025-q2", label: "Q2 '25", firstDay: "2025-04-01", lastDay: "2025-06-30" }),
-  Object.freeze({ value: "2025-q3", label: "Q3 '25", firstDay: "2025-07-01", lastDay: "2025-09-30" }),
-  Object.freeze({ value: "2025-q4", label: "Q4 '25", firstDay: "2025-10-01", lastDay: "2025-12-31" }),
-  Object.freeze({ value: "2026-q1", label: "Q1 '26", firstDay: "2026-01-01", lastDay: "2026-03-31" }),
+export const METRICS = Object.freeze([
+  Object.freeze({ value: "", text: "Requests", column: "requests" }),
+  Object.freeze({ value: "input_tokens", text: "Input tokens", column: "input_tokens" }),
+  Object.freeze({ value: "output_tokens", text: "Output tokens", column: "output_tokens" }),
 ]);
 
 /**
- * The choice the URL's `family`, `model`, `endpoint` and `period` name; a value that is not one of `familyValues` (the
- * family drop-down's values), an endpoint group or a period falls back to "", everything, and so does a model with no
- * family or not one of `modelValues` (the model drop-down's values for that family).
+ * The choice the URL's `family`, `model`, `endpoint`, `metric`, `from` and `to` name. A value that is not one of
+ * `familyValues` (the family drop-down's values), an endpoint group or a metric's value falls back to "", everything,
+ * and so does a model with no family or not one of `modelValues` (the model drop-down's values for that family). The
+ * days are clipped to `days`, the trace's, as `clippedRange` clips them.
  */
-export function readTrafficChoice(params, familyValues, modelValues) {
+export function readTrafficChoice(params, familyValues, modelValues, days) {
   const family = params.get(FAMILY_KEY) ?? "";
   const model = params.get(MODEL_KEY) ?? "";
   const endpoint = params.get(ENDPOINT_KEY) ?? "";
-  const period = params.get(PERIOD_KEY) ?? "";
+  const metric = params.get(METRIC_KEY) ?? "";
   const knownFamily = familyValues.includes(family) ? family : "";
   return {
     family: knownFamily,
     model: knownFamily !== "" && modelValues.includes(model) ? model : "",
     endpoint: Object.hasOwn(ENDPOINT_LABELS, endpoint) ? endpoint : "",
-    period: PERIODS.some((entry) => entry.value === period) ? period : "",
+    metric: METRICS.some((entry) => entry.value === metric) ? metric : "",
+    ...clippedRange(params.get(FROM_KEY) ?? "", params.get(TO_KEY) ?? "", days),
   };
 }
 
@@ -75,14 +78,16 @@ export function writeTrafficChoice(params, choice) {
   setOrDelete(written, FAMILY_KEY, choice.family);
   setOrDelete(written, MODEL_KEY, choice.model);
   setOrDelete(written, ENDPOINT_KEY, choice.endpoint);
-  setOrDelete(written, PERIOD_KEY, choice.period);
+  setOrDelete(written, METRIC_KEY, choice.metric);
+  setOrDelete(written, FROM_KEY, choice.from);
+  setOrDelete(written, TO_KEY, choice.to);
   return written;
 }
 
-/** True when the choices `first` and `second` choose the same family, model, endpoint group and period. */
+/** True when the choices `first` and `second` choose the same family, model, endpoint group, metric and days. */
 export function isSameChoice(first, second) {
   return first.family === second.family && first.model === second.model && first.endpoint === second.endpoint
-    && first.period === second.period;
+    && first.metric === second.metric && first.from === second.from && first.to === second.to;
 }
 
 /**
@@ -154,28 +159,30 @@ export function endpointChoices() {
   return choices;
 }
 
+/** The metric drop-down's entries, `[{ value, text }]`, one per metric of `METRICS`, requests first. */
+export function metricChoices() {
+  return METRICS.map((metric) => ({ value: metric.value, text: metric.text }));
+}
+
 /**
  * The rows of `rows`, the answer of the choice's family (or of every family), that `choice` keeps: of its model, its
- * endpoint group and a day of its period, in their order.
+ * endpoint group and a day of its range, in their order.
  */
 export function rowsInChoice(rows, choice) {
-  const { firstDay, lastDay } = periodOf(choice.period);
   const kept = [];
   for (const row of rows) {
     const isOfModel = choice.model === "" || row.chute_id === modelChuteId(choice.model);
     const isOfEndpoint = choice.endpoint === "" || row.endpoint_group === choice.endpoint;
-    const isInPeriod = isDayInPeriod(row.day, firstDay, lastDay);
-    if (isOfModel && isOfEndpoint && isInPeriod) {
+    if (isOfModel && isOfEndpoint && isDayInRange(row.day, choice)) {
       kept.push(row);
     }
   }
   return kept;
 }
 
-/** The days of `days` (calendar days, "YYYY-MM-DD") that fall in the period whose key is `period`, in their order. */
-export function periodDays(days, period) {
-  const { firstDay, lastDay } = periodOf(period);
-  return days.filter((day) => isDayInPeriod(day, firstDay, lastDay));
+/** The days of `days` (calendar days, "YYYY-MM-DD") in the day range of `choice`, in their order: the bars' days. */
+export function periodDays(days, choice) {
+  return days.filter((day) => isDayInRange(day, choice));
 }
 
 /**
@@ -211,15 +218,18 @@ export function choiceSeries(choice, familyName) {
 }
 
 /**
- * The bars' rows: `{ day, [seriesColumn], requests }`, the requests of `rows` per day and series, each series that
- * `colours` (a Map from series name to colour) does not name folded into "Other", in order of first appearance.
+ * The bars' rows: `{ day, [seriesColumn], value }`, the sum of `rows`' column of the metric whose value is `metric`
+ * (one of `METRICS`) per day and series, each series that `colours` (a Map from series name to colour) does not name
+ * folded into "Other", in order of first appearance. A token sum is null on a row none of whose requests records it,
+ * and adds nothing.
  */
-export function dailyRequests(rows, seriesColumn, colours) {
+export function dailyValues(rows, seriesColumn, metric, colours) {
+  const { column } = METRICS.find((entry) => entry.value === metric);
   const daily = [];
   for (const row of rows) {
-    daily.push({ day: row.day, [seriesColumn]: row[seriesColumn], requests: row.requests });
+    daily.push({ day: row.day, [seriesColumn]: row[seriesColumn], value: row[column] ?? 0 });
   }
-  return foldedRows(daily, colours, { xColumn: "day", seriesColumn, valueColumn: "requests" });
+  return foldedRows(daily, colours, { xColumn: "day", seriesColumn, valueColumn: "value" });
 }
 
 // The sums of the rows' requests, token and TTFT columns with their counts. A sum over no recording request is null in
@@ -248,14 +258,9 @@ function shareOrNull(part, whole) {
   return whole === 0 ? null : part / whole;
 }
 
-// The period whose key is `period`; every key a choice holds is one, as `readTrafficChoice` keeps no other.
-function periodOf(period) {
-  return PERIODS.find((entry) => entry.value === period);
-}
-
 // Days are "YYYY-MM-DD", so their order as text is their order in time.
-function isDayInPeriod(day, firstDay, lastDay) {
-  return (firstDay === null || day >= firstDay) && (lastDay === null || day <= lastDay);
+function isDayInRange(day, { from, to }) {
+  return (from === "" || day >= from) && (to === "" || day <= to);
 }
 
 // The name of a family's models past its eight named ones, "Other DeepSeek", as its answer writes it; "Rest of Other"

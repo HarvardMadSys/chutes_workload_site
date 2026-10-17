@@ -882,6 +882,51 @@ section[id] {
   }
 }
 
+/* The day range under the bars: the From and To sliders side by side, each between its name and its day and taking
+   the rest of its field's width; on a phone (below) one under the other, each slider on a line of its own under its
+   name and day, so that it takes the card's width. */
+.traffic-range {
+  display: flex;
+  gap: 0.5rem 2rem;
+  margin-top: 0.75rem;
+}
+
+.range-field {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+/* The names as wide as the longer, so stacked sliders start level. */
+.range-field label {
+  flex: 0 0 2.5rem;
+}
+
+.range-field input {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  accent-color: var(--color-accent);
+}
+
+@media (max-width: 40rem) {
+  .traffic-range {
+    flex-direction: column;
+  }
+
+  .range-field {
+    flex-wrap: wrap;
+    row-gap: 0.25rem;
+  }
+
+  .range-field input {
+    order: 1;
+    flex-basis: 100%;
+  }
+}
+
 /* ---------- Cite and Team ---------- */
 
 /* The Cite section: its heading on the left, the sentence and the BibTeX on the right, wide enough for the BibTeX's
@@ -1491,7 +1536,8 @@ section[id] {
   width: 100%;
 }
 
-.control-field-name {
+.control-field-name,
+.range-day {
   font-family: var(--font-mono);
   font-size: var(--font-size-smallest);
   font-weight: 600;

@@ -3,9 +3,10 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
-  choiceSeries, dailyRequests, endpointChoices, familyChoices, familyOrder, isSameChoice, modelChoices, modelOrder,
-  OTHER_MODEL, PERIODS, periodDays, readTrafficChoice, rowsInChoice, trafficSummary, writeTrafficChoice,
+  choiceSeries, dailyValues, endpointChoices, familyChoices, familyOrder, isSameChoice, metricChoices, modelChoices,
+  modelOrder, OTHER_MODEL, periodDays, readTrafficChoice, rowsInChoice, trafficSummary, writeTrafficChoice,
 } from "../site/js/traffic/traffic_filter.js";
+import { PERIODS, periodRange } from "../site/js/traffic/traffic_range.js";
 import { ENDPOINT_SERIES, FAMILY_SERIES, MODEL_SERIES } from "../site/js/shared/series.js";
 import { familyColours, modelColours } from "../site/js/theme/colours.js";
 
@@ -14,8 +15,9 @@ function shippedAnswer(name) {
   return JSON.parse(readFileSync(new URL(`../site/data/all/${name}.json`, import.meta.url), "utf8"));
 }
 
-// The rows of the shipped daily answer by family.
+// The rows of the shipped daily answer by family, and the trace's days, theirs.
 const SHIPPED_ROWS = shippedAnswer("explore/daily_by_family");
+const TRACE_DAYS = [...new Set(SHIPPED_ROWS.map((row) => row.day))];
 
 // A row of the family Kin's daily answer by model, with every count zero but those given.
 function modelRow(fields) {
@@ -39,77 +41,96 @@ const ROWS = [
 const FAMILY_VALUES = ["", "kin", "other"];
 const MODEL_VALUES = ["", "id-a", "id-b", OTHER_MODEL];
 
-// The choice of everything: every family, every model, every endpoint group, every day.
-const EVERYTHING = Object.freeze({ family: "", model: "", endpoint: "", period: "" });
+// The choice of everything: every family, every model, every endpoint group, requests, every day.
+const EVERYTHING = Object.freeze({ family: "", model: "", endpoint: "", metric: "", from: "", to: "" });
+
+/** The choice the URL query `query` names over the trace's days, for the family `kin` and its models. */
+function readQuery(query) {
+  return readTrafficChoice(new URLSearchParams(query), FAMILY_VALUES, MODEL_VALUES, TRACE_DAYS);
+}
 
 test("the default choice writes no key and leaves every other key as it is", () => {
-  const written = writeTrafficChoice(new URLSearchParams("tab=x&family=kin&model=id-a"), EVERYTHING);
-  assert.equal(written.toString(), "tab=x");
+  const params = new URLSearchParams("tab=x&family=kin&model=id-a&metric=input_tokens&from=2025-07-01");
+  assert.equal(writeTrafficChoice(params, EVERYTHING).toString(), "tab=x");
 });
 
-test("a choice written to the URL reads back the same", () => {
-  const choice = { family: "kin", model: "id-b", endpoint: "chat_stream", period: "2026-q1" };
+test("a choice written to the URL reads back the same, its metric and days too", () => {
+  const choice = {
+    family: "kin", model: "id-b", endpoint: "chat_stream", metric: "input_tokens", from: "2025-07-01", to: "2025-09-30",
+  };
   const written = writeTrafficChoice(new URLSearchParams("tab=x"), choice);
-  assert.equal(written.toString(), "tab=x&family=kin&model=id-b&endpoint=chat_stream&period=2026-q1");
-  assert.deepEqual(readTrafficChoice(written, FAMILY_VALUES, MODEL_VALUES), choice);
+  assert.equal(
+    written.toString(),
+    "tab=x&family=kin&model=id-b&endpoint=chat_stream&metric=input_tokens&from=2025-07-01&to=2025-09-30",
+  );
+  assert.deepEqual(readQuery(written.toString()), choice);
   const family = { ...EVERYTHING, family: "kin" };
   assert.equal(writeTrafficChoice(new URLSearchParams(""), family).toString(), "family=kin");
+  const tokens = { ...EVERYTHING, metric: "output_tokens", to: "2026-01-15" };
+  assert.deepEqual(readQuery("metric=output_tokens&to=2026-01-15"), tokens);
 });
 
 test("a URL value the explorer does not know falls back to the default, the others kept", () => {
-  const params = new URLSearchParams("family=nope&model=id-a&endpoint=fax&period=2027-q1");
-  assert.deepEqual(readTrafficChoice(params, FAMILY_VALUES, MODEL_VALUES), EVERYTHING);
-  const mixed = new URLSearchParams("family=kin&model=other&endpoint=fax&period=2025-q3");
-  assert.deepEqual(readTrafficChoice(mixed, FAMILY_VALUES, MODEL_VALUES), {
-    family: "kin", model: OTHER_MODEL, endpoint: "", period: "2025-q3",
+  assert.deepEqual(readQuery("family=nope&model=id-a&endpoint=fax&metric=requests"), EVERYTHING);
+  assert.deepEqual(readQuery("family=kin&model=other&endpoint=fax&metric=ttft&from=2025-07-01"), {
+    ...EVERYTHING, family: "kin", model: OTHER_MODEL, from: "2025-07-01",
   });
 });
 
-test("a model key without its family, or not among the family's models, is dropped", () => {
-  const withoutFamily = new URLSearchParams("model=id-a&endpoint=chat");
-  assert.deepEqual(readTrafficChoice(withoutFamily, FAMILY_VALUES, MODEL_VALUES), { ...EVERYTHING, endpoint: "chat" });
-  const outsideFamily = new URLSearchParams("family=kin&model=id-z");
-  assert.deepEqual(readTrafficChoice(outsideFamily, FAMILY_VALUES, MODEL_VALUES), { ...EVERYTHING, family: "kin" });
+test("a key the choice does not hold, such as a period, is neither read nor written", () => {
+  assert.deepEqual(readQuery("period=2025-q3"), EVERYTHING);
+  assert.equal(writeTrafficChoice(new URLSearchParams("period=2025-q3"), EVERYTHING).toString(), "period=2025-q3");
 });
 
-test("two choices are the same when their family, model, endpoint group and period all are", () => {
-  assert.equal(isSameChoice(EVERYTHING, { family: "", model: "", endpoint: "", period: "" }), true);
+test("a model key without its family, or not among the family's models, is dropped", () => {
+  assert.deepEqual(readQuery("model=id-a&endpoint=chat"), { ...EVERYTHING, endpoint: "chat" });
+  assert.deepEqual(readQuery("family=kin&model=id-z"), { ...EVERYTHING, family: "kin" });
+});
+
+test("days outside the trace's, or at its ends, are clipped to them; a from after its to drops both", () => {
+  assert.deepEqual(readQuery("from=2024-01-01&to=2025-05-01"), { ...EVERYTHING, to: "2025-05-01" });
+  assert.deepEqual(readQuery("from=2025-04-11&to=2026-04-12"), EVERYTHING);
+  assert.deepEqual(readQuery("from=2027-01-01&to=2024-01-01"), EVERYTHING);
+  assert.deepEqual(readQuery("from=2025-09-30&to=2025-07-01"), EVERYTHING);
+  const oneDay = { ...EVERYTHING, from: "2025-07-01", to: "2025-07-01" };
+  assert.deepEqual(readQuery("from=2025-07-01&to=2025-07-01"), oneDay);
+});
+
+test("two choices are the same when their family, model, endpoint group, metric and days all are", () => {
+  assert.equal(isSameChoice(EVERYTHING, { ...EVERYTHING }), true);
   assert.equal(isSameChoice(EVERYTHING, { ...EVERYTHING, family: "kin" }), false);
   assert.equal(isSameChoice({ ...EVERYTHING, model: "id-a" }, { ...EVERYTHING, model: "id-a" }), true);
   assert.equal(isSameChoice(EVERYTHING, { ...EVERYTHING, model: "id-a" }), false);
   assert.equal(isSameChoice(EVERYTHING, { ...EVERYTHING, endpoint: "chat" }), false);
-  assert.equal(isSameChoice(EVERYTHING, { ...EVERYTHING, period: "2025-q3" }), false);
+  assert.equal(isSameChoice(EVERYTHING, { ...EVERYTHING, metric: "input_tokens" }), false);
+  assert.equal(isSameChoice(EVERYTHING, { ...EVERYTHING, from: "2025-07-01" }), false);
+  assert.equal(isSameChoice(EVERYTHING, { ...EVERYTHING, to: "2025-07-01" }), false);
 });
 
-test("the periods are All and the four calendar quarters, by their keys and labels", () => {
-  assert.deepEqual(PERIODS.map((period) => [period.value, period.label]), [
-    ["", "All"], ["2025-q2", "Q2 '25"], ["2025-q3", "Q3 '25"], ["2025-q4", "Q4 '25"], ["2026-q1", "Q1 '26"],
-  ]);
-});
-
-test("each period holds the shipped answer's days of its quarter; All holds every day, April 2026's twelve too", () => {
-  const days = [...new Set(SHIPPED_ROWS.map((row) => row.day))];
+test("each period's range holds the shipped answer's days of its quarter; All every day, April 2026's too", () => {
   const spans = PERIODS.map((period) => {
-    const held = periodDays(days, period.value);
-    return [period.value, held[0], held.at(-1), held.length];
+    const held = periodDays(TRACE_DAYS, periodRange(period, TRACE_DAYS));
+    return [period.label, held[0], held.at(-1), held.length];
   });
   assert.deepEqual(spans, [
-    ["", "2025-04-11", "2026-04-12", 367],
-    ["2025-q2", "2025-04-11", "2025-06-30", 81],
-    ["2025-q3", "2025-07-01", "2025-09-30", 92],
-    ["2025-q4", "2025-10-01", "2025-12-31", 92],
-    ["2026-q1", "2026-01-01", "2026-03-31", 90],
+    ["All", "2025-04-11", "2026-04-12", 367],
+    ["Q2 '25", "2025-04-11", "2025-06-30", 81],
+    ["Q3 '25", "2025-07-01", "2025-09-30", 92],
+    ["Q4 '25", "2025-10-01", "2025-12-31", 92],
+    ["Q1 '26", "2026-01-01", "2026-03-31", 90],
   ]);
 });
 
-test("a choice keeps the rows of its model, its endpoint group and its period's days", () => {
+test("a choice keeps the rows of its model, its endpoint group and its range's days", () => {
   const requests = (choice) => rowsInChoice(ROWS, { ...EVERYTHING, ...choice }).map((row) => row.requests);
   assert.deepEqual(requests({}), [10, 30, 50, 5, 20]);
   assert.deepEqual(requests({ family: "kin", model: "id-a" }), [10, 30]);
   assert.deepEqual(requests({ family: "kin", model: OTHER_MODEL }), [5]);
   assert.deepEqual(requests({ endpoint: "chat_stream" }), [30, 20]);
-  assert.deepEqual(requests({ period: "2025-q3" }), [30, 50, 5]);
-  assert.deepEqual(requests({ family: "kin", model: "id-b", period: "2025-q4" }), [20]);
+  assert.deepEqual(requests({ from: "2025-07-01", to: "2025-09-30" }), [30, 50, 5]);
+  assert.deepEqual(requests({ from: "2025-07-01" }), [30, 50, 5, 20]);
+  assert.deepEqual(requests({ to: "2025-07-01" }), [10, 30, 50, 5]);
+  assert.deepEqual(requests({ family: "kin", model: "id-b", from: "2025-10-01", to: "2025-12-31" }), [20]);
 });
 
 test("an average divides by the requests that have the value: 490 of 1,000 recording a TTFT is 49%", () => {
@@ -138,15 +159,33 @@ test("the bars are by family with no family chosen, by model with one, and by en
   assert.equal(choiceSeries({ ...EVERYTHING, family: "kin", model: OTHER_MODEL }, "Kin"), ENDPOINT_SERIES);
 });
 
-test("a family's other models fold into Other in the bars, summed per day", () => {
+test("a family's other models fold into Other in the bars, their requests summed per day", () => {
   const colours = modelColours(modelOrder(ROWS));
-  assert.deepEqual(dailyRequests(ROWS, "model", colours), [
-    { day: "2025-06-30", model: "A", requests: 10 },
-    { day: "2025-07-01", model: "A", requests: 30 },
-    { day: "2025-07-01", model: "B", requests: 50 },
-    { day: "2025-07-01", model: "Other", requests: 5 },
-    { day: "2025-10-01", model: "B", requests: 20 },
+  assert.deepEqual(dailyValues(ROWS, "model", "", colours), [
+    { day: "2025-06-30", model: "A", value: 10 },
+    { day: "2025-07-01", model: "A", value: 30 },
+    { day: "2025-07-01", model: "B", value: 50 },
+    { day: "2025-07-01", model: "Other", value: 5 },
+    { day: "2025-10-01", model: "B", value: 20 },
   ]);
+});
+
+test("the bars of a token metric sum its column per day and series, a null sum adding nothing", () => {
+  const rows = [
+    modelRow({ chute_id: "id-a", model: "A", requests: 3, input_tokens: 300, output_tokens: 30 }),
+    modelRow({ chute_id: "id-a", model: "A", endpoint_group: "chat_stream", requests: 2, input_tokens: 200 }),
+    modelRow({ chute_id: "id-b", model: "B", requests: 4 }),
+  ];
+  const colours = modelColours(modelOrder(rows));
+  assert.deepEqual(dailyValues(rows, "model", "input_tokens", colours), [
+    { day: "2025-07-01", model: "A", value: 500 },
+    { day: "2025-07-01", model: "B", value: 0 },
+  ]);
+  assert.deepEqual(dailyValues(rows, "model", "output_tokens", colours), [
+    { day: "2025-07-01", model: "A", value: 30 },
+    { day: "2025-07-01", model: "B", value: 0 },
+  ]);
+  assert.deepEqual(dailyValues(rows, "model", "", colours).map((row) => row.value), [5, 4]);
 });
 
 test("the shipped answer by family adds up to the trace totals', so the tile equals the stats strip", () => {
@@ -201,6 +240,12 @@ test("the shipped DeepSeek drop-down offers its eight models and Other DeepSeek"
   assert.equal(choices.length, 10);
   assert.deepEqual([choices[0].text, choices.at(-1).text], ["All DeepSeek models", "Other DeepSeek"]);
   assert.equal(choices.at(-1).value, OTHER_MODEL);
+});
+
+test("the metric drop-down offers requests, the default, then input and output tokens", () => {
+  assert.deepEqual(metricChoices().map((choice) => [choice.value, choice.text]), [
+    ["", "Requests"], ["input_tokens", "Input tokens"], ["output_tokens", "Output tokens"],
+  ]);
 });
 
 test("the endpoint drop-down offers every endpoint group by its label", () => {
