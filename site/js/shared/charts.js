@@ -16,6 +16,11 @@ export const BAR_INSET = 1;
  * where y equals x.
  */
 export const DASH = Object.freeze([4, 3]);
+/**
+ * The options of a reference line, the line where y equals x or a level a card marks: dashed by `DASH`, in the chart's
+ * label ink, so it reads as part of the frame and not as a series.
+ */
+export const REFERENCE_STYLE = Object.freeze({ stroke: "currentColor", strokeDasharray: DASH.join(",") });
 
 // The Plot options every chart shares, so every chart has the same ink, in the page's own face: Plot's default face
 // draws a name's punctuation otherwise than the page's text does.
@@ -47,6 +52,14 @@ export function titledFrame(body, yLabel, margins, height = CHART_HEIGHT) {
     frame.marginTop = UNTITLED_MARGIN_TOP;
   }
   return frame;
+}
+
+/**
+ * A dashed horizontal rule across the plot at the y value `value` (`REFERENCE_STYLE`), made with `Plot.ruleY`, drawn
+ * under the marks that follow it; a rule of no values, which draws nothing, where `value` is not given.
+ */
+export function referenceRule(Plot, value) {
+  return Plot.ruleY(value === undefined ? [] : [value], REFERENCE_STYLE);
 }
 
 /** Replace `container`'s content with the loading state. */

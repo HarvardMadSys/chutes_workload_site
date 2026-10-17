@@ -67,3 +67,12 @@ test("the line where y equals x runs from the higher of the axes' lows to the lo
   assert.deepEqual(diagonalEnds([1, 1e6], [1, 1e5]), [{ x: 1, y: 1 }, { x: 1e5, y: 1e5 }]);
   assert.deepEqual(diagonalEnds([10, 500], [2, 1e3]), [{ x: 10, y: 10 }, { x: 500, y: 500 }]);
 });
+
+test("a cell's range whose two ends read alike once written is written once", () => {
+  const percent = (value) => `${Math.min(100, Math.round(value * 100))}%`;
+  const parameters = { x: {}, y: { label: "Hit ratio", tickFormat: percent }, valueLabel: "Requests", valueFormat: String };
+  const allCached = { x_low: 1, x_high: 2, y_low: 1, y_high: 1.05, value: 9 };
+  assert.equal(cellTipText(allCached, parameters), "1–2\nHit ratio: 100%\nRequests: 9");
+  const tenth = { x_low: 1, x_high: 2, y_low: 0.3, y_high: 0.4, value: 3 };
+  assert.equal(cellTipText(tenth, parameters), "1–2\nHit ratio: 30%–40%\nRequests: 3");
+});

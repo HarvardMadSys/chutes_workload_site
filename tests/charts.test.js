@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import {
   CHART_HEIGHT, chartFrame, chartName, chartWidth, colourScale, columnTotal, DASH, logColumns, panelRows, positiveRows,
-  sequentialColour, titledFrame,
+  REFERENCE_STYLE, referenceRule, sequentialColour, titledFrame,
 } from "../site/js/shared/charts.js";
 import { assignColours } from "../site/js/theme/colours.js";
 
@@ -113,4 +113,12 @@ test("a log axis drops the rows at or below zero in its columns, an output-token
   const rows = [{ x: 0, cdf: 0 }, { x: 2, cdf: 0.01 }, { x: -1, cdf: 0.5 }];
   assert.deepEqual(positiveRows(rows, ["x"]), [{ x: 2, cdf: 0.01 }]);
   assert.equal(positiveRows(rows, []).length, 3);
+});
+
+test("a reference rule is a dashed horizontal rule at its value in the label ink, and draws nothing without one", () => {
+  const fakePlot = { ruleY: (...args) => ["ruleY", ...args] };
+  assert.deepEqual(referenceRule(fakePlot, 1), ["ruleY", [1], REFERENCE_STYLE]);
+  assert.deepEqual(referenceRule(fakePlot, undefined), ["ruleY", [], REFERENCE_STYLE]);
+  assert.equal(REFERENCE_STYLE.strokeDasharray, DASH.join(","));
+  assert.equal(REFERENCE_STYLE.stroke, "currentColor");
 });

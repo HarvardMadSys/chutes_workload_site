@@ -248,6 +248,7 @@ async function drawDayBars(daily, body, bars, hidden) {
     xDomain: bars.days,
     xTicks: monthTicks(bars.days, bars.period, chartWidth(body)),
     xTickFormat: dayMonth,
+    xTipFormat: String, // a bar's tooltip names its whole day, where its tick names only the month
     xTickRotate: MONTH_LABEL_ANGLE,
     seriesColumn: bars.series.column,
     valueColumn: "requests",
@@ -257,6 +258,7 @@ async function drawDayBars(daily, body, bars, hidden) {
     yTickFormat: formatCountTick,
     margins: DAILY_MARGINS,
     inset: DAY_BAR_INSET,
+    segmentInset: DAY_BAR_INSET,
     labels: bars.series.labels,
   }, hidden);
   nameChart(body);

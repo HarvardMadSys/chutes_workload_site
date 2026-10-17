@@ -43,7 +43,8 @@ In `insights/figure_card.js`: `TRACE_DAY_AXIS`, labelled "Day of the
 trace (0 = Apr 11, 2025)" with `tipFormat: formatTraceDay`, moved from
 `balancing.js` and used by the overview's four daily cards and the
 balancing topic's three hourly cards; `TRACE_MONTH_AXIS` ticked at
-months 1, 4, 7, 10 and 13 and labelled "Apr '25" … "Apr '26", the
+months 1, 7 and 13 (five names run together on a phone) and labelled
+"Apr '25", "Oct '25", "Apr '26", the
 thirteenth with a star, "Apr '26*", since it holds the trace's last two
 days (`PARTIAL_TRACE_MONTH = 13`), its title "Month"; the evolution
 topic's cohort axis takes the same names, titled "Release cohort (month

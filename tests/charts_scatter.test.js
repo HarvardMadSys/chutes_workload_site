@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { divergingColour, drawnPoints, pointTipText } from "../site/js/charts/scatter.js";
+import { divergingColour, drawnPoints, pointDots, pointTipText } from "../site/js/charts/scatter.js";
+import { AXIS_STYLE } from "../site/js/shared/charts.js";
 
 const ROWS = [{ x: 0, y: 1.2, value: 0.3 }, { x: 30, y: 0, value: -0.4 }, { x: 870, y: 1.1, value: 0.55 }];
 
@@ -31,4 +32,14 @@ test("a point's tooltip gives its x and y after their axes' titles, and its valu
   assert.equal(pointTipText(ROWS[2], parameters), "Requests per hour: 870\n1.1\nAutocorrelation: 0.55");
   const titled = { ...parameters, y: { label: "Mean CV(IAT)", tickFormat: String } };
   assert.equal(pointTipText(ROWS[2], titled), "Requests per hour: 870\nMean CV(IAT): 1.1\nAutocorrelation: 0.55");
+});
+
+test("each dot is filled by its value, a little transparent, and outlined thinly in the axis ink", () => {
+  const fakePlot = { dot: (...args) => ["dot", ...args] };
+  const [, points, options] = pointDots(fakePlot, ROWS);
+  assert.equal(points, ROWS);
+  assert.equal(options.fill, "value");
+  assert.equal(options.fillOpacity, 0.7);
+  assert.equal(options.stroke, AXIS_STYLE.stroke);
+  assert.equal(options.strokeWidth, 0.5);
 });

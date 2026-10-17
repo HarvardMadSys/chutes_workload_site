@@ -1092,13 +1092,15 @@ section[id] {
   display: contents;
 }
 
-/* A card without a legend draws its chart where the legend would be, so it keeps no empty band above the chart. */
+/* A card without a legend draws its chart where the legend would be, so it keeps no empty band above the chart; the
+   chart sits at the foot of the two rows, so its x axis lines up with that of a card beside it that has a legend. */
 .card-grid > .card .figure-legend:empty {
   display: none;
 }
 
 .card-grid > .card .figure-legend:empty + .figure-body {
   grid-row: span 2;
+  align-self: end;
 }
 
 /* The parts are spaced by their own margins, not the rows' gap, so a legend place that is empty in every card of a
@@ -1390,6 +1392,20 @@ section[id] {
   width: 1rem;
   height: 2px;
   border-radius: 0;
+}
+
+/* The key of a bands chart, in its legend's place: its entries laid out as a legend's buttons are, but not buttons. */
+.band-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+}
+
+.band-key-entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.125rem 0;
 }
 
 .note {

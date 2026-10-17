@@ -15,14 +15,15 @@
  * width.
  *
  * A card's words are placed at once (`renderFigureCard`), its chart only when its topic is first shown
- * (`drawFigureChart`), with a legend of buttons above it where it has more than one series.
+ * (`drawFigureChart`), with a legend of buttons above it where it has more than one series, or, for the bands kind,
+ * the key to its bands.
  */
 
-import { nameChart, renderFigure, showError, showLoading } from "../shared/charts.js";
+import { legendPlace, nameChart, renderFigure, showError, showLoading } from "../shared/charts.js";
 import { readAnswer } from "../shared/answers.js";
 import { formatTraceDay } from "../shared/format.js";
 import { SERIES_COLUMN } from "../shared/series.js";
-import { drawBands } from "../charts/bands.js";
+import { bandKey, bandsColour, drawBands } from "../charts/bands.js";
 import { drawBars } from "../charts/bars.js";
 import { drawBoxes } from "../charts/boxes.js";
 import { drawCells } from "../charts/cells.js";
@@ -67,10 +68,10 @@ export const TRACE_DAY_AXIS = Object.freeze({
 });
 
 /**
- * The trace's months an axis of its months 1 to 13 labels: every third from the first, as the paper labels them;
- * all thirteen run together on a phone.
+ * The trace's months an axis of its months 1 to 13 labels: every sixth from the first, the first, the middle and the
+ * last; five month names run together on a phone, and a name says which month it is, so fewer are needed.
  */
-export const TRACE_MONTH_TICKS = Object.freeze([1, 4, 7, 10, 13]);
+export const TRACE_MONTH_TICKS = Object.freeze([1, 7, 13]);
 
 /**
  * The names of the trace's months 1 to 13, in order: each is named by the calendar month its first day falls in, as
@@ -86,6 +87,9 @@ export const PARTIAL_TRACE_MONTH = 13;
 
 /** A card's x axis of the trace's months, 1 to 13, ticked by their names (`traceMonthName`). */
 export const TRACE_MONTH_AXIS = Object.freeze({ label: "Month", ticks: TRACE_MONTH_TICKS, tickFormat: traceMonthName });
+
+// The kind whose card shows the key to its bands (`bandKey` of `charts/bands.js`) in place of a legend of buttons.
+const BANDS_KIND = "bands";
 
 // The palette of the endpoint groups, whose card reads their colour order, the answer `ENDPOINT_ORDER`.
 const ENDPOINT_PALETTE = "endpoints";
@@ -123,15 +127,21 @@ export function renderFigureCard(container, card) {
 
 /**
  * Read `card`'s answer, its legend answer where it names one and the endpoint groups' order where its palette is
- * theirs, and draw its chart into `body` by its kind, with a legend of buttons above it where its rows hold more than
- * one series; each click redraws the chart from the rows already read. An answer that cannot be read, or a chart
- * that fails to draw, shows its error in `body`.
+ * theirs, and draw its chart into `body` by its kind: a bands card with its key above it (`bandKey`), any other with
+ * a legend of buttons above it where its rows hold more than one series, each click redrawing the chart from the rows
+ * already read. An answer that cannot be read, or a chart that fails to draw, shows its error in `body`.
  */
 export async function drawFigureChart(body, card) {
   try {
     const answers = [readAnswer(`${FIGURE_ANSWERS}${card.figure}`), legendAnswer(card), endpointOrder(card)];
     const [rows, legendRows, endpointMixRows] = await Promise.all(answers);
     const colours = cardColours(card, rows, legendRows, endpointMixRows);
+    if (card.kind === BANDS_KIND) {
+      // A bands chart has one series, so no buttons; its key names what its two bands and its line are.
+      legendPlace(body).replaceChildren(bandKey(bandsColour(chartParameters(card))));
+      await drawFigure(rows, body, card, { series: colours }, new Set());
+      return;
+    }
     const legend = figureLegend(card, rows, colours);
     const drawChart = (hidden) => drawFigure(rows, body, card, { series: colours }, hidden);
     await drawWithLegend(body, legend, drawChart, CHART_KINDS[card.kind].swatch);

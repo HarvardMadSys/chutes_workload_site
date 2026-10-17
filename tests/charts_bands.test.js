@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { bandTipText, drawnBands, PERCENTILES } from "../site/js/charts/bands.js";
+import { bandKey, bandsColour, bandTipText, drawnBands, PERCENTILES } from "../site/js/charts/bands.js";
+import { SERIES_SLOTS } from "../site/js/theme/colours.js";
+import { FakeElement } from "./fake_page.js";
 
 const ROWS = [
   { x: "2025-06", p10: 0, p25: 40, p50: 300, p75: 2000, p90: 9000 },
@@ -29,4 +31,21 @@ test("an x's tooltip writes its x after the x axis's title where the axis has on
   const parameters = { x: xAxis, valueLabel: "Input tokens", valueFormat: String };
   const row = { x: 8, p10: 1, p25: 2, p50: 3, p75: 4, p90: 5 };
   assert.match(bandTipText(row, parameters), /^Trace month: 8\nInput tokens\n/);
+});
+
+test("a bands chart is drawn in its card's colour, the first series slot's when it gives none", () => {
+  assert.equal(bandsColour({ colour: "var(--series-2)" }), "var(--series-2)");
+  assert.equal(bandsColour({}), SERIES_SLOTS[0]);
+});
+
+test("the key lists a light band, a darker band and the median line, in the chart's colour and opacities", (context) => {
+  globalThis.document = { createElement: (tag) => new FakeElement(tag) };
+  context.after(() => delete globalThis.document);
+  const key = bandKey("var(--series-2)");
+  assert.equal(key.className, "band-key");
+  const [outer, inner, median] = key.children.map((entry) => entry.children[0]);
+  assert.deepEqual(key.children.map((entry) => entry.children[1]), ["10th–90th percentile", "25th–75th", "Median"]);
+  assert.deepEqual([outer.style.opacity, inner.style.opacity, median.style.opacity], ["0.12", "0.25", "1"]);
+  assert.equal(median.className, "legend-swatch is-line");
+  assert.ok([outer, inner, median].every((swatch) => swatch.style.background === "var(--series-2)"));
 });

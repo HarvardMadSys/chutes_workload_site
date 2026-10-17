@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  barTipText, foldedRows, foldToOther, stackedBarsLegend, sumFolded,
+  barTipText, barXText, foldedRows, foldToOther, segmentInsets, stackedBarsLegend, sumFolded,
 } from "../site/js/charts/stacked_bars.js";
 import { barColours, familyColours } from "../site/js/theme/colours.js";
 
@@ -100,4 +100,22 @@ test("a segment's bar follows the x axis's title where the bars have one", () =>
   assert.equal(barTipText(row, { ...parameters, valueFormat: String, xLabel: "Trace month" }),
     "Others\nTrace month: 8\nShare: 0.25");
   assert.equal(barTipText(row, { ...parameters, valueFormat: String, xLabel: null }), "Others\n8\nShare: 0.25");
+});
+
+test("a segment is inset by BAR_INSET on every side, or by inset on its sides and segmentInset at its ends", () => {
+  assert.deepEqual(segmentInsets({}), { insetLeft: 1, insetRight: 1, insetTop: 1, insetBottom: 1 });
+  assert.deepEqual(segmentInsets({ segmentInset: 0 }), { insetLeft: 1, insetRight: 1, insetTop: 0, insetBottom: 0 });
+  assert.deepEqual(segmentInsets({ inset: 0, segmentInset: 0 }),
+    { insetLeft: 0, insetRight: 0, insetTop: 0, insetBottom: 0 });
+});
+
+test("a segment's bar is written by the x axis's tick format, or by its tooltip format alone where it has one", () => {
+  const monthName = (month) => ["Apr '25", "May '25"][month - 1];
+  assert.equal(barXText(1, { xLabel: "Month", xTickFormat: monthName }), "Month: Apr '25");
+  assert.equal(barXText("2025-06-12", { xTickFormat: (day) => day.slice(0, 7), xTipFormat: String }), "2025-06-12");
+  assert.equal(barXText(8, {}), "8");
+  const parameters = { xColumn: "x", seriesColumn: "series", valueColumn: "value", valueLabel: "Share" };
+  const row = { x: 2, series: "Others", value: 0.25 };
+  assert.equal(barTipText(row, { ...parameters, valueFormat: String, xLabel: "Month", xTickFormat: monthName }),
+    "Others\nMonth: May '25\nShare: 0.25");
 });

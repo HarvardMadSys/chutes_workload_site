@@ -47,7 +47,8 @@ CARD_TEXTS = (
     ("rows", ".figure-rows"),
 )
 
-LEGEND_ENTRIES = ".legend-button"  # every entry of a legend, in the order shown: a series button of a figure
+# Every entry of a legend, in the order shown: a series button of a figure, or an entry of a bands chart's key.
+LEGEND_ENTRIES = ".legend-button, .band-key-entry"
 LEGEND_MARK = ".legend-swatch"  # the colour mark inside a legend entry
 
 # A chart is an SVG element drawn in a figure's body that is not inside another SVG.

@@ -5,19 +5,23 @@
  * pixels and vanishes.
  *
  * Its rows are a raster answer's, one per cell holding a value: `x` and `y`, the cell's column and row (integers from
- * 0, as an hour of a window and a user's or a model's rank), and its `value`. Row 0 is drawn at the bottom.
+ * 0, as an hour of a window and a user's or a model's rank), and its `value`. Row 0 is drawn at the bottom, each row
+ * centred on its tick, and rows tall enough are parted by rules in the card's colour (`rowRules`).
  */
 
 import { sequentialColour, titledFrame } from "../shared/charts.js";
 import { axisMark, axisTicks, colourLegendTicks, extent } from "../axes/ticks.js";
 
 const DEFAULT_SCHEME = "Blues"; // a raster's colour scheme when the card names none: few requests light, many dark
+const MIN_ROW_HEIGHT_FOR_RULES = 6; // pixels a row needs before rules part it from its neighbours; thinner, none
+const ROW_RULE_WIDTH = 2; // pixels of the card's colour between two rows
+const ROW_HALF = 0.5; // a row spans half a row on either side of its index, so its tick sits on its centre
 
 /**
  * Draw `rows` into `body` as a raster `width` columns by `height` rows (`rasterGrid`), pooled to the plot's pixels
  * (`pooledGrid`), and return the chart. It has no series: `colours` and `hidden` are not read. Its named parameters:
  * - `x`, `y`: the card's axis options `{ label, ticks, tickFormat }`; the x axis's `tickFormat` writes a column, an
- *   hour of the window, as a day, and `y.label` names what a row is, "User".
+ *   hour of the window, as a day, and `y.label` names what a row is, "User"; a y tick sits on its row's centre.
  * - `scheme`: the colour scheme, "Blues" when not given; `schemeStart`: the point of it, from 0 to 1, the lowest
  *   value takes, its first colour when not given; `colourLog`: true for a log colour scale; `colourDomain`:
  *   the values at the scale's two ends, the rows' own (`rasterColourDomain`) when not given.
@@ -35,14 +39,14 @@ export async function drawRaster(rows, body, colours, parameters) {
   const plotHeight = frame.height - frame.marginTop - frame.marginBottom;
   const pooled = pooledGrid({ width, height, values }, plotWidth, plotHeight);
   const xTicks = axisTicks(xAxis, [0, width]);
-  const yTicks = axisTicks(yAxis, [0, height]);
+  const yTicks = axisTicks(yAxis, [0, height - 1]);
   // The colour scale spans the cells' own values, whatever pooling keeps of them.
   const colourParameters = { ...parameters, colourDomain: rasterColourDomain(parameters, rows) };
   const legendTicks = colourLegendTicks(colourParameters, rows.map((row) => row.value));
   const chart = Plot.plot({
     ...frame,
     x: { domain: [0, width] },
-    y: { domain: [0, height] },
+    y: { domain: rasterYDomain(height) },
     color: sequentialColour(colourParameters, DEFAULT_SCHEME, legendTicks),
     marks: [
       // Row 0 is drawn at the bottom: y rises with the row index, as the paper's rasters draw a rank. A pooled grid
@@ -52,18 +56,44 @@ export async function drawRaster(rows, body, colours, parameters) {
         height: pooled.height,
         x1: 0,
         x2: pooled.width * pooled.columnStep,
-        y1: 0,
-        y2: pooled.height * pooled.rowStep,
+        y1: -ROW_HALF,
+        y2: pooled.height * pooled.rowStep - ROW_HALF,
         fill: Plot.identity,
         imageRendering: "pixelated",
         clip: true,
       }),
+      rowRules(Plot, height, plotHeight),
       axisMark(Plot, "x", xAxis, xTicks),
       axisMark(Plot, "y", yAxis, yTicks),
     ],
   });
   body.replaceChildren(chart);
   return chart;
+}
+
+/** The y domain of a raster of `rows` rows: `[-0.5, rows - 0.5]`, each row spanning half a row about its index. */
+export function rasterYDomain(rows) {
+  return [-ROW_HALF, rows - ROW_HALF];
+}
+
+/** The y values between a raster's `rows` rows, where one row ends and the next begins: 0.5, 1.5, … `rows` - 1.5. */
+export function rowBoundaries(rows) {
+  const boundaries = [];
+  for (let row = 1; row < rows; row += 1) {
+    boundaries.push(row - ROW_HALF);
+  }
+  return boundaries;
+}
+
+/**
+ * The rules parting a raster's `rows` rows drawn `plotHeight` pixels tall: one at each of `rowBoundaries`,
+ * `ROW_RULE_WIDTH` pixels in the card's colour, where a row is at least `MIN_ROW_HEIGHT_FOR_RULES` pixels tall; none
+ * (a rule of no values) where rows are thinner, as a pooled raster's are, since rules would hide them.
+ */
+export function rowRules(Plot, rows, plotHeight) {
+  const isTallEnough = plotHeight / rows >= MIN_ROW_HEIGHT_FOR_RULES;
+  const boundaries = isTallEnough ? rowBoundaries(rows) : [];
+  return Plot.ruleY(boundaries, { stroke: "var(--color-surface)", strokeWidth: ROW_RULE_WIDTH });
 }
 
 /**

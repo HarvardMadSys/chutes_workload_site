@@ -438,11 +438,24 @@ Insights' figures are drawn from their plot-ready tables.
 - **Marks.** A 1px inset on each side of a bar, a 2px gap between bars and
   stacked segments (`BAR_INSET`; none for the Traffic Explorer's day bars,
   which are a pixel or two wide), grid and axes in `--chart-grid` and
-  `--chart-axis`, labels in `--chart-label`. Text is never coloured by
+  `--chart-axis`, labels in `--chart-label`. A share chart's stacked bars
+  take no gap between their segments (`segmentInset: 0`), since a thin
+  segment would vanish into it. Text is never coloured by
   series. Bars start at zero. A dashed line, a series' or the line where y
-  equals x, is dashed by `DASH` of `shared/charts.js`. A raster wider or
-  taller than its plot is drawn pooled, each pixel the most requests among
-  the hours and rows it covers, so no cell vanishes between two pixels.
+  equals x, is dashed by `DASH` of `shared/charts.js`; a reference level a
+  card marks is a dashed rule in the label ink (`referenceRule`): the
+  cells' and the scatter's `yReference`, the bars' `reference`, whose label
+  sits at the rule's right end. A scatter's dots are outlined in the axis
+  ink and a little transparent, so a near-white dot shows on either
+  scheme. A bands card shows, in its legend's place, a key naming its two
+  bands and its median (`bandKey`), not buttons. A raster's rows are
+  centred on their ticks, and rows at least `MIN_ROW_HEIGHT_FOR_RULES`
+  pixels tall are parted by a 2px rule in the card's colour; a raster wider
+  or taller than its plot is drawn pooled, each pixel the most requests
+  among the hours and rows it covers, so no cell vanishes between two
+  pixels. A cell's range in its tooltip whose two ends read alike is
+  written once, "100%". In a card grid, a chart with no legend sits at the
+  foot of its row, so the x axes of a row line up.
 - **One axis.** Two measures of different scale are two charts.
 - **The card.** A chart's card shows its title, its caption, its legend
   above the chart (none where it has a single series), and a Definition

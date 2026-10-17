@@ -1,5 +1,5 @@
 name: Monthly output intervals: Output lengths show a clearer downward trend than input lengths.
-x-axis: Apr '25 | Jul '25 | Oct '25 | Jan '26 | Apr '26*
+x-axis: Apr '25 | Oct '25 | Apr '26*
 y-axis: 10 | 100 | 1k
 x-axis title: Month
 y-axis title: Output tokens

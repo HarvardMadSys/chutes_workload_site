@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { barTipText, drawnBars } from "../site/js/charts/bars.js";
+import { barTipText, drawnBars, referenceMarks } from "../site/js/charts/bars.js";
+import { REFERENCE_STYLE } from "../site/js/shared/charts.js";
 import { assignColours } from "../site/js/theme/colours.js";
 
 const COLOURS = assignColours(["Request share", "Token hit"]);
@@ -32,4 +33,18 @@ test("a bar's tooltip gives its x as the axis writes it and its value", () => {
   assert.equal(barTipText(ROWS[0], parameters), "User 1\nShare of requests: 30.0%");
   const titled = { ...parameters, x: { label: "Instance index", tickFormat: String } };
   assert.equal(barTipText(ROWS[0], titled), "Instance index: 1\nShare of requests: 30.0%");
+});
+
+test("a reference is a dashed rule at its value with its label at the rule's right end; none without one", () => {
+  const fakePlot = {
+    ruleY: (...args) => ["ruleY", ...args], text: (...args) => ["text", ...args], identity: "identity",
+  };
+  const [rule, label] = referenceMarks(fakePlot, { value: 100 / 12, label: "even split" });
+  assert.deepEqual(rule, ["ruleY", [100 / 12], REFERENCE_STYLE]);
+  const [, texts, options] = label;
+  assert.deepEqual(texts, ["even split"]);
+  assert.equal(options.y, 100 / 12);
+  assert.equal(options.frameAnchor, "right");
+  assert.equal(options.textAnchor, "end");
+  assert.deepEqual(referenceMarks(fakePlot, undefined), []);
 });

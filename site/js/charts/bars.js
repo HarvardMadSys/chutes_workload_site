@@ -6,9 +6,12 @@
  * `value`; a multi-panel figure's rows also name their `panel`.
  */
 
-import { AXIS_STYLE, BAR_INSET, colourScale, distinct, titledFrame } from "../shared/charts.js";
+import { AXIS_STYLE, BAR_INSET, colourScale, distinct, referenceRule, titledFrame } from "../shared/charts.js";
 import { axisMark, axisValueText, bandAxisMark, gridMark } from "../axes/ticks.js";
 import { SERIES_COLUMN, shownSeriesRows } from "../shared/series.js";
+
+const REFERENCE_LABEL_RISE = -4; // pixels a reference's label sits above its rule, so the dashes do not cross it
+const LABEL_HALO_WIDTH = 3; // pixels of the card's colour around a reference's label, so a bar under it does not cross it
 
 /**
  * Draw `rows` into `body`, one bar per row of the series of `colours.series` (a Map from series name to colour, in
@@ -16,6 +19,8 @@ import { SERIES_COLUMN, shownSeriesRows } from "../shared/series.js";
  * - `x`: the bar axis's options `{ label, ticks, tickFormat, tickRotate }`, `tickRotate` slanting its labels.
  * - `y`: the value axis's options `{ label, domain, ticks, tickFormat }`, never a log one, since a bar starts at zero.
  * - `panel`: the panel drawn, of a multi-panel answer.
+ * - `reference`: `{ value, label }`, a level the bars are read against, as an even split of requests: a dashed
+ *   horizontal rule at `value`, its `label` in small text at the rule's right end, inside the plot; none when not given.
  * - `valueLabel`: what a value is, in the tooltip, "Share of requests: 12.4%"; `valueFormat`: how it is written there.
  * - `margins`: Plot margins in place of the frame's.
  * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `shared/charts.js`).
@@ -38,6 +43,7 @@ export async function drawBars(rows, body, colours, parameters, hidden) {
       axisMark(Plot, "y", yAxis, yAxis.ticks),
       Plot.barY(bars, { x: "x", y: "value", fill: SERIES_COLUMN, inset: BAR_INSET }),
       Plot.ruleY([0], AXIS_STYLE),
+      ...referenceMarks(Plot, parameters.reference),
       Plot.tip(bars, Plot.pointerX({ x: "x", y: "value", title: (bar) => barTipText(bar, parameters) })),
     ],
   });
@@ -51,6 +57,29 @@ export async function drawBars(rows, body, colours, parameters, hidden) {
  */
 export function drawnBars(rows, colours, { panel }, hidden) {
   return shownSeriesRows(rows, colours, panel, hidden);
+}
+
+/**
+ * The marks of a bars chart's `reference`, `{ value, label }`: its dashed rule (`referenceRule` of `shared/charts.js`)
+ * and its label, right-aligned at the plot's right edge just above the rule, in the chart's label ink on a halo of the
+ * card's colour; none where `reference` is not given.
+ */
+export function referenceMarks(Plot, reference) {
+  if (reference === undefined) {
+    return [];
+  }
+  const label = Plot.text([reference.label], {
+    y: reference.value,
+    text: Plot.identity,
+    frameAnchor: "right",
+    textAnchor: "end",
+    dy: REFERENCE_LABEL_RISE,
+    fill: "currentColor",
+    stroke: "var(--color-surface)",
+    strokeWidth: LABEL_HALO_WIDTH,
+    paintOrder: "stroke",
+  });
+  return [referenceRule(Plot, reference.value), label];
 }
 
 /**

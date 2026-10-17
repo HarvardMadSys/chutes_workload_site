@@ -1,6 +1,6 @@
 // The Insights' cards drawn from their shipped answers, as the landing page's spec describes them: the value under the
 // pointer, a log axis, a raster, a hidden series of a CDF card, a CDF's straight lines, the hourly lines' gaps, a
-// panel's own series, and the colour and the day and month axes the cards share. Each reads a card as its topic lists
+// panel's own series, a bands card's key, and the colour and the day and month axes the cards share. Each reads a card as its topic lists
 // it and its answer as the page reads it.
 
 import assert from "node:assert/strict";
@@ -10,9 +10,12 @@ import { test } from "node:test";
 import {
   brokenAtGaps, drawnPoints, framedPoints, lineTipText, lineYAxis, seriesLine,
 } from "../site/js/charts/lines.js";
-import { pooledGrid, rasterColourDomain, rasterGrid } from "../site/js/charts/raster.js";
+import { bandKey, bandsColour } from "../site/js/charts/bands.js";
+import {
+  pooledGrid, rasterColourDomain, rasterGrid, rasterYDomain, rowBoundaries,
+} from "../site/js/charts/raster.js";
 import { axisTicks } from "../site/js/axes/ticks.js";
-import { drawWithLegend } from "../site/js/explore/legend.js";
+import { drawWithLegend, hasLegend } from "../site/js/explore/legend.js";
 import { cardColours, figureLegend } from "../site/js/insights/card_series.js";
 import {
   chartParameters, COUNT_COLOUR, PARTIAL_TRACE_MONTH, TRACE_DAY_AXIS, TRACE_MONTH_AXIS, TRACE_MONTH_NAMES,
@@ -20,6 +23,7 @@ import {
 } from "../site/js/insights/figure_card.js";
 import { FIGURE_SECTIONS } from "../site/js/insights/figure_sections.js";
 import { sequentialColour } from "../site/js/shared/charts.js";
+import { SERIES_SLOTS } from "../site/js/theme/colours.js";
 import { SERIES_COLUMN } from "../site/js/shared/series.js";
 import { FakeElement, FakeFigureBody } from "./fake_page.js";
 
@@ -82,6 +86,31 @@ test("the Qwen3-Next-80B raster shades each user row's hours by requests, days o
   assert.deepEqual(rasterColourDomain(card.chart, rows), [1, 13851]);
 });
 
+test("the periodic user's raster ticks its model rows on their centres and parts them by rules", () => {
+  const card = cardOf("fig_user_raster_periodic");
+  const grid = rasterGrid(shippedAnswer(card.figure));
+  const [low, high] = rasterYDomain(grid.height);
+  assert.deepEqual([low, high], [-0.5, grid.height - 0.5]);
+  assert.equal(rowBoundaries(grid.height).length, grid.height - 1);
+  assert.ok(rowBoundaries(grid.height).every((boundary) => boundary > low && boundary < high));
+});
+
+test("a bands card's key names its two bands and its median in the card's colour, with no legend of buttons", (context) => {
+  useFakeDocument(context);
+  const card = cardOf("fig_monthly_input_token_intervals");
+  const rows = shippedAnswer(card.figure);
+  assert.equal(card.kind, "bands");
+  assert.ok(!hasLegend(figureLegend(card, rows, cardColours(card, rows, null)).series));
+  const key = bandKey(bandsColour(chartParameters(card)));
+  assert.equal(key.className, "band-key");
+  const labels = key.children.map((entry) => entry.children[1]);
+  assert.deepEqual(labels, ["10th–90th percentile", "25th–75th", "Median"]);
+  const swatches = key.children.map((entry) => entry.children[0]);
+  assert.ok(swatches.every((swatch) => swatch.style.background === SERIES_SLOTS[0]));
+  assert.deepEqual(swatches.map((swatch) => swatch.className), ["legend-swatch", "legend-swatch", "legend-swatch is-line"]);
+  assert.ok(key.children.every((entry) => entry.tag !== "button"));
+});
+
 test("hiding DeepSeek R1 in the input-tokens card's legend leaves the other lines as drawn", async (context) => {
   const hiddenSeries = "Deepseek R1"; // the answer's spelling, which the legend labels "DeepSeek R1"
   useFakeDocument(context);
@@ -127,10 +156,9 @@ test("a count's colour is viridis on a log scale from a quarter along it, ticked
   assert.ok(Object.isFrozen(COUNT_COLOUR));
 });
 
-test("the trace's month axis labels every third month by its name, the partial last one starred", () => {
+test("the trace's month axis labels the first, the middle and the last month by name, the partial last starred", () => {
   assert.deepEqual(TRACE_MONTH_AXIS.ticks, TRACE_MONTH_TICKS);
-  assert.deepEqual(TRACE_MONTH_TICKS.map(TRACE_MONTH_AXIS.tickFormat),
-    ["Apr '25", "Jul '25", "Oct '25", "Jan '26", "Apr '26*"]);
+  assert.deepEqual(TRACE_MONTH_TICKS.map(TRACE_MONTH_AXIS.tickFormat), ["Apr '25", "Oct '25", "Apr '26*"]);
   assert.equal(TRACE_MONTH_AXIS.label, "Month");
   assert.equal(TRACE_MONTH_TICKS.at(-1), TRACE_MONTHS);
   assert.equal(TRACE_MONTH_NAMES.length, TRACE_MONTHS);

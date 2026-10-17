@@ -1,6 +1,7 @@
 /**
  * The bands kind: a value's spread at each x, in one colour: a light band from the 10th to the 90th percentile, a
- * darker one from the 25th to the 75th, and a line at the median, on a linear or a log y axis.
+ * darker one from the 25th to the 75th, and a line at the median, on a linear or a log y axis; and the key naming the
+ * two bands and the median (`bandKey`), which a card places where a legend would go.
  *
  * Its rows are a bands answer's, one per x: `x` (a month, a day or a bin) and its percentiles `p10`, `p25`, `p50`,
  * `p75` and `p90`, in order of `x`.
@@ -19,8 +20,16 @@ export const PERCENTILES = Object.freeze([
   Object.freeze({ column: "p90", label: "90th" }),
 ]);
 
-const OUTER_BAND_OPACITY = 0.2; // the 10th-to-90th band: light, so the inner band and the median read over it
-const INNER_BAND_OPACITY = 0.4; // the 25th-to-75th band, drawn over the outer one
+const OUTER_BAND_OPACITY = 0.12; // the 10th-to-90th band: light, so the inner band and the median read over it
+const INNER_BAND_OPACITY = 0.25; // the 25th-to-75th band, drawn over the outer one
+const MEDIAN_WIDTH = 2; // pixels; the median is the line a reader follows, so it is drawn heavier than Plot's 1.5
+
+// The key's three entries, in the order it lists them: the outer band, the inner band and the median.
+const KEY_ENTRIES = Object.freeze([
+  Object.freeze({ label: "10th–90th percentile", opacity: OUTER_BAND_OPACITY, isLine: false }),
+  Object.freeze({ label: "25th–75th", opacity: INNER_BAND_OPACITY, isLine: false }),
+  Object.freeze({ label: "Median", opacity: 1, isLine: true }),
+]);
 
 /**
  * Draw `rows` into `body` as the two bands and the median line, in the colour `parameters.colour` (a colour token,
@@ -34,7 +43,8 @@ const INNER_BAND_OPACITY = 0.4; // the 25th-to-75th band, drawn over the outer o
  * Required: `valueLabel` and `valueFormat`.
  */
 export async function drawBands(rows, body, colours, parameters) {
-  const { x: xAxis = {}, y: yAxis = {}, colour = SERIES_SLOTS[0], margins } = parameters;
+  const { x: xAxis = {}, y: yAxis = {}, margins } = parameters;
+  const colour = bandsColour(parameters);
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
   const drawn = drawnBands(rows, parameters);
@@ -51,12 +61,38 @@ export async function drawBands(rows, body, colours, parameters) {
       axisMark(Plot, "y", yAxis, yTicks),
       Plot.areaY(drawn, { x: "x", y1: "p10", y2: "p90", fill: colour, fillOpacity: OUTER_BAND_OPACITY }),
       Plot.areaY(drawn, { x: "x", y1: "p25", y2: "p75", fill: colour, fillOpacity: INNER_BAND_OPACITY }),
-      Plot.line(drawn, { x: "x", y: "p50", stroke: colour }),
+      Plot.line(drawn, { x: "x", y: "p50", stroke: colour, strokeWidth: MEDIAN_WIDTH }),
       Plot.tip(drawn, Plot.pointerX({ x: "x", y: "p50", title: (row) => bandTipText(row, parameters) })),
     ],
   });
   body.replaceChildren(chart);
   return chart;
+}
+
+/** The colour a bands chart of the parameters `parameters` is drawn in: its `colour`, the first series slot's if none. */
+export function bandsColour({ colour = SERIES_SLOTS[0] }) {
+  return colour;
+}
+
+/**
+ * The key of a bands chart drawn in `colour`: an element of the class `band-key` holding three entries, not buttons,
+ * each a swatch drawn as its part of the chart is and its name: "10th–90th percentile" (a light square), "25th–75th"
+ * (a darker square) and "Median" (a short line).
+ */
+export function bandKey(colour) {
+  const key = document.createElement("div");
+  key.className = "band-key";
+  for (const entry of KEY_ENTRIES) {
+    const swatch = document.createElement("span");
+    swatch.className = entry.isLine ? "legend-swatch is-line" : "legend-swatch";
+    swatch.style.background = colour;
+    swatch.style.opacity = String(entry.opacity);
+    const item = document.createElement("span");
+    item.className = "band-key-entry";
+    item.append(swatch, entry.label);
+    key.append(item);
+  }
+  return key;
 }
 
 /** The rows drawn: every row, or on a log y axis (`parameters.y.log`) those whose five percentiles are above zero. */
