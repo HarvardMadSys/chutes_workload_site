@@ -100,6 +100,8 @@ test("the explorer loads until the URL's family is read; a family that cannot be
     assert.deepEqual(figure.children.map((child) => [child.className, child.textContent]), [
       ["note is-error", "Could not fetch kin"],
     ]);
+    const cards = card.children[3].children.map((place) => place.children[0].className);
+    assert.deepEqual(cards, ["note is-error", "note is-error", "note is-error"], "no card loads for ever");
   });
 
 test("choosing a family not read before shows the chart loading until its answer arrives", async (context) => {
@@ -267,3 +269,20 @@ test("a choice the explorer has moved on from draws nothing when its histogram a
   await settled();
   assert.deepEqual(cardStates(page.container), ["figure", "figure", "figure"]);
 });
+
+test("a failed histogram read shows its error in the cards, logged once, the notes empty; the next draw reads again",
+  async (context) => {
+    const answers = { [FAMILY_FILE]: THREE_DAY_ROWS };
+    const page = runExplorer(context, NO_COMPLETION_QUERY, answers);
+    await page.running;
+    assert.deepEqual(cardStates(page.container), ["note is-error", "note is-error", "note is-error"]);
+    assert.equal(console.error.mock.callCount(), 1);
+    const { tiles, rangeFields } = explorerParts(page.container);
+    assert.deepEqual(tiles.children.map((tile) => tile.children.length), [2, 2, 2, 3], "only the TTFT's share");
+    answers[HISTOGRAMS_FILE] = [];
+    rangeFields[1].children[1].dispatch("input");
+    runFrames(page.frames);
+    await settled();
+    assert.deepEqual(page.reads.map(([file]) => file), [FAMILY_FILE, HISTOGRAMS_FILE, HISTOGRAMS_FILE]);
+    assert.deepEqual(cardStates(page.container), ["figure", "figure", "figure"]);
+  });

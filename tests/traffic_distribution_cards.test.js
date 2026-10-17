@@ -27,6 +27,9 @@ const LEGEND = {
 };
 const FAMILIES = { column: "family" };
 
+// The days the cards' weeks cover: the trace's first week.
+const COVERED = Object.freeze({ firstDay: "2025-04-11", lastDay: "2025-04-17" });
+
 // The text of each card's place: its title and caption once drawn, its body's note, or its loading line.
 function placeTexts(places) {
   return places.map((place) => place.children[0].children.map((part) => part.textContent));
@@ -41,7 +44,6 @@ test("a TTFT tick is written as a duration under a minute and in seconds from a 
 test("the cards' caption names the days their weeks cover", () => {
   assert.equal(distributionCaption({ firstDay: "2025-04-11", lastDay: "2025-06-26" }),
     "Over April 11 – June 26, 2025, the trace weeks holding a chosen day.");
-  assert.equal(distributionCaption(null), "The trace weeks holding a chosen day.");
 });
 
 test("a card's x axis spans its rows and ticks at most four of the powers of ten in them", () => {
@@ -51,6 +53,7 @@ test("a card's x axis spans its rows and ticks at most four of the powers of ten
   assert.deepEqual(axis.ticks, [0.01, 1, 100]);
   assert.equal(axis.label, "Time to first token");
   assert.deepEqual(distributionAxis(ttft, [{ x: 2 }, { x: 900 }]).ticks, [10, 100]);
+  assert.equal(distributionAxis(ttft, [{ x: 1.2 }, { x: 9 }]).ticks, undefined, "under a decade: Plot's own ticks");
 });
 
 test("the three cards are placed loading, input tokens, output tokens and time to first token", (context) => {
@@ -65,8 +68,7 @@ test("the three cards are placed loading, input tokens, output tokens and time t
 test("a card whose choice records no value says so, under its title and caption", async (context) => {
   useFakeDocument(context);
   const places = placeDistributionCards(new FakeElement("div"));
-  const covered = { firstDay: "2025-04-11", lastDay: "2025-04-17" };
-  const distributions = { rows: [], covered, series: FAMILIES, legend: LEGEND };
+  const distributions = { rows: [], covered: COVERED, series: FAMILIES, legend: LEGEND };
   const drawn = await drawDistributionCards(places, distributions, new Set());
   const caption = "Over April 11 – April 17, 2025, the trace weeks holding a chosen day.";
   const [title, captionLine, , body] = places[2].children[0].children;
@@ -79,10 +81,25 @@ test("a card whose choice records no value says so, under its title and caption"
 test("every series hidden in the bars' legend shows the legend's note in each card", async (context) => {
   useFakeDocument(context);
   const places = placeDistributionCards(new FakeElement("div"));
-  const distributions = { rows: [], covered: null, series: FAMILIES, legend: LEGEND };
+  const distributions = { rows: [], covered: COVERED, series: FAMILIES, legend: LEGEND };
   const drawn = await drawDistributionCards(places, distributions, new Set());
   await drawDistributionCurves(drawn, new Set(["Kin", "Pi"]));
   const notes = drawn.charts.map((chart) => chart.body.children[0].textContent);
   assert.deepEqual(notes, Array(3).fill("Every series is hidden: click one in the legend to show it."));
   assert.equal(placeTexts(places)[0][0], "Input tokens");
 });
+
+test("a card draws the lines of the series the bars' legend lists, none of a series it has no button for",
+  async (context) => {
+    useFakeDocument(context);
+    context.mock.method(console, "error", () => undefined); // node has no Plot: each chart shows an error instead
+    const places = placeDistributionCards(new FakeElement("div"));
+    const rows = [
+      { week: 0, first_day: "2025-04-11", family: "Kin", metric: "ttft", bins: [0], requests: [3] },
+      { week: 0, first_day: "2025-04-11", family: "Rho", metric: "ttft", bins: [4], requests: [2] },
+    ];
+    const colours = new Map([...LEGEND.colours, ["Rho", "var(--series-3)"]]);
+    const legend = { series: LEGEND.series, colours };
+    const drawn = await drawDistributionCards(places, { rows, covered: COVERED, series: FAMILIES, legend }, new Set());
+    assert.deepEqual(drawn.charts[2].rows.map((row) => row.series), ["Kin"]);
+  });

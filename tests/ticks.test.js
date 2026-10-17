@@ -40,6 +40,13 @@ test("a log axis over many powers of ten labels every second or third, and leave
   assert.ok(logAxisTicks([1e-6, 1e12]).length <= MAX_LOG_TICKS);
 });
 
+test("a log axis given a maximum ticks at most that many of its powers of ten, and none of its own below two", () => {
+  assert.deepEqual(logAxisTicks([0.005, 4096], 4), [0.01, 1, 100]);
+  assert.deepEqual(logAxisTicks([1, 1e7], 4), [1, 100, 1e4, 1e6]);
+  assert.deepEqual(logAxisTicks([1, 1000], 4), [1, 10, 100, 1000]);
+  assert.equal(logAxisTicks([1200, 9000], 4), undefined);
+});
+
 test("the extent of values is their smallest and largest", () => {
   assert.deepEqual(extent([30, 2, 400, 7]), [2, 400]);
 });

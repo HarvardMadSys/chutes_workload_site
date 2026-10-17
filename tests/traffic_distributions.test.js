@@ -52,12 +52,30 @@ test("the histogram rows of a choice are those of its model and endpoint group i
   assert.deepEqual(histogramRowsInChoice(rows, { ...choice, model: "other" }), [rows[1]]);
 });
 
-test("the covered days run from the first week's first day to the last week's last day, within the trace", () => {
-  const choice = { from: "2025-04-17", to: "2025-04-18" };
-  assert.deepEqual(coveredDays(THREE_WEEKS, choice, "2026-04-12"), { firstDay: "2025-04-11", lastDay: "2025-04-24" });
-  const toTheEnd = { from: "2025-04-26", to: "" };
-  assert.deepEqual(coveredDays(THREE_WEEKS, toTheEnd, "2025-04-27"), { firstDay: "2025-04-25", lastDay: "2025-04-27" });
-  assert.equal(coveredDays([], toTheEnd, "2025-04-27"), null);
+// The trace's first and last day.
+const TRACE_FIRST_DAY = "2025-04-11";
+const TRACE_LAST_DAY = "2026-04-12";
+
+test("the covered days run from the week holding the range's first day to the end of the week holding its last", () => {
+  const weekEnds = { from: "2025-04-17", to: "2025-04-18" };
+  assert.deepEqual(coveredDays(weekEnds, TRACE_FIRST_DAY, TRACE_LAST_DAY), {
+    firstDay: "2025-04-11", lastDay: "2025-04-24",
+  });
+  const november = { from: "2025-11-03", to: "2025-11-30" };
+  assert.deepEqual(coveredDays(november, TRACE_FIRST_DAY, TRACE_LAST_DAY), {
+    firstDay: "2025-10-31", lastDay: "2025-12-04",
+  });
+});
+
+test("the covered days of the whole trace are its own, the last week clipped to the trace's last day", () => {
+  const whole = { from: "", to: "" };
+  assert.deepEqual(coveredDays(whole, TRACE_FIRST_DAY, TRACE_LAST_DAY), {
+    firstDay: TRACE_FIRST_DAY, lastDay: TRACE_LAST_DAY,
+  });
+  const lastWeek = { from: "2026-04-11", to: "" };
+  assert.deepEqual(coveredDays(lastWeek, TRACE_FIRST_DAY, TRACE_LAST_DAY), {
+    firstDay: "2026-04-10", lastDay: TRACE_LAST_DAY,
+  });
 });
 
 test("the bin maps sum each series' requests by bin over the weeks, a series the colours do not name as Other", () => {

@@ -95,6 +95,14 @@ export function showNote(container, text) {
 /** Replace `container`'s content with the error state holding `error`'s message, and log the error. */
 export function showError(container, error) {
   console.error(error);
+  showErrorNote(container, error);
+}
+
+/**
+ * Replace `container`'s content with the error state holding `error`'s message, without logging it: for an error shown
+ * in several places and logged once.
+ */
+export function showErrorNote(container, error) {
   const note = document.createElement("p");
   note.className = "note is-error";
   note.textContent = error.message;

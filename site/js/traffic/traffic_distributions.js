@@ -1,13 +1,11 @@
 /**
- * The distributions of the Traffic Explorer's chosen requests: the histogram rows of the trace weeks holding a chosen
- * day, folded into bin maps (a Map from bin to requests), their CDF rows, their percentiles and the texts these are
- * written in. These are plain functions, tested with `node --test`.
- *
- * The rows are the `explore/histograms_by_family` answer's, `{ week, first_day, family, endpoint_group, metric, bins,
- * requests }`, or a family's `explore/histograms_by_model/<family_slug>`, with `chute_id` and `model` in place of
- * `family`: `metric` is `input_tokens`, `output_tokens` or `ttft`, and `bins` and `requests` are parallel lists in bin
- * order. A bin `b` holds the values `v` with `floor(BINS_PER_DOUBLING · log2(v)) = b`, a token count at or below 1 in
- * bin 0; a TTFT is in seconds, and its bins can be negative.
+ * The distributions of the Traffic Explorer's chosen requests, plain functions tested with `node --test`: the histogram
+ * rows of the trace weeks holding a chosen day, folded into bin maps (a Map from bin to requests), their CDF rows,
+ * their percentiles and the texts these are written in. The rows are `explore/histograms_by_family`'s, `{ week,
+ * first_day, family, endpoint_group, metric, bins, requests }`, or a family's `explore/histograms_by_model/<slug>`'s,
+ * with `chute_id` and `model` for `family`: `metric` is `input_tokens`, `output_tokens` or `ttft`, and `bins` and
+ * `requests` are parallel lists in bin order. A bin `b` holds the values `v` with `floor(BINS_PER_DOUBLING · log2(v))
+ * = b`, a token count at or below 1 in bin 0; a TTFT is in seconds, and its bins can be negative.
  */
 
 import { formatSignificant, MISSING_TEXT } from "../shared/format.js";
@@ -20,8 +18,9 @@ import { isOfModelAndEndpoint } from "./traffic_filter.js";
  */
 export const BINS_PER_DOUBLING = 4;
 
-// A trace week is seven trace days: its last day is six after its first.
-const WEEK_LAST_DAY_AFTER_FIRST = 6;
+// A trace week is seven trace days, the trace's first week starting on its first day.
+const DAYS_PER_WEEK = 7;
+const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 
 // The characters of a calendar day, "YYYY-MM-DD".
 const DAY_LENGTH = "YYYY-MM-DD".length;
@@ -35,9 +34,7 @@ const NEAR = "≈";
 
 /** The last day of the trace week whose first day is `firstDay` ("YYYY-MM-DD"): six days after it. */
 export function weekLastDay(firstDay) {
-  const [year, month, day] = firstDay.split("-").map(Number);
-  const lastDay = new Date(Date.UTC(year, month - 1, day + WEEK_LAST_DAY_AFTER_FIRST));
-  return lastDay.toISOString().slice(0, DAY_LENGTH);
+  return addDays(firstDay, DAYS_PER_WEEK - 1);
 }
 
 /**
@@ -71,18 +68,14 @@ export function histogramRowsInChoice(rows, choice) {
 }
 
 /**
- * The days the trace weeks of `rows` holding a day of `choice`'s range span: `{ firstDay, lastDay }`, the first week's
- * first day and the last week's last day, clipped to `lastTraceDay`; null where no week holds one.
+ * The days the trace weeks holding a day of `choice`'s range span, `{ firstDay, lastDay }`, the weeks counted from
+ * `firstTraceDay`: the first day of the week holding `from` (the trace's first day for ""), and the last day of the
+ * week holding `to` (`lastTraceDay` for ""), clipped to `lastTraceDay`. They follow from the range alone.
  */
-export function coveredDays(rows, choice, lastTraceDay) {
-  const weeks = weeksInRange(rows, choice.from, choice.to);
-  if (weeks.length === 0) {
-    return null;
-  }
-  // Days are "YYYY-MM-DD", so their order as text is their order in time.
-  const firstDays = weeks.map((row) => row.first_day).sort();
-  const lastDay = weekLastDay(firstDays.at(-1));
-  return { firstDay: firstDays[0], lastDay: lastDay > lastTraceDay ? lastTraceDay : lastDay };
+export function coveredDays(choice, firstTraceDay, lastTraceDay) {
+  const firstDay = weekFirstDay(choice.from === "" ? firstTraceDay : choice.from, firstTraceDay);
+  const lastDay = weekLastDay(weekFirstDay(choice.to === "" ? lastTraceDay : choice.to, firstTraceDay));
+  return { firstDay, lastDay: lastDay > lastTraceDay ? lastTraceDay : lastDay };
 }
 
 /**
@@ -189,6 +182,19 @@ export function percentileText(value, format = formatSignificant) {
   return value === null ? MISSING_TEXT : `${NEAR}${format(value)}`;
 }
 
+// The first day of the trace week holding `day`, the weeks being seven days each from `firstTraceDay`.
+function weekFirstDay(day, firstTraceDay) {
+  const sinceFirstDay = Date.parse(`${day}T00:00:00Z`) - Date.parse(`${firstTraceDay}T00:00:00Z`);
+  const daysAfterFirst = Math.round(sinceFirstDay / MILLISECONDS_PER_DAY);
+  return addDays(firstTraceDay, DAYS_PER_WEEK * Math.floor(daysAfterFirst / DAYS_PER_WEEK));
+}
+
+// The day `count` days after `day` ("YYYY-MM-DD"), counted in UTC, as the trace's days are.
+function addDays(day, count) {
+  const [year, month, dayOfMonth] = day.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, dayOfMonth + count)).toISOString().slice(0, DAY_LENGTH);
+}
+
 // Add the requests of `row` to the bin map `bins`, bin by bin.
 function addRowBins(bins, row) {
   for (const [index, bin] of row.bins.entries()) {
@@ -201,6 +207,7 @@ function binOrder(bins) {
   return [...bins.keys()].sort((first, second) => first - second);
 }
 
+// The median and the 90th percentile of the bin map `bins`, `{ p50, p90 }`, each null for a map of no request.
 function medianAndP90(bins) {
   return { p50: percentile(bins, P50_SHARE), p90: percentile(bins, P90_SHARE) };
 }

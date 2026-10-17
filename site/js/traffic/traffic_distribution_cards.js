@@ -9,12 +9,12 @@
  * A drawing gives back the cards drawn, `{ legend, labels, charts }`, which a press in the bars' legend draws again.
  */
 
-import { nameChart, renderFigure, showError, showLoading, showNote } from "../shared/charts.js";
+import { nameChart, renderFigure, showError, showErrorNote, showLoading, showNote } from "../shared/charts.js";
 import {
   dateSpanText, formatCount, formatCountTick, formatDurationTick, formatQuantity, formatSignificantSeconds,
   formatWholeCount,
 } from "../shared/format.js";
-import { decadeTicks, extent } from "../axes/ticks.js";
+import { extent, logAxisTicks } from "../axes/ticks.js";
 import { drawLines } from "../charts/lines.js";
 import { drawShownSeries, hasLegend } from "../explore/legend.js";
 import { binTotals, cdfRows, metricBins, requestTotal } from "./traffic_distributions.js";
@@ -79,24 +79,18 @@ export function formatTtftTick(seconds) {
 /**
  * The x axis of `card` (of `DISTRIBUTION_CARDS`) over its CDF rows `rows`: the card's, over the rows' values, so that
  * hiding a series leaves the axis as it is, ticked at the powers of ten in it, every second or more of them where
- * there are more than `MAX_CARD_TICKS`.
+ * there are more than `MAX_CARD_TICKS` (`logAxisTicks`), or at Plot's own where it holds fewer than two.
  */
 export function distributionAxis(card, rows) {
   const domain = extent(rows.map((row) => row.x));
-  const decades = decadeTicks(domain);
-  const step = Math.ceil(decades.length / MAX_CARD_TICKS);
-  return { ...card.x, domain, ticks: decades.filter((decade, index) => index % step === 0) };
+  return { ...card.x, domain, ticks: logAxisTicks(domain, MAX_CARD_TICKS) };
 }
 
 /**
  * The cards' caption for `covered`, the days the trace weeks of the choice span (`coveredDays`): "Over April 11 –
- * June 29, 2025, the trace weeks holding a chosen day."; without the days where `covered` is null.
+ * June 29, 2025, the trace weeks holding a chosen day."
  */
 export function distributionCaption(covered) {
-  if (covered === null) {
-    // placeholder: the cards' caption where no trace week holds a request of the choice, for the authors.
-    return "The trace weeks holding a chosen day.";
-  }
   // placeholder: the cards' caption, for the authors.
   return `Over ${dateSpanText(covered.firstDay, covered.lastDay)}, the trace weeks holding a chosen day.`;
 }
@@ -121,10 +115,11 @@ export function showCardsLoading(places) {
   }
 }
 
-/** Show `error` in each of the cards' `places`, in place of its card. */
+/** Show `error` in each of the cards' `places`, in place of its card; it is logged once, not once per card. */
 export function showCardsError(places, error) {
+  console.error(error);
   for (const place of places) {
-    showError(place, error);
+    showErrorNote(place, error);
   }
 }
 
@@ -144,7 +139,7 @@ export async function drawDistributionCards(places, { rows, covered, series, leg
       rows: formatQuantity(requests, "request", "requests"),
       heading: "h4",
     });
-    const cdf = cdfRows(binTotals(rows, series.column, card.metric, legend.colours));
+    const cdf = listedRows(cdfRows(binTotals(rows, series.column, card.metric, legend.colours)), legend);
     charts.push({ body, card, rows: cdf, x: cdf.length === 0 ? card.x : distributionAxis(card, cdf) });
   }
   const drawn = { legend, labels: series.labels ?? {}, charts };
@@ -161,11 +156,18 @@ export async function drawDistributionCurves(drawn, hidden) {
   const hiddenHere = hasLegend(drawn.legend.series) ? hidden : new Set();
   const drawings = [];
   for (const chart of drawn.charts) {
-    const drawing = drawShownSeries(chart.body, drawn.legend, hiddenHere, (series) => drawCurves(chart, drawn, series));
+    const drawing = drawShownSeries(chart.body, drawn.legend, hiddenHere, (hidden) => drawCurves(chart, drawn, hidden));
     // No one awaits a legend's press, so a chart that fails shows its error in its own place.
     drawings.push(drawing.catch((error) => showError(chart.body, error)));
   }
   await Promise.all(drawings);
+}
+
+// The CDF rows of `rows` whose series `legend` lists. A series with requests in the weeks but none on the bars' chosen
+// days has no button in the bars' legend; it is left out, so that every line drawn can be hidden as the bars are.
+function listedRows(rows, legend) {
+  const listed = new Set(legend.series.map((entry) => entry.name));
+  return rows.filter((row) => listed.has(row.series));
 }
 
 // Draw `chart`'s CDF rows, one line per series not in `hidden`, in `drawn`'s legend colours, and name the chart; a

@@ -15,7 +15,7 @@
  */
 
 import { readAnswer } from "../shared/answers.js";
-import { distinct, showError, showLoading } from "../shared/charts.js";
+import { distinct, showError, showErrorNote, showLoading } from "../shared/charts.js";
 import { drawBars } from "./traffic_bars.js";
 import { mountTrafficControls } from "./traffic_controls.js";
 import {
@@ -59,6 +59,7 @@ async function drawExplorer(container, context) {
     cardPlaces: [], // the places of the three distribution cards, once placed in the grid
     distributions: null, // the distribution cards drawn last, which the legend draws again; null while they load
     hidden: new Set(), // the series the legend hides, kept while the choice keeps its family and model
+    summary: null, // the tiles' numbers drawn last, which an error leaves without their percentiles
     sliders: null, // the sliders' `{ show }`, once placed
     choice: null, // the choice drawn last, which a slider's range joins as it moves
   };
@@ -78,7 +79,7 @@ async function drawExplorer(container, context) {
   });
   container.replaceChildren(row, explorerCard(view));
   if (controls.error !== null) {
-    showError(view.figure, controls.error);
+    showChoiceError(view, controls.error);
     return;
   }
   await drawChoice(view, controls.choice);
@@ -150,8 +151,19 @@ function showChoice(view, choice) {
 
 // Draw the tiles and the bars again for a new `choice`.
 function drawChange(view, choice) {
-  // No one awaits a change, so a failed drawing shows its error in the figure's place.
-  drawChoice(view, choice).catch((error) => showError(view.figure, error));
+  // No one awaits a change, so a failed drawing shows its error in the places it drew into.
+  drawChoice(view, choice).catch((error) => showChoiceError(view, error));
+}
+
+// The choice could not be drawn: `error` in the bars' place and in each distribution card's, logged once, and the
+// tiles drawn last left without percentile notes, so nothing keeps loading or shows an earlier choice.
+function showChoiceError(view, error) {
+  view.distributions = null;
+  showErrorNote(view.figure, error);
+  showCardsError(view.cardPlaces, error);
+  if (view.summary !== null) {
+    renderTiles(view.tiles, view.summary, NO_PERCENTILES);
+  }
 }
 
 // Filter the rows of the choice's answer once for `choice`, then draw the tiles and the bars from what it keeps, and
@@ -165,6 +177,7 @@ async function drawChoice(view, choice) {
   const family = choice.family === "" ? null : await familyAnswer(view, choice.family);
   const chosen = rowsInChoice(family === null ? view.familyRows : family.rows, choice);
   const summary = trafficSummary(chosen);
+  view.summary = summary;
   renderTiles(view.tiles, summary, null);
   // The order each kind of series takes its colours in: the families', the family's models' and the Overview's.
   const orders = {
@@ -179,9 +192,13 @@ async function drawChoice(view, choice) {
 }
 
 // The distribution cards and the tiles' percentiles of `choice`, once its bars are `drawn` (`{ series, legend,
-// summary }`), from its histogram answer, the cards loading while it is read. A choice the explorer has moved on from
-// by then draws nothing; a failed read shows its error in the cards and leaves the tiles without percentiles.
+// summary }`), from its histogram answer, the cards loading while it is read. A choice the explorer has moved on from,
+// before or while the answer is read, touches nothing; a failed read shows its error in the cards and leaves the tiles
+// without percentiles.
 async function drawDistributions(view, choice, drawn) {
+  if (!isSameChoice(view.choice, choice)) {
+    return;
+  }
   view.distributions = null;
   showCardsLoading(view.cardPlaces);
   try {
@@ -201,9 +218,12 @@ async function drawDistributions(view, choice, drawn) {
 async function drawHistograms(view, choice, drawn, answer) {
   const rows = histogramRowsInChoice(answer, choice);
   renderTiles(view.tiles, drawn.summary, choicePercentiles(rows));
-  const covered = coveredDays(answer, choice, view.days.at(-1));
+  const covered = coveredDays(choice, view.days[0], view.days.at(-1));
   const distributions = { rows, covered, series: drawn.series, legend: drawn.legend };
-  view.distributions = await drawDistributionCards(view.cardPlaces, distributions, view.hidden);
+  const drawnCards = await drawDistributionCards(view.cardPlaces, distributions, view.hidden);
+  if (isSameChoice(view.choice, choice)) {
+    view.distributions = drawnCards;
+  }
 }
 
 // The legend hid or showed a series: keep its `hidden` set for the choices that follow, and draw the distribution
