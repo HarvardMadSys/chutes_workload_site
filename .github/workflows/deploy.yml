@@ -1,10 +1,10 @@
 name: Deploy
 
-# Deploys site/ to Cloudflare as the Worker's static assets on every push to main, with wrangler and an API token,
-# so no Cloudflare dashboard role beyond Workers Platform Admin is needed. The repository's owner adds the two secrets
-# under the repository's Settings > Secrets and variables > Actions: CLOUDFLARE_API_TOKEN (a token with Workers
-# Scripts: Edit, from the dashboard's "Edit Cloudflare Workers" template) and CLOUDFLARE_ACCOUNT_ID. The repository
-# variable CLOUDFLARE_ACCOUNT_SUBDOMAIN, set there too, turns on the check of the published site.
+# Deploys site/ to Cloudflare as the Worker's static assets on every push to main, once the test job has passed, with
+# wrangler and an API token, so no Cloudflare dashboard role beyond Workers Platform Admin is needed. The repository's
+# owner adds the two secrets under the repository's Settings > Secrets and variables > Actions: CLOUDFLARE_API_TOKEN (a
+# token with Workers Scripts: Edit, from the dashboard's "Edit Cloudflare Workers" template) and CLOUDFLARE_ACCOUNT_ID.
+# The repository variable CLOUDFLARE_ACCOUNT_SUBDOMAIN, set there too, turns on the check of the published site.
 
 on:
   push:
@@ -20,7 +20,30 @@ permissions:
   contents: read
 
 jobs:
+  # The whole suite on a fresh machine, as `make test` runs it: the Python tests, the node tests, and the snapshot test,
+  # which opens the page in Chromium. ARTIFACT is empty, as the artifact's checkout is not here: the tests that need it
+  # skip, and every other test runs.
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - run: make setup
+
+      - run: .venv/bin/python -m playwright install --with-deps chromium
+
+      - run: make test ARTIFACT=
+
   deploy:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -1,6 +1,7 @@
 """The deployment settings: `wrangler.jsonc` names the Worker and serves `site/` as its static assets, and every path
 the deploy workflow asks the published site for is a file of `site/`, among them the page, the daily by-family answer,
-the histogram answer by family and one figure answer."""
+the histogram answer by family and one figure answer. And the workflow's `deploy` job waits for its `test` job, which
+installs Chromium and then runs `make test`."""
 
 import json
 import pathlib
@@ -26,6 +27,9 @@ REQUIRED_CHECKED_PATHS = {
 # A check of the workflow's last step: `check_answer "<path>" "<content type>"`.
 CHECK_ANSWER_LINE = re.compile(r'^\s*check_answer\s+"(?P<path>/[^"]*)"\s+"(?P<content_type>[^"]+)"\s*$')
 
+# A job's first line, its name under `jobs:`, indented two spaces with nothing after the colon.
+JOB_NAME_LINE = re.compile(r"^  (?P<job>[a-z_-]+):\s*$")
+
 # The content type each checked file's suffix is served with.
 CONTENT_TYPE_BY_SUFFIX = {".html": "text/html", ".json": "application/json"}
 
@@ -45,6 +49,22 @@ def checked_answers() -> dict[str, str]:
         if match:
             answers[match["path"]] = match["content_type"]
     return answers
+
+
+def job_lines(job: str) -> list[str]:
+    """The lines of the workflow's job `job`, each without its indentation: from the line after its name under `jobs:`
+    to the next job's name or the file's end."""
+    lines = DEPLOY_WORKFLOW.read_text().splitlines()
+    after_jobs = lines[lines.index("jobs:") + 1 :]
+    kept = []
+    in_job = False
+    for line in after_jobs:
+        match = JOB_NAME_LINE.match(line)
+        if match:
+            in_job = match["job"] == job
+        elif in_job:
+            kept.append(line.strip())
+    return kept
 
 
 def site_file(path: str) -> pathlib.Path:
@@ -78,3 +98,15 @@ def test_every_checked_content_type_is_its_file_s() -> None:
     for path, content_type in checked_answers().items():
         suffix = site_file(path).suffix
         assert CONTENT_TYPE_BY_SUFFIX[suffix] == content_type, f"{path} is checked for {content_type}"
+
+
+def test_the_deploy_waits_for_the_test_job() -> None:
+    assert "needs: test" in job_lines("deploy")
+
+
+def test_the_test_job_installs_chromium_then_runs_make_test() -> None:
+    steps = job_lines("test")
+    install = "- run: .venv/bin/python -m playwright install --with-deps chromium"
+    suite = "- run: make test ARTIFACT="
+    assert install in steps and suite in steps
+    assert steps.index(install) < steps.index(suite), "the snapshot test skips unless Chromium is installed before it"
