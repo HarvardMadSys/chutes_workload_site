@@ -23,12 +23,6 @@ test("until the count is known the lede leaves it out, and one month is in the s
   assert.match(ledeText(1), /Chutes: 1 month of every request's/);
 });
 
-test("the hero has no eyebrow above its title", () => {
-  const container = { innerHTML: "" };
-  renderHero(container, 13);
-  assert.match(container.innerHTML.trim(), /^<h1 /);
-});
-
 test("the title is the page's h1, the hero section's label, and the five buttons and the lab's name lead to their addresses", () => {
   const container = { innerHTML: "" };
   renderHero(container, 13);

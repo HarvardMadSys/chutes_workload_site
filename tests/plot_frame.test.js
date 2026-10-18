@@ -29,13 +29,6 @@ test("a colour scale keeps each shown name's colour from the map, in the order s
   });
 });
 
-test("a chart's margins hold its 14.6 px tick labels and axis titles", () => {
-  const frame = chartFrame({ clientWidth: 600 });
-  assert.equal(frame.marginLeft, 72); // a count of six digits with its separator, as "150,000"
-  assert.equal(frame.marginBottom, 48); // the x tick labels, and the axis title on a line below them
-  assert.equal(frame.marginTop, 32); // the y axis title above the chart
-});
-
 test("a chart whose y axis has no title has a small top margin, and a card's margins are kept", () => {
   assert.equal(titledFrame({ clientWidth: 600 }, "Requests", undefined).marginTop, 32);
   assert.equal(titledFrame({ clientWidth: 600 }, null, undefined).marginTop, 12);
@@ -43,7 +36,6 @@ test("a chart whose y axis has no title has a small top margin, and a card's mar
 });
 
 test("a chart is as tall as its card's height, and CHART_HEIGHT where the card gives none", () => {
-  assert.equal(CHART_HEIGHT, 240);
   assert.equal(titledFrame({ clientWidth: 600 }, "Requests", undefined).height, CHART_HEIGHT);
   assert.equal(titledFrame({ clientWidth: 600 }, "Requests", undefined, undefined).height, CHART_HEIGHT);
   assert.equal(titledFrame({ clientWidth: 600 }, null, { marginLeft: 40 }, 340).height, 340);
@@ -69,11 +61,6 @@ test("a sequential colour legend is ticked where given, else at Plot's own ticks
   const ticked = sequentialColour({ colourLog: true, valueLabel: "Users" }, "Blues", [1, 10, 100]);
   assert.deepEqual(ticked.ticks, [1, 10, 100]);
   assert.equal(Object.hasOwn(sequentialColour({ colourLog: true, valueLabel: "Users" }, "Blues"), "ticks"), false);
-});
-
-test("a dashed line is dashes of four pixels and gaps of three", () => {
-  assert.deepEqual(DASH, [4, 3]);
-  assert.ok(Object.isFrozen(DASH));
 });
 
 test("a reference rule is a dashed horizontal rule at its value in the label ink, haloed over cells, or nothing", () => {

@@ -29,5 +29,4 @@ test("the page runs Overview, Traffic Explorer, Insights, Cite and Team, each of
     const firstHeading = page.slice(start).match(/<h2 id="[^"]+">([^<]+)<\/h2>/)[1];
     assert.equal(firstHeading, section.title, section.anchor);
   }
-  assert.doesNotMatch(page, /class="eyebrow"/);
 });

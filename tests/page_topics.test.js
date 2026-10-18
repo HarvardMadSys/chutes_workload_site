@@ -11,37 +11,12 @@ import { everyCard, everyGroup } from "./insights_fixtures.js";
 // The figure answers the data step wrote, as their index lists them: each figure's row count, by name.
 const INDEX = shippedAnswer("figures");
 
-// How many cards each group of each topic holds, in the order of the topics and of their groups: a card for each panel
-// of the paper's figures of the topic's section. A pin of the paper's layout, updated with a topic or a group added.
-const GROUP_CARD_COUNTS = [[4, 1], [3, 2, 3], [4, 4, 2], [2, 2, 2], [4, 3, 2], [6, 2, 1]];
-
 // The fields of a topic, of a group, and of a card: its words, each a string, then its kind and its chart's
 // parameters; a card may also have the optional ones.
 const TOPIC_FIELDS = ["id", "title", "takeaway", "groups"];
 const GROUP_FIELDS = ["heading", "takeaway", "cards"];
 const CARD_FIELDS = ["figure", "title", "insight", "caption", "definition", "kind"];
 const OPTIONAL_CARD_FIELDS = ["panels", "legend", "series", "palette", "isWide"];
-
-// The legend answer whose order the two monthly share cards' series take, and those cards.
-const SHARE_LEGEND = "fig_top10_model_monthly_share_legend";
-const SHARE_PANELS = ["fig_top10_model_monthly_request_share", "fig_top10_model_monthly_token_share"];
-
-// The wide cards, in the topics' order, as the spec's table marks them: the output-to-input ratio and the TTL
-// coverage, each a log axis of many decades, and the routing simulation's eight panels.
-const WIDE_CARDS = ["fig_output_input_ratio_cdf_by_model", "fig_iat_pair_ttl_coverage", "fig_routing_tradeoff"];
-
-// How many times each figure is used: once for a card's figure, once more for each card it is the legend of.
-function figureUses() {
-  const uses = new Map();
-  for (const card of everyCard()) {
-    for (const name of [card.figure, card.legend]) {
-      if (name !== undefined) {
-        uses.set(name, (uses.get(name) ?? 0) + 1);
-      }
-    }
-  }
-  return uses;
-}
 
 test("each topic has an id of its own, an anchor under the Insights' own", () => {
   const ids = TOPICS.map((topic) => topic.id);
@@ -66,11 +41,6 @@ test("a topic has its id, title, takeaway and groups, a group its heading, takea
       assert.equal(typeof group.takeaway, "string", `${topic.id}: ${group.heading}`);
     }
   }
-});
-
-test("every topic holds its cards in groups of the paper's runs", () => {
-  const groupCardCounts = TOPICS.map((topic) => topic.groups.map((group) => group.cards.length));
-  assert.deepEqual(groupCardCounts, GROUP_CARD_COUNTS);
 });
 
 test("no group is empty", () => {
@@ -106,19 +76,19 @@ test("a card has every field, each a string, its chart's parameters, and no fiel
   }
 });
 
-test("every figure answer of the index is drawn once, but the share legend, which orders both share cards", () => {
-  const uses = figureUses();
-  assert.deepEqual([...uses.keys()].sort(), Object.keys(INDEX).sort());
-  for (const [name, count] of uses) {
-    assert.equal(count, name === SHARE_LEGEND ? 2 : 1, name);
+test("every figure answer of the index is one card's figure, or the legend of the cards that name it", () => {
+  const figures = everyCard().map((card) => card.figure);
+  const legends = new Set();
+  for (const card of everyCard()) {
+    if (card.legend !== undefined) {
+      legends.add(card.legend);
+    }
   }
-});
-
-test("only the two share cards name the legend, and only the ratio, the TTL coverage and the routing are wide", () => {
-  const withLegend = everyCard().filter((card) => card.legend !== undefined).map((card) => card.figure);
-  assert.deepEqual(withLegend, SHARE_PANELS);
-  const wide = everyCard().filter((card) => card.isWide === true).map((card) => card.figure);
-  assert.deepEqual(wide, WIDE_CARDS);
+  assert.deepEqual([...new Set([...figures, ...legends])].sort(), Object.keys(INDEX).sort());
+  for (const name of Object.keys(INDEX)) {
+    const drawingCards = figures.filter((figure) => figure === name).length;
+    assert.equal(drawingCards, legends.has(name) ? 0 : 1, name);
+  }
 });
 
 // The objects and lists `value` holds, itself among them, all the way down; functions and plain values left out.

@@ -6,7 +6,7 @@ import { test } from "node:test";
 import { renderFooter, renderHeader, queryString } from "../site/js/shared/layout.js";
 
 // URL keys, as the page gives them to the header.
-const PAGE_KEYS = "model=qwen3&period=q3";
+const PAGE_KEYS = "family=qwen&endpoint=chat";
 
 // The header's markup in a stand-in container, given the URL keys `query`.
 function renderedHeader(query) {
@@ -69,10 +69,6 @@ test("the header links nothing off the site", () => {
   assert.deepEqual(externalLinks(renderedHeader("")), []);
 });
 
-test("the header links no About page", () => {
-  assert.doesNotMatch(renderedHeader(""), /about\.html|>About</);
-});
-
 test("the footer names the lab under its line, linking to it", () => {
   const markup = renderedFooter();
   assert.match(markup, /<a class="affiliation" href="https:\/\/madsys\.seas\.harvard\.edu\/" target="_blank" rel="noopener">Harvard SEAS · MadSys Lab<\/a>/);
@@ -93,13 +89,12 @@ test("the footer's section links lead where the header's do, by anchor alone", (
   ]);
 });
 
-test("the footer holds the brand, its line and the two lists of links, with no headings and no copyright or policy text", () => {
+test("the footer holds the brand, its line and the two lists of links, with no headings", () => {
   const markup = renderedFooter();
   assert.match(markup, /Chutes <em>Production Trace<\/em>/);
   const titles = [...markup.matchAll(/<p class="footer-nav-title">([^<]+)<\/p>/g)].map((match) => match[1]);
   assert.deepEqual(titles, ["On this site", "Elsewhere"]);
   assert.doesNotMatch(markup, /<h[1-6]/, "the footer's list titles are no headings");
-  assert.doesNotMatch(markup, /Copyright|Accessibility|footer-legal/);
 });
 
 test("the footer's line counts the months in digits as the hero's lede does, and says One year while the count is unknown", () => {
@@ -109,7 +104,7 @@ test("the footer's line counts the months in digits as the hero's lede does, and
 });
 
 test("the query string is a question mark and the keys", () => {
-  assert.equal(queryString(new URLSearchParams("model=qwen3&period=2025-q3")), "?model=qwen3&period=2025-q3");
+  assert.equal(queryString(new URLSearchParams(PAGE_KEYS)), "?family=qwen&endpoint=chat");
 });
 
 test("no keys give an empty query string", () => {

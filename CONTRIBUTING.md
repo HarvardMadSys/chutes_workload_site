@@ -288,9 +288,7 @@ at the page's width less the gutters, `.page` keeping the gutters as its
 padding; the Traffic Explorer's `#traffic` alone is uncapped. A new
 topic of figures is a module of `js/insights/` instead, added to
 `TOPICS`, where it becomes a tab and a section, numbered by its place,
-with no edit to `index.html`, the tabs or the snapshot states;
-`GROUP_CARD_COUNTS` of `tests/page_topics.test.js`, which pins each
-topic's groups' card counts, gains its entry.
+with no edit to `index.html`, the tabs or the snapshot states.
 
 ## Patterns to copy
 
@@ -542,11 +540,9 @@ table and the card's words.
    `palette` where the figure needs them. A figure that says something no
    group says starts a group of its own, with a heading and a takeaway (a
    `// placeholder:` comment above them where they are not the paper's
-   words). Raise its group's count in `GROUP_CARD_COUNTS` of
-   `tests/page_topics.test.js`, or add the new group's count
-   there in its place, which also checks that the
-   cards draw every answer of the index once (the shared legend is named by
-   two cards); `tests/insights_cards_answers.test.js` checks that its answer
+   words). `tests/page_topics.test.js` checks that every answer of the
+   index is one card's figure, or the legend of the cards that name it;
+   `tests/insights_cards_answers.test.js` checks that its answer
    has its kind's columns; `tests/insights_cards_domains.test.js` that
    its answer's values fit each fixed domain of its axes, but a clip it
    lists in `INTENDED_CLIPS` with its reason;
