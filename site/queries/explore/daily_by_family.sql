@@ -1,9 +1,8 @@
 -- One row per calendar day, family and endpoint group: the day's requests, the sums of their input tokens, output tokens
 -- and TTFT, and how many requests recorded each (`input_counted`, `output_counted`, `ttft_counted`), so that an average
 -- divides by the requests that have the value. The family is the cache's: a family of the artifact's family table, or
--- `Other` for every model in none. `family_slug` is the family's name in lower case with each run of characters other
--- than letters and digits as one `-` (`DeepSeek` → `deepseek`): the one place a slug is made, which names the family's
--- answer `explore/daily_by_model/<family_slug>` and the family in the page's URL.
+-- `Other` for every model in none. `family_slug` is the family's slug as `family_mix`, the families' one home, makes
+-- it, by the same expression.
 SELECT trace_calendar.calendar_day AS day,
        daily_rollup.family,
        regexp_replace(lower(daily_rollup.family), '[^a-z0-9]+', '-', 'g') AS family_slug,

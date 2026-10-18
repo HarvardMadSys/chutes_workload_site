@@ -18,7 +18,7 @@ EXPECTED_COLUMNS = {
     "explore/daily_by_model": ["day", "chute_id", "model", "endpoint_group", "requests", "input_tokens",
                                "input_counted", "output_tokens", "output_counted", "ttft_sum", "ttft_counted"],
     "explore/endpoint_mix": ["endpoint_group", "requests"],
-    "explore/family_mix": ["family", "requests"],
+    "explore/family_mix": ["family", "family_slug", "requests"],
     "explore/histograms_by_family": ["week", "first_day", "family", "endpoint_group", "metric", "bins", "requests"],
     "explore/histograms_by_model": ["week", "first_day", "chute_id", "model", "endpoint_group", "metric", "bins",
                                     "requests"],
@@ -107,7 +107,8 @@ def test_the_totals_span_the_trace_in_calendar_days(connection: duckdb.DuckDBPyC
 
 def test_the_family_mix_is_each_family_by_its_requests_then_other(connection: duckdb.DuckDBPyConnection) -> None:
     mix = query_records(connection, "explore/family_mix")
-    assert [(row["family"], row["requests"]) for row in mix] == [("DeepSeek", 95), ("gpt-oss", 20), ("Other", 25)]
+    assert [(row["family"], row["family_slug"], row["requests"]) for row in mix] == [
+        ("DeepSeek", "deepseek", 95), ("gpt-oss", "gpt-oss", 20), ("Other", "other", 25)]
 
 
 def test_the_family_mix_sums_to_the_trace_and_names_the_daily_families(connection: duckdb.DuckDBPyConnection) -> None:
@@ -118,6 +119,13 @@ def test_the_family_mix_sums_to_the_trace_and_names_the_daily_families(connectio
     mix_families = [row["family"] for row in mix]
     assert len(mix_families) == len(set(mix_families)), "a family has two rows"
     assert set(mix_families) == {row["family"] for row in by_family}
+
+
+def test_the_daily_rows_by_family_slug_each_family_as_the_family_mix_does(
+        connection: duckdb.DuckDBPyConnection) -> None:
+    mix_slugs = {(row["family"], row["family_slug"]) for row in query_records(connection, "explore/family_mix")}
+    by_family = query_records(connection, "explore/daily_by_family")
+    assert {(row["family"], row["family_slug"]) for row in by_family} == mix_slugs
 
 
 def test_the_family_models_are_ranked_within_their_family(connection: duckdb.DuckDBPyConnection) -> None:

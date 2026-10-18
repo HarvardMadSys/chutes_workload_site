@@ -5,7 +5,8 @@ answer depends on its own query and on the setup query `setup/family_models`, wh
 family's models read.
 
 A family query (`FAMILY_QUERIES`) takes the family as its one parameter, `$family`: it is run once per family of the
-by-family answer (`FAMILIES_QUERY`) and written as `all/explore/<query>/<family_slug>.json`, its hash recorded once.
+family mix (`FAMILIES_QUERY`), in the mix's order, and written as `all/explore/<query>/<family_slug>.json`, its hash
+recorded once.
 Each answer is written in the JSON form of `answer_files.py`, its keys the query's column names in the query's order.
 """
 
@@ -18,18 +19,17 @@ import duckdb
 
 from site_data import answer_files, site_database
 
-FAMILIES_QUERY = "explore/daily_by_family"  # its rows name the families the family queries are run for, with slugs
+FAMILIES_QUERY = "explore/family_mix"  # its rows are the families, one each, with their slugs, in their order
 # The queries run once per family of `FAMILIES_QUERY`'s answer, the family bound as `$family`, each written as
 # `<query>/<family_slug>.json`.
 FAMILY_QUERIES = ["explore/daily_by_model", "explore/histograms_by_model"]
 FAMILY_PARAMETER = "family"  # the name a family query binds the family's name to, `$family` in its text
-OTHER_FAMILY = "Other"  # the family of every model in no family of the artifact's table: listed after every other
 
 
 @dataclasses.dataclass(frozen=True)
 class Family:
-    """A family of the by-family answer: its `name`, the value a family query binds, and its `slug`, which names its
-    answer files."""
+    """A family of the family mix: its `name`, the value a family query binds, and its `slug`, which names its answer
+    files."""
 
     name: str
     slug: str
@@ -56,13 +56,8 @@ def hashed_query_names(queries_folder: pathlib.Path = site_database.QUERIES_FOLD
 
 
 def families(family_rows: list[dict]) -> list[Family]:
-    """The families of `family_rows`, the rows of `FAMILIES_QUERY`'s answer, each once: by their requests over the
-    rows, most first, then `OTHER_FAMILY`; a tie by name."""
-    requests = {}
-    for row in family_rows:
-        family = Family(name=row["family"], slug=row["family_slug"])
-        requests[family] = requests.get(family, 0) + row["requests"]
-    return sorted(requests, key=lambda family: (family.name == OTHER_FAMILY, -requests[family], family.name))
+    """The family of each of `family_rows`, the rows of `FAMILIES_QUERY`'s answer, in the rows' order."""
+    return [Family(name=row["family"], slug=row["family_slug"]) for row in family_rows]
 
 
 def write_answers(connection: duckdb.DuckDBPyConnection, data_directory: pathlib.Path) -> list[pathlib.Path]:
@@ -75,12 +70,10 @@ def write_answers(connection: duckdb.DuckDBPyConnection, data_directory: pathlib
         shutil.rmtree(answers_directory / answer_files.ANSWERED_FOLDER)  # a query since removed keeps no answer
     answers_directory.mkdir(parents=True, exist_ok=True)
     written = []
-    single_answers = {}  # each single answer's rows by its query's name; the families are read from one of them
     for name in single_answer_query_names():
-        single_answers[name] = answer_rows(connection, name)
         path = data_directory / answer_files.answer_path(name)
-        written.append(answer_files.write_answer(path, single_answers[name]))
-    for family in families(single_answers[FAMILIES_QUERY]):
+        written.append(answer_files.write_answer(path, answer_rows(connection, name)))
+    for family in families(answer_rows(connection, FAMILIES_QUERY)):
         for name in FAMILY_QUERIES:
             path = data_directory / answer_files.answer_path(name, family.slug)
             rows = answer_rows(connection, name, {FAMILY_PARAMETER: family.name})

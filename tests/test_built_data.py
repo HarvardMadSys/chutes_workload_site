@@ -64,7 +64,7 @@ def test_every_query_has_its_answer() -> None:
 
 
 def test_a_family_query_has_one_answer_per_family_and_no_other() -> None:
-    """Each family query's folder holds one file per family of the by-family answer, named by its slug."""
+    """Each family query's folder holds one file per family of the family mix, named by its slug."""
     family_rows = json.loads((DATA_FOLDER / answer_files.answer_path(answers.FAMILIES_QUERY)).read_text())
     families = answers.families(family_rows)
     slugs = {family.slug for family in families}

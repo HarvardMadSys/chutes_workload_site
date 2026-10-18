@@ -2,7 +2,7 @@
 -- the day's requests, the sums of their input tokens, output tokens and TTFT, and how many requests recorded each, as
 -- in `daily_by_family`. The model is one of the family's eight most requested named models (`family_models`), with its
 -- `chute_id`, or `Other <family>`, with a null `chute_id`, for the family's other models. The data step runs the query
--- once per family of `daily_by_family`.
+-- once per family of `family_mix`.
 SELECT trace_calendar.calendar_day AS day,
        family_models.chute_id,
        coalesce(family_models.name, 'Other ' || $family) AS model,

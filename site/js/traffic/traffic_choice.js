@@ -100,22 +100,9 @@ export function isSameChoice(first, second) {
 }
 
 /**
- * The families of `familyRows`, the rows of `explore/daily_by_family`: `[{ family, family_slug, requests }]`, each
- * family once with its requests over the rows, most requested first and "Other", the models in no family, last.
- */
-export function familyOrder(familyRows) {
-  const families = new Map();
-  for (const row of familyRows) {
-    const family = families.get(row.family) ?? { family: row.family, family_slug: row.family_slug, requests: 0 };
-    family.requests += row.requests;
-    families.set(row.family, family);
-  }
-  return [...families.values()].sort(otherLastByRequests);
-}
-
-/**
- * The family drop-down's entries, `[{ value, text }]`: "All families" (value ""), then each family of `families`
- * (`familyOrder`'s rows, in their order) by its name, valued by its slug.
+ * The family drop-down's entries, `[{ value, text }]`: "All families" (value ""), then each family of `families`,
+ * the rows of `explore/family_mix` (`{ family, family_slug, requests }`) in their order, by its name, valued by its
+ * slug.
  */
 export function familyChoices(families) {
   const choices = [{ value: "", text: EVERY_FAMILY_TEXT }];
@@ -172,27 +159,19 @@ export function metricChoices() {
   return METRICS.map((metric) => ({ value: metric.value, text: metric.text }));
 }
 
+// placeholder: the family Other's other models, which its answer names "Other Other", for the authors.
+const REST_OF_OTHER_TEXT = "Rest of Other";
+
 /**
  * The text of the other models, past the eight named ones, of the family named `familyName`, whose rows of
  * `explore/daily_by_model` are `rows`: the `model` the answer writes on its rows whose `chute_id` is null, "Other
- * DeepSeek", and "Rest of Other" for the family Other; undefined for a family whose rows hold no other models.
+ * DeepSeek", and `REST_OF_OTHER_TEXT` for the family Other; undefined for a family whose rows hold no other models.
  */
 export function otherModelsText(rows, familyName) {
   if (familyName === OTHER_NAME) {
-    // placeholder: the family Other's other models, which its answer names "Other Other", for the authors.
-    return "Rest of Other";
+    return REST_OF_OTHER_TEXT;
   }
   return rows.find((row) => row.chute_id === null)?.model;
-}
-
-// For sorting families: "Other" after every other family, the rest by requests, most first.
-function otherLastByRequests(first, second) {
-  const firstIsOther = first.family === OTHER_NAME;
-  const secondIsOther = second.family === OTHER_NAME;
-  if (firstIsOther !== secondIsOther) {
-    return firstIsOther ? 1 : -1;
-  }
-  return second.requests - first.requests;
 }
 
 function setOrDelete(params, key, value) {

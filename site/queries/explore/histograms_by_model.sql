@@ -3,7 +3,7 @@
 -- (`first_day`), and two lists in bin order, the bins that hold a request (`bins`) and the requests in each
 -- (`requests`), as in `histograms_by_family`. The model is one of the family's eight most requested named models
 -- (`family_models`), with its `chute_id`, or `Other <family>`, with a null `chute_id`, for the family's other models,
--- as `daily_by_model` names it. The data step runs the query once per family of `daily_by_family`.
+-- as `daily_by_model` names it. The data step runs the query once per family of `family_mix`.
 WITH bin_requests AS (
     SELECT weekly_histograms.week,
            family_models.chute_id,

@@ -7,14 +7,14 @@
  *
  * Its rows come from the `explore/daily_by_family` answer, read once, and from a family's
  * `explore/daily_by_model/<family_slug>` answer, read the first time the family is chosen and kept for the visit. The
- * families take their colours in the order of their requests, a family's models in the order of theirs, and the
- * endpoint groups from the Overview's order (`context.mixes`). A change of the choice (`traffic/traffic_choice.js`)
- * filters the rows once (`traffic/traffic_filter.js`), writes the tiles and draws the bars again; so does the slider as
- * a handle moves. Once the bars are drawn, the tiles' percentiles are written and the three charts drawn from the
- * histogram answer, read and kept as the daily ones are. The controls keep the choice in the URL
- * (`traffic/traffic_controls.js`). A family's answer that cannot be read, at the opening or on a choice, shows its
- * error in the bars' place and the three charts' places, the tiles keeping their numbers without percentiles; a
- * histogram answer's, in the charts' places, the tiles without percentiles.
+ * families are the Overview's family mix, listed and coloured in its order, a family's models take their colours in
+ * the order of their requests, and the endpoint groups from the Overview's order (`context.mixes`). A change of the
+ * choice (`traffic/traffic_choice.js`) filters the rows once (`traffic/traffic_filter.js`), writes the tiles and draws
+ * the bars again; so does the slider as a handle moves. Once the bars are drawn, the tiles' percentiles are written
+ * and the three charts drawn from the histogram answer, read and kept as the daily ones are. The controls keep the
+ * choice in the URL (`traffic/traffic_controls.js`). A family's answer that cannot be read, at the opening or on a
+ * choice, shows its error in the bars' place and the three charts' places, the tiles keeping their numbers without
+ * percentiles; a histogram answer's, in the charts' places, the tiles without percentiles.
  */
 
 import { readAnswer } from "../shared/answers.js";
@@ -26,7 +26,7 @@ import {
   drawDistributionCharts, drawDistributionCurves, placeDistributionCharts, showChartsError, showChartsLoading,
 } from "./traffic_distribution_charts.js";
 import { choicePercentiles, histogramRowsInChoice } from "./traffic_distributions.js";
-import { familyChoices, familyOrder, isSameChoice, modelChoices, modelOrder } from "./traffic_choice.js";
+import { familyChoices, isSameChoice, modelChoices, modelOrder } from "./traffic_choice.js";
 import { rowsInChoice, trafficSummary } from "./traffic_filter.js";
 import { mountRange } from "./traffic_range.js";
 import { NO_PERCENTILES, renderTiles } from "./traffic_tiles.js";
@@ -51,7 +51,7 @@ async function drawExplorer(container, context) {
   const familyRows = await readAnswer(FAMILY_QUERY);
   const view = {
     familyRows,
-    families: familyOrder(familyRows),
+    families: await context.mixes.families, // the rows of the family mix, in its order
     familyAnswers: new Map(), // each family's answer, by its slug, from the first time the family is chosen
     histogramAnswers: new Map(), // each histogram answer, by its family's slug ("" for every family), once asked for
     endpoints: await context.mixes.endpoints,

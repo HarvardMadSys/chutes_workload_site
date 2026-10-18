@@ -8,7 +8,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
-  endpointChoices, familyChoices, familyOrder, isSameChoice, metricChoices, metricOf, METRICS, modelChoices,
+  endpointChoices, familyChoices, isSameChoice, metricChoices, metricOf, METRICS, modelChoices,
   OTHER_MODEL, otherModelsText, readTrafficChoice, writeTrafficChoice,
 } from "../site/js/traffic/traffic_choice.js";
 import { familyColours } from "../site/js/theme/colours.js";
@@ -112,29 +112,24 @@ test("two choices are the same when their family, model, endpoint group, metric 
   assert.equal(isSameChoice(EVERYTHING, { ...EVERYTHING, to: "2025-07-01" }), false);
 });
 
-test("the families are ordered by their requests, Other last, whatever its requests", () => {
+test("the family drop-down lists the family mix's rows as they come, each by its name, valued by its slug", () => {
   const rows = [
-    { family: "Other", family_slug: "other", requests: 50 },
-    { family: "Kin", family_slug: "kin", requests: 10 },
-    { family: "Clan", family_slug: "clan", requests: 20 },
-    { family: "Kin", family_slug: "kin", requests: 15 },
-  ];
-  assert.deepEqual(familyOrder(rows), [
     { family: "Kin", family_slug: "kin", requests: 25 },
     { family: "Clan", family_slug: "clan", requests: 20 },
     { family: "Other", family_slug: "other", requests: 50 },
-  ]);
-  assert.deepEqual(familyChoices(familyOrder(rows)), [
+  ];
+  assert.deepEqual(familyChoices(rows), [
     { value: "", text: "All families" }, { value: "kin", text: "Kin" }, { value: "clan", text: "Clan" },
     { value: "other", text: "Other" },
   ]);
 });
 
 test("the shipped family drop-down offers All families, the ten named families by requests, then Other", () => {
-  const texts = familyChoices(familyOrder(SHIPPED_ROWS)).map((choice) => choice.text);
+  const familyMix = shippedAnswer("explore/family_mix");
+  const texts = familyChoices(familyMix).map((choice) => choice.text);
   assert.equal(texts.length, 12);
   assert.deepEqual([texts[0], texts[1], texts.at(-1)], ["All families", "DeepSeek", "Other"]);
-  assert.equal(familyColours(familyOrder(SHIPPED_ROWS)).size, 11, "every family has a colour of its own");
+  assert.equal(familyColours(familyMix).size, 11, "every family has a colour of its own");
 });
 
 test("a family's model drop-down offers its named models by requests, then Other <family> where it has a rest", () => {

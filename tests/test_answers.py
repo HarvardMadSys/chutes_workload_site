@@ -14,7 +14,7 @@ import pytest
 import fixture_artifact
 from site_data import answer_files, answers, figure_answers, site_database
 
-# The fixture's families, as the by-family answer orders them: by requests, Other last.
+# The fixture's families, as the family mix lists them: by requests, Other last.
 FIXTURE_FAMILIES = [answers.Family("DeepSeek", "deepseek"), answers.Family("gpt-oss", "gpt-oss"),
                     answers.Family("Other", "other")]
 
@@ -49,9 +49,15 @@ def test_the_single_answers_are_a_folder_s_queries_but_the_family_ones(tmp_path:
     assert "explore/histograms_by_model" not in names
 
 
-def test_the_families_are_ordered_by_requests_with_other_last(connection: duckdb.DuckDBPyConnection) -> None:
+def test_the_families_are_the_family_mix_s_in_its_order(connection: duckdb.DuckDBPyConnection) -> None:
     family_rows = answers.answer_rows(connection, answers.FAMILIES_QUERY)
     assert answers.families(family_rows) == FIXTURE_FAMILIES
+
+
+def test_the_families_keep_the_rows_order() -> None:
+    rows = [{"family": "Other", "family_slug": "other", "requests": 50},
+            {"family": "Kin", "family_slug": "kin", "requests": 10}]
+    assert answers.families(rows) == [answers.Family("Other", "other"), answers.Family("Kin", "kin")]
 
 
 @pytest.mark.parametrize("name", answers.single_answer_query_names())

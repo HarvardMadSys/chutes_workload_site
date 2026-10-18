@@ -17,7 +17,7 @@ const DAYS = [
   "2026-04-12",
 ];
 
-// Two families in the order of their requests, Kin and Other, as `familyOrder` gives them.
+// Two families, Kin and Other, as the family mix lists them.
 const FAMILIES = familyChoices([
   { family: "Kin", family_slug: "kin", requests: 45 },
   { family: "Other", family_slug: "other", requests: 5 },

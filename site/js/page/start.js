@@ -12,8 +12,8 @@
  * - `totals`, the promised rows of `explore/trace_totals`, one row of the whole trace's counts, asked for once for the
  *   stats strip and the months the hero and the footer count;
  * - `mixes`, `{ families, endpoints }`, the promised rows of `explore/family_mix` and of `explore/endpoint_mix`, each
- *   most requested first: the donuts' rows and colour orders, and the order every chart, the Insights' cards among
- *   them, colours the endpoint groups by, each asked for once;
+ *   most requested first: the donuts' rows and colour orders, the Traffic Explorer's families in their order, and
+ *   the order every chart, the Insights' cards among them, colours the endpoint groups by, each asked for once;
  * - `replaceQuery(params)`, which writes `params` to the address bar and the header's brand;
  * - `onReturn(redraw)`, which calls `redraw()` each time Back or Forward returns to a history entry, after the tabs
  *   show its topic and the header takes its query; this module is the page's one listener of `popstate`.

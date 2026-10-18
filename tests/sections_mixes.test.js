@@ -9,7 +9,7 @@ import { statsRows } from "../site/js/sections/stats.js";
 import { donutSlices, namedSeries } from "../site/js/charts/donut.js";
 import { columnTotal } from "../site/js/shared/rows.js";
 import { formatCompactCount } from "../site/js/shared/format.js";
-import { familyOrder } from "../site/js/traffic/traffic_choice.js";
+import { familyChoices } from "../site/js/traffic/traffic_choice.js";
 import {
   ENDPOINT_FIRST_SLOT, FAMILY_SLOTS, familyColours, OTHER_SERIES, SERIES_SLOTS,
 } from "../site/js/theme/colours.js";
@@ -43,12 +43,15 @@ test("the family mix's legend is the families in the family colours, in the answ
   assert.equal(legend.colours.get("Other"), OTHER_SERIES);
 });
 
-test("the shipped family mix colours each family as the Traffic Explorer does, all ten named", () => {
+test("the family donut and the Traffic Explorer both read the shipped family mix, in one order, all ten named", () => {
   const rows = shippedAnswer("explore/family_mix");
-  const explorerColours = familyColours(familyOrder(shippedAnswer("explore/daily_by_family")));
+  // The donut reads `context.mixes.families`, as the explorer does for its drop-down and its colours.
+  assert.equal(MIXES[0].breakdown.order, "families");
   const legend = mixLegend(MIXES[0], rows);
-  assert.deepEqual([...legend.colours.entries()], [...explorerColours.entries()]);
-  assert.deepEqual(legend.series.map((entry) => entry.name), rows.map((row) => row.family));
+  assert.deepEqual([...legend.colours.entries()], [...familyColours(rows).entries()]);
+  const dropDownFamilies = familyChoices(rows).slice(1).map((choice) => choice.text);
+  assert.deepEqual(legend.series.map((entry) => entry.name), dropDownFamilies);
+  assert.equal(legend.colours.size, 11, "the ten named families and Other");
 });
 
 test("the endpoint mix's legend labels each group, opens on another colour than the families, Other last", () => {

@@ -195,14 +195,16 @@ const DAILY_ROWS = [{
   input_counted: 0, output_tokens: null, output_counted: 0, ttft_sum: null, ttft_counted: 0,
 }];
 
-// The Overview's endpoint groups, the order the explorer colours them in.
+// The Overview's families, which the explorer's family drop-down lists, and its endpoint groups, the order the
+// explorer colours them in.
+const FAMILY_MIX_ROWS = [{ family: "Kin", family_slug: "kin", requests: 10 }];
 const ENDPOINT_ROWS = [{ endpoint_group: "chat", requests: 10 }];
 
 /**
  * The page started as `startPage` starts it, with the Traffic Explorer as its one section, for the test of `context`:
- * the endpoint groups' order and each file of `answers` (a map from file to its promised rows) fetched as their rows,
- * any other answering 404, and the page opened on the endpoint group completion. Returns `{ reads, tabs, started }`:
- * the files read, in order, the topic tabs and the page's promise.
+ * the families, the endpoint groups' order and each file of `answers` (a map from file to its promised rows) fetched
+ * as their rows, any other answering 404, and the page opened on the endpoint group completion. Returns `{ reads, tabs,
+ * started }`: the files read, in order, the topic tabs and the page's promise.
  */
 function startedPageWithExplorer(context, answers) {
   const sections = topicSections();
@@ -230,7 +232,7 @@ function startedPageWithExplorer(context, answers) {
   });
   context.mock.method(console, "error", () => undefined);
   const reads = [];
-  const files = { [ENDPOINTS_FILE]: ENDPOINT_ROWS, ...answers };
+  const files = { [FAMILIES_FILE]: FAMILY_MIX_ROWS, [ENDPOINTS_FILE]: ENDPOINT_ROWS, ...answers };
   context.mock.method(globalThis, "fetch", async (file) => {
     reads.push(file);
     const rows = await files[file];
