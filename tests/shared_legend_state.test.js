@@ -3,8 +3,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
+import { legendPlace, renderFigure } from "../site/js/shared/figure.js";
 import { drawShownSeries, drawWithLegend } from "../site/js/shared/legend.js";
-import { FakeElement, FakeFigureBody, settled, useFakeDocument } from "./fake_page.js";
+import { FakeElement, settled, useFakePage } from "./fake_page.js";
 
 // A legend of two series, as the Traffic Explorer's bars give one.
 const LEGEND = {
@@ -12,21 +13,25 @@ const LEGEND = {
   colours: new Map([["hermes", "var(--series-1)"], ["pi", "var(--series-2)"]]),
 };
 
+// A figure's words, for a body that `renderFigure` lays out, whose legend's place is above it.
+const FIGURE = Object.freeze({ title: "Requests per family", caption: "Each family's requests.", definition: "Rows." });
+
+// Whether each of the legend's buttons above `body` is pressed, in their order.
 function pressedStates(body) {
-  return body.legendPlace.children.map((button) => button.getAttribute("aria-pressed"));
+  return legendPlace(body).children.map((button) => button.getAttribute("aria-pressed"));
 }
 
 test("a chart may start from a hidden set, its buttons not pressed, and tell each click's new set", async (context) => {
-  useFakeDocument(context);
-  const body = new FakeFigureBody();
+  useFakePage(context);
+  const body = renderFigure(new FakeElement("div"), FIGURE);
   const drawnWith = [];
   const told = [];
   const legendState = { hidden: new Set(["pi"]), onToggle: (hidden) => told.push([...hidden]) };
   await drawWithLegend(body, LEGEND, (hidden) => drawnWith.push([...hidden]), legendState);
   assert.deepEqual(pressedStates(body), ["true", "false"]);
-  body.legendPlace.children[0].dispatch("click");
+  legendPlace(body).children[0].dispatch("click");
   await settled();
-  body.legendPlace.children[1].dispatch("click");
+  legendPlace(body).children[1].dispatch("click");
   await settled();
   assert.deepEqual(drawnWith, [["pi"], ["hermes"]], "every series hidden shows the note, not the chart");
   assert.deepEqual(told, [["pi", "hermes"], ["hermes"]], "the set is told after each click, every series hidden too");
@@ -34,19 +39,19 @@ test("a chart may start from a hidden set, its buttons not pressed, and tell eac
 });
 
 test("a chart of one series is drawn with nothing hidden, whatever hidden set it is given", async (context) => {
-  useFakeDocument(context);
-  const body = new FakeFigureBody();
+  useFakePage(context);
+  const body = renderFigure(new FakeElement("div"), FIGURE);
   const drawnWith = [];
   const oneSeries = { series: LEGEND.series.slice(0, 1), colours: LEGEND.colours };
   const legendState = { hidden: new Set(["hermes"]) };
   await drawWithLegend(body, oneSeries, (hidden) => drawnWith.push([...hidden]), legendState);
   assert.deepEqual(drawnWith, [[]]);
-  assert.deepEqual(body.legendPlace.children, [], "no legend is placed");
+  assert.deepEqual(legendPlace(body).children, [], "no legend is placed");
 });
 
 test("another chart follows a legend: drawn with its hidden set, or the note when every series is hidden",
   async (context) => {
-    useFakeDocument(context);
+    useFakePage(context);
     const body = new FakeElement("div");
     const drawnWith = [];
     await drawShownSeries(body, LEGEND, new Set(["pi"]), (hidden) => drawnWith.push([...hidden]));
@@ -59,7 +64,7 @@ test("another chart follows a legend: drawn with its hidden set, or the note whe
 
 test("a chart following a legend of one series is drawn with nothing hidden, whatever hidden set it is given",
   async (context) => {
-    useFakeDocument(context);
+    useFakePage(context);
     const body = new FakeElement("div");
     const drawnWith = [];
     const oneSeries = { series: LEGEND.series.slice(0, 1), colours: LEGEND.colours };

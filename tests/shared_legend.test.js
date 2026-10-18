@@ -7,65 +7,11 @@ import {
   dashedBackground, drawWithLegend, hasLegend, isEverySeriesHidden, legendEntryNames, legendIndexForKey, mountLegend,
   toggledSeries,
 } from "../site/js/shared/legend.js";
-import { settled } from "./fake_page.js";
+import { legendPlace, renderFigure } from "../site/js/shared/figure.js";
+import { FakeElement, settled, useFakePage } from "./fake_page.js";
 
-/**
- * A stand-in for a page element: children, attributes, listeners and, for a figure's body, the place of its legend
- * that `legendPlace` finds, as the legend uses them.
- */
-class FakeElement {
-  constructor(tag) {
-    this.tag = tag;
-    this.children = [];
-    this.attributes = new Map();
-    this.listeners = new Map();
-    this.style = {};
-    this.className = "";
-    this.textContent = "";
-    this.legendSlot = null;
-  }
-
-  closest() {
-    if (this.legendSlot === null) {
-      this.legendSlot = new FakeElement("div");
-    }
-    return { querySelector: () => this.legendSlot };
-  }
-
-  append(...children) {
-    this.children.push(...children);
-  }
-
-  replaceChildren(...children) {
-    this.children = children;
-  }
-
-  setAttribute(name, value) {
-    this.attributes.set(name, value);
-  }
-
-  getAttribute(name) {
-    return this.attributes.get(name);
-  }
-
-  addEventListener(type, listener) {
-    this.listeners.set(type, listener);
-  }
-
-  click() {
-    this.listeners.get("click")();
-  }
-
-  focus() {
-    globalThis.document.activeElement = this;
-  }
-}
-
-/** Make a stand-in the global document for the test of `context`; node has none of its own. */
-function useFakeDocument(context) {
-  globalThis.document = { createElement: (tag) => new FakeElement(tag) };
-  context.after(() => delete globalThis.document);
-}
+// A figure's words, for a body that `renderFigure` lays out, whose legend's place is above it.
+const FIGURE = Object.freeze({ title: "Requests per family", caption: "Each family's requests.", definition: "Rows." });
 
 // A legend of two series, as a figure's `legend` function returns one.
 const LEGEND = {
@@ -117,7 +63,7 @@ test("a legend lists two series or more", () => {
 });
 
 test("a legend of one series mounts no button", (context) => {
-  useFakeDocument(context);
+  useFakePage(context);
   const container = new FakeElement("div");
   container.append(new FakeElement("button")); // a button of an earlier legend, which the mount clears
   mountLegend(container, { series: LEGEND.series.slice(0, 1), colours: LEGEND.colours });
@@ -125,14 +71,14 @@ test("a legend of one series mounts no button", (context) => {
 });
 
 test("the legend is one button per series", (context) => {
-  useFakeDocument(context);
+  useFakePage(context);
   const container = new FakeElement("div");
   mountLegend(container, LEGEND);
   assert.deepEqual(container.children.map((button) => button.tag), ["button", "button"]);
 });
 
 test("a line's swatch is dashed for a series the legend names dashed, solid for the others", (context) => {
-  useFakeDocument(context);
+  useFakePage(context);
   const container = new FakeElement("div");
   mountLegend(container, { ...LEGEND, swatch: "line", dashed: ["pi"] });
   const [solid, dashed] = container.children.map((button) => button.children[0]);
@@ -142,16 +88,16 @@ test("a line's swatch is dashed for a series the legend names dashed, solid for 
 });
 
 test("a square swatch is never dashed, and a legend without a dashed list draws every line solid", async (context) => {
-  useFakeDocument(context);
+  useFakePage(context);
   const container = new FakeElement("div");
   mountLegend(container, { ...LEGEND, swatch: "square", dashed: ["pi"] });
   assert.equal(container.children[1].children[0].style.background, "var(--series-2)");
-  const body = new FakeElement("div");
+  const body = renderFigure(new FakeElement("div"), FIGURE);
   await drawWithLegend(body, { ...LEGEND, swatch: "line" }, () => undefined);
-  assert.equal(body.legendSlot.children[1].children[0].style.background, "var(--series-2)");
-  const dashedBody = new FakeElement("div");
+  assert.equal(legendPlace(body).children[1].children[0].style.background, "var(--series-2)");
+  const dashedBody = renderFigure(new FakeElement("div"), FIGURE);
   await drawWithLegend(dashedBody, { ...LEGEND, swatch: "line", dashed: ["hermes"] }, () => undefined);
-  assert.equal(dashedBody.legendSlot.children[0].children[0].style.background, dashedBackground("var(--series-1)"));
+  assert.equal(legendPlace(dashedBody).children[0].children[0].style.background, dashedBackground("var(--series-1)"));
 });
 
 test("a dashed swatch is its colour in dashes of four pixels and gaps of three", () => {
@@ -160,98 +106,98 @@ test("a dashed swatch is its colour in dashes of four pixels and gaps of three",
 });
 
 test("a click on a legend button tells the new hidden set and sets the button from it", (context) => {
-  useFakeDocument(context);
+  useFakePage(context);
   const container = new FakeElement("div");
   const told = [];
   mountLegend(container, LEGEND, { onToggle: (hidden) => told.push([...hidden]) });
-  container.children[1].click();
+  container.children[1].dispatch("click");
   assert.equal(container.children[1].getAttribute("aria-pressed"), "false");
-  container.children[1].click();
+  container.children[1].dispatch("click");
   assert.equal(container.children[1].getAttribute("aria-pressed"), "true");
   assert.deepEqual(told, [["pi"], []]);
 });
 
 test("after two presses every button is pressed exactly when its entry is shown in the hidden set told", (context) => {
-  useFakeDocument(context);
+  useFakePage(context);
   const container = new FakeElement("div");
   let told = null;
   mountLegend(container, LEGEND, { hidden: new Set(["pi"]), onToggle: (hidden) => { told = hidden; } });
-  container.children[0].click();
-  container.children[1].click();
+  container.children[0].dispatch("click");
+  container.children[1].dispatch("click");
   assert.deepEqual([...told], ["hermes"]);
   const pressed = container.children.map((button) => button.getAttribute("aria-pressed"));
   assert.deepEqual(pressed, LEGEND.series.map((entry) => String(!told.has(entry.name))));
 });
 
 test("a chart with a legend is drawn with nothing hidden, then again with each click's series hidden or shown", async (context) => {
-  useFakeDocument(context);
-  const body = new FakeElement("div");
+  useFakePage(context);
+  const body = renderFigure(new FakeElement("div"), FIGURE);
   const drawnWith = [];
   await drawWithLegend(body, LEGEND, (hidden) => drawnWith.push([...hidden]));
-  const legendPlace = body.legendSlot;
-  legendPlace.children[0].click();
+  const place = legendPlace(body);
+  place.children[0].dispatch("click");
   await settled();
-  legendPlace.children[0].click();
+  place.children[0].dispatch("click");
   await settled();
   assert.deepEqual(drawnWith, [[], ["hermes"], []]);
 });
 
 test("a click on an entry of names hides all of them in one drawing, and a second click shows them again", async (context) => {
-  useFakeDocument(context);
-  const body = new FakeElement("div");
+  useFakePage(context);
+  const body = renderFigure(new FakeElement("div"), FIGURE);
   const drawnWith = [];
   const lineLegend = { ...POLICY_LEGEND, swatch: "line" };
   await drawWithLegend(body, lineLegend, (hidden) => drawnWith.push([...hidden].sort()));
-  assert.equal(body.legendSlot.children[0].children[0].style.background, "var(--series-3)");
-  body.legendSlot.children[0].click();
+  assert.equal(legendPlace(body).children[0].children[0].style.background, "var(--series-3)");
+  legendPlace(body).children[0].dispatch("click");
   await settled();
-  body.legendSlot.children[0].click();
+  legendPlace(body).children[0].dispatch("click");
   await settled();
   assert.deepEqual(drawnWith, [[], ["A, Sticky", "B, Sticky"], []]);
 });
 
 test("a chart whose every series is hidden shows a note instead of being drawn", async (context) => {
-  useFakeDocument(context);
-  const body = new FakeElement("div");
+  useFakePage(context);
+  const body = renderFigure(new FakeElement("div"), FIGURE);
   let draws = 0;
   await drawWithLegend(body, LEGEND, () => { draws += 1; });
-  const legendPlace = body.legendSlot;
-  legendPlace.children[0].click();
-  legendPlace.children[1].click();
+  const place = legendPlace(body);
+  place.children[0].dispatch("click");
+  place.children[1].dispatch("click");
   await settled();
   assert.equal(draws, 2); // the first drawing and the one with hermes hidden
   assert.equal(body.children[0].className, "note");
 });
 
 test("a new drawing of the chart starts with every series shown", async (context) => {
-  useFakeDocument(context);
-  const earlierBody = new FakeElement("div");
+  useFakePage(context);
+  const earlierBody = renderFigure(new FakeElement("div"), FIGURE);
   await drawWithLegend(earlierBody, LEGEND, () => undefined);
-  earlierBody.legendSlot.children[0].click();
+  legendPlace(earlierBody).children[0].dispatch("click");
   await settled();
   const drawnWith = [];
-  const body = new FakeElement("div");
+  const body = renderFigure(new FakeElement("div"), FIGURE);
   await drawWithLegend(body, LEGEND, (hidden) => drawnWith.push([...hidden]));
   assert.deepEqual(drawnWith, [[]]);
-  assert.deepEqual(body.legendSlot.children.map((button) => button.getAttribute("aria-pressed")), ["true", "true"]);
+  assert.deepEqual(legendPlace(body).children.map((button) => button.getAttribute("aria-pressed")), ["true", "true"]);
 });
 
 test("a chart of one series or none is drawn once, nothing hidden, with no legend and no note", async (context) => {
-  useFakeDocument(context);
+  useFakePage(context);
   for (const series of [[], LEGEND.series.slice(0, 1)]) {
-    const body = new FakeElement("div");
+    const body = renderFigure(new FakeElement("div"), FIGURE);
     const drawnWith = [];
     await drawWithLegend(body, { series, colours: LEGEND.colours }, (hidden) => drawnWith.push([...hidden]));
     assert.deepEqual(drawnWith, [[]]);
-    assert.deepEqual(body.legendSlot.children, [], "no legend button is placed");
+    assert.deepEqual(legendPlace(body).children, [], "no legend button is placed");
     assert.deepEqual(body.children, []);
   }
 });
 
 test("a drawing after a click that fails shows its error in the chart's place", async (context) => {
-  useFakeDocument(context);
+  useFakePage(context);
   context.mock.method(console, "error", () => undefined); // the error is logged as well as shown; keep the run quiet
-  const body = new FakeElement("div");
+  const body = renderFigure(new FakeElement("div"), FIGURE);
   let draws = 0;
   async function drawChart() {
     draws += 1;
@@ -260,7 +206,7 @@ test("a drawing after a click that fails shows its error in the chart's place", 
     }
   }
   await drawWithLegend(body, LEGEND, drawChart);
-  body.legendSlot.children[0].click();
+  legendPlace(body).children[0].dispatch("click");
   await settled();
   assert.equal(body.children[0].className, "note is-error");
   assert.equal(body.children[0].textContent, "the chart could not be drawn");
@@ -276,7 +222,7 @@ test("the arrow keys move between a legend's buttons, stopping at its ends; any 
 });
 
 test("a legend is one tab stop, a named group, and ArrowRight moves the stop and the focus to the next button", (context) => {
-  useFakeDocument(context);
+  useFakePage(context);
   const container = new FakeElement("div");
   mountLegend(container, LEGEND);
   assert.equal(container.getAttribute("role"), "group");
@@ -284,7 +230,7 @@ test("a legend is one tab stop, a named group, and ArrowRight moves the stop and
   assert.deepEqual(container.children.map((button) => button.tabIndex), [0, -1]);
   let isDefaultPrevented = false;
   const event = { key: "ArrowRight", preventDefault: () => { isDefaultPrevented = true; } };
-  container.children[0].listeners.get("keydown")(event);
+  container.children[0].dispatch("keydown", event);
   assert.equal(isDefaultPrevented, true);
   assert.deepEqual(container.children.map((button) => button.tabIndex), [-1, 0]);
   assert.equal(globalThis.document.activeElement, container.children[1]);
