@@ -87,8 +87,9 @@ after the module it tests and start with that module's folder under
 `site/js/` (`charts_lines.test.js` for `charts/lines.js`,
 `traffic_bars.test.js` for `traffic/traffic_bars.js`), a check over
 every Insights card starting `insights_cards_`, except the checks of the
-stylesheet and of the module headers; the repository test SHALL check
-the first word of each name. A snapshot test SHALL hold, under
+stylesheet and of the module headers and the test of a test helper,
+named after the helper (`fake_page.test.js`); the repository test SHALL
+check the first word of each name. A snapshot test SHALL hold, under
 `tests/snapshots/`, the normalised text of every chart (its series,
 legend, titles and tick labels), table, legend and text block of six
 page states (the page opened at each topic's anchor, each state's

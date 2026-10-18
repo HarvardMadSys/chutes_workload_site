@@ -322,7 +322,8 @@ A test helper that is not a test (`fake_page.js`, `palette.js`) is
 named for what it holds. `test_repository.py` gains
 `test_node_test_files_start_with_a_folder`: the word before the first
 `_` (or the whole name) is a folder of `site/js/`, except for the two
-named checks.
+named checks and for the test of a test helper, which is named after
+the helper it tests (`fake_page.test.js` for `fake_page.js`).
 
 | Old | New |
 |---|---|
