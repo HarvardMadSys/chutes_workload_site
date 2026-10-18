@@ -123,6 +123,8 @@ Each word below has one meaning in the code, the tests and these documents.
 - **One job per unit.** A function is at most 50 lines, a module at most 300,
   a folder of `site/js/` at most nine modules. A function that computes two
   things is split.
+- **Every module has tests.** The test table of "Verifying a change" says
+  which test checks each part.
 - **Docstrings state definitions; comments explain why.**
   - A module's header (its docstring in Python, its opening comment in
     JavaScript) says what the module holds.
