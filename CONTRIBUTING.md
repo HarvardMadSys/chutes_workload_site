@@ -91,30 +91,23 @@ Each word below has one meaning in the code, the tests and these documents.
 
 ## The rules
 
-- **A fact has one home.** A fact is stated once, in the first of these
-  homes that fits it, and every other place points there:
+- **A fact has one home**, the first of these that fits it, and every other
+  place points there:
   1. the specs, `openspec/specs/`: what the visitor sees and what the data
      must satisfy;
   2. `README.md`: what the site is, where its numbers come from, how to run,
      build and deploy it, and the one map of the repository;
-  3. this file: the site's words, the rules, how the parts fit, the patterns
-     to copy, and how to verify a change;
+  3. this file: the words, the rules, how the parts fit, the patterns to
+     copy, and how to verify a change;
   4. a module's header and its `@typedef`s: the shape of what crosses its
-     boundary, one line per field;
+     boundary;
   5. a constant's comment: why it has its value;
   6. `CLAUDE.md`: a pointer to README and this file, and the git rules.
 
-  A spec's requirement and the constant that meets it are not two homes:
-  the spec says what the visitor sees, the constant how the code gets
-  there. Text moves to its home; it is not deleted. A copy the browser must
-  hold is tied to its home by a test:
-  - the trace's first day, `TRACE_FIRST_DAY` of `shared/format.js`, which
-    `tests/shared_format.test.js` checks against the shipped `trace_totals`;
-  - the months' names, `TRACE_MONTH_NAMES` of `plot/trace_axes.js`, which
-    `tests/plot_trace_axes.test.js` derives from that day by `months.py`'s
-    rule.
-
-  A change to the calendar is made in both, and those tests fail until it is.
+  A spec says what the visitor sees; the constant that meets it, how the
+  code gets there. Text moves to its home; it is not deleted. A copy the
+  browser must hold is tied to its home by a test, as the trace's calendar
+  is (the test table's row "The trace's calendar").
 - **Simple before fast.** Write the plainest correct code. Cache, precompute,
   split a file or add an index only after a measured run shows the plain
   version is too slow, and record the measurement in the change's
@@ -324,11 +317,11 @@ ORDER BY requests DESC, endpoint_group;
 ```
 
 The first line says what one row is. Columns are named in words. A number
-the query needs is bound by name from its one home, never written in
-(the trace query's `$days_per_trace_week`, from `months.py`). Every
-query is run by `tests/test_queries.py` against the fixture artifact, which checks its
-columns against `EXPECTED_COLUMNS`, the tables it reads against the
-site's database's, and its numbers against values counted by hand.
+the query needs is bound by name from its one home, never written in.
+`tests/test_queries.py` runs every query against the fixture artifact. It
+checks the query's columns against `EXPECTED_COLUMNS`, the tables it reads
+against the site's database's, and its numbers against values counted by
+hand.
 
 **A query that takes the family** (`site/queries/explore/daily_by_model.sql`):
 
@@ -341,37 +334,19 @@ LEFT JOIN family_models ON family_models.chute_id = daily_rollup.chute_id
 WHERE daily_rollup.family = $family
 ```
 
-An answer's query takes at most one parameter, the family, written
-`$family` and named in the query's first line. DuckDB binds it by name
-(`site_database.run_query(connection, name, {"family": "DeepSeek"})`);
-the value is never substituted into the text, so no family's name can
-change the SQL. Listing the query in `FAMILY_QUERIES` of
-`site_data/answers.py` makes the data step answer it once per family, as
-below, and record its hash once, the text being the same for every
-family; `tests/test_queries.py` runs it with the family of
-`QUERY_PARAMETERS` bound.
+The query names `$family` in its first line. DuckDB binds it by name
+(`site_database.run_query(connection, name, {"family": "DeepSeek"})`), so
+no family's name can change the SQL. Listing the query in `FAMILY_QUERIES`
+of `site_data/answers.py` makes the data step answer it once per family
+and record its hash once, the text being the same for every family.
+`tests/test_queries.py` runs it with the family of `QUERY_PARAMETERS`.
 
-**One answer per query.** Every query under `queries/explore/` is answered
-by `make data`, once, over the whole trace: its rows in
-`data/all/explore/<query>.json`, and every answer is read by the page. A
-query that takes the family (`FAMILY_QUERIES` of `site_data/answers.py`,
-`explore/daily_by_model` and `explore/histograms_by_model`) is answered
-once per family of `explore/family_mix` (`FAMILIES_QUERY`), in its order,
-each family bound as `$family` and its rows written to
-`data/all/explore/<query>/<family_slug>.json`. The family mix is the
-families' one home: their names, their slugs and their order.
-`explore/daily_by_family` makes the same slug by the same expression,
-read by nothing; `tests/test_queries.py` checks that its slugs are the
-mix's. A
-query under `queries/setup/` makes a table of the site's database and is
-not answered. `make data` also records the hash of the text of every query
-the answers depend on, the answered ones (a family query once) and
-`setup/family_models`, in
-`data/all/queries.json`. **Rerun `make data` after editing a query**: the
-page reads the answers, not the queries, and `tests/test_built_data.py`
-fails while a query's text differs from the one its answer was written
-from. `tests/test_answers.py` checks each answer written for the fixture
-against its query run live there.
+**One answer per query.** `make data` answers every query of
+`queries/explore/` once, as README's "The answers" says. A query of
+`queries/setup/` makes a table of the site's database and is not answered.
+**Rerun `make data` after editing a query**: the page reads the answers,
+not the queries, and `tests/test_built_data.py` fails while a query's text
+differs from the one its answer was written from.
 
 **A list-valued answer** (`site/queries/explore/histograms_by_family.sql`):
 a query whose rows hold lists builds each with DuckDB's ordered `list`,
@@ -382,47 +357,44 @@ one list per column, all in one order:
        list(bin_requests.requests ORDER BY bin_requests.bin) AS requests
 ```
 
-The answer writes each list as a JSON array of numbers, and the page
-reads the two lists of a row together, the requests of `bins[i]` being
-`requests[i]`; the same information as a row per bin, in a fifth of the
-bytes. The page reads a histogram answer only after the bars it goes
-with are drawn, so the bars never wait for it.
+The answer writes each list as a JSON array of numbers. The page reads the
+two lists of a row together, the requests of `bins[i]` being
+`requests[i]`. It is the same information as a row per bin, in a fifth of
+the bytes.
 
-**The trace query** (`site/queries/trace/weekly_histograms.sql`): the one
-query over the released trace, run by `make tables` (`site_data/tables.py`)
-rather than `make data`. The trace is the view `trace`, made by DuckDB's
-Python API from the file `TRACE=` names, so no path is written into the
-SQL; the query reads it with `chute_models`, `model_families` and
-`family_models`, takes `$trace_epoch` and `$days_per_trace_week` from
-`months.py` (`TRACE_QUERY_PARAMETERS`), sorts its rows by every key so
-that a rebuild writes the same bytes, and its result is the trace table,
-`tables/weekly_histograms.parquet`, tracked. Its sidecar,
-`tables/weekly_histograms.json`, records the hash of the query's text
-and the trace's and the table's row counts; `tests/test_tables.py` fails
-while the hash differs from the query's text, as `all/queries.json` does
-for the answers. **Rerun `make tables` after editing it**, then `make
-data`. The query is tested over the fixture's small trace
-(`tests/fixture_trace.py`, `TRACE_REQUESTS`) against the trace table
-counted by hand there (`WEEKLY_HISTOGRAMS`), over which the tests' site
-database is opened, so a fault in the query fails only its own tests.
+**The trace query** (`site/queries/trace/weekly_histograms.sql`) is run by
+`make tables` (`site_data/tables.py`), not `make data`:
 
-**Adding a query.** Write `site/queries/explore/<name>.sql` as above; list
-its columns in `EXPECTED_COLUMNS` of `tests/test_queries.py` and test its
-numbers on the fixture there; raise the count of answers in
-`tests/test_answers.py`; run `make data ARTIFACT=<the artifact's checkout>`
-and commit `site/data` with the change; read it in the page with
-`readAnswer("explore/<name>")`; then run `make snapshots`.
+- the trace is the view `trace`, made by DuckDB's Python API from the file
+  `TRACE=` names, so no path is written into the SQL;
+- it sorts its rows by every key, so that a rebuild writes the same bytes;
+- its sidecar records the hash of its text, as `queries.json` does for the
+  answers. **Rerun `make tables` after editing it**, then `make data`.
+
+It is tested over the fixture's small trace, against the trace table
+counted by hand there (`tests/fixture_trace.py`). The tests' site database
+is opened over that table, so a fault in the query fails only its own
+tests.
+
+**Adding a query.**
+
+1. Write `site/queries/explore/<name>.sql` as above.
+2. List its columns in `EXPECTED_COLUMNS` of `tests/test_queries.py` and
+   test its numbers on the fixture there; raise the count of answers in
+   `tests/test_answers.py`.
+3. Run `make data ARTIFACT=<the artifact's checkout>` and commit
+   `site/data` with the change.
+4. Read it in the page with `readAnswer("explore/<name>")`, then run
+   `make snapshots`.
 
 **A pure JavaScript module with its test** (`site/js/shared/format.js`,
 `tests/shared_format.test.js`): a header saying what the module holds,
 exported functions each with a JSDoc stating its definition, module-level
-constants with a comment, helpers below the exports, and a `node --test` file
-with one `test()` per behaviour. The test file is named after the module, its
-folder's word first (`shared_format.test.js` for `shared/format.js`), and the
-naming test, `tests/test_naming.py`, fails on a node test file whose name
-starts with no folder of `site/js/`, and on a module of `tests/` that
-imports a test module (`test_*.py`, `*.test.js`): what two test modules
-share is a module of its own, as `tests/counted_requests.py`.
+constants with a comment, helpers below the exports, and a `node --test`
+file with one `test()` per behaviour. The test file is named after the
+module, its folder's word first, as README's Layout says
+(`tests/test_naming.py` checks it). What two test modules share is a module
+of its own, as `tests/counted_requests.py`, never a test module imported.
 
 **A Python module with its test** (`site_data/months.py`,
 `tests/test_months.py`): a module docstring stating the definition, a
@@ -430,93 +402,27 @@ frozen dataclass for anything that crosses a boundary, and functions that
 each do one job.
 
 **A link off the site** (`externalLink` of `shared/layout.js`, the hero's
-buttons in `sections/hero.js`): it opens in a new tab and ends in an arrow,
+buttons in `sections/hero.js`) opens in a new tab and ends in an arrow,
 which the stylesheet draws after its text (`a[target="_blank"]::after`).
-The hero's Dataset, Paper and Code buttons and the footer's Elsewhere
-links name a mark in their entries, `mark: "huggingface"`, `"document"`
-or `"github"`, and are written with `linkMark(name)` of
-`shared/link_marks.js` before their text: an inline `<svg>` of one path
-filled with `currentColor`, so it takes the link's colour in either
-scheme, hidden from screen readers, one em square by the `.link-mark`
-rule. An entry with no `mark` is written without one, as the Cite
-sentence's link to the paper is. `linkMark` throws on a name that is no
-mark's rather than writing "undefined". A new mark is one path added to
-`LINK_MARKS`, its source named in the module's header;
-`tests/shared_link_marks.test.js` checks the marked links and that no link on
-the site carries a mark.
+An entry may name a mark of `LINK_MARKS` (`shared/link_marks.js`, whose
+header says how a mark is drawn), written before its text by
+`linkMark(name)`, which throws on a name that is no mark's. A new mark is
+one path added to `LINK_MARKS`, its source named in the module's header.
 
-**A topic and its groups.** A topic of the Insights holds its cards in
-groups, each a run of the paper's figures that says one thing together:
+**A topic** is a `Topic` of groups, each a `TopicGroup` of cards
+(`insights/figure_card.js`); the landing-page spec's "Insights" gives the
+word limits of their takeaways and headings. A topic module writes its
+topic as one `frozenTopic({ … })`, which freezes it whole.
+`topicCards(topic)` of `page/topics.js` lists a topic's cards group by
+group, the one way the tests list them. `TOPIC_FIELDS` and `GROUP_FIELDS`
+in `tests/page_topics.test.js` list the fields.
 
-```js
-{ id, title, takeaway, groups: [{ heading, takeaway, cards }] }
-```
-
-A topic's `id` is the anchor of the section the page writes for it and
-of its tab; its `title` is written after its number in its heading and
-its tab; its `takeaway`, the
-paper's finding for its section in plain words, is one sentence of at
-most thirty words, written under its heading. A group's `heading` is at
-most six words, with no full stop; its `takeaway`, what its figures show
-and, where the paper draws one, what that means for a serving system, is
-at most two sentences and forty words; its `cards` are in the paper's
-order. A topic module writes its topic as one `frozenTopic({ … })` of
-`insights/figure_card.js`, which freezes it whole, and
-`topicCards(topic)` of `page/topics.js` lists a topic's
-cards group by group, the one way the tests list them.
-`tests/insights_cards_words.test.js` counts these limits and a card's below;
-`TOPIC_FIELDS` and `GROUP_FIELDS` in
-`tests/page_topics.test.js` list the fields.
-
-**A figure card.** Every figure of the Insights is drawn by the site from
-its answer, the artifact's plot-ready table, by one frozen card object of
-the fields below, and of no other:
-`CARD_FIELDS` and `OPTIONAL_CARD_FIELDS` in
-`tests/page_topics.test.js` list them.
-
-- `figure`: the figure's name, its file name in the artifact's
-  `config/figures.json` without `.pdf`; the card draws
-  `data/all/figures/<figure>.json`.
-- `title`: the card's heading.
-- `insight`: the card's point, under its title: one sentence of at most
-  twenty words, the paper's lead-in for the figure. It is also the chart's
-  accessible name, after the title.
-- `caption`: evidence for the insight, under the chart, in up to three
-  short sentences and at most forty words: the paper's caption.
-- `definition`: what is drawn, in plain words, in up to three short
-  sentences and at most sixty words, alone behind the Definition control:
-  the artifact's README's account of the figure, naming no cut-off used to
-  pick its rows and no bin width.
-- `kind`: the chart kind that draws it, a key of `CHART_KINDS` in
-  `insights/figure_card.js` (`cdf` is the lines kind with a share axis).
-- `chart`: the parameters handed to the kind's draw function: its axes,
-  `valueLabel`, `valueFormat` and the kind's own, each a name its kind's
-  list holds (`<KIND>_PARAMETERS` of `js/charts/<kind>.js`).
-- `panels` (optional): `[{ panel, title, chart }]`, one chart per panel of
-  a multi-panel figure, from the rows of its `panel`, under its title.
-- `legend` (optional): the name of a legend answer, rows `{ series, rank }`,
-  whose order the card's series take.
-- `series` (optional): the names of the series drawn, in the order they are
-  drawn and listed in the legend; the answer's other series are left out
-  (the stacked bars fold them into "Other").
-- `palette` (optional): the colour slots the series take, a key of
-  `PALETTES` in `insights/card_series.js`: `"series"`, the eight series
-  slots, when not given; `"families"`, the ten, for more than eight;
-  `"endpoints"`, the Overview's endpoint colours; `"policies"`, a colour
-  per routing policy.
-- `isWide` (optional): true for a card that takes its group's whole width.
-
-A line of words that is not the paper's own carries a `// placeholder:`
-comment above it, for the authors to review.
-`insights/figure_card.js` draws the card: it reads the answer, colours the
-series (`insights/card_series.js`: the global series and the three
-highlighted models in fixed colours, `FIXED_SERIES_COLOURS`, the others
-the free slots of its palette in the order of its `series`, else the
-answer's), places a legend of buttons where there
-is more than one series (none where each panel holds one series, which
-its title names), and draws the chart by its kind at the card's width. A
-topic writes each card as a plain object literal; `frozenTopic` freezes
-the card and every object it holds, its chart and panels included.
+**A figure card** is a `FigureCard` (`insights/figure_card.js`), of those
+fields and no other (`CARD_FIELDS` and `OPTIONAL_CARD_FIELDS` in
+`tests/page_topics.test.js`). A line of words that is not the paper's own
+carries a `// placeholder:` comment above it. The card's legend has a
+button per series where there is more than one, and none where each panel
+holds one series, which its title names. The workload topic's first card:
 
 ```js
 {
@@ -538,13 +444,10 @@ the card and every object it holds, its chart and panels included.
 
 **The column contract.** A figure's plot-ready table holds the columns of
 one chart kind, and its answer is that table, column for column; README's
-"Where the numbers come from" lists each kind's columns and its figures.
-The table is the artifact's: the figure's reproduce script writes it and
-draws the paper's PDF from it (the rasters and the density and P90 grids
-from the points it bins), so a number the site needs and the table
-lacks is added there, never computed in the browser.
-`tests/insights_cards_answers.test.js` (`KIND_COLUMNS`) checks every shipped
-answer against its card's kind.
+column contract lists each kind's columns and its figures. The table is
+the artifact's: a number the site needs and the table lacks is added
+there, never computed in the browser. `tests/insights_cards_answers.test.js`
+(`KIND_COLUMNS`) checks every shipped answer against its card's kind.
 
 **Adding a figure.** A figure is the artifact's: it ends at its plot-ready
 table and the card's words.
@@ -560,118 +463,68 @@ table and the card's words.
    `palette` where the figure needs them. A figure that says something no
    group says starts a group of its own, with a heading and a takeaway (a
    `// placeholder:` comment above them where they are not the paper's
-   words). `tests/page_topics.test.js` checks that every answer of the
-   index is one card's figure, or the legend of the cards that name it;
-   `tests/insights_cards_answers.test.js` checks that its answer
-   has its kind's columns; `tests/insights_cards_domains.test.js` that
-   its answer's values fit each fixed domain of its axes, but a clip it
-   lists in `INTENDED_CLIPS` with its reason; a check of the card as
-   drawn goes in its topic module's test (`tests/insights_caching.test.js`
-   for a card of `insights/caching.js`);
-   `tests/insights_cards_words.test.js` counts the words of
-   its insight, caption and definition; and, with `ARTIFACT`,
-   `tests/test_figures_registry.py` checks that the cards draw every figure
-   the artifact lists, and no other.
+   words). A check of the card as drawn goes in its topic module's test
+   (`tests/insights_caching.test.js` for a card of `insights/caching.js`).
+   The test table below names the other tests a card meets.
 3. **The answer.** Run `make data ARTIFACT=<the artifact's checkout>`,
-   which writes its answer to `site/data/all/figures/<figure>.json` and
-   lists it in `site/data/all/figures.json`, and commit `site/data` with
-   the change.
+   which writes `site/data/all/figures/<figure>.json` and lists it in
+   `site/data/all/figures.json`, and commit `site/data` with the change.
 4. **The snapshots.** Run `make snapshots` and commit `tests/snapshots`
-   with the change: a new card adds units, a new group a heading and a
+   with the change. A new card adds units, a new group a heading and a
    takeaway to its topic's text unit; no other unit may move.
 
 **The patterns a card copies.**
 
 - *Fixed series colours.* The global series and the three highlighted
   models take the same colour on every card (`FIXED_SERIES_COLOURS` of
-  `insights/card_series.js`); a card of these series lists them in
+  `insights/card_series.js`). A card of these series lists them in
   `HIGHLIGHTED_SERIES` order, labels them with `HIGHLIGHTED_LABELS`, and
-  draws the global series dashed (`dashed: ["Global"]`), its legend
-  swatch dashed too.
+  draws the global series dashed (`dashed: ["Global"]`), its legend swatch
+  dashed too.
 - *Panels.* A figure of several panels holds a `panel` column; the card
-  lists `panels`, each drawn as its own chart under its title from its
-  rows, with the card's `chart` and the panel's own parameters, under one
-  legend (the balancing topic's user zooms and the routing card). A
-  panel's `chart.series` names the series it draws, the others left to
-  the other panels; the legend still lists them all.
+  lists `panels`, as `FigureCard` says (the balancing topic's user zooms
+  and the routing card).
 - *A legend answer.* Where the paper orders series by a legend of its own,
-  the card names the legend answer in `legend` and its series take the
+  the card names the legend answer in `legend`, and its series take the
   legend's ranks (the two monthly shares).
-- *Shared axes and colours.* A constant two cards share, such as the count
-  colour (`COUNT_COLOUR`), the trace's day axis (`TRACE_DAY_AXIS`, whose
-  tooltip gives the day's date) or its month axis (`TRACE_MONTH_AXIS`,
-  ticked by the months' names, the partial thirteenth starred, and inset
-  from the plot's edges by its `inset` so its first name clears the y
-  axis's lowest label; a card on it says what the star means in its
-  definition), is
-  exported once, the colour from `insights/card_series.js` and the
-  trace's axes from `plot/trace_axes.js`; one topic's axes are
-  constants of its module.
+- *Shared axes and colours.* A constant two cards share is exported once:
+  the count colour (`COUNT_COLOUR`) from `insights/card_series.js`; the
+  trace's day axis (`TRACE_DAY_AXIS`, whose tooltip gives the day's date)
+  and month axis (`TRACE_MONTH_AXIS`) from `plot/trace_axes.js`. A card on
+  the month axis says what the star of the partial last month means in its
+  definition. One topic's axes are constants of its module.
 
-**The chart kinds** (`js/charts/`), nine modules, one per shape: the
-Overview's `donut` and the Traffic Explorer's `stacked_bars`, and the
-figures' `lines` (a CDF among them), `bands`, `cells`, `raster`,
-`scatter`, `boxes` and `bars`, the stacked bars drawing the two monthly
-shares too and the lines the Traffic Explorer's distribution charts.
-These nine chart modules are not quite a card's nine kinds:
-`CHART_KINDS` of `insights/figure_card.js` names `cdf`, drawn by
-`lines`, and no `donut`, which only the Overview draws, for its two
-mixes, by family and by endpoint. Each module exports one draw function of one
-signature, `async draw<Kind>(rows, body, seriesColours, parameters,
-hidden)`: the rows of its answer, the place to draw into, the Map from
-series name to colour in the legend's order, its parameters (a card's
-`chart`, with its kind's defaults and a panel's) and the Set of series its
-legend hides. A kind without series (bands, cells, raster, scatter)
-declares `seriesColours` and `hidden` too, and reads neither. It replaces
-the place's content with one Plot chart (the donut with plain SVG of its
-own drawing) and returns nothing. Its last step names the chart for a
-screen reader, `nameChart(body, parameters.name)` of
-`shared/figure.js`, so no caller names a chart. The draw contract comment
-of `plot/frame.js` says this once.
+**The chart kinds** (`js/charts/`) are nine modules, one per shape: the
+Overview's `donut`, the Traffic Explorer's `stacked_bars` (the two monthly
+shares too), and the figures' `lines` (a CDF among them, and the
+explorer's distribution charts), `bands`, `cells`, `raster`, `scatter`,
+`boxes` and `bars`. Each exports one draw function, as the draw contract
+in `plot/frame.js` states it; it replaces the place's content with one Plot
+chart, except the donut, which draws plain SVG of its own.
 
-Each module also exports the frozen list of every parameter name its
-kind reads, `<KIND>_PARAMETERS` (`LINES_PARAMETERS`), the shared names
-first, then its own. The shared names are one typedef, `ChartParameters`
-of `plot/frame.js`. An axis, `x` or `y`, is one shape on every kind, the
-typedef `AxisOptions` of `plot/axes.js`, its names listed in
-`AXIS_OPTION_NAMES`. `tests/insights_figure_card.test.js` walks every
-card's and panel's `chart`, and its kind's defaults, and fails on a name
-its kind's list does not hold or an axis option that is not one, naming
-the card and the key; a new parameter goes into its kind's list. A
-kind's draw function's JSDoc opens with "Reads `<KIND>_PARAMETERS`" and
-says what its own names decide; its module's header says what rows it
-takes. Its pure functions (the rows drawn, the tooltip's text, a scale's
-options) are exported and tested in `tests/charts_<kind>.test.js`. A
-kind imports only from `shared/`, `plot/` and `theme/`. A kind takes
-only parameters two or more charts use, or a frame or axis setting (the
-stacked bars' `barInset` and `segmentInset`, the lines' `gap`, an axis's
-`inset` and `tickRotate`).
-Every Plot kind takes `height`, the chart's height in pixels,
-`CHART_HEIGHT` (240) when not given (`titledFrame` of `plot/frame.js`);
-the two cards of a grid row take the same height, so the row stays level.
-Every Plot kind but the raster has a tooltip, written by the kind's
-`…TipText` function, its x after the x axis's title (`axisValueText` of
-`plot/axes.js`), or written by the axis's `tipFormat` alone where it
-gives one (a trace day with its date; the Traffic Explorer's day bars
-writing the whole day where a tick names only the month; the cells write
-each edge of a cell's range by it, after the axis's title); the donut's
-slices carry their tooltip as an SVG `<title>` each. The lines kind joins
-a CDF's points with straight lines, its tooltip naming the point nearest
-the pointer in x and y; with `tipAllSeries` its tooltip lists every drawn
-series' value at the hovered x, highest first, and with `series` it draws
-only the series named (a panel's own).
+- Each module exports `<KIND>_PARAMETERS` (`LINES_PARAMETERS`), the frozen
+  list of every parameter name its kind reads: the shared names first,
+  `ChartParameters` of `plot/frame.js`, then its own. An axis, `x` or `y`,
+  is an `AxisOptions` of `plot/axes.js`, its names listed in
+  `AXIS_OPTION_NAMES`. A new parameter goes into its kind's list.
+- A kind's draw function's JSDoc opens with "Reads `<KIND>_PARAMETERS`" and
+  says what its own names decide; its module's header says what rows it
+  takes.
+- Its pure functions (the rows drawn, the tooltip's text, a scale's
+  options) are exported and tested in `tests/charts_<kind>.test.js`.
+- A kind imports only from `shared/`, `plot/` and `theme/`.
+- A kind takes only parameters two or more charts use, or a frame or axis
+  setting (the stacked bars' `barInset` and `segmentInset`, the lines'
+  `gap`, an axis's `inset` and `tickRotate`).
+- A kind's tooltip is written by its `…TipText` function, its x after the
+  x axis's title (`axisValueText` of `plot/axes.js`), or by the axis's
+  `tipFormat` alone where it gives one.
 
-**The legend** (`shared/legend.js`) takes two objects, each a typedef at
-the head of that module. The legend object, a `Legend`, holds the entries,
-their colours, and how their swatches are drawn (`swatch` and `dashed`);
-a card gives it its kind's `swatch` from `CHART_KINDS`. The options
-object, a `LegendState`, is the last argument: the series hidden at first
-and `onToggle`, told of each change. `mountLegend(container, legend,
-legendState)` places the buttons, which hold the hidden set; after each
-press every button's pressed state is set from the new set.
-`drawWithLegend(body, legend, drawChart, legendState)` places them above
-`body` and draws the chart again after each press. A legend of fewer
-than two entries places no button and hides nothing (`hasLegend`).
+**The legend** (`shared/legend.js`) takes a `Legend` and a `LegendState`,
+typedefs at the head of the module; a card gives it its kind's `swatch`
+from `CHART_KINDS`. `mountLegend` places the buttons, which hold the hidden
+set; `drawWithLegend` places them above a chart and draws it again after
+each press.
 
 ## JavaScript style
 
@@ -682,11 +535,11 @@ than two entries places no button and hides nothing (`hasLegend`).
   A function that draws loads what it needs where it needs it,
   `const { Plot } = await import("../shared/libraries.js");`, with a
   one-line comment saying why. The module's pure functions then stay
-  testable with `node --test`. The page's module, which node does not
-  run, also starts that import as it runs, its failure ignored there
-  since each chart shows its own, so that the library loads beside the
-  explorer's daily answer rather than once the first chart asks for it;
-  the URL keeps its one home.
+  testable with `node --test`.
+- The page's module, which node does not run, also starts that import as
+  it runs, so that the library loads beside the explorer's daily answer
+  rather than once the first chart asks for it. Its failure is ignored
+  there, since each chart shows its own.
 - Static markup is an `innerHTML` template; interactive elements are built
   with `document.createElement` so listeners attach to the element, not to a
   string. Text that comes from data goes through `textContent` or a template
@@ -697,134 +550,9 @@ than two entries places no button and hides nothing (`hasLegend`).
 - Loading and error states come from `shared/figure.js`: a section shows
   `loading` until its answer arrives and `is-error` with the message if it
   throws. One failed answer never stops the others.
-- Numbers and dates go through `shared/format.js`.
-
-## Charts
-
-Every chart is drawn with Observable Plot, the donuts as plain SVG; the
-Insights' figures are drawn from their plot-ready tables.
-
-- **Colour.** Series colours are the tokens `--series-1` to `--series-8` in
-  `style.css`, assigned in that order to a chart's series and never cycled;
-  a ninth series folds into "Other" (`--series-other`). The exceptions
-  are the families, in the Traffic Explorer's chart and the Overview's
-  family mix alike, which name all ten named families and so take two
-  more, `--series-9` and `--series-10` (`familyColours`), and the
-  Insights' cards of more than eight series, the two monthly share cards
-  (the `families` palette of `insights/card_series.js`), which take the
-  same ten slots in their legend's order. The families
-  take the slots from the first, in `explore/family_mix`'s order, which
-  the donut and the explorer both read, and the
-  endpoint groups from `ENDPOINT_FIRST_SLOT`, in
-  `explore/endpoint_mix`'s order, so the two donuts do not open on one
-  colour; in the Traffic Explorer a family's models take the slots in the
-  order of their requests within the family. The palette is Open Data's tokens
-  (paper, surfaces, inks, rule and crimson) in light and the same inks
-  turned over in dark, with ten series slots: ten OKLCH hues no two
-  closer than 30°, each the same hue in both schemes, set apart in
-  lightness so that a red-green colour-blind reader can tell every pair
-  apart. `tests/palette_contrast.test.js` is the validation: it reads both
-  schemes from `style.css` (through `tests/palette.js`) and checks every
-  series colour at 3:1 on its scheme's card, every text colour at 4.5:1 on
-  the paper and on a card, each slot's hue across the schemes, the hues'
-  spread, and every pair of slots at an OKLab distance of 5 under a
-  deuteranopia simulation. A new colour token is named there as text, a
-  mark (`--series-*`) or a tint, or the test fails. Protanopia and
-  tritanopia are not simulated, so no series is told by its colour alone:
-  every chart of more than one series ships a legend, and every chart but
-  a raster a hover tooltip. A figure that shades a value (`cells`,
-  `raster`, `scatter`) takes a Plot scheme instead, the paper's where it
-  names one, with its colour legend above the chart, ticked at the powers
-  of ten on a log colour scale.
-- **Marks.** A 1px inset on each side of a bar, a 2px gap between bars and
-  stacked segments (`BAR_INSET`; none for the Traffic Explorer's day bars,
-  which are a pixel or two wide), grid and axes in `--chart-grid` and
-  `--chart-axis`, labels in `--chart-label`. A share chart's stacked bars
-  take no gap between their segments (`segmentInset: 0`), since a thin
-  segment would vanish into it. Text is never coloured by
-  series. Bars start at zero. A dashed line, a series' or the line where y
-  equals x, is dashed by `DASH` of `plot/frame.js`; a reference level a
-  card marks is a dashed rule in the label ink (`referenceRule`): the
-  cells' and the scatter's `yReference`, the bars' `reference`, whose label
-  sits at the rule's right end; over cells it lies on a halo in the card's
-  colour (`haloedReferenceRule`), so its dashes read over any fill. A scatter's dots are outlined in the axis
-  ink and a little transparent, so a near-white dot shows on either
-  scheme. A bands card shows, in its legend's place, a key naming its two
-  bands and its median (`bandKey`), not buttons. A raster's rows are
-  centred on their ticks, and rows at least `MIN_ROW_HEIGHT_FOR_RULES`
-  pixels tall are parted by a 2px rule in the card's colour; a raster wider
-  or taller than its plot is drawn pooled, each pixel the most requests
-  among the hours and rows it covers, so no cell vanishes between two
-  pixels. A cell's range in its tooltip whose two ends read alike is
-  written once, "100%". In a card grid, a chart with no legend sits at the
-  foot of its row, so the x axes of a row line up.
-- **One axis.** Two measures of different scale are two charts.
-- **The card.** A chart's card shows its title (on the Insights an `h4`
-  under its group's heading, with its insight under it), its legend above
-  the chart (none where it has a single series, but a bands card, which
-  shows its key there), its caption under the chart, and a Definition
-  control that opens on its definition: alone on a figure card of the
-  Insights; with the line of rows it rests on in the two Overview mixes
-  and the Traffic Explorer's bars. In a card grid, a card spans one grid
-  row per part `renderFigure` appends (`.card-grid > .card` in
-  `style.css`); `tests/shared_figure.test.js` counts the parts against
-  the span, so a part added fails it until the span follows.
-  A legend names only what is drawn. After each drawing its kind names
-  the chart for a screen reader by its title and insight (its caption
-  where it has none), or by the name it is given (`nameChart` in
-  `shared/figure.js`).
-- **The distribution charts.** The Traffic Explorer's row of three
-  charts under the day range (the landing-page spec's "Traffic Explorer") is
-  `traffic/traffic_distribution_charts.js`. A chart is keyed everywhere
-  by the histogram rows' metric it draws, `input_tokens`,
-  `output_tokens` or `ttft`: in `DISTRIBUTION_CHARTS`, in its places and
-  in the tiles' percentiles (`choicePercentiles`). It has no card: no
-  caption, definition, rows line or legend of its own, the bars' legend
-  hiding a series in the bars and the three charts alike.
-  `placeDistributionCharts(row)` makes the module's own places, each a
-  `div.distribution-chart` of an `h3.figure-title` (level with the bars'
-  title, not under it) over a `div.figure-body`, and returns them by
-  metric; where the row stands is `explorerCard`'s choice, in
-  `traffic/traffic.js`. Each chart is drawn by the lines kind with
-  `cdf: true` at the kinds' default height and margins, its y axis the
-  share of requests at the kind's ticks, and named by its value and
-  "distribution", "Input tokens distribution". Each x axis is log over
-  the domain that spec gives, the same for every choice, its ticks listed
-  beside it in `DISTRIBUTION_CHARTS` from the domain's start to its end:
-  input tokens at 1, 100, 10k and 1M; output tokens at 1, 1k and 100k;
-  TTFT at 10 ms, 1 s and 100 s (`formatTtftTick`). The rows past a
-  domain's end are kept, so a line is cut at the chart's edge rather
-  than ended before it. A choice none of whose requests records a value
-  shows a note in that chart's place. The tiles are numbers only:
-  `renderTiles` of `traffic/traffic_tiles.js` replaces the list's
-  children with the four `li`, each its value, label and notes.
-- **Axis text.** A linear axis asks Plot for `TICK_COUNT` ticks
-  (`plot/axes.js`), which gives at most six or seven. The exception is an
-  axis of months: the Traffic Explorer's is ticked at the first day of
-  each month it shows, and at the range's first day when it falls in its
-  month's first half (`LAST_NAMED_FIRST_DAY`) or when the range holds no
-  first of a month; on a plot narrower than
-  `NARROW_PLOT_WIDTH`, more than `MAX_NARROW_TICKS` ticks are thinned to
-  every other one. Its labels are slanted so that thirteen fit a
-  card. The explorer's distribution charts are ticked as "The
-  distribution charts" says. A figure's axes are the paper's: its
-  titles, its log scales, ticked at the powers of ten (every second or
-  more past `MAX_LOG_TICKS`), its limits, and its ticks where the card
-  gives them, so that a phone's axis does not run its labels together.
-  The one exception is the per-user inter-arrival band card, on a
-  linear axis to `IAT_CAP_SECONDS` (400 s) that clips its bands, so that
-  the median's move over the year shows. One format per
-  quantity: an axis's counts as "1k", "600M" (`formatCountTick`); a value
-  in a legend, a tooltip, a tile or the stats strip with one decimal kept
-  ("129.1k", "94.0%", "4.3 s", and three figures in billions, "2.04B"),
-  a duration in seconds (`formatCompactCount`, `formatShare`,
-  `formatSeconds`). An axis of durations from milliseconds to hours is
-  written "1 ms", "0.1 s", "15 min", "1 h" (`formatDurationTick`), of
-  minutes into a window as hours, "6 h" (`formatHoursTick`), and in a
-  tooltip to a tenth, "13.9 h" (`formatHours`), a ratio to
-  two significant figures, "0.00047" (`formatSignificant`), and a trace
-  day in a tooltip with its date, "Day 150 · Sep 8, 2025"
-  (`formatTraceDay`).
+- Numbers and dates go through `shared/format.js`. The site spec's "Axis
+  ticks and number formats" says how each quantity is written; colours and
+  marks are its "Chart colours" and "Chart marks".
 
 ## Verifying a change
 
@@ -834,88 +562,79 @@ make snapshots  # when the change is meant to alter what the page shows
 make serve      # then open http://localhost:8000
 ```
 
-The node step prints one line per test, its name after a tick or a
-cross, and lists every failing test again at the end as `test at
-<file>:<line>` with its error, so a failure is read from the node step's
-last lines.
+The node step prints one line per test, its name after a tick or a cross.
+It lists every failing test again at the end as `test at <file>:<line>`
+with its error, so a failure is read from the node step's last lines.
+`make test` passes the artifact's checkout as `ARTIFACT`; README's "Running
+it" names the tests that skip without one.
 
-A change to the trace query, or to the artifact's family table or daily
-rollup's kept models, also runs `make tables TRACE=<the released
-trace's Parquet file> ARTIFACT=<the artifact's checkout>` first, then
-`make data`: it reads the 91 GB trace once (README's "Building the data"
-gives its cost), and `make test` with `ARTIFACT` then checks the table
-against the daily rollup.
+| You changed | The test that fails | To update it |
+|---|---|---|
+| A query's text | `test_built_data.py`: the answer is stale | `make data`, then `make snapshots` if the page moves |
+| A query's columns or numbers | `test_queries.py` (`EXPECTED_COLUMNS`, the hand-counted values) | the expected values, if the change is meant |
+| The answer writer | `test_answers.py`: an answer against its query run live, a family's rows against the totals | |
+| The rest of the data step (`site_data/`) | the test named after its module (`test_loading.py`, `test_months.py`, `test_site_database.py`, `test_main.py` for `__main__.py`), on the fixture artifact | |
+| The trace query | `test_tables.py`: the sidecar's hash; with `ARTIFACT`, the table against the daily rollup | `make tables TRACE=…`, then `make data` (README's "Building the data") |
+| The figure answers' writer | `test_figure_answers.py`: each answer against its plot-ready table | |
+| A figure in the artifact | `test_figures_registry.py`, with `ARTIFACT`; `page_topics.test.js`: every answer the index lists is one card's figure or legend | a card for it |
+| A card's words, a topic's or a group's | `insights_cards_words.test.js`; the snapshot's texts unit | `make snapshots` |
+| A card's kind, or its answer's columns | `insights_cards_answers.test.js` | the card, or the artifact's table |
+| A card's `chart` | `insights_figure_card.test.js` (the parameter lists); its topic's `insights_<topic>.test.js`; the snapshot's chart unit | `make snapshots` |
+| A card's fixed domain, or a rebuild that outgrows one | `insights_cards_domains.test.js`, naming the figure, the axis, the domain and the value; the snapshot | the domain, or `INTENDED_CLIPS` with its reason (README's "Building the data") |
+| A card's series, palette or legend | `insights_card_series.test.js`; `insights_routing_panels.test.js` for the routing policies | |
+| A constant two topics' cards share | `insights_cards_charts.test.js` | |
+| Inside a kind's draw function | the snapshot alone, since node cannot load Plot; without Chromium it skips with a framed message | `make setup-browser` once, then `make snapshots` |
+| A kind's pure helper | `charts_<kind>.test.js` | |
+| The trace's calendar | `shared_format.test.js` (`TRACE_FIRST_DAY`), `plot_trace_axes.test.js` (`TRACE_MONTH_NAMES`) | both copies |
+| The explorer's choice or URL keys | `traffic_choice.test.js`, `traffic.test.js`; the snapshot's controls unit | |
+| The period buttons or the slider | `traffic_controls_period_buttons.test.js`, `traffic_range.test.js`; the snapshot's range unit | |
+| A legend other charts follow | `shared_legend_state.test.js` | |
+| The order of the reads | `page_start.test.js`; `shared_answers.test.js` (the head's preload) | |
+| A topic | `page_topics.test.js`; the snapshot states | |
+| `index.html`'s title, module or sections | `page_index.test.js` | |
+| A part `renderFigure` appends | `shared_figure.test.js`: the card grid's span | the span in `style.css` |
+| A colour token | `palette_contrast.test.js` | name the token's role there |
+| A module's length, a folder's size, an import, a global set in a test | `test_repository.py` | split the module |
+| A name exported twice, or a test file's name | `test_naming.py` | |
+| A module or folder added, moved or renamed | `test_readme.py` | README's Layout |
+| A module header over ten lines | nothing: `module_headers.test.js` lists it for review | look again; keep a sentence a reader needs |
+| `style.css`, beyond its colours and the card grid's span | nothing: the snapshot reads text, not pixels | look at 360 px and at desktop width, light and dark |
+| The deploy workflow's paths | `test_deployment.py` | |
 
-`make test` passes the artifact's checkout as `ARTIFACT`, beside this
-repository by default; without one, the tests that need it skip
-(README's "Running it" names them), and pytest's summary says why each
-skipped. A push to `main` is deployed only once the deploy workflow's
-job `test` has run `make test ARTIFACT=` and passed (README's
-"Deploying").
+No node test runs a `Plot.plot` call, so the snapshot test is the one
+check of a draw function.
 
-The node tests drive the page's modules on the fake page of
-`tests/fake_page.js`, the one import through which a test reaches the
-browser: the element of `tests/fake_element.js`, which it re-exports;
-`useFakePage`, which sets the page's globals for one test and removes
-them after it; and `shippedAnswer`, an answer the page ships. No other
-file of `tests/` sets or mocks a property of `globalThis`, and
-`tests/test_repository.py` fails on one that does. What two test files
-of one section share lives in `tests/<section>_fixtures.js`:
-`traffic_fixtures.js` (the explorer's choices, the shipped daily
-answer and its days, the trace's days and families, daily rows, and the
-page's part the controls are given), `insights_fixtures.js` (every card
-and group, `cardOf` and `tickLabels`), `page_fixtures.js` (the topics'
-sections) and `shared_fixtures.js` (a legend and a figure's words).
-The explorer's tests reach an element by the fake
-page's `querySelector` and `querySelectorAll` (a tag, a `.class`, an
-`#id`, a `[data-x]` or `[data-x="v"]`, a tag with one of those
-(`button[data-copy]`), or a chain of them parted by
-spaces, each matched among the descendants of the one before; a
-selector of any other form throws, naming it), never by
-its place among an element's children, and by the selectors the
-stylesheet and `tests/snapshot_traffic.py` use; `controlsOf`, a row's
-controls, lives in `tests/traffic_fixtures.js`.
+**The node tests' browser.** The node tests drive the page's modules on
+the fake page of `tests/fake_page.js`, the one import through which a test
+reaches the browser; `tests/test_repository.py` fails on any other file of
+`tests/` that sets or mocks a property of `globalThis`. A test reaches an
+element by a selector of a form `tests/fake_element.js` reads, never by its
+place among an element's children. What two test files of one folder share
+lives in `tests/<folder>_fixtures.js`, as README's Layout lists them.
 
-`make test` ends with the snapshot test (`tests/snapshot.py`): it opens
-six states of the page in headless Chromium (the page opened at the
-anchor of each topic its tab row lists) and compares every chart (an
-Insights card's as
-its accessible name, its panels' titles, its colour legend's title and
-labelled ticks, and its axes' tick labels and titles), legend and block of
-text they show with its text file in `tests/snapshots/`, failing with the
-name of each unit that changed. It also fails when the page, opened at a
-topic, requested another topic's figure answers. A
-change that is meant to alter a chart or a text, a data rebuild among
+**The snapshot test** (`tests/snapshot.py`, whose header says what it
+reads) ends `make test`. It fails with the name of each unit that changed.
+A change that is meant to alter a chart or a text, a data rebuild among
 them, runs `make snapshots` to rewrite the files and commits them with the
 change. The diff of `tests/snapshots/` is reviewed like code: it is what a
 visitor will see differently, and a line there that the change did not
 mean to move is a bug. A change that should alter nothing a visitor sees,
-such as a refactoring, leaves the snapshots as they are.
+such as a refactoring, leaves the snapshots as they are. A unit is named
+by its card's title, so a retitled card shows as a "new" unit and its old
+one as "no longer shown". The test reads each state once, when it has
+drawn, and waits on conditions, never on time (`wait_until_drawn`). A part
+of the page that is drawn later than these adds its own condition there.
 
-The test reads each state once, when it has drawn, and it waits on
-conditions, never on time (`wait_until_drawn`): the topic's tab selected,
-no loading line visible, the hero and the footer counting the months,
-every chart of the Overview and the Traffic Explorer drawn and named (as
-many as `CHART_COUNTS` says), every card of the topic drawn and the first
-tile showing a number. A part of the page that is drawn later than
-these adds its own condition there. When Chromium cannot start (`make
-setup-browser` installs it) the snapshot test skips and exits 0, so the
-rest of the suite still counts, and prints framed lines to standard
-error, the last thing `make test` prints (`SKIP_MESSAGE`): the snapshots
-were skipped, nothing of the page was compared, and how to install
-Chromium. It needs the network,
-since the page loads Plot from its CDN and the fonts from Google: offline
-it fails, naming each request that failed and its host. A unit is named by
-its card's title, so a retitled card shows as a "new" unit and its old one
-as "no longer shown".
+**By hand.** Before committing anything that touches the page:
 
-Before committing anything that touches the page: open it at 360 px wide
-and at desktop width, in light and dark mode; check that the console is
-clean; check that a Traffic Explorer choice survives a reload, opens
-the same from a copied link, and follows Back and Forward. `make setup-browser` installs a headless
-Chromium; a short Playwright script from the virtual environment
-(`.venv/bin/python`) can open `http://localhost:8000`, collect the console
-and take the screenshots.
+- open it at 360 px wide and at desktop width, in light and dark mode;
+- check that the console is clean;
+- check that a Traffic Explorer choice survives a reload, opens the same
+  from a copied link, and follows Back and Forward.
+
+`make setup-browser` installs a headless Chromium; a short Playwright
+script from the virtual environment (`.venv/bin/python`) can open
+`http://localhost:8000`, collect the console and take the screenshots.
 
 One task per commit, `make test` green at every commit. Commit messages say
 what changed and why in one line, and end with the attribution lines the

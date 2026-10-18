@@ -45,8 +45,10 @@ slots in the order of their requests within the family. A figure that
 shades a value (cells, raster, scatter) SHALL take a Plot colour scheme,
 the paper's where it names one, with its colour legend above the chart,
 ticked at the powers of ten on a log colour scale. No series SHALL be
-told by its colour alone: every chart of more than one series SHALL have
-a legend, and every chart except a raster a tooltip. Beyond the checks
+told by its colour alone, since the palette's check simulates
+deuteranopia and not protanopia or tritanopia: every chart of more than
+one series SHALL have a legend, and every chart except a raster a
+tooltip. Beyond the checks
 that "The look follows Open Data" requires, a test SHALL check every
 text colour at 4.5:1 on the paper and on a card, each slot's hue within
 15° between the two schemes, and every pair of slots apart by an OKLab
