@@ -25,16 +25,17 @@ const BOX_OPACITY = 0.55; // a box is a tint of its colour, so the median's tick
 const BOX_PADDING = 0.4; // the share of each band left empty around its box
 const MEDIAN_WIDTH = 2; // pixels; the median's tick, thicker than the whiskers
 
+/** Every parameter a boxes chart reads, all of them shared ones (`ChartParameters` of `plot/frame.js`). */
+export const BOXES_PARAMETERS = Object.freeze([
+  "x", "y", "valueLabel", "valueFormat", "labels", "height", "margins", "name",
+]);
+
 /**
+ * Reads `BOXES_PARAMETERS`; the shared ones are `ChartParameters`'.
  * Draw `rows` into `body`, one box per series of `seriesColours` the rows hold, in its order, leaving out the series
- * in `hidden`, by the draw contract of `plot/frame.js`. Its named parameters:
- * - `x`: the box axis's options `{ label, tickRotate }`, `tickRotate` slanting the series' names.
- * - `y`: the card's axis options (`plot/axes.js`); on a log y axis, a box with a statistic at or below zero is not
- *   drawn.
- * - `labels`: each series' label on the axis and in the tooltip where it is written otherwise than its name.
- * - `valueLabel`: what a value is, the tooltip's heading; `valueFormat`: how a statistic is written there.
- * - `margins`: Plot margins in place of the frame's.
- * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `plot/frame.js`).
+ * in `hidden`, by the draw contract of `plot/frame.js`. Its x axis takes `label` and `tickRotate`, which slants the
+ * series' names, each written by its label in `labels` there as in the tooltip; on a log y axis, a box with a
+ * statistic at or below zero is not drawn. It has no parameters of its own.
  * Required: `valueLabel` and `valueFormat`.
  */
 export async function drawBoxes(rows, body, seriesColours, parameters, hidden) {

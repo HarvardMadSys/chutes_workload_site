@@ -50,7 +50,7 @@ test("a chart is as tall as its card's height, and CHART_HEIGHT where the card g
   assert.equal(chartFrame({ clientWidth: 600 }, 400).height, 400);
 });
 
-test("a sequential colour scale takes the card's scheme and type, a log one where asked, with its legend in its format", () => {
+test("a sequential colour scale takes the card's scheme, linear or a log one where asked, with its legend in its format", () => {
   assert.deepEqual(sequentialColour({ valueLabel: "Requests" }, "YlOrRd"), {
     type: "linear", scheme: "YlOrRd", legend: true, label: "Requests", tickFormat: undefined,
   });
@@ -58,7 +58,6 @@ test("a sequential colour scale takes the card's scheme and type, a log one wher
   assert.equal(sequentialColour({ colourLog: true, valueLabel: "Users", valueFormat: String }, "Blues").tickFormat, undefined);
   assert.equal(sequentialColour({ scheme: "Viridis", valueLabel: "Users" }, "YlOrRd").scheme, "Viridis");
   assert.equal(sequentialColour({ colourLog: true, valueLabel: "Users" }, "Blues").type, "log");
-  assert.equal(sequentialColour({ colourScale: "sqrt", valueLabel: "Users" }, "Blues").type, "sqrt");
   assert.equal(sequentialColour({ valueLabel: "Users" }, "Blues").range, undefined);
   assert.deepEqual(sequentialColour({ schemeStart: 0.25, valueLabel: "Users" }, "Blues").range, [0.25, 1]);
   const clipped = sequentialColour({ colourDomain: [36, 80], valueLabel: "Requests" }, "Blues");

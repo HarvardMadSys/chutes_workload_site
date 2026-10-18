@@ -15,17 +15,20 @@ import { SERIES_COLUMN, shownSeriesRows } from "../shared/series.js";
 const REFERENCE_LABEL_RISE = -4; // pixels a reference's label sits above its rule, so the dashes do not cross it
 const LABEL_HALO_WIDTH = 3; // pixels of the card's colour around a reference's label, so a bar under it does not cross it
 
+/** Every parameter a bars chart reads: the shared ones (`ChartParameters` of `plot/frame.js`), then its own. */
+export const BARS_PARAMETERS = Object.freeze([
+  "x", "y", "valueLabel", "valueFormat", "panel", "height", "margins", "name",
+  "reference",
+]);
+
 /**
+ * Reads `BARS_PARAMETERS`; the shared ones are `ChartParameters`'.
  * Draw `rows` into `body`, one bar per row of the series of `seriesColours` not in `hidden`, by the draw contract of
- * `plot/frame.js`. Its named parameters:
- * - `x`: the bar axis's options `{ label, ticks, tickFormat, tickRotate }`, `tickRotate` slanting its labels.
- * - `y`: the value axis's options `{ label, domain, ticks, tickFormat }`, never a log one, since a bar starts at zero.
- * - `panel`: the panel drawn, of a multi-panel answer.
+ * `plot/frame.js`. Its x axis, of the bars, takes `label`, `ticks`, `tickFormat` and `tickRotate`, which slants its
+ * labels; its y axis, of the values, takes `label`, `domain`, `ticks` and `tickFormat`, and is never a log one, since
+ * a bar starts at zero. Its own parameter:
  * - `reference`: `{ value, label }`, a level the bars are read against, as an even split of requests: a dashed
  *   horizontal rule at `value`, its `label` in small text at the rule's right end, inside the plot; none when not given.
- * - `valueLabel`: what a value is, in the tooltip, "Share of requests: 12.4%"; `valueFormat`: how it is written there.
- * - `margins`: Plot margins in place of the frame's.
- * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `plot/frame.js`).
  * Required: `valueLabel` and `valueFormat`.
  */
 export async function drawBars(rows, body, seriesColours, parameters, hidden) {

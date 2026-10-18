@@ -17,13 +17,20 @@ import { SERIES_COLUMN, seriesLabel, shownSeriesRows } from "../shared/series.js
 
 const CDF_COLUMN = "cdf"; // the column of a CDF answer holding the share at or below each value
 
+/** Every parameter a lines chart reads: the shared ones (`ChartParameters` of `plot/frame.js`), then its own. */
+export const LINES_PARAMETERS = Object.freeze([
+  "x", "y", "valueLabel", "valueFormat", "labels", "panel", "height", "margins", "name",
+  "cdf", "series", "tipAllSeries", "markers", "dashed", "gap",
+]);
+
 /**
+ * Reads `LINES_PARAMETERS`; the shared ones are `ChartParameters`'.
  * Draw `rows` into `body`, one line per series of `seriesColours` the rows hold, leaving out the series in `hidden`,
- * by the draw contract of `plot/frame.js`. Its named parameters:
- * - `x`, `y`: the card's axis options (`plot/axes.js`); a row with a value at or below zero on a log axis is not
- *   drawn, and a line is cut at a given domain's ends.
+ * by the draw contract of `plot/frame.js`. On a log axis a row with a value at or below zero is not drawn, and a line
+ * is cut at a given domain's ends. Its own parameters:
  * - `cdf`: true for a CDF answer, its `cdf` column drawn as y from 0 to 1, the axis in percent; its tooltip names the
- *   point nearest the pointer in x and y (`Plot.pointer`), another chart's the point nearest in x (`Plot.pointerX`).
+ *   point nearest the pointer in x and y (`Plot.pointer`), another chart's the point nearest in x (`Plot.pointerX`);
+ *   a CDF's value, in its tooltip, is its x.
  * - `series`: the names of the series drawn, a list, such as a panel's own (`chartParameters` of
  *   `insights/figure_card.js`); every series of `seriesColours` when not given. `hidden` still applies.
  * - `tipAllSeries`: true for a tooltip at the hovered x that lists every drawn series' value there, highest first
@@ -32,11 +39,6 @@ const CDF_COLUMN = "cdf"; // the column of a CDF answer holding the share at or 
  * - `dashed`: the names of the series drawn dashed, a list.
  * - `gap`: the largest step in x a line is drawn across; a series' line is broken between two points farther apart,
  *   where the answer has no row, as hours missing from an hourly line. Every step is drawn when not given.
- * - `valueLabel`, `valueFormat`: what a value is and how it is written in the tooltip, "Requests: 4.9M"; a CDF's value
- *   is its x.
- * - `labels`: each series' label in the tooltip where it is written otherwise than its name.
- * - `panel`: the panel drawn, of a multi-panel answer. `margins`: Plot margins in place of the frame's.
- * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `plot/frame.js`).
  * Required: `valueLabel` and `valueFormat`.
  */
 export async function drawLines(rows, body, seriesColours, parameters, hidden) {

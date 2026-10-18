@@ -15,17 +15,20 @@ const DOT_RADIUS = 2; // pixels; small, so that thousands of points overlap litt
 const DOT_OUTLINE_WIDTH = 0.5; // pixels of axis ink around a dot, so a near-white dot shows on a white card
 const DOT_OPACITY = 0.7; // a dot's fill opacity, so that dots lying on one another show through
 
+/** Every parameter a scatter reads: the shared ones (`ChartParameters` of `plot/frame.js`), then its own. */
+export const SCATTER_PARAMETERS = Object.freeze([
+  "x", "y", "valueLabel", "valueFormat", "height", "margins", "name",
+  "scheme", "colourDomain", "yReference",
+]);
+
 /**
+ * Reads `SCATTER_PARAMETERS`; the shared ones are `ChartParameters`'.
  * Draw `rows` into `body` as one dot per row, by the draw contract of `plot/frame.js`. It has no series:
- * `seriesColours` and `hidden` are not read. Its named parameters:
- * - `x`, `y`: the card's axis options (`plot/axes.js`); on a log axis, a point at or below zero is not drawn.
+ * `seriesColours` and `hidden` are not read. On a log axis, a point at or below zero is not drawn. Its own parameters:
  * - `scheme`: the diverging colour scheme, "RdBu" when not given; `colourDomain`: the values at its two ends, as
  *   `[-1, 1]`, else the values' own, centred on zero.
  * - `yReference`: a y value at which a dashed horizontal rule is drawn under the dots (`referenceRule` of
  *   `plot/frame.js`); none when not given.
- * - `valueLabel`: what a value is, the colour legend's title and the tooltip's; `valueFormat`: how it is written there.
- * - `margins`: Plot margins in place of the frame's.
- * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `plot/frame.js`).
  * Required: `valueLabel` and `valueFormat`.
  */
 export async function drawScatter(rows, body, seriesColours, parameters, hidden) {

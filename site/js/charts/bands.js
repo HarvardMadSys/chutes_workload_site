@@ -36,15 +36,19 @@ const KEY_ENTRIES = Object.freeze([
   Object.freeze({ label: "Median", opacity: 1, isLine: true }),
 ]);
 
+/** Every parameter a bands chart reads: the shared ones (`ChartParameters` of `plot/frame.js`), then its own. */
+export const BANDS_PARAMETERS = Object.freeze([
+  "x", "y", "valueLabel", "valueFormat", "height", "margins", "name",
+  "colour",
+]);
+
 /**
- * Draw `rows` into `body` as the two bands and the median line, in the colour `parameters.colour` (a colour token,
- * the first series colour when not given), by the draw contract of `plot/frame.js`. It has no series:
- * `seriesColours` and `hidden` are not read. Its named parameters:
- * - `x`, `y`: the card's axis options (`plot/axes.js`); on a log y axis, an x whose percentiles are not all above
- *   zero is not drawn; where either gives a domain, the bands and the median are clipped to the frame.
- * - `valueLabel`: what a value is, the tooltip's heading under the x; `valueFormat`: how a percentile is written there.
- * - `margins`: Plot margins in place of the frame's.
- * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `plot/frame.js`).
+ * Reads `BANDS_PARAMETERS`; the shared ones are `ChartParameters`'.
+ * Draw `rows` into `body` as the two bands and the median line, by the draw contract of `plot/frame.js`. It has no
+ * series: `seriesColours` and `hidden` are not read. On a log y axis, an x whose percentiles are not all above zero is
+ * not drawn; where either axis gives a domain, the bands and the median are clipped to the frame. The tooltip heads
+ * the percentiles with `valueLabel`. Its own parameter:
+ * - `colour`: the colour token the bands and the median are drawn in, the first series colour when not given.
  * Required: `valueLabel` and `valueFormat`.
  */
 export async function drawBands(rows, body, seriesColours, parameters, hidden) {

@@ -14,25 +14,28 @@ import { logColumns, positiveRows } from "../shared/rows.js";
 const DEFAULT_SCHEME = "YlOrRd"; // the paper's heatmaps' colour scheme, low values light
 const CATEGORY_CENTRE = 0.5; // a category's tick sits halfway between its cell's integer edges
 
+/** Every parameter a cells chart reads: the shared ones (`ChartParameters` of `plot/frame.js`), then its own. */
+export const CELLS_PARAMETERS = Object.freeze([
+  "x", "y", "valueLabel", "valueFormat", "height", "margins", "name",
+  "scheme", "schemeStart", "colourDomain", "colourLog", "diagonal", "yReference",
+]);
+
 /**
+ * Reads `CELLS_PARAMETERS`; the shared ones are `ChartParameters`'.
  * Draw `rows` into `body` as one rectangle per row, filled by its value, by the draw contract of `plot/frame.js`. It
- * has no series: `seriesColours` and `hidden` are not read. Its named parameters:
- * - `x`, `y`: the card's axis options (`AxisOptions` of `plot/axes.js`); on a log axis, a cell with an edge at or
- *   below zero is not drawn. An axis's `categories` are its category names, in place of its ticks and their format,
- *   the cell from i to i + 1 named by the i-th, "Mon"; every category is labelled, or, where the axis gives `ticks`,
- *   those of its indices.
+ * has no series: `seriesColours` and `hidden` are not read. On a log axis, a cell with an edge at or below zero is not
+ * drawn. An axis's `categories` are its category names, in place of its ticks and their format, the cell from i to
+ * i + 1 named by the i-th, "Mon"; every category is labelled, or, where the axis gives `ticks`, those of its indices.
+ * Its own parameters:
  * - `scheme`: the colour scheme, "YlOrRd" when not given; `schemeStart`: the point of it, from 0 to 1, the lowest
  *   value takes, its first colour when not given; `colourDomain`: the values at the scale's two ends, a cell beyond
  *   either taking that end's colour, the values' own when not given; `colourLog`: true for a log colour scale, on
- *   which a cell of value zero is not drawn; `colourScale`: Plot's colour scale type otherwise, linear when not given.
+ *   which a cell of value zero is not drawn, a linear one when not given.
  * - `diagonal`: true to draw a dashed line where y equals x, as a figure of input against output tokens marks them
  *   equal.
  * - `yReference`: a y value at which a dashed horizontal rule is drawn across the cells, on a halo in the card's
  *   colour (`haloedReferenceRule` of `plot/frame.js`), as a coefficient of variation of 1 parts bursty from evenly
  *   spaced; none when not given.
- * - `valueLabel`: what a value is, the colour legend's title and the tooltip's; `valueFormat`: how it is written there.
- * - `margins`: Plot margins in place of the frame's.
- * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `plot/frame.js`).
  * Required: `valueLabel` and `valueFormat`.
  */
 export async function drawCells(rows, body, seriesColours, parameters, hidden) {

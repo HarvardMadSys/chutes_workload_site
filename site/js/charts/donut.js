@@ -26,14 +26,21 @@ const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 // A slice this close to the full turn is drawn as a whole ring: an arc whose ends meet would draw nothing.
 const WHOLE_RING_TOLERANCE = 1e-9;
 
+/** Every parameter a donut reads: the shared ones (`ChartParameters` of `plot/frame.js`), then its own. */
+export const DONUT_PARAMETERS = Object.freeze([
+  "labels", "name",
+  "nameColumn", "countColumn", "unit", "totalFormat",
+]);
+
 /**
+ * Reads `DONUT_PARAMETERS`; the shared ones are `ChartParameters`'.
  * Draw `rows` into `body` as a donut of the slices not in `hidden`, each in its colour of `seriesColours` ("Other"
  * last, as `barColours` and `familyColours` give them), with a tooltip of its name, share and count, and the slices'
- * total in the centre, by the draw contract of `plot/frame.js`. Its named parameters:
+ * total in the centre, by the draw contract of `plot/frame.js`. A name's label in `labels` writes it in the tooltip
+ * and the legend. Its own parameters:
  * - `nameColumn` and `countColumn`: the columns holding a row's name and its count.
  * - `unit`: what the count counts, in the plural, "requests", written under the total.
  * - `totalFormat`: how the total in the centre is written.
- * - `labels`: each name's label where it is written otherwise, in the tooltip and the legend.
  */
 export async function drawDonut(rows, body, seriesColours, parameters, hidden) {
   const { nameColumn, countColumn, unit, totalFormat, labels = {} } = parameters;

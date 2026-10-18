@@ -16,28 +16,31 @@ import { seriesLabel, seriesLegend, shownRows } from "../shared/series.js";
 // Joins a bar's x value and series name into one key when summing folded rows.
 const KEY_SEPARATOR = "\u0000";
 
+/** Every parameter stacked bars read: the shared ones (`ChartParameters` of `plot/frame.js`), then their own. */
+export const STACKED_BARS_PARAMETERS = Object.freeze([
+  "x", "y", "valueLabel", "valueFormat", "labels", "height", "margins", "name",
+  "xColumn", "seriesColumn", "valueColumn", "barInset", "segmentInset",
+]);
+
 /**
+ * Reads `STACKED_BARS_PARAMETERS`; the shared ones are `ChartParameters`'.
  * Draw `rows` into `body` as one stacked bar per x value of the series not in `hidden`, bottom up in the order of
  * `seriesColours`, by the draw contract of `plot/frame.js`. A series `seriesColours` does not name is not dropped but
  * folded into "Other" (`foldedRows`), so a figure card's `series` cannot leave one out of its bars; a figure whose
- * legend names every series, as the monthly shares' does, folds none. Its named parameters:
+ * legend names every series, as the monthly shares' does, folds none. The x axis is a band axis: its `domain` is
+ * every bar's x value, in order, each keeping its place even where no shown row falls on it, the shown rows' own x
+ * values when not given; its `ticks` the x values ticked, every bar's when not given; its `tickFormat` writes a tick,
+ * "" for an unlabelled one, and a bar's x in the tooltip, "Apr '25", unless its `tipFormat` is given; its
+ * `tickRotate` slants the ticks' labels, so that a label at every bar keeps clear of its neighbours; its `inset` sets
+ * the first and last bars in from the plot's edges, none when not given. The y axis's `label` titles the chart, none
+ * where the card's title already says what the bars count; its `tickFormat` writes the value axis's ticks. Its own
+ * parameters:
  * - `xColumn`, `seriesColumn` and `valueColumn`: the columns holding a row's bar, its series and its value, a
  *   segment's height.
- * - `x`, `y`: the card's axis options (`AxisOptions` of `plot/axes.js`). The x axis is a band axis: its `domain` is
- *   every bar's x value, in order, each keeping its place even where no shown row falls on it, the shown rows' own x
- *   values when not given; its `ticks` the x values ticked, every bar's when not given; its `tickFormat` writes a tick,
- *   "" for an unlabelled one, and a bar's x in the tooltip, "Apr '25", unless its `tipFormat` is given; its
- *   `tickRotate` slants the ticks' labels, so that a label at every bar keeps clear of its neighbours; its `inset` sets
- *   the first and last bars in from the plot's edges, none when not given. The y axis's `label` titles the chart, none
- *   where the card's title already says what the bars count; its `tickFormat` writes the value axis's ticks.
- * - `valueLabel`: what a value is, named in the tooltip, "Requests: 412"; `valueFormat`: how it is written there.
  * - `barInset`: the pixels taken off the left and the right of a bar, `BAR_INSET` when not given; 0 where a bar is a
  *   pixel or two wide, as a day's is over a year.
  * - `segmentInset`: the pixels taken off the top and the bottom of each segment, `BAR_INSET` when not given; 0 where
  *   thin segments would vanish into their gaps, as a share's do.
- * - `margins`: Plot margins in place of the frame's, where the bars should take more of the card's width.
- * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `plot/frame.js`).
- * - `labels`: each series' label in the tooltip where it is written otherwise than its name, as the legend's `labels`.
  * Required: the three columns, `valueLabel` and `valueFormat`.
  * Needs the figure's legend: its colours are `seriesColours`.
  */
