@@ -136,20 +136,20 @@ export async function drawTrafficBars(place, { choice, family, chosen, requests,
 async function drawDayBars(daily, body, drawing, hidden) {
   await drawStackedBars(daily, body, { series: drawing.colours }, {
     xColumn: "day",
-    xLabel: null,
-    xDomain: drawing.days,
-    xTicks: monthTicks(drawing.days, chartWidth(body)),
-    xTickFormat: dayMonth,
-    xTipFormat: String, // a bar's tooltip names its whole day, where its tick names only the month
-    xTickRotate: MONTH_LABEL_ANGLE,
     seriesColumn: drawing.breakdown.column,
     valueColumn: "value",
+    x: {
+      domain: drawing.days,
+      ticks: monthTicks(drawing.days, chartWidth(body)),
+      tickFormat: dayMonth,
+      tipFormat: String, // a bar's tooltip names its whole day, where its tick names only the month
+      tickRotate: MONTH_LABEL_ANGLE,
+    },
+    y: { tickFormat: formatCountTick },
     valueLabel: drawing.words.valueLabel,
-    yLabel: null,
     valueFormat: formatCount,
-    yTickFormat: formatCountTick,
     margins: DAILY_MARGINS,
-    inset: DAY_BAR_INSET,
+    barInset: DAY_BAR_INSET,
     segmentInset: DAY_BAR_INSET,
     labels: drawing.breakdown.labels,
   }, hidden);

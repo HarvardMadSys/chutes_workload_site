@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  barXText, foldedRows, foldToOther, segmentInsets, stackedBarTipText, stackedBarsLegend, sumFolded,
+  foldedRows, foldToOther, segmentInsets, stackedBarTipText, stackedBarsLegend, sumFolded,
 } from "../site/js/charts/stacked_bars.js";
 import { barColours, familyColours } from "../site/js/theme/colours.js";
 
@@ -97,25 +97,29 @@ test("a segment's tooltip names its series by its label where it has one, its ba
 test("a segment's bar follows the x axis's title where the bars have one", () => {
   const parameters = { xColumn: "x", seriesColumn: "series", valueColumn: "value", valueLabel: "Share" };
   const row = { x: 8, series: "Others", value: 0.25 };
-  assert.equal(stackedBarTipText(row, { ...parameters, valueFormat: String, xLabel: "Trace month" }),
+  assert.equal(stackedBarTipText(row, { ...parameters, valueFormat: String, x: { label: "Trace month" } }),
     "Others\nTrace month: 8\nShare: 0.25");
-  assert.equal(stackedBarTipText(row, { ...parameters, valueFormat: String, xLabel: null }), "Others\n8\nShare: 0.25");
+  assert.equal(stackedBarTipText(row, { ...parameters, valueFormat: String, x: { label: null } }),
+    "Others\n8\nShare: 0.25");
 });
 
-test("a segment is inset by BAR_INSET on every side, or by inset on its sides and segmentInset at its ends", () => {
+test("a segment is inset by BAR_INSET on every side, or by barInset on its sides and segmentInset at its ends", () => {
   assert.deepEqual(segmentInsets({}), { insetLeft: 1, insetRight: 1, insetTop: 1, insetBottom: 1 });
   assert.deepEqual(segmentInsets({ segmentInset: 0 }), { insetLeft: 1, insetRight: 1, insetTop: 0, insetBottom: 0 });
-  assert.deepEqual(segmentInsets({ inset: 0, segmentInset: 0 }),
+  assert.deepEqual(segmentInsets({ barInset: 0, segmentInset: 0 }),
     { insetLeft: 0, insetRight: 0, insetTop: 0, insetBottom: 0 });
 });
 
 test("a segment's bar is written by the x axis's tick format, or by its tooltip format alone where it has one", () => {
   const monthName = (month) => ["Apr '25", "May '25"][month - 1];
-  assert.equal(barXText(1, { xLabel: "Month", xTickFormat: monthName }), "Month: Apr '25");
-  assert.equal(barXText("2025-06-12", { xTickFormat: (day) => day.slice(0, 7), xTipFormat: String }), "2025-06-12");
-  assert.equal(barXText(8, {}), "8");
-  const parameters = { xColumn: "x", seriesColumn: "series", valueColumn: "value", valueLabel: "Share" };
-  const row = { x: 2, series: "Others", value: 0.25 };
-  assert.equal(stackedBarTipText(row, { ...parameters, valueFormat: String, xLabel: "Month", xTickFormat: monthName }),
-    "Others\nMonth: May '25\nShare: 0.25");
+  const columns = { xColumn: "x", seriesColumn: "series", valueColumn: "value" };
+  const parameters = { ...columns, valueLabel: "Share", valueFormat: String };
+  const month = { x: 1, series: "Others", value: 0.25 };
+  assert.equal(stackedBarTipText(month, { ...parameters, x: { label: "Month", tickFormat: monthName } }),
+    "Others\nMonth: Apr '25\nShare: 0.25");
+  const day = { x: "2025-06-12", series: "Others", value: 0.25 };
+  const dayAxis = { tickFormat: (value) => value.slice(0, 7), tipFormat: String };
+  assert.equal(stackedBarTipText(day, { ...parameters, x: dayAxis }), "Others\n2025-06-12\nShare: 0.25");
+  const plain = { x: 8, series: "Others", value: 0.25 };
+  assert.equal(stackedBarTipText(plain, { ...parameters, x: {} }), "Others\n8\nShare: 0.25");
 });

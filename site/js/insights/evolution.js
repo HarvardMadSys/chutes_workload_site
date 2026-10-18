@@ -7,7 +7,7 @@
  */
 
 import { formatCountTick, formatPercent, formatShare, formatWholeCount } from "../shared/format.js";
-import { TRACE_MONTH_AXIS, TRACE_MONTH_TICKS } from "../plot/trace_axes.js";
+import { TRACE_MONTH_AXIS } from "../plot/trace_axes.js";
 import { SERIES_SLOTS } from "../theme/colours.js";
 import { frozenCard } from "./figure_card.js";
 
@@ -42,12 +42,8 @@ export const EVOLUTION_TOPIC = Object.freeze({
           definition: "Each month's share of requests among the ten most requested models, a model and its TEE variant counted as one, and Others for the rest. Apr '26* holds only the trace's last two days.",
           kind: "stacked_bars",
           chart: {
-            xLabel: TRACE_MONTH_AXIS.label,
-            xTicks: TRACE_MONTH_TICKS,
-            xTickFormat: TRACE_MONTH_AXIS.tickFormat,
-            xInset: TRACE_MONTH_AXIS.inset,
-            yLabel: "Share of requests",
-            yTickFormat: formatPercent,
+            x: TRACE_MONTH_AXIS,
+            y: { label: "Share of requests", tickFormat: formatPercent },
             valueLabel: "Share of requests",
             valueFormat: formatShare,
             // No gap between a bar's segments: a model's share under about 1% would vanish into it.
@@ -67,12 +63,8 @@ export const EVOLUTION_TOPIC = Object.freeze({
           definition: "The same models' share of each month's input plus output tokens. Apr '26* holds only the trace's last two days.",
           kind: "stacked_bars",
           chart: {
-            xLabel: TRACE_MONTH_AXIS.label,
-            xTicks: TRACE_MONTH_TICKS,
-            xTickFormat: TRACE_MONTH_AXIS.tickFormat,
-            xInset: TRACE_MONTH_AXIS.inset,
-            yLabel: "Share of total tokens",
-            yTickFormat: formatPercent,
+            x: TRACE_MONTH_AXIS,
+            y: { label: "Share of total tokens", tickFormat: formatPercent },
             valueLabel: "Share of tokens",
             valueFormat: formatShare,
             // No gap between a bar's segments, as the request share's beside it.

@@ -6,8 +6,8 @@
  * three named by the figure; a series may have several rows in one bar, which are summed once folded.
  */
 
-import { AXIS_STYLE, BAR_INSET, colourScale, GRID_STYLE, titledFrame } from "../plot/frame.js";
-import { axisValueText, axisWithTicks, TICK_COUNT } from "../plot/axes.js";
+import { AXIS_STYLE, BAR_INSET, colourScale, titledFrame } from "../plot/frame.js";
+import { axisMark, axisValueText, bandAxisMark, gridMark } from "../plot/axes.js";
 import { distinct } from "../shared/rows.js";
 import { OTHER_NAME } from "../theme/colours.js";
 import { seriesLabel, seriesLegend, shownRows } from "../shared/series.js";
@@ -22,18 +22,15 @@ const KEY_SEPARATOR = "\u0000";
  * figure whose legend names every series, as the monthly shares' does, folds none. Its named parameters:
  * - `xColumn`, `seriesColumn` and `valueColumn`: the columns holding a row's bar, its series and its value, a
  *   segment's height.
- * - `valueLabel`: what a value is, named in the tooltip, "Requests: 412".
- * - `yLabel`: the value axis's title, none when null or not given, where the card's title already says what the bars
- *   count.
- * - `valueFormat`: how a value is written in the tooltip; `yTickFormat`: on the value axis.
- * - `xLabel`: the x axis's title, none when null or not given; `xTickFormat`: how a tick is written, "" for an
- *   unlabelled one, and a bar's x in the tooltip, "Apr '25"; `xTipFormat`: how a bar's x is written in the tooltip
- *   where that differs from a tick's, alone, without the axis's title; `xTickRotate`: the angle of its ticks' labels
- *   in degrees, 0 (level) when not given, so that a label at every bar keeps clear of its neighbours.
- * - `xDomain`: every bar's x value, in order, each keeping its place even where no shown row falls on it; the shown
- *   rows' own x values when not given. `xTicks`: the x values ticked, every bar's when not given. `xInset`: the pixels
- *   the first and last bars sit in from the plot's edges, as an axis's `inset` (`plot/axes.js`), none when not given.
- * - `inset`: the pixels taken off the left and the right of a bar, `BAR_INSET` when not given; 0 where a bar is a
+ * - `x`, `y`: the card's axis options (`AxisOptions` of `plot/axes.js`). The x axis is a band axis: its `domain` is
+ *   every bar's x value, in order, each keeping its place even where no shown row falls on it, the shown rows' own x
+ *   values when not given; its `ticks` the x values ticked, every bar's when not given; its `tickFormat` writes a tick,
+ *   "" for an unlabelled one, and a bar's x in the tooltip, "Apr '25", unless its `tipFormat` is given; its
+ *   `tickRotate` slants the ticks' labels, so that a label at every bar keeps clear of its neighbours; its `inset` sets
+ *   the first and last bars in from the plot's edges, none when not given. The y axis's `label` titles the chart, none
+ *   where the card's title already says what the bars count; its `tickFormat` writes the value axis's ticks.
+ * - `valueLabel`: what a value is, named in the tooltip, "Requests: 412"; `valueFormat`: how it is written there.
+ * - `barInset`: the pixels taken off the left and the right of a bar, `BAR_INSET` when not given; 0 where a bar is a
  *   pixel or two wide, as a day's is over a year.
  * - `segmentInset`: the pixels taken off the top and the bottom of each segment, `BAR_INSET` when not given; 0 where
  *   thin segments would vanish into their gaps, as a share's do.
@@ -44,24 +41,20 @@ const KEY_SEPARATOR = "\u0000";
  * Needs the figure's legend: its colours are `colours.series`.
  */
 export async function drawStackedBars(rows, body, colours, parameters, hidden) {
-  const { xColumn, seriesColumn, valueColumn } = parameters;
-  const { xLabel = null, yLabel = null, xTickFormat, xTickRotate = 0, yTickFormat, margins } = parameters;
-  const { xDomain, xTicks, xInset = 0 } = parameters;
+  const { xColumn, seriesColumn, valueColumn, x = {}, y = {}, margins } = parameters;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
   const folded = foldedRows(rows, colours.series, { xColumn, seriesColumn, valueColumn });
   const shown = shownRows(folded, seriesColumn, hidden);
   const stacked = [...colours.series.keys()].filter((name) => shown.some((row) => row[seriesColumn] === name));
   const chart = Plot.plot({
-    ...titledFrame(body, yLabel, margins, parameters.height),
-    x: { type: "band", domain: xDomain ?? distinct(shown.map((row) => row[xColumn])), inset: xInset },
+    ...titledFrame(body, y.label ?? null, margins, parameters.height),
+    x: { type: "band", domain: x.domain ?? distinct(shown.map((row) => row[xColumn])), inset: x.inset ?? 0 },
     color: colourScale(colours.series, stacked),
     marks: [
-      Plot.gridY({ ...GRID_STYLE, ticks: TICK_COUNT }),
-      axisWithTicks(Plot.axisX, xTicks, {
-        ...AXIS_STYLE, tickFormat: xTickFormat, tickRotate: xTickRotate, label: xLabel,
-      }),
-      Plot.axisY({ ...AXIS_STYLE, ticks: TICK_COUNT, tickFormat: yTickFormat, label: yLabel }),
+      gridMark(Plot, "y"),
+      bandAxisMark(Plot, x),
+      axisMark(Plot, "y", y),
       Plot.barY(shown, {
         x: xColumn,
         y: valueColumn,
@@ -124,29 +117,21 @@ export function sumFolded(rows, { xColumn, seriesColumn, valueColumn }) {
 }
 
 /**
- * Plot's insets of each segment for the parameters `inset` (off a bar's left and right) and `segmentInset` (off a
+ * Plot's insets of each segment for the parameters `barInset` (off a bar's left and right) and `segmentInset` (off a
  * segment's top and bottom), each `BAR_INSET` when not given: `{ insetLeft, insetRight, insetTop, insetBottom }`.
  */
-export function segmentInsets({ inset = BAR_INSET, segmentInset = BAR_INSET }) {
-  return { insetLeft: inset, insetRight: inset, insetTop: segmentInset, insetBottom: segmentInset };
+export function segmentInsets({ barInset = BAR_INSET, segmentInset = BAR_INSET }) {
+  return { insetLeft: barInset, insetRight: barInset, insetTop: segmentInset, insetBottom: segmentInset };
 }
 
 /**
- * A segment's tooltip, three lines: its series, by its label in `labels` where it has one there, its bar's x value
- * (`barXText`), and its value, "Requests: 412".
+ * A segment's tooltip, three lines: its series, by its label in `labels` where it has one there, its bar's x value as
+ * the x axis writes it in a tooltip (`axisValueText` of `plot/axes.js`), "Month: Apr '25", and its value,
+ * "Requests: 412".
  */
 export function stackedBarTipText(row, parameters) {
-  const { xColumn, seriesColumn, valueColumn, valueLabel, valueFormat, labels = {} } = parameters;
+  const { xColumn, seriesColumn, valueColumn, valueLabel, valueFormat, labels = {}, x = {} } = parameters;
   const series = seriesLabel(labels, row[seriesColumn]);
-  const bar = barXText(row[xColumn], parameters);
+  const bar = axisValueText(x, row[xColumn]);
   return `${series}\n${bar}\n${valueLabel}: ${valueFormat(row[valueColumn])}`;
-}
-
-/**
- * A bar's x value `x` as the tooltip writes it, as the x axis would (`axisValueText` of `plot/axes.js`): by
- * `xTipFormat` alone where given; else by `xTickFormat` (the value as it is when not given), after the axis's title
- * `xLabel` where it has one, "Month: Apr '25".
- */
-export function barXText(x, { xLabel = null, xTickFormat = String, xTipFormat }) {
-  return axisValueText({ label: xLabel, tickFormat: xTickFormat, tipFormat: xTipFormat }, x);
 }

@@ -22,16 +22,9 @@ const MONTH_CARDS = [
   "fig_iat_monthly_per_user_band",
 ];
 
-// Whether the x axis of `card` names the trace's months: a bands card's `x`, or a stacked-bars card's `xTickFormat`.
+// Whether the x axis of `card` names the trace's months.
 function isOnMonthAxis(card) {
-  const parameters = chartParameters(card);
-  return parameters.x?.tickFormat === traceMonthName || parameters.xTickFormat === traceMonthName;
-}
-
-// The pixels the x axis of `card` is inset by: its `x.inset`, or a stacked-bars card's `xInset`.
-function xInset(card) {
-  const parameters = chartParameters(card);
-  return parameters.x?.inset ?? parameters.xInset;
+  return chartParameters(card).x?.tickFormat === traceMonthName;
 }
 
 // The cards on the trace's month axis, every topic's.
@@ -80,6 +73,6 @@ test("the month axis is inset from the plot's edges on every card on it, the sha
   assert.ok(TRACE_MONTH_AXIS.inset > 0);
   assert.equal(axisScale(TRACE_MONTH_AXIS, [1, TRACE_MONTHS]).inset, TRACE_MONTH_AXIS.inset);
   for (const card of monthCards()) {
-    assert.equal(xInset(card), TRACE_MONTH_AXIS.inset, card.figure);
+    assert.equal(chartParameters(card).x.inset, TRACE_MONTH_AXIS.inset, card.figure);
   }
 });
