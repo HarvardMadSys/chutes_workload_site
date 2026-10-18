@@ -1,16 +1,31 @@
 /**
- * A card's axes as Plot takes them: Plot's scale options for a card's axis options, its axis and grid marks (a band
- * axis's among them), a value as its axis writes it, alone or in a tooltip's text, the tick count a linear axis asks
- * for, a log axis's powers of ten and a log colour legend's ticks. A card's axis options are `{ label, log, domain,
- * ticks, tickFormat, tipFormat, inset }`, each optional: its title, whether it is a log axis, its `[low, high]`, the
- * values it ticks, how a tick is written, how a value is written in a tooltip where that differs from a tick's, the
- * whole of the value's line, which then names the value itself (a trace day with its date, "Day 150 · Sep 8, 2025"),
- * and the pixels its ends sit in from the plot's (Plot's scale `inset`), so an x axis's first label clears the y axis's
- * lowest. The chart kinds use it, in the styles of `plot/frame.js`; plain functions, a mark's given Plot.
+ * A card's axes as Plot takes them: Plot's scale options for a card's axis options (`AxisOptions`, below), its axis and
+ * grid marks (a band axis's among them), a value as its axis writes it, alone or in a tooltip's text, the tick count a
+ * linear axis asks for, a log axis's powers of ten and a log colour legend's ticks. The chart kinds use it, in the
+ * styles of `plot/frame.js`; plain functions, a mark's given Plot.
  */
 
 import { AXIS_STYLE, GRID_STYLE } from "./frame.js";
 import { formatCount } from "../shared/format.js";
+
+/**
+ * The options of one axis of a chart. Every key is optional.
+ * @typedef {object} AxisOptions
+ * @property {string|null} [label]  the axis's title; none when null or not given
+ * @property {boolean} [log]  true for a log axis
+ * @property {Array} [domain]  [low, high]; on a band axis, every band in order
+ * @property {Array} [ticks]  the values ticked; on a category axis, the indices of the categories labelled
+ * @property {function} [tickFormat]  how a tick is written, and a value in a tooltip unless tipFormat is given
+ * @property {function} [tipFormat]  how a value is written in a tooltip, alone, without the axis's title
+ * @property {number} [inset]  pixels between the plot's edges and the axis's first and last values
+ * @property {number} [tickRotate]  degrees a band axis's tick labels are slanted, 0 (level) when not given
+ * @property {Array} [categories]  the cells' category names, the cell from i to i + 1 named by the i-th
+ */
+
+/** The names of the axis options, for the test that checks every card's axes against them. */
+export const AXIS_OPTION_NAMES = Object.freeze([
+  "label", "log", "domain", "ticks", "tickFormat", "tipFormat", "inset", "tickRotate", "categories",
+]);
 
 /**
  * The tick count a linear axis asks Plot for: Plot rounds a count to steps of 1, 2 or 5, which gives up to about twice

@@ -16,10 +16,10 @@ const CATEGORY_CENTRE = 0.5; // a category's tick sits halfway between its cell'
 /**
  * Draw `rows` into `body` as one rectangle per row, filled by its value, and return the chart. It has no series:
  * `colours` and `hidden` are not read. Its named parameters:
- * - `x`, `y`: the card's axis options (`plot/axes.js`); on a log axis, a cell with an edge at or below zero is not
- *   drawn.
- * - `xTicks`, `yTicks`: an axis's category names, in place of its ticks and their format, the cell from i to i + 1
- *   named by the i-th, "Mon"; every category is labelled, or, where the axis gives `ticks`, those of its indices.
+ * - `x`, `y`: the card's axis options (`AxisOptions` of `plot/axes.js`); on a log axis, a cell with an edge at or
+ *   below zero is not drawn. An axis's `categories` are its category names, in place of its ticks and their format,
+ *   the cell from i to i + 1 named by the i-th, "Mon"; every category is labelled, or, where the axis gives `ticks`,
+ *   those of its indices.
  * - `scheme`: the colour scheme, "YlOrRd" when not given; `schemeStart`: the point of it, from 0 to 1, the lowest
  *   value takes, its first colour when not given; `colourDomain`: the values at the scale's two ends, a cell beyond
  *   either taking that end's colour, the values' own when not given; `colourLog`: true for a log colour scale, on
@@ -38,8 +38,8 @@ export async function drawCells(rows, body, colours, parameters) {
   const { margins } = parameters;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
-  const xAxis = categoryAxis(parameters.x ?? {}, parameters.xTicks);
-  const yAxis = categoryAxis(parameters.y ?? {}, parameters.yTicks);
+  const xAxis = categoryAxis(parameters.x ?? {});
+  const yAxis = categoryAxis(parameters.y ?? {});
   const drawn = drawnCells(rows, { ...parameters, x: xAxis, y: yAxis });
   const xEdges = [...drawn.map((cell) => cell.x_low), ...drawn.map((cell) => cell.x_high)];
   const yEdges = [...drawn.map((cell) => cell.y_low), ...drawn.map((cell) => cell.y_high)];
@@ -72,17 +72,18 @@ export async function drawCells(rows, body, colours, parameters) {
 }
 
 /**
- * The card's axis options `axis`, or, given category names `names`, an axis ticked at the middle of each category's
- * cell, of every category or of those whose indices `axis.ticks` lists, each tick written by its category's name;
- * `names` as the axis's `names`, for the tooltip.
+ * The card's axis options `axis`, or, where it gives category names, `axis.categories`, the axis ticked at the middle
+ * of each category's cell, of every category or of those whose indices `axis.ticks` lists, each tick written by its
+ * category's name.
  */
-export function categoryAxis(axis, names) {
-  if (names === undefined) {
+export function categoryAxis(axis) {
+  const { categories } = axis;
+  if (categories === undefined) {
     return axis;
   }
-  const labelled = axis.ticks ?? names.map((name, index) => index);
+  const labelled = axis.ticks ?? categories.map((category, index) => index);
   const ticks = labelled.map((index) => index + CATEGORY_CENTRE);
-  return { ...axis, names, ticks, tickFormat: (tick) => names[Math.floor(tick)] };
+  return { ...axis, ticks, tickFormat: (tick) => categories[Math.floor(tick)] };
 }
 
 /**
@@ -121,7 +122,7 @@ export function cellTipText(cell, { x: xAxis = {}, y: yAxis = {}, valueLabel, va
 
 // An axis's part of a cell's tooltip: the category's name or the cell's range, after the axis's title where it has one.
 function edgesText(axis, low, high) {
-  const text = axis.names === undefined ? rangeText(axis, low, high) : axis.names[low];
+  const text = axis.categories === undefined ? rangeText(axis, low, high) : axis.categories[low];
   return afterAxisTitle(axis, text);
 }
 

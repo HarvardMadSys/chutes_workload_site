@@ -26,20 +26,20 @@ test("a cell with an edge at zero is not drawn on a log axis, nor a cell of valu
 });
 
 test("an axis of category names is ticked at the middle of each cell, each tick written by its name", () => {
-  const axis = categoryAxis({ label: "Weekday" }, WEEKDAYS);
+  const axis = categoryAxis({ label: "Weekday", categories: WEEKDAYS });
   assert.deepEqual(axis.ticks, [0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5]);
   assert.equal(axis.tickFormat(2.5), "Wed");
   assert.equal(axis.label, "Weekday");
   const plain = { label: "Hour" };
-  assert.equal(categoryAxis(plain, undefined), plain);
+  assert.equal(categoryAxis(plain), plain);
 });
 
 test("an axis of category names given ticks labels only the categories of those indices", () => {
   const hours = [0, 1, 2, 3, 4, 5, 6, 7, 8];
-  const axis = categoryAxis({ label: "Hour", ticks: [0, 4, 8] }, hours);
+  const axis = categoryAxis({ label: "Hour", categories: hours, ticks: [0, 4, 8] });
   assert.deepEqual(axis.ticks, [0.5, 4.5, 8.5]);
   assert.deepEqual(axis.ticks.map(axis.tickFormat), [0, 4, 8]);
-  assert.deepEqual(axis.names, hours);
+  assert.deepEqual(axis.categories, hours);
 });
 
 test("a cell's tooltip gives its ranges, after each axis's title, and its value", () => {
@@ -56,7 +56,7 @@ test("a cell of a category axis is named by its category in the tooltip", () => 
   const cell = { x_low: 13, x_high: 14, y_low: 3, y_high: 4, value: 738900 };
   const parameters = {
     x: { label: "Hour" },
-    y: categoryAxis({}, WEEKDAYS),
+    y: { categories: WEEKDAYS },
     valueLabel: "Requests per hour",
     valueFormat: (value) => value.toLocaleString("en-US"),
   };

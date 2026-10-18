@@ -118,11 +118,9 @@ export const WORKLOAD_TOPIC = Object.freeze({
           definition: "Average requests in each hour of the week, by weekday and hour of day. Each weekday's total is divided by the number of days that fall on that weekday.",
           kind: "cells",
           chart: {
-            x: { label: "Hour of the day (UTC)", ticks: LABELLED_HOURS },
-            xTicks: HOURS,
+            x: { label: "Hour of the day (UTC)", categories: HOURS, ticks: LABELLED_HOURS },
             // Reversed, so the first row, Sunday, is at the top.
-            y: { domain: [7, 0] },
-            yTicks: WEEKDAY_LABELS,
+            y: { domain: [7, 0], categories: WEEKDAY_LABELS },
             scheme: "YlOrRd",
             // A cell's value is one hour's average, so the colour legend and the tooltip name it so.
             valueLabel: "Average requests in the hour",
