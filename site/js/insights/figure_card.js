@@ -22,35 +22,54 @@
 import { legendPlace, renderFigure, showError, showLoading } from "../shared/figure.js";
 import { readAnswer } from "../shared/answers.js";
 import { SERIES_COLUMN } from "../shared/series.js";
-import { bandKey, bandsColour, drawBands } from "../charts/bands.js";
-import { drawBars } from "../charts/bars.js";
-import { drawBoxes } from "../charts/boxes.js";
-import { drawCells } from "../charts/cells.js";
-import { drawLines } from "../charts/lines.js";
-import { drawRaster } from "../charts/raster.js";
-import { drawScatter } from "../charts/scatter.js";
-import { drawStackedBars } from "../charts/stacked_bars.js";
+import { BANDS_PARAMETERS, bandKey, bandsColour, drawBands } from "../charts/bands.js";
+import { BARS_PARAMETERS, drawBars } from "../charts/bars.js";
+import { BOXES_PARAMETERS, drawBoxes } from "../charts/boxes.js";
+import { CELLS_PARAMETERS, drawCells } from "../charts/cells.js";
+import { drawLines, LINES_PARAMETERS } from "../charts/lines.js";
+import { drawRaster, RASTER_PARAMETERS } from "../charts/raster.js";
+import { drawScatter, SCATTER_PARAMETERS } from "../charts/scatter.js";
+import { drawStackedBars, STACKED_BARS_PARAMETERS } from "../charts/stacked_bars.js";
 import { drawWithLegend } from "../shared/legend.js";
 import { cardColours, ENDPOINT_PALETTE, figureLegend } from "./card_series.js";
 
 /**
- * The chart kinds a card may name, each `{ draw, swatch, parameters }`: the function that draws it, the shape of its
- * legend's swatches ("line" or "square"), and the parameters every figure answer of the kind takes, which a card's
- * `chart` adds to. A CDF is drawn by the lines kind; a stacked-bars answer names its columns `x`, `series`, `value`.
+ * The chart kinds a card may name, each `{ draw, swatch, defaults, parameterNames }`: the function that draws it, the
+ * shape of its legend's swatches ("line" or "square"), the parameters every figure answer of the kind takes, which a
+ * card's `chart` adds to, and the names of the parameters the kind reads (its `<KIND>_PARAMETERS`), which a card's
+ * `chart` and its panels' are checked against. A CDF is drawn by the lines kind; a stacked-bars answer names its
+ * columns `x`, `series`, `value`.
  */
 export const CHART_KINDS = Object.freeze({
-  lines: Object.freeze({ draw: drawLines, swatch: "line", parameters: Object.freeze({}) }),
-  cdf: Object.freeze({ draw: drawLines, swatch: "line", parameters: Object.freeze({ cdf: true }) }),
-  bands: Object.freeze({ draw: drawBands, swatch: "line", parameters: Object.freeze({}) }),
-  cells: Object.freeze({ draw: drawCells, swatch: "square", parameters: Object.freeze({}) }),
-  raster: Object.freeze({ draw: drawRaster, swatch: "square", parameters: Object.freeze({}) }),
-  scatter: Object.freeze({ draw: drawScatter, swatch: "square", parameters: Object.freeze({}) }),
-  boxes: Object.freeze({ draw: drawBoxes, swatch: "square", parameters: Object.freeze({}) }),
-  bars: Object.freeze({ draw: drawBars, swatch: "square", parameters: Object.freeze({}) }),
+  lines: Object.freeze({
+    draw: drawLines, swatch: "line", defaults: Object.freeze({}), parameterNames: LINES_PARAMETERS,
+  }),
+  cdf: Object.freeze({
+    draw: drawLines, swatch: "line", defaults: Object.freeze({ cdf: true }), parameterNames: LINES_PARAMETERS,
+  }),
+  bands: Object.freeze({
+    draw: drawBands, swatch: "line", defaults: Object.freeze({}), parameterNames: BANDS_PARAMETERS,
+  }),
+  cells: Object.freeze({
+    draw: drawCells, swatch: "square", defaults: Object.freeze({}), parameterNames: CELLS_PARAMETERS,
+  }),
+  raster: Object.freeze({
+    draw: drawRaster, swatch: "square", defaults: Object.freeze({}), parameterNames: RASTER_PARAMETERS,
+  }),
+  scatter: Object.freeze({
+    draw: drawScatter, swatch: "square", defaults: Object.freeze({}), parameterNames: SCATTER_PARAMETERS,
+  }),
+  boxes: Object.freeze({
+    draw: drawBoxes, swatch: "square", defaults: Object.freeze({}), parameterNames: BOXES_PARAMETERS,
+  }),
+  bars: Object.freeze({
+    draw: drawBars, swatch: "square", defaults: Object.freeze({}), parameterNames: BARS_PARAMETERS,
+  }),
   stacked_bars: Object.freeze({
     draw: drawStackedBars,
     swatch: "square",
-    parameters: Object.freeze({ xColumn: "x", seriesColumn: SERIES_COLUMN, valueColumn: "value" }),
+    defaults: Object.freeze({ xColumn: "x", seriesColumn: SERIES_COLUMN, valueColumn: "value" }),
+    parameterNames: STACKED_BARS_PARAMETERS,
   }),
 });
 
@@ -125,12 +144,12 @@ export function frozenCard(card) {
 }
 
 /**
- * The parameters the chart of `card` is drawn with: those of its kind, then the card's `chart`, then, for a panel
+ * The parameters the chart of `card` is drawn with: its kind's defaults, then the card's `chart`, then, for a panel
  * `entry` of the card's `panels`, the entry's own `chart` (its `series` among them, where it draws only those) and its
  * `panel`.
  */
 export function chartParameters(card, entry = null) {
-  const parameters = { ...CHART_KINDS[card.kind].parameters, ...card.chart };
+  const parameters = { ...CHART_KINDS[card.kind].defaults, ...card.chart };
   if (entry === null) {
     return parameters;
   }

@@ -8,6 +8,7 @@ import {
   CHART_KINDS, chartParameters, drawFigureChart, frozenCard, newCardElement, renderFigureCard,
 } from "../site/js/insights/figure_card.js";
 import { PALETTES } from "../site/js/insights/card_series.js";
+import { AXIS_OPTION_NAMES } from "../site/js/plot/axes.js";
 import { TOPICS, topicCards } from "../site/js/page/topics.js";
 
 // The columns a figure answer of each chart kind holds: the plot-ready tables' contract.
@@ -124,6 +125,31 @@ test("every card names one of the nine kinds, and every kind has its columns", (
   assert.deepEqual(Object.keys(CHART_KINDS).sort(), Object.keys(KIND_COLUMNS).sort());
   for (const card of everyCard()) {
     assert.ok(Object.hasOwn(CHART_KINDS, card.kind), `${card.figure}: ${card.kind}`);
+  }
+});
+
+// The names among the keys of `object` that are not in `allowed`.
+function unknownNames(object, allowed) {
+  return Object.keys(object).filter((name) => !allowed.includes(name));
+}
+
+test("every card's and panel's chart names only parameters its kind reads, its axes only axis options", () => {
+  for (const card of everyCard()) {
+    const kind = CHART_KINDS[card.kind];
+    const charts = [kind.defaults, card.chart];
+    for (const entry of card.panels ?? []) {
+      charts.push(entry.chart);
+    }
+    for (const chart of charts) {
+      const unread = unknownNames(chart, kind.parameterNames);
+      assert.deepEqual(unread, [], `${card.figure}: the kind ${card.kind} reads no parameter ${unread}`);
+      for (const axis of [chart.x, chart.y]) {
+        if (axis !== undefined) {
+          const unknown = unknownNames(axis, AXIS_OPTION_NAMES);
+          assert.deepEqual(unknown, [], `${card.figure}: no axis option is named ${unknown}`);
+        }
+      }
+    }
   }
 });
 
