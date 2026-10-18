@@ -12,8 +12,17 @@ the site's own words used in the one sense that CONTRIBUTING's Words
 section gives it, one job per unit (a function at most 50 lines, a
 module at most 300, a folder at most nine modules), docstrings that
 state definitions and comments that say why, and SQL as literals in one
-`.sql` file each under `site/queries/`. No two modules of `site/js/`
-SHALL export one name. The tests SHALL enforce the countable rules.
+`.sql` file each under `site/queries/`, a number they need bound by name
+at the edge. No two modules of `site/js/` SHALL export one name. Every
+rule and every constant SHALL be written once: the trace's dates and
+weeks, the families' order and slugs, the wording of a model's name,
+the metric list and an Insights topic each have one home; a copy the
+browser or the stylesheet must hold SHALL be tied to its home by a
+test, and a copy a query must repeat (the family slug's expression) by
+a query test. A family's other models' name, "Other <family>", is the
+data's, written by the queries that name a family's models, and the
+browser shows it as written. The tests SHALL enforce the countable
+rules.
 
 #### Scenario: A function that grew
 - **WHEN** a Python or JavaScript function exceeds 50 lines
@@ -31,6 +40,14 @@ SHALL export one name. The tests SHALL enforce the countable rules.
 - **WHEN** a reader meets `breakdown`, `topic`, `mix` or `place` in the code
 - **THEN** CONTRIBUTING's Words section SHALL define it in one line, and the code SHALL use it in that sense alone
 
+#### Scenario: Adding a topic
+- **WHEN** a topic module is written and added to the topic list
+- **THEN** the page SHALL show its tab and its section, numbered by its place in the list, and the snapshot states SHALL include it, with no edit to `index.html`, the tabs or the snapshot module; the test that pins each topic's groups' card counts SHALL be updated with it
+
+#### Scenario: A figure part added
+- **WHEN** `renderFigure` appends a seventh part to a card and the card grid's rule still spans six rows
+- **THEN** the node test SHALL fail naming both numbers
+
 ### Requirement: Repository layout
 The repository SHALL have this layout, and git SHALL track nothing beyond it
 and `.gitignore`:
@@ -41,10 +58,10 @@ CONTRIBUTING.md   the site's words, the rules, the patterns to copy, and how to 
 CLAUDE.md         a pointer to the two files above and the git rules
 Makefile          make setup, setup-browser, tables, data, serve, test, snapshots, deploy
 wrangler.jsonc    the Cloudflare Worker that serves site/ as static assets
-pyproject.toml    Python 3.12; pyarrow, pandas and duckdb (pinned); pytest and Playwright (pinned) for tests
+pyproject.toml    Python 3.12; pyarrow and duckdb (pinned); pytest, Playwright and pandas (pinned) for tests
 package.json      sets ES modules for node --test; wrangler, the one dev dependency; package-lock.json pins it
 .nvmrc            the Node version the deploy workflow uses
-.github/          workflows/deploy.yml: the deploy on every push to main
+.github/          workflows/deploy.yml: the suite, then the deploy, on every push to main
 site_data/        builds tables/ from the released trace, and site/data/ from the artifact repository and tables/
 tables/           built by make tables and tracked: the weekly histograms and their sidecar
 site/             exactly the files that are deployed
@@ -57,8 +74,8 @@ site/             exactly the files that are deployed
   js/plot/        what the chart kinds and the cards give the charting library: the frame and ink, the axes, the trace's day and month axes
   js/charts/      the nine chart kinds: donut, stacked_bars, lines, bands, cells, raster, scatter, boxes, bars
   js/theme/       the site's colours as the style tokens give them
-  js/traffic/     the Traffic Explorer: its section, its filter, its controls, its bars, its day range, its tiles, and its distributions and their three charts
-  js/insights/    the figure cards and their colours, and the topics: one module per Insights topic with its takeaway and its groups of cards, and the routing card's panels and policies
+  js/traffic/     the Traffic Explorer: its section, its choice, its filter, its controls, its day range, its tiles, its bars, its distributions and their three charts
+  js/insights/    the figure cards and their colours, and the topics: one module per Insights topic with its id, its title, its takeaway and its groups of cards, and the routing card's panels and policies
   queries/        one .sql file per query answer, under explore/; under setup/ the queries of the derived tables; under trace/ the query of the trace table
   data/           built by make data and tracked: the query answers, the queries' hashes, the figure answers and their index
 tests/            Python tests, node --test files named by the folder of the module each tests, the fake page they share (its elements found by selector), and snapshots/: the six page states as text, each named by the topic's anchor it opens on
@@ -136,8 +153,13 @@ check that every card's kind is one of the nine and that the card's
 shipped answer has the kind's columns. A node test SHALL check that
 every card's `chart`, and every panel's, names only parameters its
 kind lists, and every axis in it only the axis options. A node test
-file SHALL be named after the module it tests and start with that
-module's folder under `site/js/` (`charts_lines.test.js` for `charts/lines.js`,
+SHALL check that, for every card and panel whose `x` or `y` axis has a
+numeric domain, the shipped answer's values on that axis lie within
+it, except the clips the test lists by figure and axis, each with its
+reason. A node test SHALL check that a card in a grid spans as many
+rows of its grid as `renderFigure` gives it parts. A node test file
+SHALL be named after the module it tests and start with that module's
+folder under `site/js/` (`charts_lines.test.js` for `charts/lines.js`,
 `traffic_bars.test.js` for `traffic/traffic_bars.js`), a check over
 every Insights card starting `insights_cards_`, except the checks of the
 stylesheet and of the module headers and the test of a test helper,
@@ -145,10 +167,13 @@ named after the helper (`fake_page.test.js`); the naming test SHALL
 check the first word of each name. A snapshot test SHALL hold, under
 `tests/snapshots/`, the normalised text of every chart (its series,
 legend, titles and tick labels), table, legend and text block of six
-page states (the page opened at each topic's anchor, each state's
-folder named by that anchor), compare them in headless Chromium on
-`make test`, and be rewritten by `make snapshots` when a change is
-meant; it SHALL skip, saying so, where Chromium is not installed, and
+page states (the page opened at the anchor of each topic its tab row
+lists, each state's folder named by that anchor), compare them in
+headless Chromium on `make test`, and be rewritten by `make snapshots`
+when a change is meant; where Chromium cannot start it SHALL skip,
+printing to standard error, as the last lines `make test` prints, a
+framed message that says the snapshots were skipped, that no chart,
+legend or text was compared and how to install Chromium; and it SHALL
 fail, naming the host, where the libraries or fonts cannot load.
 
 #### Scenario: A query that no longer matches the data
@@ -179,18 +204,34 @@ fail, naming the host, where the libraries or fonts cannot load.
 - **WHEN** a module is renamed and the page shows what it showed
 - **THEN** `make snapshots` SHALL leave every unit's text as it was
 
+#### Scenario: Data that outgrew a domain
+- **WHEN** a rebuilt figure answer holds a value above its card's fixed y domain, and the clip is not listed
+- **THEN** the node test SHALL fail naming the figure, the axis, the domain and the value
+
+#### Scenario: A clone without Chromium
+- **WHEN** `make test` runs where Chromium cannot start
+- **THEN** the Python and node tests SHALL run, and the run SHALL end with the framed message that the snapshots were skipped and nothing of the page was compared
+
 ### Requirement: Deployment
 `make deploy` SHALL publish `site/`, including its generated data, to the
 Cloudflare Worker that `wrangler.jsonc` names, which serves `site/` as
 static assets. A push to `main` SHALL deploy the same way through the
-repository's deploy workflow, which SHALL then ask the published site for
-the page (`/`), the daily rollup answer and one figure answer, and fail
-on any answer but 200. Every hostname the site answers on SHALL be listed
-in `wrangler.jsonc`.
+repository's deploy workflow, and only after the workflow's test job
+has passed: that job SHALL install the Python dependencies, Node and
+Chromium with its system packages, and run `make test` without the
+artifact's checkout, the tests that need it skipping, saying so. After
+deploying, the workflow SHALL ask the published site for the page
+(`/`), the daily and the histogram answers by family and one figure
+answer, and fail on any answer but 200 with its content type. Every
+hostname the site answers on SHALL be listed in `wrangler.jsonc`.
 
 #### Scenario: A page missing after a deploy
 - **WHEN** the published site answers `/` with 404
 - **THEN** the deploy workflow SHALL fail naming that path
+
+#### Scenario: A red main
+- **WHEN** a push to `main` fails a test of `make test`
+- **THEN** the deploy workflow SHALL NOT deploy, and the published site SHALL stay as it was
 
 ### Requirement: The built data ships with the repository
 Git SHALL track `site/data` as `make data` built it: the query answers,
@@ -265,23 +306,29 @@ content's.
 `make data` SHALL run every query under `queries/explore/` over the site's
 tables and write each answer as `site/data/all/explore/<query>.json`,
 with the hash of each query's text in `all/queries.json`, and print the
-answers' files and size. A query MAY take one parameter, bound by name
-(`$family`) and never substituted into the text; the data step SHALL run
-it once per value and write `<query>/<value slug>.json`, the query's
-hash recorded once. The queries SHALL be `trace_totals` (one row: the
-span's first and last day, the months, requests, input tokens, output
-tokens, users, models, instances), `family_mix` (requests per family
-over the whole trace, most requested first and Other last), `endpoint_mix` (requests per endpoint group),
-`daily_by_family` (one row per day, family and endpoint group, with the
-request count, the input and output token sums and counts, and the TTFT
-sum and count), `daily_by_model` (for the family given: one row per
-day, model and endpoint group, the model one of the family's eight with
-its chute id and name, or "Other <family>" with a null id, with the same
+answers' files and size; writing the query answers SHALL replace the
+query answers and their hashes and nothing else under `site/data`. A
+query MAY take one parameter, bound by name (`$family`) and never
+substituted into the text; the data step SHALL run it once per family
+of the `family_mix` answer, in that answer's order, and write
+`<query>/<family_slug>.json`, the query's hash recorded once. The
+queries SHALL be `trace_totals` (one row: the span's first and last
+day, the months, requests, input tokens, output tokens, users, models,
+instances), `family_mix` (one row per family over the whole trace: its
+name, its slug and its requests, most requested first and Other last;
+the home of the families' order and slugs),
+`endpoint_mix` (requests per endpoint group), `daily_by_family` (one
+row per day, family and endpoint group, with the request count, the
+input and output token sums and counts, and the TTFT sum and count),
+`daily_by_model` (for the family given: one row per day, model and
+endpoint group, the model one of the family's eight with its chute id
+and name, or "Other <family>" with a null id, with the same
 measures), `histograms_by_family` (one row per trace week, family,
-endpoint group and metric, with the week's first calendar day and two
-lists in bin order, the bins and the requests in each) and `histograms_by_model` (for the family given: the same per
-week, model and endpoint group, the model as `daily_by_model` names it).
-Every query SHALL be read by the page. The page SHALL draw
+endpoint group and metric, with the calendar days of the week's first
+and last trace day and two lists in bin order, the bins and the
+requests in each) and `histograms_by_model` (for the family given: the
+same per week, model and endpoint group, the model as `daily_by_model`
+names it). Every query SHALL be read by the page. The page SHALL draw
 from the answers alone and run no query.
 
 #### Scenario: An answer equals the live query
@@ -305,8 +352,12 @@ from the answers alone and run no query.
 - **THEN** each family's model answer's requests SHALL sum, per week, endpoint group and metric, to that family's rows of the family answer, and the family answer's `input_tokens` requests per family SHALL equal `daily_by_family`'s `input_counted`
 
 #### Scenario: One file per family
-- **WHEN** `daily_by_family` names eleven families
+- **WHEN** `family_mix` names eleven families
 - **THEN** `explore/daily_by_model/` and `explore/histograms_by_model/` SHALL each hold eleven files, one per family's slug
+
+#### Scenario: The figure answers written first
+- **WHEN** the figure answers are written and then the query answers
+- **THEN** both SHALL be under `site/data/all/`, the figure answers and their index untouched
 
 ### Requirement: Size and contents
 `site/data` SHALL hold only the query answers, the queries' hashes, the
@@ -324,13 +375,17 @@ the artifact repository's checkout, the committed caches under
 `data/paper/model_families.csv`, `config/figures.json` and, for every figure it lists, the plot-ready
 table `data/paper/plotdata/<figure>.parquet`, and nothing under `output/`
 and nothing of the trace; and, from this repository, `tables/weekly_histograms.parquet`.
-It SHALL stop with a message naming the first
-missing file and write nothing. Rebuilding from the same checkout and
+It SHALL stop with one message naming the first missing file and how
+to supply it, and write nothing. Rebuilding from the same checkout and
 table SHALL write identical files.
 
 #### Scenario: A missing cache
 - **WHEN** `data/paper/cache/trace_totals.parquet` is absent
 - **THEN** the step SHALL stop naming it and write nothing
+
+#### Scenario: A missing artifact folder
+- **WHEN** `--artifact` names a folder that does not exist
+- **THEN** the step SHALL stop naming the first file it reads there and saying to pass a checkout of the artifact repository as `--artifact`, and write nothing
 
 #### Scenario: A missing site table
 - **WHEN** `tables/weekly_histograms.parquet` is absent
@@ -374,12 +429,13 @@ cache file's name, `chute_models.csv` as `chute_models`,
 `model_families.csv` as `model_families` and the site's
 `weekly_histograms.parquet` as `weekly_histograms`. The caches read SHALL be
 `trace_totals`, `daily_rollup` and `function_name_daily_requests`, and
-no other. It SHALL add two tables derived from them, and no other:
+no other. It SHALL add three tables derived from them, and no other:
 `trace_calendar`, each trace day's calendar day, trace month and
-calendar month, computed from the trace's start date (see Trace
+calendar month, computed from the trace's start date; `trace_weeks`,
+each trace week's first and last calendar day (see Trace days and
 months); and `family_models`, the named models of the daily rollup
 ranked within their family by the rollup's requests, made by the setup
-query `setup/family_models`. The queries SHALL read from these eight
+query `setup/family_models`. The queries SHALL read from these nine
 tables and from nothing else. A query under `queries/explore/` and
 `queries/setup/` SHALL NOT match a model's name against a family
 pattern: a row's family is the cache's or the trace table's; the one
@@ -387,21 +443,28 @@ query that does is the trace query, which applies the artifact's rule
 and is checked against the rollup.
 
 #### Scenario: A query over the trace
-- **WHEN** a query under `queries/explore/` or `queries/setup/` names a table that is not one of the eight
+- **WHEN** a query under `queries/explore/` or `queries/setup/` names a table that is not one of the nine
 - **THEN** the query test SHALL fail naming the table
 
 #### Scenario: A family's models
 - **WHEN** an answer names a family's eight models
-- **THEN** it SHALL take them from `family_models`, which ranks the rollup's named models within their family
+- **THEN** it SHALL take them from `family_models`, which ranks the rollup's named models within their family, with no filter of its own on the rank
 
 ### Requirement: Trace days and months
 The caches count days and months from the trace's first request: a trace
 month is a month-long stretch of days counted from the trace's first
 day, not a calendar month, and the thirteenth holds the last two days.
-The data step SHALL hold the trace's start date, 2025-04-11, as one
-named constant with its source in a comment. The daily answers SHALL
-carry each day as a calendar day and `trace_totals` SHALL count the
-trace months, so the page never computes a date.
+A trace week is seven trace days, week 0 the trace's first seven, and
+the last week ends on the trace's last day. The data step SHALL hold
+the trace's start date, 2025-04-11, as one named constant with its
+source in a comment, and SHALL hold the trace's epoch and a week's
+length and compute a trace day's calendar day and month and a trace
+week's days in one module: the answer queries join its tables, and the
+trace query takes the epoch and the week's length from it as bound
+parameters, so no query restates them. The daily answers SHALL carry
+each day as a calendar day, the histogram answers each week's first and
+last calendar day, and `trace_totals` SHALL count the trace months, so
+the page never computes a date.
 
 #### Scenario: The month count
 - **WHEN** `trace_totals` is written
@@ -411,16 +474,22 @@ trace months, so the page never computes a date.
 - **WHEN** a daily answer is written
 - **THEN** each row's `day` SHALL be the calendar day of its trace day, `2025-04-11` first
 
+#### Scenario: A week's days
+- **WHEN** a histogram answer is written
+- **THEN** week 0's rows SHALL carry `first_day` 2025-04-11 and `last_day` 2025-04-17, and the last week's rows SHALL carry `last_day` 2026-04-12, the trace's last day
+
 ### Requirement: The trace table
 `make tables TRACE=<the released trace's Parquet file> ARTIFACT=<the
 artifact's checkout>` SHALL run the one query under `queries/trace/`,
 `weekly_histograms.sql`, over the trace (held as the view `trace`, every
 column of the released file), the artifact's model names and family
-table and the `family_models` table, and write
+table and the `family_models` table, with the trace's epoch
+(`$trace_epoch`) and a week's length (`$days_per_trace_week`) bound by
+name from the data step's calendar module, and write
 `tables/weekly_histograms.parquet` beside a sidecar
 `tables/weekly_histograms.json` holding the query's hash, the trace's
 row count and the table's row count. The table SHALL hold one row per
-trace week (seven trace days, the first from the trace's first day),
+trace week (seven trace days, week 0 the trace's first seven),
 family, model (a `chute_id` for one of the family's eight most requested
 named models, else null for the family's other models, as the daily
 rollup keeps them), endpoint group, metric (`input_tokens`,
