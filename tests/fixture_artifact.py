@@ -52,6 +52,47 @@ def trace_time(day: int, month: int = 1, year: int = 1970, hour: int = 0) -> dat
     return datetime.datetime(year, month, day, hour)
 
 
+# The daily rollup's columns and their types.
+ROLLUP_SCHEMA = pyarrow.schema([
+    ("day", pyarrow.timestamp("us")), ("family", pyarrow.large_string()), ("chute_id", pyarrow.large_string()),
+    ("function_group", pyarrow.large_string()), ("requests", pyarrow.int64()), ("input_tokens", pyarrow.float64()),
+    ("input_counted", pyarrow.int64()), ("output_tokens", pyarrow.float64()), ("output_counted", pyarrow.int64()),
+    ("ttft_sum", pyarrow.float64()), ("ttft_counted", pyarrow.int64()),
+])
+# The daily rollup, one row per entry of `fixture_trace.TRACE_REQUESTS`, in its order, each counting that entry's
+# requests. A null chute id is a family's rest; a null sum is a sum over no recorded value.
+DAILY_ROLLUP_ROWS = [
+    # TRACE_REQUESTS[0]: chute-01's chat on 1970-01-01, ten TTFTs not recorded.
+    {"day": trace_time(1), "family": "DeepSeek", "chute_id": "chute-01", "function_group": "chat",
+     "requests": 40, "input_tokens": 4000.0, "input_counted": 40, "output_tokens": 800.0, "output_counted": 40,
+     "ttft_sum": 20.5, "ttft_counted": 30},
+    # TRACE_REQUESTS[1]: chute-03's chat on 1970-01-01.
+    {"day": trace_time(1), "family": "gpt-oss", "chute_id": "chute-03", "function_group": "chat",
+     "requests": 20, "input_tokens": 2000.0, "input_counted": 20, "output_tokens": 400.0, "output_counted": 20,
+     "ttft_sum": 10.0, "ttft_counted": 20},
+    # TRACE_REQUESTS[2]: chute-01's chat_stream on 1970-01-01, every TTFT 0 and so not counted.
+    {"day": trace_time(1), "family": "DeepSeek", "chute_id": "chute-01", "function_group": "chat_stream",
+     "requests": 30, "input_tokens": 1500.0, "input_counted": 30, "output_tokens": 400.0, "output_counted": 30,
+     "ttft_sum": None, "ttft_counted": 0},
+    # TRACE_REQUESTS[3]: DeepSeek's rest (chute-05) on 1970-01-01, no TTFT recorded.
+    {"day": trace_time(1), "family": "DeepSeek", "chute_id": None, "function_group": "chat_stream",
+     "requests": 10, "input_tokens": 500.0, "input_counted": 10, "output_tokens": 100.0, "output_counted": 10,
+     "ttft_sum": None, "ttft_counted": 0},
+    # TRACE_REQUESTS[4]: chute-04's chat on 1970-01-02.
+    {"day": trace_time(2), "family": "Other", "chute_id": "chute-04", "function_group": "chat",
+     "requests": 5, "input_tokens": 200.0, "input_counted": 5, "output_tokens": 60.0, "output_counted": 5,
+     "ttft_sum": 2.25, "ttft_counted": 5},
+    # TRACE_REQUESTS[5]: Other's rest (chute-unnamed) on 1970-01-02.
+    {"day": trace_time(2), "family": "Other", "chute_id": None, "function_group": "chat",
+     "requests": 20, "input_tokens": 800.0, "input_counted": 20, "output_tokens": 240.0, "output_counted": 20,
+     "ttft_sum": 10.0, "ttft_counted": 20},
+    # TRACE_REQUESTS[6]: chute-02's completion on 1970-02-02, no input recorded and every output 0.
+    {"day": trace_time(2, month=2), "family": "DeepSeek", "chute_id": "chute-02", "function_group": "completion",
+     "requests": 15, "input_tokens": None, "input_counted": 0, "output_tokens": 0.0, "output_counted": 15,
+     "ttft_sum": 4.0, "ttft_counted": 15},
+]
+
+
 def write_fixture_artifact(folder: pathlib.Path) -> pathlib.Path:
     """Write the fixture artifact into `folder` and return the folder."""
     cache = folder / "data" / "paper" / "cache"
@@ -81,24 +122,9 @@ def trace_totals() -> pyarrow.Table:
 
 
 def daily_rollup() -> pyarrow.Table:
-    """The daily rollup: seven rows over three days and three families, two of them a family's rest (null chute id)."""
-    return pyarrow.table({
-        "day": pyarrow.array([trace_time(1)] * 4 + [trace_time(2)] * 2 + [trace_time(2, month=2)],
-                             pyarrow.timestamp("us")),
-        "family": pyarrow.array(["DeepSeek", "gpt-oss", "DeepSeek", "DeepSeek", "Other", "Other", "DeepSeek"],
-                                pyarrow.large_string()),
-        "chute_id": pyarrow.array(["chute-01", "chute-03", "chute-01", None, "chute-04", None, "chute-02"],
-                                  pyarrow.large_string()),
-        "function_group": pyarrow.array(["chat", "chat", "chat_stream", "chat_stream", "chat", "chat", "completion"],
-                                        pyarrow.large_string()),
-        "requests": pyarrow.array([40, 20, 30, 10, 5, 20, 15], pyarrow.int64()),
-        "input_tokens": pyarrow.array([4000.0, 2000.0, 1500.0, 500.0, 200.0, 800.0, None], pyarrow.float64()),
-        "input_counted": pyarrow.array([40, 20, 30, 10, 5, 20, 0], pyarrow.int64()),
-        "output_tokens": pyarrow.array([800.0, 400.0, 400.0, 100.0, 60.0, 240.0, 0.0], pyarrow.float64()),
-        "output_counted": pyarrow.array([40, 20, 30, 10, 5, 20, 15], pyarrow.int64()),
-        "ttft_sum": pyarrow.array([20.5, 10.0, None, None, 2.25, 10.0, 4.0], pyarrow.float64()),
-        "ttft_counted": pyarrow.array([30, 20, 0, 0, 5, 20, 15], pyarrow.int64()),
-    })
+    """The daily rollup: seven rows over three days and three families, two of them a family's rest (null chute id),
+    written from `DAILY_ROLLUP_ROWS`."""
+    return pyarrow.Table.from_pylist(DAILY_ROLLUP_ROWS, schema=ROLLUP_SCHEMA)
 
 
 def function_name_daily_requests() -> pyarrow.Table:
