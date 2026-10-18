@@ -11,6 +11,7 @@ import typing
 import duckdb
 import pytest
 
+import counted_requests
 import fixture_artifact
 from site_data import answer_files, answers, figure_answers, site_database
 
@@ -104,7 +105,7 @@ class HistogramBin(typing.NamedTuple):
     bin: int
 
 
-def histogram_requests(rows: list[dict]) -> dict[HistogramBin, int]:
+def requests_by_bin(rows: list[dict]) -> dict[HistogramBin, int]:
     """The requests of histogram answer rows per week, endpoint group, metric and bin, summed over the rows."""
     requests = {}
     for row in rows:
@@ -122,21 +123,15 @@ def test_a_family_s_model_histograms_sum_bin_by_bin_to_its_histograms_by_family(
     by_model = json.loads(by_model_file.read_text())
     family_rows = [row for row in by_family if row["family"] == family.name]
     assert family_rows, f"{family.name} has no histograms"
-    assert histogram_requests(by_model) == histogram_requests(family_rows)
+    assert requests_by_bin(by_model) == requests_by_bin(family_rows)
 
 
-def test_the_input_histograms_count_the_daily_rows_input_requests(data_directory: pathlib.Path) -> None:
-    """Each family's requests in its `input_tokens` histograms are the requests that recorded an input count."""
+def test_the_histograms_by_family_count_the_daily_rows_requests_of_each_metric(data_directory: pathlib.Path) -> None:
+    """Each family's requests in its histograms of a metric are the daily rows' requests that recorded the metric,
+    for every metric."""
     by_family = json.loads((data_directory / answer_files.answer_path("explore/histograms_by_family")).read_text())
     daily = json.loads((data_directory / answer_files.answer_path("explore/daily_by_family")).read_text())
-    histogram_counts = {}
-    for row in by_family:
-        if row["metric"] == "input_tokens":
-            histogram_counts[row["family"]] = histogram_counts.get(row["family"], 0) + sum(row["requests"])
-    daily_counts = {}
-    for row in daily:
-        daily_counts[row["family"]] = daily_counts.get(row["family"], 0) + row["input_counted"]
-    assert histogram_counts == daily_counts
+    assert counted_requests.histogram_requests(by_family) == counted_requests.daily_counted_requests(daily)
 
 
 def test_dates_and_nulls_are_written_as_json(data_directory: pathlib.Path) -> None:

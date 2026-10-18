@@ -526,12 +526,16 @@ tests/               what make test runs
                      the data step on the fixture artifact, against values counted by hand
   test_queries.py    every .sql file run over the fixture: its columns, the tables it reads, its numbers
   test_answers.py    every answer written for the fixture equals its query run live; a family's model answers sum to
-                     its rows by family, the histograms bin by bin; an edited query is stale
+                     its rows by family, the histograms bin by bin; the histograms by family count the daily rows'
+                     requests of each metric; an edited query is stale
   test_tables.py     the trace query over the fixture trace against histograms counted by hand, the builder and its
                      sidecar, the hash check, and with ARTIFACT the tracked trace table against the daily rollup
   test_figure_answers.py
                      every figure answer written for the fixture equals its plot-ready table; a missing table stops
                      the step
+  counted_requests.py
+                     the requests per family and metric that the daily and the histogram answers count, which
+                     test_answers.py and test_built_data.py compare
   test_built_data.py
                      the shipped data: tracked, the figure answers its index lists, every answer current, the
                      histograms by family counting each family's requests as the daily answer does, and with
@@ -540,8 +544,8 @@ tests/               what make test runs
                      with ARTIFACT, every figure the artifact lists is one card's, or the share cards' legend
   test_repository.py
                      the countable rules of CONTRIBUTING.md and the files git tracks
-  test_naming.py     the name rules: a name is exported by one module of site/js/, and a node test file's name
-                     starts with the folder of the module it tests
+  test_naming.py     the name rules: a name is exported by one module of site/js/, a node test file's name starts
+                     with the folder of the module it tests, and no module of tests/ imports a test module
   test_deployment.py
                      the Worker's settings, the paths the deploy workflow checks are files of site/, and the deploy
                      waiting for the test job, which installs Chromium and then runs make test

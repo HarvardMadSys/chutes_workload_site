@@ -1,7 +1,9 @@
-"""The name rules, checked on every commit: a name is exported by one module of `site/js/`, and a node test file's name
-starts with the folder of the module it tests. Each check is a function over a folder, so that its planted case can
-point it at a tree of its own."""
+"""The name rules, checked on every commit: a name is exported by one module of `site/js/`, a node test file's name
+starts with the folder of the module it tests, and no module of `tests/` imports a test module by its name (a Python
+module named `test_*`, a `*.test.js` file). Each check is a function over a folder, so that its planted case can point
+it at a tree of its own."""
 
+import ast
 import pathlib
 import re
 
@@ -12,6 +14,9 @@ EXPORTED_NAME = re.compile(r"^export\s+(?:async\s+function|function|const)\s+(\w
 
 # The node test files named after what they check, not after a folder: the palette's contrast and the module headers.
 NAMED_NODE_CHECKS = ("palette_contrast", "module_headers")
+
+# A JavaScript import of a node test file, static or dynamic, its braces spanning lines or not: the file's path.
+NODE_TEST_FILE_IMPORT = re.compile(r"""\bimport\b[^;]*?["']([^"']*\.test\.js)["']""")
 
 
 def test_no_two_modules_export_one_name() -> None:
@@ -67,3 +72,62 @@ def misnamed_node_test_files(tests: pathlib.Path, javascript: pathlib.Path) -> l
         if name not in NAMED_NODE_CHECKS and not is_helper_test and name.split("_")[0] not in folders:
             misnamed.append(path.name)
     return misnamed
+
+
+def test_no_test_module_imports_a_test_module() -> None:
+    found = imports_of_test_modules(ROOT / "tests")
+    listed = "\n".join(found)
+    assert found == [], f"test modules import a test module; move what they share into a module of its own:\n{listed}"
+
+
+def test_a_test_module_importing_a_test_module_is_named(tmp_path: pathlib.Path) -> None:
+    (tmp_path / "test_built_data.py").write_text("import json\n\nimport test_tables\n")
+    (tmp_path / "test_site_database.py").write_text("import counted_requests\nfrom test_queries import SITE_TABLES\n")
+    (tmp_path / "counted_requests.py").write_text("import typing\n")
+    (tmp_path / "traffic.test.js").write_text(
+        'import { test } from "node:test";\n\nimport {\n  EVERYTHING,\n} from "./traffic_filter.test.js";\n')
+    (tmp_path / "fake_page.js").write_text('import { readFile } from "node:fs/promises";\n')
+    assert imports_of_test_modules(tmp_path) == [
+        "test_built_data.py:3 imports test_tables",
+        "test_site_database.py:2 imports test_queries",
+        "traffic.test.js:3 imports ./traffic_filter.test.js",
+    ]
+
+
+def imports_of_test_modules(tests: pathlib.Path) -> list[str]:
+    """Each import of a test module in a module of `tests`, Python's then JavaScript's, each sorted by file, written
+    as "<file>:<line> imports <module>"."""
+    return python_imports_of_test_modules(tests) + node_imports_of_test_files(tests)
+
+
+def python_imports_of_test_modules(tests: pathlib.Path) -> list[str]:
+    """Each `import test_x` or `from test_x import ...` in a Python module of `tests`."""
+    found = []
+    for path in sorted(tests.glob("*.py")):
+        for node in ast.walk(ast.parse(path.read_text())):
+            for module in imported_modules(node):
+                if module.startswith("test_"):
+                    found.append(f"{path.name}:{node.lineno} imports {module}")
+    return found
+
+
+def imported_modules(node: ast.AST) -> list[str]:
+    """The modules an import statement names: each of `import a, b`, the one of `from a import x`; none for any other
+    node, nor for a relative `from . import x`."""
+    if isinstance(node, ast.Import):
+        return [alias.name for alias in node.names]
+    if isinstance(node, ast.ImportFrom) and node.module is not None:
+        return [node.module]
+    return []
+
+
+def node_imports_of_test_files(tests: pathlib.Path) -> list[str]:
+    """Each import of a `*.test.js` file in a JavaScript file of `tests` (`NODE_TEST_FILE_IMPORT`), at the line where
+    the import starts."""
+    found = []
+    for path in sorted(tests.glob("*.js")):
+        text = path.read_text()
+        for match in NODE_TEST_FILE_IMPORT.finditer(text):
+            line = text.count("\n", 0, match.start()) + 1
+            found.append(f"{path.name}:{line} imports {match.group(1)}")
+    return found

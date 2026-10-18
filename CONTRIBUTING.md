@@ -114,7 +114,8 @@ Each word below has one meaning in the code, the tests and these documents.
   answer's query takes at most one, the family (`$family`), and the trace
   query takes the week's two (`$trace_epoch`, `$days_per_trace_week`). A
   query of `queries/explore/` or `queries/setup/` reads the site's nine
-  tables and nothing else (`SITE_TABLES` in `tests/test_queries.py`):
+  tables and nothing else (`tests/test_queries.py` reads them from the
+  site's database; `tests/test_site_database.py` names the nine):
   - the artifact's three caches, each the table of its file's name:
     `trace_totals`, `daily_rollup` and `function_name_daily_requests`;
   - `chute_models`, the artifact's model names (`chute_id`, `name`), and
@@ -309,8 +310,8 @@ The first line says what one row is. Columns are named in words. A number
 the query needs is bound by name from its one home, never written in
 (the trace query's `$days_per_trace_week`, from `months.py`). Every
 query is run by `tests/test_queries.py` against the fixture artifact, which checks its
-columns against `EXPECTED_COLUMNS`, the tables it reads against
-`SITE_TABLES`, and its numbers against values counted by hand.
+columns against `EXPECTED_COLUMNS`, the tables it reads against the
+site's database's, and its numbers against values counted by hand.
 
 **A query that takes the family** (`site/queries/explore/daily_by_model.sql`):
 
@@ -402,7 +403,9 @@ constants with a comment, helpers below the exports, and a `node --test` file
 with one `test()` per behaviour. The test file is named after the module, its
 folder's word first (`shared_format.test.js` for `shared/format.js`), and the
 naming test, `tests/test_naming.py`, fails on a node test file whose name
-starts with no folder of `site/js/`.
+starts with no folder of `site/js/`, and on a module of `tests/` that
+imports a test module (`test_*.py`, `*.test.js`): what two test modules
+share is a module of its own, as `tests/counted_requests.py`.
 
 **A Python module with its test** (`site_data/months.py`,
 `tests/test_months.py`): a module docstring stating the definition, a

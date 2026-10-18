@@ -28,9 +28,6 @@ EXPECTED_COLUMNS = {
     "setup/family_models": ["family", "chute_id", "name", "requests", "rank"],
     "trace/weekly_histograms": ["week", "family", "chute_id", "endpoint_group", "metric", "bin", "requests"],
 }
-# The tables of the site's database, the only ones a query of `SITE_TABLE_FOLDERS` may read.
-SITE_TABLES = {"trace_totals", "daily_rollup", "function_name_daily_requests", "chute_models", "model_families",
-               "trace_calendar", "trace_weeks", "family_models", "weekly_histograms"}
 SITE_TABLE_FOLDERS = ("explore/", "setup/")  # the folders of the queries over the site's tables alone
 # The only tables the trace query reads: the trace, and the models and families that place its requests.
 TRACE_QUERY_TABLES = {"trace", "chute_models", "model_families", "family_models"}
@@ -78,12 +75,18 @@ def test_a_query_returns_its_columns_and_rows(connection: duckdb.DuckDBPyConnect
     assert result.rows, f"{name} has no rows over the fixture"
 
 
+def site_tables(connection: duckdb.DuckDBPyConnection) -> set[str]:
+    """The tables of the site's database, the only ones a query of `SITE_TABLE_FOLDERS` may read."""
+    return {row[0] for row in connection.execute("SELECT name FROM (SHOW TABLES)").fetchall()}
+
+
 @pytest.mark.parametrize("name", site_query_names())
-def test_a_query_reads_only_the_site_s_tables(name: str) -> None:
+def test_a_query_reads_only_the_site_s_tables(connection: duckdb.DuckDBPyConnection, name: str) -> None:
     # DuckDB names a statement's tables only for a statement it can prepare whole, so a parameter is read as a string.
     text = NAMED_PARAMETER.sub("''", site_database.statement_text(name))
     named_tables = duckdb.get_table_names(text)
-    assert named_tables <= SITE_TABLES, f"{name} reads {sorted(named_tables - SITE_TABLES)}"
+    database_tables = site_tables(connection)
+    assert named_tables <= database_tables, f"{name} reads {sorted(named_tables - database_tables)}"
 
 
 def test_every_query_is_over_the_site_s_tables_or_is_the_trace_query() -> None:

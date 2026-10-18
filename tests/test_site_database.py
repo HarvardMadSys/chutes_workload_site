@@ -5,7 +5,6 @@ import datetime
 
 import duckdb
 
-import test_queries
 from site_data import site_database
 
 
@@ -19,8 +18,8 @@ def test_every_artifact_table_is_registered_under_its_name(connection: duckdb.Du
 
 def test_the_database_holds_nine_tables(connection: duckdb.DuckDBPyConnection) -> None:
     tables = {row[0] for row in connection.execute("SELECT name FROM (SHOW TABLES)").fetchall()}
-    assert tables == test_queries.SITE_TABLES
-    assert len(tables) == 9
+    assert tables == {"trace_totals", "daily_rollup", "function_name_daily_requests", "chute_models", "model_families",
+                      "trace_calendar", "trace_weeks", "family_models", "weekly_histograms"}
 
 
 def test_the_trace_table_is_registered_as_weekly_histograms(connection: duckdb.DuckDBPyConnection) -> None:

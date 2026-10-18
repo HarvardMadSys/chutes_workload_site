@@ -14,14 +14,11 @@ import pandas
 import pyarrow.parquet
 import pytest
 
+import counted_requests
 import fixture_artifact
 import fixture_trace
 from repository_root import ROOT
 from site_data import loading, months, site_database, tables
-
-# Each metric of the trace table and the daily rollup's column counting the requests that recorded it.
-COUNTED_COLUMNS = {"input_tokens": "input_counted", "output_tokens": "output_counted", "ttft": "ttft_counted"}
-
 
 class WeekGroup(typing.NamedTuple):
     """A trace week's requests of one family, kept model (None for the family's other models) and endpoint group that
@@ -54,7 +51,7 @@ def rollup_counted_by_week(daily_rollup: pandas.DataFrame) -> dict[WeekGroup, in
     out, as the table has no row for it."""
     weeks = (daily_rollup["day"] - pandas.Timestamp(months.TRACE_EPOCH)).dt.days // months.DAYS_PER_TRACE_WEEK
     counted = {}
-    for metric, column in COUNTED_COLUMNS.items():
+    for metric, column in counted_requests.COUNTED_COLUMNS.items():
         sums = daily_rollup.groupby([weeks, "family", "chute_id", "function_group"], dropna=False)[column].sum()
         for (week, family, chute_id, endpoint_group), value in sums.items():
             if value > 0:
