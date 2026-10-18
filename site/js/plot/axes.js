@@ -1,9 +1,8 @@
 /**
- * A card's axes as Plot takes them: Plot's scale options for a card's axis options (`AxisOptions`, below), its axis and
- * grid marks (a band axis's among them), a value as its axis writes it, alone or in a tooltip's text, the tick count a
- * linear axis asks for, a log axis's powers of ten and a log colour legend's ticks; and the y axis of a CDF of
- * requests, which the Insights' topics and the Traffic Explorer's distributions share. The chart kinds use it, in the
- * styles of `plot/frame.js`; plain functions, a mark's given Plot.
+ * A chart's axes in Plot, from a card's axis options (`AxisOptions`, below): the scale, the axis and grid marks, the
+ * ticks of a linear or a log axis and of a log colour legend, and a value as its axis writes it. Also the y axis every
+ * CDF of requests shares. The chart kinds draw with it, in the styles of `plot/frame.js`; a mark's function is given
+ * Plot.
  */
 
 import { AXIS_STYLE, GRID_STYLE } from "./frame.js";

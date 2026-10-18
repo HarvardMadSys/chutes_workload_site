@@ -70,8 +70,9 @@ export async function drawLines(rows, body, seriesColours, parameters, hidden) {
 }
 
 /**
- * The rows a lines chart draws, each with its value in `y`: a CDF answer's rows (`cdf`) with each row's `cdf` copied
- * to `y`; any other answer's rows as they are.
+ * The rows a lines chart draws, each holding its value in `y`:
+ * - a CDF answer's rows (`cdf`), each with its `cdf` copied to `y`;
+ * - any other answer's rows, as they are.
  */
 export function linePoints(rows, cdf = false) {
   if (!cdf) {
@@ -81,8 +82,9 @@ export function linePoints(rows, cdf = false) {
 }
 
 /**
- * The y axis options a lines chart draws: the card's `y`; for a CDF (`cdf`), a share from 0 to 1, its ticks in percent
- * unless the card writes them otherwise.
+ * The y axis options a lines chart draws:
+ * - for a CDF (`cdf`), the card's `y` over a share from 0 to 1, its ticks in percent unless `y.tickFormat` is given;
+ * - for any other answer, the card's `y`.
  */
 export function lineYAxis({ y: yAxis = {}, cdf = false }) {
   if (!cdf) {
@@ -129,9 +131,10 @@ export function seriesDash(name, dashed) {
 }
 
 /**
- * The points drawn: the rows of `chart.panel` (all when not given), of the series `seriesColours` names that are in
- * `chart.series` where it is given and not in `hidden`, with a value above zero in every column drawn on a log axis
- * (`x` where `chart.x.log`, `y` where `chart.y.log`). The rows hold their value in `y` (`linePoints`).
+ * The points a lines chart draws, each holding its value in `y` (`linePoints`). A row is drawn when it is:
+ * - of `chart.panel`, any panel when not given;
+ * - of a series `seriesColours` names, in `chart.series` where given, and not in `hidden`;
+ * - above zero in each column drawn on a log axis (`x` where `chart.x.log`, `y` where `chart.y.log`).
  */
 export function drawnPoints(rows, seriesColours, { panel, series, x: xAxis = {}, y: yAxis = {} }, hidden) {
   const shown = shownSeriesRows(rows, seriesColours, panel, hidden);

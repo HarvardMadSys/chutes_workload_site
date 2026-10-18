@@ -25,16 +25,14 @@ export const STACKED_BARS_PARAMETERS = Object.freeze([
 /**
  * Reads `STACKED_BARS_PARAMETERS`; the shared ones are `ChartParameters`'.
  * Draw `rows` into `body` as one stacked bar per x value of the series not in `hidden`, bottom up in the order of
- * `seriesColours`, by the draw contract of `plot/frame.js`. A series `seriesColours` does not name is not dropped but
- * folded into "Other" (`foldedRows`), so a figure card's `series` cannot leave one out of its bars; a figure whose
- * legend names every series, as the monthly shares' does, folds none. The x axis is a band axis: its `domain` is
- * every bar's x value, in order, each keeping its place even where no shown row falls on it, the shown rows' own x
- * values when not given; its `ticks` the x values ticked, every bar's when not given; its `tickFormat` writes a tick,
- * "" for an unlabelled one, and a bar's x in the tooltip, "Apr '25", unless its `tipFormat` is given; its
- * `tickRotate` slants the ticks' labels, so that a label at every bar keeps clear of its neighbours; its `inset` sets
- * the first and last bars in from the plot's edges, none when not given. The y axis's `label` titles the value axis,
- * none where the card's title already says what the bars count; its `tickFormat` writes the value axis's ticks. Its
- * own parameters:
+ * `seriesColours`, by the draw contract of `plot/frame.js`. A series `seriesColours` does not name is folded into
+ * "Other" (`foldedRows`), so a figure card's `series` cannot leave one out of its bars; a figure whose legend names
+ * every series, as the monthly shares' does, folds none. The x axis is a band axis, of the bars:
+ * - its `domain` is every bar's x value, in order, each keeping its place where no shown row falls on it; the shown
+ *   rows' own x values when not given;
+ * - its `ticks` are every bar's x value when not given;
+ * - its `tickFormat` writes "" for an unlabelled tick.
+ * The y axis is the value axis, untitled where the card's title says what the bars count. Its own parameters:
  * - `xColumn`, `seriesColumn` and `valueColumn`: the columns holding a row's bar, its series and its value, a
  *   segment's height.
  * - `barInset`: the pixels taken off the left and the right of a bar, `BAR_INSET` when not given; 0 where a bar is a

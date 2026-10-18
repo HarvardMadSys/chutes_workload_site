@@ -72,7 +72,7 @@ export function pointDots(Plot, points) {
   });
 }
 
-/** The points drawn: every row, less those at or below zero on a log axis (`x.log`, `y.log`). */
+/** The points a scatter draws: every row except those at or below zero on a log axis (`x.log`, `y.log`). */
 export function drawnScatterPoints(rows, { x: xAxis = {}, y: yAxis = {} }) {
   return positiveRows(rows, logColumns({ x: xAxis, y: yAxis }, ["x"], ["y"]));
 }

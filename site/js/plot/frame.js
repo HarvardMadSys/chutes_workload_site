@@ -69,17 +69,17 @@ export const AXIS_STYLE = Object.freeze({ stroke: "var(--chart-axis)", labelArro
 const DEFAULT_DIVERGING_SCHEME = "RdBu"; // a diverging colour scale's scheme when the card names none
 
 /**
- * The Plot options every chart starts from: its margins, its height (`height` pixels, `CHART_HEIGHT` when not given),
- * the width of `body`, and its ink.
+ * The Plot options every chart starts from: the frame's margins, the width of `body`, the page's ink, and a height of
+ * `height` pixels, `CHART_HEIGHT` when not given.
  */
 export function chartFrame(body, height = CHART_HEIGHT) {
   return { ...PLOT_MARGINS, width: chartWidth(body), height, style: PLOT_STYLE };
 }
 
 /**
- * The frame of a chart whose y axis is titled `yLabel` (null for none): `chartFrame` at `height` pixels (a kind's
- * `height` parameter, `CHART_HEIGHT` when not given), then `margins` where given, and a small top margin where the y
- * axis has no title.
+ * The frame of a chart whose y axis is titled `yLabel`, null for none: `chartFrame(body, height)`, then
+ * - `margins`, where given, in place of the frame's;
+ * - a small top margin where the y axis has no title.
  */
 export function titledFrame(body, yLabel, margins, height = CHART_HEIGHT) {
   const frame = { ...chartFrame(body, height), ...margins };
@@ -124,12 +124,14 @@ export function colourScale(colours, shown) {
 }
 
 /**
- * Plot's colour scale of a chart shading a value on a sequential scheme, with its legend titled `valueLabel`: the
- * scheme `scheme`, else `defaultScheme`, from the point `schemeStart` of it (0 to 1, its first colour when not given)
- * to its last colour, over the values `colourDomain` (`[low, high]`, a value beyond either taking that end's colour)
- * or else the values' own; a log scale where `colourLog`, its legend's ticks written as Plot writes a power of ten;
- * else a linear one, its ticks written by `valueFormat`. The legend ticks `legendTicks` where given
- * (`colourLegendTicks` of `plot/axes.js`), else Plot's own.
+ * Plot's colour scale of a chart that shades a value on a sequential scheme, its legend titled `valueLabel`. Of
+ * `parameters`, it reads:
+ * - `scheme`: the scheme, `defaultScheme` when not given;
+ * - `schemeStart`: the point of the scheme, 0 to 1, the lowest value takes; its first colour when not given;
+ * - `colourDomain`: `[low, high]`, a value beyond either end taking that end's colour; the values' own when not given;
+ * - `colourLog`: true for a log scale, its legend's ticks written as Plot writes a power of ten; else a linear one,
+ *   its ticks written by `valueFormat`.
+ * The legend ticks `legendTicks` where given (`colourLegendTicks` of `plot/axes.js`), else Plot's own.
  */
 export function sequentialColour(parameters, defaultScheme, legendTicks = undefined) {
   const { scheme = defaultScheme, colourLog = false, valueLabel } = parameters;

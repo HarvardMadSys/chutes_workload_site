@@ -24,9 +24,8 @@ export const CELLS_PARAMETERS = Object.freeze([
  * Reads `CELLS_PARAMETERS`; the shared ones are `ChartParameters`'.
  * Draw `rows` into `body` as one rectangle per row, filled by its value, by the draw contract of `plot/frame.js`. It
  * has no series: `seriesColours` and `hidden` are not read. On a log axis, a cell with an edge at or below zero is not
- * drawn. An axis's `categories` are its category names, in place of its ticks and their format, the cell from i to
- * i + 1 named by the i-th, "Mon"; every category is labelled, or, where the axis gives `ticks`, those of its indices.
- * Its own parameters:
+ * drawn. An axis's `categories`, where given, replace its ticks and their format: every category is labelled, or,
+ * where the axis gives `ticks`, those of its indices. Its own parameters:
  * - `scheme`: the colour scheme, "YlOrRd" when not given; `schemeStart`: the point of it, from 0 to 1, the lowest
  *   value takes, its first colour when not given; `colourDomain`: the values at the scale's two ends, a cell beyond
  *   either taking that end's colour, the values' own when not given; `colourLog`: true for a log colour scale, on

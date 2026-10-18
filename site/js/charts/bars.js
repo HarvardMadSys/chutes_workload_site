@@ -24,9 +24,9 @@ export const BARS_PARAMETERS = Object.freeze([
 /**
  * Reads `BARS_PARAMETERS`; the shared ones are `ChartParameters`'.
  * Draw `rows` into `body`, one bar per row of the series of `seriesColours` not in `hidden`, by the draw contract of
- * `plot/frame.js`. Its x axis, of the bars, takes `label`, `ticks`, `tickFormat` and `tickRotate`, which slants its
- * labels; its y axis, of the values, takes `label`, `domain`, `ticks` and `tickFormat`, and is never a log one, since
- * a bar starts at zero. Its own parameter:
+ * `plot/frame.js`. Its x axis, of the bars, takes `label`, `ticks`, `tickFormat` and `tickRotate`; its y axis, of the
+ * values, takes `label`, `domain`, `ticks` and `tickFormat`, and is never a log one, since a bar starts at zero. Its
+ * own parameter:
  * - `reference`: `{ value, label }`, a level the bars are read against, as an even split of requests: a dashed
  *   horizontal rule at `value`, its `label` in small text at the rule's right end, inside the plot; none when not given.
  * Required: `valueLabel` and `valueFormat`.

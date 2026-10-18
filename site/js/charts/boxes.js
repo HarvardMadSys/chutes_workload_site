@@ -32,8 +32,8 @@ export const BOXES_PARAMETERS = Object.freeze([
 /**
  * Reads `BOXES_PARAMETERS`; the shared ones are `ChartParameters`'.
  * Draw `rows` into `body`, one box per series of `seriesColours` the rows hold, in its order, leaving out the series
- * in `hidden`, by the draw contract of `plot/frame.js`. Its x axis takes `label` and `tickRotate`, which slants the
- * series' names, each written by its label in `labels` there as in the tooltip; on a log y axis, a box with a
+ * in `hidden`, by the draw contract of `plot/frame.js`. Its x axis, of the series' names, takes `label` and
+ * `tickRotate`; a name is written by its label in `labels` there as in the tooltip. On a log y axis, a box with a
  * statistic at or below zero is not drawn. It has no parameters of its own.
  * Required: `valueLabel` and `valueFormat`.
  */
