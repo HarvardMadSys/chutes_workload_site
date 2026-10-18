@@ -1,9 +1,9 @@
 /**
- * The Load balancing topic's routing simulation figure, as its card's `series` and `panels` (`[{ panel, title, chart
- * }]`, as `insights/figure_card.js` defines a card's panels): two rows, one per model, of four panels each, every panel
- * drawing the model's four routing policies; and the policies' colours and legend, each policy in one colour for every
- * model and listed once (the card's `palette: "policies"`, `insights/card_series.js`). The words are the figure's own;
- * a line marked "placeholder" is not the paper's own, for the authors to review.
+ * The Load balancing topic's routing simulation figure, as its card's `series` and `panels` (`FigureCard` of
+ * `insights/figure_card.js`): two rows, one per model, of four panels each, every panel drawing the model's four
+ * routing policies; and the policies' colours and legend, each policy in one colour for every model and listed once
+ * (the card's `palette: "policies"`, `insights/card_series.js`). The words are the figure's own; a line marked
+ * "placeholder" is not the paper's own, for the authors to review.
  */
 
 import { formatCountTick } from "../shared/format.js";

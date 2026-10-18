@@ -1,5 +1,5 @@
 /**
- * A figure card's series (`insights/figure_card.js` defines a card): the order they take their colours in, the colours
+ * A figure card's series (`FigureCard` of `insights/figure_card.js`): the order they take their colours in, the colours
  * each of the card's palettes gives them, the global series and the three highlighted models in one fixed colour each
  * on every card, and the card's legend; and the colour scheme of a card that shades a count. A card's answer rows name
  * their series in `series`; a Map from series name to colour, in the order drawn, crosses to the chart and its legend

@@ -1,22 +1,8 @@
 /**
- * A card of the Insights: one of the paper's figures, drawn by the site from the figure's answer, its plot-ready rows.
- * A card is `{ figure, title, insight, caption, definition, kind, chart, panels?, legend?, series?, palette?,
- * isWide? }` (`page/topics.js` lists the topics, each card made by `frozenCard`): `figure` the figure's
- * name, its answer being `data/all/figures/<figure>.json`; `kind` the chart kind that draws it, a key of `CHART_KINDS`;
- * `chart` the parameters handed to the kind's draw function (`js/charts/<kind>.js` says what each decides); `panels`,
- * for a figure of several panels, `[{ panel, title, chart }]`, one chart per entry drawn from the rows whose `panel`
- * column is `panel`, under its title, with the card's `chart` and then the entry's own as its parameters (the card has
- * one legend for all its panels, so only the card's `chart.labels` relabel the legend; a panel's own relabel only its
- * tooltips; and a panel's `chart.series`, the names of the series it draws, leaves the others to the other panels
- * while the legend lists them all); `legend`, the name of a legend answer, rows `{ series, rank }`, whose order the
- * card's series take; `series`, the names of the series drawn, in the order they are drawn and listed, the answer's
- * others left out (the stacked bars fold them into "Other"); `palette`, the colours its series take, a key of
- * `PALETTES` of `insights/card_series.js`, "series" when not given; `isWide` true for a card that takes its group's
- * width.
- *
- * A card's words are placed at once (`renderFigureCard`), its chart only when its topic is first shown
- * (`drawFigureChart`), with a legend of buttons above it where it has more than one series, or, for the bands kind,
- * the key to its bands.
+ * A card of the Insights, one of the paper's figures: the shapes of a card and a topic (`FigureCard`, `TopicGroup`,
+ * `Topic`, below), the chart kinds a card may name, and the drawing of a card. A card's words are placed at once
+ * (`renderFigureCard`), its chart only when its topic is first shown (`drawFigureChart`), with a legend of buttons
+ * above it where it has more than one series, or, for the bands kind, the key to its bands.
  */
 
 import { legendPlace, renderFigure, showError, showLoading } from "../shared/figure.js";
@@ -32,6 +18,53 @@ import { drawScatter, SCATTER_PARAMETERS } from "../charts/scatter.js";
 import { drawStackedBars, STACKED_BARS_PARAMETERS } from "../charts/stacked_bars.js";
 import { drawWithLegend } from "../shared/legend.js";
 import { cardColours, ENDPOINT_PALETTE, figureLegend } from "./card_series.js";
+
+/*
+ * A topic's words are the paper's, and its definitions the artifact's: its README's or, for a simulation, its plotting
+ * script's. A line marked `// placeholder:` is not the paper's own, for the authors to review. A card's `kind` and
+ * `chart` say how its figure is drawn from its answer.
+ */
+
+/**
+ * One of the paper's figures on an Insights card, drawn from its answer, `data/all/figures/<figure>.json`.
+ * @typedef {object} FigureCard
+ * @property {string} figure  the figure's name, its file name in the artifact's `config/figures.json` without `.pdf`
+ * @property {string} title  the card's heading
+ * @property {string} insight  the card's point, under its title: the paper's lead-in; also the chart's accessible name
+ * @property {string} caption  the evidence for the insight, under the chart: the paper's caption
+ * @property {string} definition  what is drawn, in plain words, alone behind the Definition control
+ * @property {string} kind  the chart kind that draws it, a key of `CHART_KINDS`
+ * @property {object} chart  the parameters of the kind's draw function, each a name of its `<KIND>_PARAMETERS`, the
+ *   shared ones being `ChartParameters` (`plot/frame.js`)
+ * @property {Array<{panel: string, title: string, chart: object}>} [panels]  one chart per panel of a multi-panel
+ *   figure, drawn from the rows whose `panel` column is `panel`, under its `title`, with the card's `chart` and then
+ *   its own; the card has one legend for all its panels, so only the card's `chart.labels` relabel the legend, a
+ *   panel's own its tooltips, and a panel's `chart.series` leaves the other series to the other panels
+ * @property {string} [legend]  the name of a legend answer, rows `{ series, rank }`, whose order the card's series take
+ * @property {string[]} [series]  the names of the series drawn, in the order they are drawn and listed; the answer's
+ *   others are left out, except by the stacked bars, which fold them into "Other"
+ * @property {string} [palette]  the colours its series take, a key of `PALETTES` (`insights/card_series.js`); "series"
+ *   when not given
+ * @property {boolean} [isWide]  true for a card that takes its group's whole width
+ */
+
+/**
+ * A run of a topic's figures that says one thing together.
+ * @typedef {object} TopicGroup
+ * @property {string} heading  the group's heading
+ * @property {string} takeaway  what its figures show and, where the paper draws one, what that means for a serving
+ *   system
+ * @property {FigureCard[]} cards  its cards, in the paper's order
+ */
+
+/**
+ * One of the Insights' tabs: the paper's figures of one of its sections. `TOPICS` of `page/topics.js` lists them.
+ * @typedef {object} Topic
+ * @property {string} id  the anchor of the section the page writes for the topic (`page/start.js`) and of its tab
+ * @property {string} title  the topic's name, written after its number in its heading and its tab
+ * @property {string} takeaway  the topic's finding in one sentence, written under its heading
+ * @property {TopicGroup[]} groups  its groups, in the paper's order
+ */
 
 /**
  * The chart kinds a card may name, each `{ draw, swatch, defaults, parameterNames }`: the function that draws it, the

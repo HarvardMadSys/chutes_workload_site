@@ -1,9 +1,7 @@
 /**
  * An Insights topic, Prefix caching: the paper's token hit ratios of requests, models and users, how soon users
- * return, and the eviction algorithms' hit ratios in simulation, as `page/topics.js` defines a topic. The
- * words are the paper's and the definitions the artifact's README or, for the simulation, its plotting script's; a
- * line marked "placeholder" is not the paper's own, for the authors to review.
- * A card's kind and chart say how its figure is drawn from its answer, as `insights/figure_card.js` defines them.
+ * return, and the eviction algorithms' hit ratios in simulation.
+ * Its cards are `FigureCard`s (`insights/figure_card.js`).
  */
 
 import {

@@ -1,9 +1,7 @@
 /**
- * An Insights topic, A year of change: the paper's monthly model mix, monthly token-length bands and the
- * token lengths of each release cohort of users, as `page/topics.js` defines a topic. The two share
- * cards show the legend the paper draws once above both. The words are the paper's and the definitions the artifact
- * README's; a line marked "placeholder" is not the paper's own, for the authors to review.
- * A card's kind and chart say how its figure is drawn from its answer, as `insights/figure_card.js` defines them.
+ * An Insights topic, A year of change: the paper's monthly model mix, monthly token-length bands and the token
+ * lengths of each release cohort of users.
+ * Its cards are `FigureCard`s (`insights/figure_card.js`).
  */
 
 import { formatCountTick, formatPercent, formatShare, formatWholeCount } from "../shared/format.js";
@@ -11,7 +9,8 @@ import { TRACE_MONTH_AXIS } from "../plot/trace_axes.js";
 import { SERIES_SLOTS } from "../theme/colours.js";
 import { frozenCard } from "./figure_card.js";
 
-// The legend of the two monthly share cards: the ten most requested models and Others.
+// The legend of the two monthly share cards, which the paper draws once above both: the ten most requested models
+// and Others.
 const SHARE_LEGEND = "fig_top10_model_monthly_share_legend";
 
 // The colours of the bands, as the paper's: input tokens in the first series colour, a blue, output in the second, an

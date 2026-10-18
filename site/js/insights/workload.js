@@ -1,8 +1,7 @@
 /**
  * An Insights topic, The workload at a glance: the five panels of the paper's figure of daily demand over the
- * year, as `page/topics.js` defines a topic. The words are the paper's and the definitions the artifact
- * README's; a line marked "placeholder" is not the paper's own, for the authors to review.
- * A card's kind and chart say how its figure is drawn from its answer, as `insights/figure_card.js` defines them.
+ * year.
+ * Its cards are `FigureCard`s (`insights/figure_card.js`).
  */
 
 import { formatCompactCount, formatCount, formatCountTick } from "../shared/format.js";

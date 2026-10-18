@@ -1,11 +1,6 @@
 /**
- * The Insights' six topics, in the order of their tabs, each the paper's figures of one of its sections; a topic's
- * number; and the cards of a topic in order. A topic is `{ id, title, takeaway, groups }`: its id, the anchor of the
- * section the page writes for it (`page/start.js`) and of its tab; its title, written after its number in its heading
- * and its tab; its finding in one sentence, written under its heading; and its groups in the paper's order. A group is
- * `{ heading, takeaway, cards }`: its heading, what its figures show and mean for a serving system in one or two
- * sentences, and its cards in the paper's order, each one of the paper's figures as `insights/figure_card.js` defines
- * a card. Each topic, with its words, is a module of `js/insights/`; this list is the one place a topic is declared.
+ * The Insights' topics (`Topic` of `insights/figure_card.js`), in the order of their tabs, each declared here once and
+ * written, with its words, as a module of `js/insights/`; a topic's number; and a topic's cards in order.
  */
 
 import { BALANCING_TOPIC } from "../insights/balancing.js";
@@ -15,7 +10,7 @@ import { TOKENS_TOPIC } from "../insights/tokens.js";
 import { USERS_TOPIC } from "../insights/users.js";
 import { WORKLOAD_TOPIC } from "../insights/workload.js";
 
-/** The six topics of the Insights, in the order of their tabs. */
+/** The topics of the Insights, in the order of their tabs. */
 export const TOPICS = Object.freeze([
   WORKLOAD_TOPIC,
   TOKENS_TOPIC,
