@@ -1,15 +1,15 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { drawnPoints, pointDots, pointTipText } from "../site/js/charts/scatter.js";
+import { drawnScatterPoints, pointDots, pointTipText } from "../site/js/charts/scatter.js";
 import { AXIS_STYLE } from "../site/js/plot/frame.js";
 
 const ROWS = [{ x: 0, y: 1.2, value: 0.3 }, { x: 30, y: 0, value: -0.4 }, { x: 870, y: 1.1, value: 0.55 }];
 
 test("a point at or below zero on a log axis is not drawn; on linear axes every point is", () => {
-  assert.deepEqual(drawnPoints(ROWS, { x: { log: true } }), [ROWS[1], ROWS[2]]);
-  assert.deepEqual(drawnPoints(ROWS, { x: { log: true }, y: { log: true } }), [ROWS[2]]);
-  assert.deepEqual(drawnPoints(ROWS, {}), ROWS);
+  assert.deepEqual(drawnScatterPoints(ROWS, { x: { log: true } }), [ROWS[1], ROWS[2]]);
+  assert.deepEqual(drawnScatterPoints(ROWS, { x: { log: true }, y: { log: true } }), [ROWS[2]]);
+  assert.deepEqual(drawnScatterPoints(ROWS, {}), ROWS);
 });
 
 test("a point's tooltip gives its x and y after their axes' titles, and its value", () => {

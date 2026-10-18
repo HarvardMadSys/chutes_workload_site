@@ -20,7 +20,7 @@
 import { readAnswer } from "../shared/answers.js";
 import { showError, showErrorNote, showLoading } from "../shared/figure.js";
 import { distinct } from "../shared/rows.js";
-import { drawBars } from "./traffic_bars.js";
+import { drawTrafficBars } from "./traffic_bars.js";
 import { mountTrafficControls } from "./traffic_controls.js";
 import {
   drawDistributionCharts, drawDistributionCurves, placeDistributionCharts, showChartsError, showChartsLoading,
@@ -189,15 +189,15 @@ async function drawChoice(view, choice) {
   view.summary = summary;
   renderTiles(view.tiles, summary, null);
   // The order each breakdown's series take their colours in: the families', the family's models' and the Overview's.
-  const orders = {
+  const colourOrders = {
     families: view.families,
     models: family === null ? [] : modelOrder(family.rows),
     endpoints: view.endpoints,
   };
-  const bars = { choice, family, chosen, requests: summary.requests, days: view.days, orders };
+  const bars = { choice, family, chosen, requests: summary.requests, days: view.days, colourOrders };
   const legendState = { hidden: view.hidden, onToggle: (hidden) => followLegend(view, hidden) };
-  const drawnBars = await drawBars(view.figure, bars, legendState);
-  await drawDistributions(view, choice, { ...drawnBars, summary });
+  const barSeries = await drawTrafficBars(view.figure, bars, legendState);
+  await drawDistributions(view, choice, barSeries, summary);
 }
 
 // Whether a drawing of `choice` may still land: the explorer still shows `choice` and no error stands in its places.
@@ -205,11 +205,12 @@ function stillWanted(view, choice) {
   return isSameChoice(view.choice, choice) && !view.showingError;
 }
 
-// The three charts and the tiles' percentiles of `choice`, once its bars are drawn (`drawnBars`, `{ breakdown,
-// legend, summary }`), from its histogram answer, the charts loading while it is read. A choice the explorer has
-// moved on from, or one whose places show a family's error, before or while the answer is read, touches nothing; a
-// failed read shows its error in the charts and leaves the tiles without percentiles.
-async function drawDistributions(view, choice, drawnBars) {
+// The three charts and the tiles' percentiles of `choice`, once its bars are drawn (`barSeries`, the bars'
+// `{ breakdown, legend }`), from its histogram answer, the charts loading while it is read; `summary` is the tiles'
+// numbers. A choice the explorer has moved on from, or one whose places show a family's error, before or while the
+// answer is read, touches nothing; a failed read shows its error in the charts and leaves the tiles without
+// percentiles.
+async function drawDistributions(view, choice, barSeries, summary) {
   if (!stillWanted(view, choice)) {
     return;
   }
@@ -218,22 +219,23 @@ async function drawDistributions(view, choice, drawnBars) {
   try {
     const answer = await histogramAnswer(view, choice.family);
     if (stillWanted(view, choice)) {
-      await drawHistograms(view, choice, drawnBars, answer);
+      await drawHistograms(view, choice, barSeries, summary, answer);
     }
   } catch (error) {
     if (stillWanted(view, choice)) {
       showChartsError(view.chartPlaces, error);
-      renderTiles(view.tiles, drawnBars.summary, NO_PERCENTILES);
+      renderTiles(view.tiles, summary, NO_PERCENTILES);
     }
   }
 }
 
-// Draw the tiles' percentiles and the three charts of `choice` from `answer`, the rows of its histogram answer, once
-// its bars are drawn (`drawnBars`); the charts drawn are kept for the legend while the drawing may still land.
-async function drawHistograms(view, choice, drawnBars, answer) {
+// Draw the tiles' percentiles, beside the tiles' `summary`, and the three charts of `choice` from `answer`, the rows
+// of its histogram answer, once its bars are drawn (`barSeries`); the charts drawn are kept for the legend while the
+// drawing may still land.
+async function drawHistograms(view, choice, barSeries, summary, answer) {
   const rows = histogramRowsInChoice(answer, choice);
-  renderTiles(view.tiles, drawnBars.summary, choicePercentiles(rows));
-  const distributions = { rows, breakdown: drawnBars.breakdown, legend: drawnBars.legend };
+  renderTiles(view.tiles, summary, choicePercentiles(rows));
+  const distributions = { rows, breakdown: barSeries.breakdown, legend: barSeries.legend };
   const distributionCharts = await drawDistributionCharts(view.chartPlaces, distributions, view.hidden);
   if (stillWanted(view, choice)) {
     view.distributionCharts = distributionCharts;

@@ -100,6 +100,9 @@ const DEFAULT_PALETTE = "series";
 // The palette whose legend lists each policy once, for the series of every model.
 const POLICY_PALETTE = "policies";
 
+// The palette of the endpoint groups, whose colour order is read from the page's rows of the endpoint mix.
+export const ENDPOINT_PALETTE = "endpoints";
+
 /**
  * The legend of `card` over its answer's `rows`: `{ series, colours, dashed }` (as `shared/legend.js` takes one), the
  * series `colours` names that the rows hold, labelled by the card's `chart.labels`, and its `chart.dashed`, the

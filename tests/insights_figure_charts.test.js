@@ -71,8 +71,8 @@ test("the Qwen3-Next-80B raster shades each user row's hours by requests, days o
   const rows = shippedAnswer(card.figure);
   const grid = rasterGrid(rows);
   assert.equal(card.kind, "raster");
-  assert.equal(grid.width, HOURS_IN_WINDOW);
-  assert.equal(grid.height, Math.max(...rows.map((row) => row.y)) + 1);
+  assert.equal(grid.columnCount, HOURS_IN_WINDOW);
+  assert.equal(grid.rowCount, Math.max(...rows.map((row) => row.y)) + 1);
   assert.equal(card.chart.valueLabel, "Requests per hour");
   assert.equal(card.chart.x.label, "Day of the window");
   assert.deepEqual(card.chart.x.ticks.map(card.chart.x.tickFormat), ["0", "6", "12", "18", "24", "30"]);
@@ -87,14 +87,14 @@ test("the Qwen3-Next-80B raster shades each user row's hours by requests, days o
 test("the periodic user's raster ticks its model rows on their centres and parts them by rules", () => {
   const card = cardOf("fig_user_raster_periodic");
   const grid = rasterGrid(shippedAnswer(card.figure));
-  const [low, high] = rasterYDomain(grid.height);
-  assert.deepEqual([low, high], [-0.5, grid.height - 0.5]);
-  assert.equal(rowBoundaries(grid.height).length, grid.height - 1);
-  assert.ok(rowBoundaries(grid.height).every((boundary) => boundary > low && boundary < high));
+  const [low, high] = rasterYDomain(grid.rowCount);
+  assert.deepEqual([low, high], [-0.5, grid.rowCount - 0.5]);
+  assert.equal(rowBoundaries(grid.rowCount).length, grid.rowCount - 1);
+  assert.ok(rowBoundaries(grid.rowCount).every((boundary) => boundary > low && boundary < high));
   // At the card's own plot height its rows are tall enough to be parted: a rule at every boundary.
   const frame = titledFrame(new FakeFigureBody(), card.chart.y.label, card.chart.margins, card.chart.height);
   const plotHeight = frame.height - frame.marginTop - frame.marginBottom;
-  assert.deepEqual(rowRules({ ruleY: (values) => values }, grid.height, plotHeight), rowBoundaries(grid.height));
+  assert.deepEqual(rowRules({ ruleY: (values) => values }, grid.rowCount, plotHeight), rowBoundaries(grid.rowCount));
 });
 
 test("a bands card's key names its two bands and its median in the card's colour, with no legend of buttons", (context) => {

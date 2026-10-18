@@ -68,7 +68,7 @@ export async function drawStackedBars(rows, body, colours, parameters, hidden) {
         fill: seriesColumn,
         order: stacked, // the stacking order, bottom up
         ...segmentInsets(parameters),
-        title: (row) => barTipText(row, parameters),
+        title: (row) => stackedBarTipText(row, parameters),
         tip: true,
       }),
       Plot.ruleY([0], AXIS_STYLE),
@@ -135,7 +135,7 @@ export function segmentInsets({ inset = BAR_INSET, segmentInset = BAR_INSET }) {
  * A segment's tooltip, three lines: its series, by its label in `labels` where it has one there, its bar's x value
  * (`barXText`), and its value, "Requests: 412".
  */
-export function barTipText(row, parameters) {
+export function stackedBarTipText(row, parameters) {
   const { xColumn, seriesColumn, valueColumn, valueLabel, valueFormat, labels = {} } = parameters;
   const series = seriesLabel(labels, row[seriesColumn]);
   const bar = barXText(row[xColumn], parameters);

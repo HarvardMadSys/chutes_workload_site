@@ -31,7 +31,7 @@ export async function drawScatter(rows, body, colours, parameters) {
   const { x: xAxis = {}, y: yAxis = {}, margins } = parameters;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
-  const drawn = drawnPoints(rows, parameters);
+  const drawn = drawnScatterPoints(rows, parameters);
   const xTicks = axisTicks(xAxis, drawn.map((point) => point.x));
   const yTicks = axisTicks(yAxis, drawn.map((point) => point.y));
   const chart = Plot.plot({
@@ -70,7 +70,7 @@ export function pointDots(Plot, points) {
 }
 
 /** The points drawn: every row, less those at or below zero on a log axis (`x.log`, `y.log`). */
-export function drawnPoints(rows, { x: xAxis = {}, y: yAxis = {} }) {
+export function drawnScatterPoints(rows, { x: xAxis = {}, y: yAxis = {} }) {
   return positiveRows(rows, logColumns({ x: xAxis, y: yAxis }, ["x"], ["y"]));
 }
 

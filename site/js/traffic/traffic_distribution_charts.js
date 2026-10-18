@@ -150,21 +150,22 @@ export async function drawDistributionCharts(places, { rows, breakdown, legend }
     const chartRows = listedRows(cdfRows(totals), legend);
     charts.push({ body: places[distributionChart.metric], distributionChart, rows: chartRows });
   }
-  const drawn = { legend, labels: breakdown.labels ?? {}, charts };
-  await drawDistributionCurves(drawn, hidden);
-  return drawn;
+  const distributionCharts = { legend, labels: breakdown.labels ?? {}, charts };
+  await drawDistributionCurves(distributionCharts, hidden);
+  return distributionCharts;
 }
 
 /**
- * Draw the lines of `drawn`'s charts (as `drawDistributionCharts` gives them) again, the series of `hidden` left out,
- * as the bars' legend hides them: each chart whose every series of the legend is hidden shows the legend's note, and a
- * chart that fails shows its error in its place. A legend of fewer than two series hides none (`drawShownSeries`).
+ * Draw the lines of `distributionCharts`' charts (as `drawDistributionCharts` gives them) again, the series of
+ * `hidden` left out, as the bars' legend hides them: each chart whose every series of the legend is hidden shows the
+ * legend's note, and a chart that fails shows its error in its place. A legend of fewer than two series hides none
+ * (`drawShownSeries`).
  */
-export async function drawDistributionCurves(drawn, hidden) {
+export async function drawDistributionCurves(distributionCharts, hidden) {
   const drawings = [];
-  for (const chart of drawn.charts) {
-    const drawing = drawShownSeries(chart.body, drawn.legend, hidden,
-      (shownHidden) => drawCurves(chart, drawn, shownHidden));
+  for (const chart of distributionCharts.charts) {
+    const drawing = drawShownSeries(chart.body, distributionCharts.legend, hidden,
+      (shownHidden) => drawCurves(chart, distributionCharts, shownHidden));
     // No one awaits a legend's press, so a chart that fails shows its error in its own place.
     drawings.push(drawing.catch((error) => showError(chart.body, error)));
   }
@@ -178,20 +179,21 @@ function listedRows(rows, legend) {
   return rows.filter((row) => listed.has(row.series));
 }
 
-// Draw `chart`'s CDF rows, one line per series not in `hidden`, in `drawn`'s legend colours, at the kind's default
-// height and margins, and name the chart; a note where the choice keeps no request that records the chart's value.
-async function drawCurves(chart, drawn, hidden) {
+// Draw `chart`'s CDF rows, one line per series not in `hidden`, in `distributionCharts`' legend colours, at the kind's
+// default height and margins, and name the chart; a note where the choice keeps no request that records the chart's
+// value.
+async function drawCurves(chart, distributionCharts, hidden) {
   const shownRows = chart.rows.filter((row) => !hidden.has(row.series));
   if (shownRows.length === 0) {
     showNote(chart.body, NO_RECORDED_VALUE_NOTE);
     return;
   }
   const { distributionChart } = chart;
-  await drawLines(chart.rows, chart.body, { series: drawn.legend.colours }, {
+  await drawLines(chart.rows, chart.body, { series: distributionCharts.legend.colours }, {
     x: distributionChart.x,
     y: SHARE_OF_REQUESTS,
     cdf: true,
-    labels: drawn.labels,
+    labels: distributionCharts.labels,
     valueLabel: distributionChart.valueLabel,
     valueFormat: distributionChart.valueFormat,
   }, hidden);

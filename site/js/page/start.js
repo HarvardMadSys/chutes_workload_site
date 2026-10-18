@@ -66,9 +66,9 @@ export function followHistory(showEntryTopic) {
  * Forward calls `drawShown` as it shows a topic; the topic shown on opening waits for the page to call it.
  */
 function mountInsights(mixes) {
-  const topics = TOPICS.map(placeTopic);
+  const placedTopics = TOPICS.map(placeTopic);
   const drawnTopics = new Set();
-  const drawShown = () => drawShownTopic(topics, drawnTopics, mixes);
+  const drawShown = () => drawShownTopic(placedTopics, drawnTopics, mixes);
   const showEntryTopic = mountTopicTabs(document.querySelector("#topic-tabs"), TOPICS, drawShown);
   return { showEntryTopic, drawShown };
 }
@@ -108,12 +108,12 @@ function placeGroup(section, group) {
 }
 
 /**
- * Draw the charts of every card of every group of the topic of `topics` shown now (each `{ section, cards }`, as
- * `placeTopic` returns it), unless `drawnTopics` holds its section, which it then does; each card reads its answer,
+ * Draw the charts of every card of every group of the topic of `placedTopics` shown now (each `{ section, cards }`,
+ * as `placeTopic` returns it), unless `drawnTopics` holds its section, which it then does; each card reads its answer,
  * takes the endpoint groups' order from `mixes` where it colours them, and shows its own error where it cannot.
  */
-function drawShownTopic(topics, drawnTopics, mixes) {
-  const shown = topics.find((topic) => !topic.section.hidden);
+function drawShownTopic(placedTopics, drawnTopics, mixes) {
+  const shown = placedTopics.find((topic) => !topic.section.hidden);
   if (drawnTopics.has(shown.section)) {
     return;
   }

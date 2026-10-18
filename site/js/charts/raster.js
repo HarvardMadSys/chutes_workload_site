@@ -18,8 +18,9 @@ const ROW_RULE_WIDTH = 2; // pixels of the card's colour between two rows
 const ROW_HALF = 0.5; // a row spans half a row on either side of its index, so its tick sits on its centre
 
 /**
- * Draw `rows` into `body` as a raster `width` columns by `height` rows (`rasterGrid`), pooled to the plot's pixels
- * (`pooledGrid`), and return the chart. It has no series: `colours` and `hidden` are not read. Its named parameters:
+ * Draw `rows` into `body` as a raster of `columnCount` columns by `rowCount` rows (`rasterGrid`), pooled to the
+ * plot's pixels (`pooledGrid`), and return the chart. It has no series: `colours` and `hidden` are not read. Its
+ * named parameters:
  * - `x`, `y`: the card's axis options `{ label, ticks, tickFormat }`; the x axis's `tickFormat` writes a column, an
  *   hour of the window, as a day, and `y.label` names what a row is, "User"; a y tick sits on its row's centre.
  * - `scheme`: the colour scheme, "Blues" when not given; `schemeStart`: the point of it, from 0 to 1, the lowest
@@ -33,36 +34,36 @@ export async function drawRaster(rows, body, colours, parameters) {
   const { x: xAxis = {}, y: yAxis = {}, margins } = parameters;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
-  const { width, height, values } = rasterGrid(rows);
+  const grid = rasterGrid(rows);
   const frame = titledFrame(body, yAxis.label ?? null, margins, parameters.height);
   const plotWidth = frame.width - frame.marginLeft - frame.marginRight;
   const plotHeight = frame.height - frame.marginTop - frame.marginBottom;
-  const pooled = pooledGrid({ width, height, values }, plotWidth, plotHeight);
-  const xTicks = axisTicks(xAxis, [0, width]);
-  const yTicks = axisTicks(yAxis, [0, height - 1]);
+  const pooled = pooledGrid(grid, plotWidth, plotHeight);
+  const xTicks = axisTicks(xAxis, [0, grid.columnCount]);
+  const yTicks = axisTicks(yAxis, [0, grid.rowCount - 1]);
   // The colour scale spans the cells' own values, whatever pooling keeps of them.
   const colourParameters = { ...parameters, colourDomain: rasterColourDomain(parameters, rows) };
   const legendTicks = colourLegendTicks(colourParameters, rows.map((row) => row.value));
   const chart = Plot.plot({
     ...frame,
-    x: { domain: [0, width] },
-    y: { domain: rasterYDomain(height) },
+    x: { domain: [0, grid.columnCount] },
+    y: { domain: rasterYDomain(grid.rowCount) },
     color: sequentialColour(colourParameters, DEFAULT_SCHEME, legendTicks),
     marks: [
       // Row 0 is drawn at the bottom: y rises with the row index, as the paper's rasters draw a rank. A pooled grid
       // may reach past the last column or row by part of a pool, which the frame's edge cuts off.
       Plot.raster(pooled.values, {
-        width: pooled.width,
-        height: pooled.height,
+        width: pooled.columnCount,
+        height: pooled.rowCount,
         x1: 0,
-        x2: pooled.width * pooled.columnStep,
+        x2: pooled.columnCount * pooled.columnStep,
         y1: -ROW_HALF,
-        y2: pooled.height * pooled.rowStep - ROW_HALF,
+        y2: pooled.rowCount * pooled.rowStep - ROW_HALF,
         fill: Plot.identity,
         imageRendering: "pixelated",
         clip: true,
       }),
-      rowRules(Plot, height, plotHeight),
+      rowRules(Plot, grid.rowCount, plotHeight),
       axisMark(Plot, "x", xAxis, xTicks),
       axisMark(Plot, "y", yAxis, yTicks),
     ],
@@ -71,48 +72,53 @@ export async function drawRaster(rows, body, colours, parameters) {
   return chart;
 }
 
-/** The y domain of a raster of `rows` rows: `[-0.5, rows - 0.5]`, each row spanning half a row about its index. */
-export function rasterYDomain(rows) {
-  return [-ROW_HALF, rows - ROW_HALF];
+/**
+ * The y domain of a raster of `rowCount` rows: `[-0.5, rowCount - 0.5]`, each row spanning half a row about its index.
+ */
+export function rasterYDomain(rowCount) {
+  return [-ROW_HALF, rowCount - ROW_HALF];
 }
 
-/** The y values between a raster's `rows` rows, where one row ends and the next begins: 0.5, 1.5, … `rows` - 1.5. */
-export function rowBoundaries(rows) {
+/**
+ * The y values between a raster's `rowCount` rows, where one row ends and the next begins: 0.5, 1.5, …
+ * `rowCount` - 1.5.
+ */
+export function rowBoundaries(rowCount) {
   const boundaries = [];
-  for (let row = 1; row < rows; row += 1) {
+  for (let row = 1; row < rowCount; row += 1) {
     boundaries.push(row - ROW_HALF);
   }
   return boundaries;
 }
 
 /**
- * The rules parting a raster's `rows` rows drawn `plotHeight` pixels tall: one at each of `rowBoundaries`,
+ * The rules parting a raster's `rowCount` rows drawn `plotHeight` pixels tall: one at each of `rowBoundaries`,
  * `ROW_RULE_WIDTH` pixels in the card's colour, where a row is at least `MIN_ROW_HEIGHT_FOR_RULES` pixels tall; none
  * (a rule of no values) where rows are thinner, as a pooled raster's are, since rules would hide them.
  */
-export function rowRules(Plot, rows, plotHeight) {
-  const isTallEnough = plotHeight / rows >= MIN_ROW_HEIGHT_FOR_RULES;
-  const boundaries = isTallEnough ? rowBoundaries(rows) : [];
+export function rowRules(Plot, rowCount, plotHeight) {
+  const isTallEnough = plotHeight / rowCount >= MIN_ROW_HEIGHT_FOR_RULES;
+  const boundaries = isTallEnough ? rowBoundaries(rowCount) : [];
   return Plot.ruleY(boundaries, { stroke: SURFACE_INK, strokeWidth: ROW_RULE_WIDTH });
 }
 
 /**
- * The dense grid of a raster's rows: `{ width, height, values }`, `width` the largest `x` plus one, `height` the
- * largest `y` plus one, and `values` a Float64Array of `width * height` cells, row by row from row 0, each the value of
- * the row naming its `x` and `y`, NaN (drawn empty) where none does.
+ * The dense grid of a raster's rows: `{ columnCount, rowCount, values }`, `columnCount` the largest `x` plus one,
+ * `rowCount` the largest `y` plus one, and `values` a Float64Array of `columnCount * rowCount` cells, row by row from
+ * row 0, each the value of the row naming its `x` and `y`, NaN (drawn empty) where none does.
  */
 export function rasterGrid(rows) {
-  let width = 0;
-  let height = 0;
+  let columnCount = 0;
+  let rowCount = 0;
   for (const row of rows) {
-    width = Math.max(width, row.x + 1);
-    height = Math.max(height, row.y + 1);
+    columnCount = Math.max(columnCount, row.x + 1);
+    rowCount = Math.max(rowCount, row.y + 1);
   }
-  const values = new Float64Array(width * height).fill(NaN);
+  const values = new Float64Array(columnCount * rowCount).fill(NaN);
   for (const row of rows) {
-    values[row.y * width + row.x] = row.value;
+    values[row.y * columnCount + row.x] = row.value;
   }
-  return { width, height, values };
+  return { columnCount, rowCount, values };
 }
 
 /**
@@ -124,27 +130,27 @@ export function rasterColourDomain({ colourDomain }, rows) {
 }
 
 /**
- * The grid of `grid` (`rasterGrid`'s `{ width, height, values }`) as drawn in a plot `plotWidth` by `plotHeight`
- * pixels: `{ width, height, values, columnStep, rowStep }`, each cell the largest value among `columnStep`
- * neighbouring columns by `rowStep` neighbouring rows of `grid`, from column and row 0, NaN where none of them has a
- * value. The steps are the fewest that leave no more columns than `plotWidth` and no more rows than `plotHeight`, 1
- * where the grid already fits, so that each cell drawn takes a pixel at least and a request in any hour stays
- * visible.
+ * The grid of `grid` (`rasterGrid`'s `{ columnCount, rowCount, values }`) as drawn in a plot `plotWidth` by
+ * `plotHeight` pixels: `{ columnCount, rowCount, values, columnStep, rowStep }`, each cell the largest value among
+ * `columnStep` neighbouring columns by `rowStep` neighbouring rows of `grid`, from column and row 0, NaN where none of
+ * them has a value. The steps are the fewest that leave no more columns than `plotWidth` and no more rows than
+ * `plotHeight`, 1 where the grid already fits, so that each cell drawn takes a pixel at least and a request in any hour
+ * stays visible.
  */
 export function pooledGrid(grid, plotWidth, plotHeight) {
-  const columnStep = Math.max(1, Math.ceil(grid.width / plotWidth));
-  const rowStep = Math.max(1, Math.ceil(grid.height / plotHeight));
-  const width = Math.ceil(grid.width / columnStep);
-  const height = Math.ceil(grid.height / rowStep);
-  const values = new Float64Array(width * height).fill(NaN);
-  for (let row = 0; row < grid.height; row += 1) {
-    for (let column = 0; column < grid.width; column += 1) {
-      const value = grid.values[row * grid.width + column];
-      const pool = Math.floor(row / rowStep) * width + Math.floor(column / columnStep);
+  const columnStep = Math.max(1, Math.ceil(grid.columnCount / plotWidth));
+  const rowStep = Math.max(1, Math.ceil(grid.rowCount / plotHeight));
+  const columnCount = Math.ceil(grid.columnCount / columnStep);
+  const rowCount = Math.ceil(grid.rowCount / rowStep);
+  const values = new Float64Array(columnCount * rowCount).fill(NaN);
+  for (let row = 0; row < grid.rowCount; row += 1) {
+    for (let column = 0; column < grid.columnCount; column += 1) {
+      const value = grid.values[row * grid.columnCount + column];
+      const pool = Math.floor(row / rowStep) * columnCount + Math.floor(column / columnStep);
       if (Number.isNaN(values[pool]) || value > values[pool]) {
         values[pool] = value;
       }
     }
   }
-  return { width, height, values, columnStep, rowStep };
+  return { columnCount, rowCount, values, columnStep, rowStep };
 }

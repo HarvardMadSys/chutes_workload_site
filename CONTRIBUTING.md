@@ -15,7 +15,9 @@ binding, and `make test` checks the countable ones.
   not own, no side effects at import.
 - **Names are words.** `requests`, `models`, `days`, `endpointGroup`. A
   one-letter name is only a loop index. Python modules are imported by name
-  without aliases; JavaScript uses named imports.
+  without aliases; JavaScript uses named imports. A name one module of
+  `site/js/` exports, no other exports: a second takes its kind or its
+  section in its name (`drawTrafficBars`, `stackedBarTipText`).
 - **One job per unit.** A function is at most 50 lines, a module at most 300,
   a folder of `site/js/` at most nine modules. A function that computes two
   things is split.

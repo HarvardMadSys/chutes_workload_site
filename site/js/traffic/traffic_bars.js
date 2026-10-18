@@ -54,7 +54,7 @@ export const METRIC_WORDS = Object.freeze({
   output_tokens: Object.freeze({ title: "Output tokens per day", valueLabel: "Output tokens", note: TOKENS_NOTE }),
 });
 
-// The caption after what the bars count, by the series' order key: what the bars are stacked by.
+// The caption after what the bars count, by the breakdown's `order`: what the bars are stacked by.
 const CHART_CAPTIONS = Object.freeze({
   families: "each day, by model family: the models in no family as Other.",
   // placeholder: worded so that it holds for a family of fewer than eight models and no others, for the authors.
@@ -103,14 +103,14 @@ export function dayMonth(day) {
 }
 
 /**
- * Draw the bars' figure into `place` for `bars`, `{ choice, family, chosen, requests, days, orders }`: the `chosen`
- * rows of `choice`, of the answer of `family` (null for every family), `requests` in all, their metric per day over the
- * days of `days` (the trace's) in the choice's range, stacked by the choice's breakdown, each breakdown's series
- * coloured in the order of its rows of `orders` (`{ families, models, endpoints }`), with its legend, or a note when
- * there are none. The legend starts from and tells `legendState` (`{ hidden, onToggle }`) as `drawWithLegend` takes it.
- * Returns the bars' `{ breakdown, legend }`: their breakdown and their legend, empty when there are no bars.
+ * Draw the bars' figure into `place` for `bars`, `{ choice, family, chosen, requests, days, colourOrders }`: the
+ * `chosen` rows of `choice`, of the answer of `family` (null for every family), `requests` in all, their metric per day
+ * over the days of `days` (the trace's) in the choice's range, stacked by the choice's breakdown, each breakdown's
+ * series coloured in the order of its rows of `colourOrders` (`{ families, models, endpoints }`), with its legend, or a
+ * note when there are none. The legend starts from and tells `legendState` (`{ hidden, onToggle }`) as `drawWithLegend`
+ * takes it. Returns the bars' `{ breakdown, legend }`: their breakdown and their legend, empty when there are no bars.
  */
-export async function drawBars(place, { choice, family, chosen, requests, days, orders }, legendState) {
+export async function drawTrafficBars(place, { choice, family, chosen, requests, days, colourOrders }, legendState) {
   const breakdown = choiceBreakdown(choice, family?.name);
   const words = METRIC_WORDS[choice.metric];
   const body = renderFigure(place, {
@@ -119,7 +119,7 @@ export async function drawBars(place, { choice, family, chosen, requests, days, 
     definition: CHART_DEFINITION,
     rows: formatQuantity(requests, "request", "requests"),
   });
-  const colours = breakdown.colours(orders[breakdown.order]);
+  const colours = breakdown.colours(colourOrders[breakdown.order]);
   const daily = dailyValues(chosen, breakdown.column, choice.metric, colours);
   const legend = stackedBarsLegend(daily, colours, { seriesColumn: breakdown.column, labels: breakdown.labels });
   if (daily.length === 0) {
@@ -131,27 +131,27 @@ export async function drawBars(place, { choice, family, chosen, requests, days, 
   return { breakdown, legend };
 }
 
-// Draw the bars of the series not in `hidden`, one per day of `bars.days`, the months written as `monthTicks` says,
-// each segment's value named in its tooltip by `bars.words`, and name the chart.
-async function drawDayBars(daily, body, bars, hidden) {
-  await drawStackedBars(daily, body, { series: bars.colours }, {
+// Draw the bars of the series not in `hidden`, one per day of `drawing.days`, the months written as `monthTicks`
+// says, each segment's value named in its tooltip by `drawing.words`, and name the chart.
+async function drawDayBars(daily, body, drawing, hidden) {
+  await drawStackedBars(daily, body, { series: drawing.colours }, {
     xColumn: "day",
     xLabel: null,
-    xDomain: bars.days,
-    xTicks: monthTicks(bars.days, chartWidth(body)),
+    xDomain: drawing.days,
+    xTicks: monthTicks(drawing.days, chartWidth(body)),
     xTickFormat: dayMonth,
     xTipFormat: String, // a bar's tooltip names its whole day, where its tick names only the month
     xTickRotate: MONTH_LABEL_ANGLE,
-    seriesColumn: bars.breakdown.column,
+    seriesColumn: drawing.breakdown.column,
     valueColumn: "value",
-    valueLabel: bars.words.valueLabel,
+    valueLabel: drawing.words.valueLabel,
     yLabel: null,
     valueFormat: formatCount,
     yTickFormat: formatCountTick,
     margins: DAILY_MARGINS,
     inset: DAY_BAR_INSET,
     segmentInset: DAY_BAR_INSET,
-    labels: bars.breakdown.labels,
+    labels: drawing.breakdown.labels,
   }, hidden);
   nameChart(body);
 }

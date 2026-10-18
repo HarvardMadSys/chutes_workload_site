@@ -31,7 +31,7 @@ import { drawRaster } from "../charts/raster.js";
 import { drawScatter } from "../charts/scatter.js";
 import { drawStackedBars } from "../charts/stacked_bars.js";
 import { drawWithLegend } from "../shared/legend.js";
-import { cardColours, figureLegend } from "./card_series.js";
+import { cardColours, ENDPOINT_PALETTE, figureLegend } from "./card_series.js";
 
 /**
  * The chart kinds a card may name, each `{ draw, swatch, parameters }`: the function that draws it, the shape of its
@@ -97,7 +97,7 @@ export function renderFigureCard(container, card) {
  */
 export async function drawFigureChart(body, card, mixes) {
   try {
-    const endpointMix = card.palette === "endpoints" ? mixes.endpoints : null;
+    const endpointMix = card.palette === ENDPOINT_PALETTE ? mixes.endpoints : null;
     const answers = [readAnswer(`${FIGURE_ANSWERS}${card.figure}`), legendAnswer(card), endpointMix];
     const [rows, legendRows, endpointMixRows] = await Promise.all(answers);
     const colours = cardColours(card, rows, legendRows, endpointMixRows);

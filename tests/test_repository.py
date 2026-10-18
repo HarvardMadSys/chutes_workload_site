@@ -1,7 +1,7 @@
 """The repository's rules, checked on every commit: short units, small folders, no aliased imports, one home for library
-URLs and for SQL, libraries loaded only where they are drawn with, one page; and the files git tracks: the expected
-set by folder (no rows, no PDFs, no installed packages), no machine path, none too large to host. The built data's
-own checks are `test_built_data.py`'s."""
+URLs and for SQL, libraries loaded only where they are drawn with, one page, each exported name exported by one module;
+and the files git tracks: the expected set by folder (no rows, no PDFs, no installed packages), no machine path, none
+too large to host. The built data's own checks are `test_built_data.py`'s."""
 
 import ast
 import pathlib
@@ -51,6 +51,9 @@ STATIC_LIBRARIES_IMPORT = re.compile(r"""(\bfrom\s+|^\s*import\s+)["'][^"']*libr
 
 # A static import's module, a relative path in the `from` clause: `import { thing } from "./module.js";`.
 RELATIVE_IMPORT = re.compile(r"""\bfrom\s+["'](\.{1,2}/[^"']+)["']""")
+
+# A name a JavaScript module exports: the name after `export function`, `export async function` or `export const`.
+EXPORTED_NAME = re.compile(r"^export\s+(?:async\s+function|function|const)\s+(\w+)", re.MULTILINE)
 
 # An absolute path on a maintainer's machine: a home, project or scratch folder.
 MACHINE_PATH = re.compile(r"/(home|madsys|scratch)/")
@@ -147,6 +150,33 @@ def test_only_a_dynamic_import_loads_the_libraries() -> None:
             continue
         for number, line in enumerate(path.read_text().splitlines(), start=1):
             assert not STATIC_LIBRARIES_IMPORT.search(line), f"{path.relative_to(ROOT)}:{number} imports {LIBRARIES_MODULE.name} statically"
+
+
+def test_no_two_modules_export_one_name() -> None:
+    twice = names_exported_twice(JAVASCRIPT_FOLDER)
+    assert twice == [], "names exported by more than one module of site/js/:\n" + "\n".join(twice)
+
+
+def test_a_name_exported_by_two_modules_is_named(tmp_path: pathlib.Path) -> None:
+    (tmp_path / "charts").mkdir()
+    (tmp_path / "traffic").mkdir()
+    (tmp_path / "charts" / "bars.js").write_text("export async function drawBars(rows) {}\nexport const KIND = 1;\n")
+    (tmp_path / "traffic" / "traffic_bars.js").write_text("export async function drawBars(place) {}\n")
+    assert names_exported_twice(tmp_path) == ["drawBars: charts/bars.js, traffic/traffic_bars.js"]
+
+
+def names_exported_twice(folder: pathlib.Path) -> list[str]:
+    """Each name that more than one module under `folder` exports (`EXPORTED_NAME`), sorted, written with the modules
+    that export it, as paths from `folder`: "drawBars: charts/bars.js, traffic/traffic_bars.js"."""
+    modules_by_name = {}
+    for path in sorted(folder.rglob("*.js")):
+        for name in EXPORTED_NAME.findall(path.read_text()):
+            modules_by_name.setdefault(name, []).append(path.relative_to(folder).as_posix())
+    twice = []
+    for name, modules in sorted(modules_by_name.items()):
+        if len(modules) > 1:
+            twice.append(f"{name}: {', '.join(modules)}")
+    return twice
 
 
 def statically_imported_modules(page_module: pathlib.Path) -> set[pathlib.Path]:
