@@ -15,13 +15,13 @@ import { bandKey, bandsColour } from "../site/js/charts/bands.js";
 import {
   pooledGrid, rasterColourDomain, rasterGrid, rasterYDomain, rowBoundaries, rowRules,
 } from "../site/js/charts/raster.js";
-import { axisTicks } from "../site/js/axes/ticks.js";
+import { axisTicks } from "../site/js/plot/axes.js";
 import { cellTipText } from "../site/js/charts/cells.js";
 import { drawWithLegend, hasLegend } from "../site/js/shared/legend.js";
 import { cardColours, figureLegend } from "../site/js/insights/card_series.js";
 import { chartParameters, COUNT_COLOUR, TRACE_DAY_AXIS } from "../site/js/insights/figure_card.js";
 import { TOPICS, topicCards } from "../site/js/page/topics.js";
-import { sequentialColour, titledFrame } from "../site/js/shared/charts.js";
+import { sequentialColour, titledFrame } from "../site/js/plot/frame.js";
 import { SERIES_SLOTS } from "../site/js/theme/colours.js";
 import { SERIES_COLUMN } from "../site/js/shared/series.js";
 import { FakeElement, FakeFigureBody, settled, useFakeDocument } from "./fake_page.js";

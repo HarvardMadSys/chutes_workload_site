@@ -19,7 +19,7 @@
  */
 
 import { readAnswer } from "../shared/answers.js";
-import { textElement } from "../shared/charts.js";
+import { textElement } from "../shared/figure.js";
 import { mountHeader, renderFooter, queryString } from "../shared/layout.js";
 import { drawFigureChart, newCardElement, renderFigureCard } from "../insights/figure_card.js";
 import { TOPICS } from "./topics.js";

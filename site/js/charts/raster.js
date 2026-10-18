@@ -9,8 +9,8 @@
  * centred on its tick, and rows tall enough are parted by rules in the card's colour (`rowRules`).
  */
 
-import { SURFACE_INK, sequentialColour, titledFrame } from "../shared/charts.js";
-import { axisMark, axisTicks, colourLegendTicks, extent } from "../axes/ticks.js";
+import { SURFACE_INK, sequentialColour, titledFrame } from "../plot/frame.js";
+import { axisMark, axisTicks, colourLegendTicks, extent } from "../plot/axes.js";
 
 const DEFAULT_SCHEME = "Blues"; // a raster's colour scheme when the card names none: few requests light, many dark
 const MIN_ROW_HEIGHT_FOR_RULES = 6; // pixels a row needs before rules part it from its neighbours; thinner, none
@@ -26,7 +26,7 @@ const ROW_HALF = 0.5; // a row spans half a row on either side of its index, so 
  *   value takes, its first colour when not given; `colourLog`: true for a log colour scale; `colourDomain`:
  *   the values at the scale's two ends, the rows' own (`rasterColourDomain`) when not given.
  * - `valueLabel`: what a value is, the colour legend's title. `margins`: Plot margins in place of the frame's.
- * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `shared/charts.js`).
+ * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `plot/frame.js`).
  * Required: `valueLabel`.
  */
 export async function drawRaster(rows, body, colours, parameters) {

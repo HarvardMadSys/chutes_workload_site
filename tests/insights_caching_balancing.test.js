@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { axisTicks } from "../site/js/axes/ticks.js";
+import { axisTicks } from "../site/js/plot/axes.js";
 import { cellTipText } from "../site/js/charts/cells.js";
 import { allSeriesTips, drawnPoints } from "../site/js/charts/lines.js";
 import { cardColours } from "../site/js/insights/card_series.js";

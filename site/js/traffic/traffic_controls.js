@@ -14,7 +14,7 @@
  * is written to the URL and the period buttons follow it, and the explorer is not asked to draw it again.
  */
 
-import { textElement } from "../shared/charts.js";
+import { textElement } from "../shared/figure.js";
 import {
   endpointChoices, isSameChoice, metricChoices, NO_FAMILY_MODEL_CHOICES, readTrafficChoice, writeTrafficChoice,
 } from "./traffic_filter.js";

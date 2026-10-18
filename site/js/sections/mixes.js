@@ -12,7 +12,8 @@
  * A section's `context` is what the page gives every section; see `page/start.js`.
  */
 
-import { columnTotal, renderFigure, showError, showLoading } from "../shared/charts.js";
+import { renderFigure, showError, showLoading } from "../shared/figure.js";
+import { columnTotal } from "../shared/rows.js";
 import { formatCompactCount, formatQuantity } from "../shared/format.js";
 import { ENDPOINT_SERIES, FAMILY_SERIES } from "../shared/series.js";
 import { drawWithLegend } from "../shared/legend.js";

@@ -6,10 +6,9 @@
  * `value`; a multi-panel figure's rows also name their `panel`.
  */
 
-import {
-  AXIS_STYLE, BAR_INSET, SURFACE_INK, colourScale, distinct, referenceRule, titledFrame,
-} from "../shared/charts.js";
-import { axisMark, axisValueText, bandAxisMark, gridMark } from "../axes/ticks.js";
+import { AXIS_STYLE, BAR_INSET, SURFACE_INK, colourScale, referenceRule, titledFrame } from "../plot/frame.js";
+import { axisMark, axisValueText, bandAxisMark, gridMark } from "../plot/axes.js";
+import { distinct } from "../shared/rows.js";
 import { SERIES_COLUMN, shownSeriesRows } from "../shared/series.js";
 
 const REFERENCE_LABEL_RISE = -4; // pixels a reference's label sits above its rule, so the dashes do not cross it
@@ -25,7 +24,7 @@ const LABEL_HALO_WIDTH = 3; // pixels of the card's colour around a reference's 
  *   horizontal rule at `value`, its `label` in small text at the rule's right end, inside the plot; none when not given.
  * - `valueLabel`: what a value is, in the tooltip, "Share of requests: 12.4%"; `valueFormat`: how it is written there.
  * - `margins`: Plot margins in place of the frame's.
- * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `shared/charts.js`).
+ * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `plot/frame.js`).
  * Required: `valueLabel` and `valueFormat`.
  */
 export async function drawBars(rows, body, colours, parameters, hidden) {
@@ -62,7 +61,7 @@ export function drawnBars(rows, colours, { panel }, hidden) {
 }
 
 /**
- * The marks of a bars chart's `reference`, `{ value, label }`: its dashed rule (`referenceRule` of `shared/charts.js`)
+ * The marks of a bars chart's `reference`, `{ value, label }`: its dashed rule (`referenceRule` of `plot/frame.js`)
  * and its label, right-aligned at the plot's right edge just above the rule, in the chart's label ink on a halo of the
  * card's colour; none where `reference` is not given.
  */

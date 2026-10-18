@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { divergingColour, drawnPoints, pointDots, pointTipText } from "../site/js/charts/scatter.js";
-import { AXIS_STYLE } from "../site/js/shared/charts.js";
+import { drawnPoints, pointDots, pointTipText } from "../site/js/charts/scatter.js";
+import { AXIS_STYLE } from "../site/js/plot/frame.js";
 
 const ROWS = [{ x: 0, y: 1.2, value: 0.3 }, { x: 30, y: 0, value: -0.4 }, { x: 870, y: 1.1, value: 0.55 }];
 
@@ -10,16 +10,6 @@ test("a point at or below zero on a log axis is not drawn; on linear axes every 
   assert.deepEqual(drawnPoints(ROWS, { x: { log: true } }), [ROWS[1], ROWS[2]]);
   assert.deepEqual(drawnPoints(ROWS, { x: { log: true }, y: { log: true } }), [ROWS[2]]);
   assert.deepEqual(drawnPoints(ROWS, {}), ROWS);
-});
-
-test("the colour scale diverges from zero on the card's scheme and domain, RdBu when it names none", () => {
-  const valueFormat = (value) => value.toFixed(2);
-  assert.deepEqual(divergingColour({ colourDomain: [-1, 1], valueLabel: "Autocorrelation", valueFormat }), {
-    type: "diverging", scheme: "RdBu", pivot: 0, domain: [-1, 1], legend: true, label: "Autocorrelation",
-    tickFormat: valueFormat,
-  });
-  assert.equal(divergingColour({ scheme: "BuRd", valueLabel: "Autocorrelation" }).scheme, "BuRd");
-  assert.equal(divergingColour({ valueLabel: "Autocorrelation" }).domain, undefined);
 });
 
 test("a point's tooltip gives its x and y after their axes' titles, and its value", () => {

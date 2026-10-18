@@ -9,7 +9,8 @@
  * is plain functions, tested with `node --test`.
  */
 
-import { chartName, columnTotal } from "../shared/charts.js";
+import { chartName } from "../shared/figure.js";
+import { columnTotal } from "../shared/rows.js";
 import { formatCount, formatShare } from "../shared/format.js";
 import { seriesLabel } from "../shared/series.js";
 import { OTHER_NAME } from "../theme/colours.js";

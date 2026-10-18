@@ -5,7 +5,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { axisScale } from "../site/js/axes/ticks.js";
+import { axisScale } from "../site/js/plot/axes.js";
 import {
   chartParameters, PARTIAL_TRACE_MONTH, TRACE_MONTH_AXIS, TRACE_MONTH_NAMES, TRACE_MONTH_TICKS, traceMonthName,
 } from "../site/js/insights/figure_card.js";

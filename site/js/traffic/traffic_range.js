@@ -9,7 +9,7 @@
  * range to keep in the URL.
  */
 
-import { textElement } from "../shared/charts.js";
+import { textElement } from "../shared/figure.js";
 
 // The handles' names, read out by a screen reader, and their inputs' ids.
 const FROM_NAME = "From";

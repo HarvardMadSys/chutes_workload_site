@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { TOPICS, topicCards } from "../site/js/page/topics.js";
-import { CHART_HEIGHT } from "../site/js/shared/charts.js";
+import { CHART_HEIGHT } from "../site/js/plot/frame.js";
 
 // The figure answers the data step wrote, as their index lists them: each figure's row count, by name.
 const INDEX = JSON.parse(readFileSync(new URL("../site/data/all/figures.json", import.meta.url), "utf8"));

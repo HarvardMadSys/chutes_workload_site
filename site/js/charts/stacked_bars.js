@@ -6,8 +6,9 @@
  * three named by the figure; a series may have several rows in one bar, which are summed once folded.
  */
 
-import { AXIS_STYLE, BAR_INSET, colourScale, distinct, GRID_STYLE, titledFrame } from "../shared/charts.js";
-import { axisValueText, axisWithTicks, TICK_COUNT } from "../axes/ticks.js";
+import { AXIS_STYLE, BAR_INSET, colourScale, GRID_STYLE, titledFrame } from "../plot/frame.js";
+import { axisValueText, axisWithTicks, TICK_COUNT } from "../plot/axes.js";
+import { distinct } from "../shared/rows.js";
 import { OTHER_NAME } from "../theme/colours.js";
 import { seriesLabel, seriesLegend, shownRows } from "../shared/series.js";
 
@@ -31,13 +32,13 @@ const KEY_SEPARATOR = "\u0000";
  *   in degrees, 0 (level) when not given, so that a label at every bar keeps clear of its neighbours.
  * - `xDomain`: every bar's x value, in order, each keeping its place even where no shown row falls on it; the shown
  *   rows' own x values when not given. `xTicks`: the x values ticked, every bar's when not given. `xInset`: the pixels
- *   the first and last bars sit in from the plot's edges, as an axis's `inset` (`axes/ticks.js`), none when not given.
+ *   the first and last bars sit in from the plot's edges, as an axis's `inset` (`plot/axes.js`), none when not given.
  * - `inset`: the pixels taken off the left and the right of a bar, `BAR_INSET` when not given; 0 where a bar is a
  *   pixel or two wide, as a day's is over a year.
  * - `segmentInset`: the pixels taken off the top and the bottom of each segment, `BAR_INSET` when not given; 0 where
  *   thin segments would vanish into their gaps, as a share's do.
  * - `margins`: Plot margins in place of the frame's, where the bars should take more of the card's width.
- * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `shared/charts.js`).
+ * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `plot/frame.js`).
  * - `labels`: each series' label in the tooltip where it is written otherwise than its name, as the legend's `labels`.
  * Required: the three columns, `valueLabel` and `valueFormat`.
  * Needs the figure's legend: its colours are `colours.series`.
@@ -142,7 +143,7 @@ export function barTipText(row, parameters) {
 }
 
 /**
- * A bar's x value `x` as the tooltip writes it, as the x axis would (`axisValueText` of `axes/ticks.js`): by
+ * A bar's x value `x` as the tooltip writes it, as the x axis would (`axisValueText` of `plot/axes.js`): by
  * `xTipFormat` alone where given; else by `xTickFormat` (the value as it is when not given), after the axis's title
  * `xLabel` where it has one, "Month: Apr '25".
  */

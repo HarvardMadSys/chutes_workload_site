@@ -487,16 +487,16 @@ which is plain SVG of its own drawing. Its module's header says what rows
 it takes and its draw function's JSDoc what each parameter decides; its
 pure functions (the rows drawn, the tooltip's text, a scale's options) are
 exported and tested in `tests/charts_<kind>.test.js`. A kind imports only
-from `shared/`, `axes/` and `theme/`. A kind takes only parameters two or
+from `shared/`, `plot/` and `theme/`. A kind takes only parameters two or
 more charts use, or a frame or axis setting (the bars' `margins`, `inset`
 and `xTickRotate`, the stacked bars' `segmentInset` and `xInset`, the
 lines' `gap`).
 Every Plot kind takes `height`, the chart's height in pixels,
-`CHART_HEIGHT` (240) when not given (`titledFrame` of `shared/charts.js`);
+`CHART_HEIGHT` (240) when not given (`titledFrame` of `plot/frame.js`);
 the two cards of a grid row take the same height, so the row stays level.
 Every Plot kind but the raster has a tooltip, written by the kind's
 `…TipText` function, its x after the x axis's title (`axisValueText` of
-`axes/ticks.js`), or written by the axis's `tipFormat` alone where it
+`plot/axes.js`), or written by the axis's `tipFormat` alone where it
 gives one (a trace day with its date; the stacked bars take it as
 `xTipFormat`, the Traffic Explorer's day bars writing the whole day where
 a tick names only the month; the cells write each edge of a cell's range
@@ -528,7 +528,7 @@ panel's own).
 - One `mount<Thing>(container, ...)` function per component: it draws and
   wires listeners. State lives in the URL or in the arguments; no module
   keeps mutable state beyond what the page owns.
-- Loading and error states come from `shared/charts.js`: a section shows
+- Loading and error states come from `shared/figure.js`: a section shows
   `loading` until its answer arrives and `is-error` with the message if it
   throws. One failed answer never stops the others.
 - Numbers and dates go through `shared/format.js`.
@@ -577,7 +577,7 @@ Insights' figures are drawn from their plot-ready tables.
   take no gap between their segments (`segmentInset: 0`), since a thin
   segment would vanish into it. Text is never coloured by
   series. Bars start at zero. A dashed line, a series' or the line where y
-  equals x, is dashed by `DASH` of `shared/charts.js`; a reference level a
+  equals x, is dashed by `DASH` of `plot/frame.js`; a reference level a
   card marks is a dashed rule in the label ink (`referenceRule`): the
   cells' and the scatter's `yReference`, the bars' `reference`, whose label
   sits at the rule's right end; over cells it lies on a halo in the card's
@@ -602,7 +602,7 @@ Insights' figures are drawn from their plot-ready tables.
   and the Traffic Explorer's bars.
   A legend names only what is drawn. After each drawing the chart is named
   for a screen reader by its title and caption, `nameChart` in
-  `shared/charts.js`, or by the name it is given.
+  `shared/figure.js`, or by the name it is given.
 - **The distribution charts.** The Traffic Explorer's row of three
   charts under the day range (README's "What the site shows") is
   `traffic/traffic_distribution_charts.js`. A chart is keyed everywhere
@@ -629,7 +629,7 @@ Insights' figures are drawn from their plot-ready tables.
   `renderTiles` of `traffic/traffic_tiles.js` replaces the list's
   children with the four `li`, each its value, label and notes.
 - **Axis text.** A linear axis asks Plot for `TICK_COUNT` ticks
-  (`axes/ticks.js`), which gives at most six or seven. The exception is an
+  (`plot/axes.js`), which gives at most six or seven. The exception is an
   axis of months: the Traffic Explorer's is ticked at the first day of
   each month it shows, and at the range's first day when it falls in its
   month's first half (`LAST_NAMED_FIRST_DAY`) or when the range holds no

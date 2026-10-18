@@ -8,9 +8,10 @@
  * their `panel`.
  */
 
-import { colourScale, DASH, logColumns, positiveRows, titledFrame } from "../shared/charts.js";
+import { colourScale, DASH, titledFrame } from "../plot/frame.js";
+import { axisMark, axisScale, axisTicks, axisValueText, gridMark } from "../plot/axes.js";
+import { logColumns, positiveRows } from "../shared/rows.js";
 import { formatPercent, formatShare } from "../shared/format.js";
-import { axisMark, axisScale, axisTicks, axisValueText, gridMark } from "../axes/ticks.js";
 import { SERIES_COLUMN, seriesLabel, shownSeriesRows } from "../shared/series.js";
 
 const CDF_COLUMN = "cdf"; // the column of a CDF answer holding the share at or below each value
@@ -18,7 +19,7 @@ const CDF_COLUMN = "cdf"; // the column of a CDF answer holding the share at or 
 /**
  * Draw `rows` into `body`, one line per series of `colours.series` (a Map from series name to colour, in legend order)
  * the rows hold, leaving out the series in `hidden`, and return the chart. Its named parameters:
- * - `x`, `y`: the card's axis options (`axes/ticks.js`); a row with a value at or below zero on a log axis is not
+ * - `x`, `y`: the card's axis options (`plot/axes.js`); a row with a value at or below zero on a log axis is not
  *   drawn, and a line is cut at a given domain's ends.
  * - `cdf`: true for a CDF answer, its `cdf` column drawn as y from 0 to 1, the axis in percent; its tooltip names the
  *   point nearest the pointer in x and y (`Plot.pointer`), another chart's the point nearest in x (`Plot.pointerX`).
@@ -34,7 +35,7 @@ const CDF_COLUMN = "cdf"; // the column of a CDF answer holding the share at or 
  *   is its x.
  * - `labels`: each series' label in the tooltip where it is written otherwise than its name.
  * - `panel`: the panel drawn, of a multi-panel answer. `margins`: Plot margins in place of the frame's.
- * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `shared/charts.js`).
+ * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `plot/frame.js`).
  * Required: `valueLabel` and `valueFormat`.
  */
 export async function drawLines(rows, body, colours, parameters, hidden) {

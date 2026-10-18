@@ -6,12 +6,9 @@
  * `value`. An axis of named categories has integer edges, the cell from i to i + 1 being the category i.
  */
 
-import {
-  haloedReferenceRule, logColumns, positiveRows, REFERENCE_STYLE, sequentialColour, titledFrame,
-} from "../shared/charts.js";
-import {
-  afterAxisTitle, axisMark, axisScale, axisText, axisTicks, colourLegendTicks, extent,
-} from "../axes/ticks.js";
+import { haloedReferenceRule, REFERENCE_STYLE, sequentialColour, titledFrame } from "../plot/frame.js";
+import { afterAxisTitle, axisMark, axisScale, axisText, axisTicks, colourLegendTicks, extent } from "../plot/axes.js";
+import { logColumns, positiveRows } from "../shared/rows.js";
 
 const DEFAULT_SCHEME = "YlOrRd"; // the paper's heatmaps' colour scheme, low values light
 const CATEGORY_CENTRE = 0.5; // a category's tick sits halfway between its cell's integer edges
@@ -19,7 +16,7 @@ const CATEGORY_CENTRE = 0.5; // a category's tick sits halfway between its cell'
 /**
  * Draw `rows` into `body` as one rectangle per row, filled by its value, and return the chart. It has no series:
  * `colours` and `hidden` are not read. Its named parameters:
- * - `x`, `y`: the card's axis options (`axes/ticks.js`); on a log axis, a cell with an edge at or below zero is not
+ * - `x`, `y`: the card's axis options (`plot/axes.js`); on a log axis, a cell with an edge at or below zero is not
  *   drawn.
  * - `xTicks`, `yTicks`: an axis's category names, in place of its ticks and their format, the cell from i to i + 1
  *   named by the i-th, "Mon"; every category is labelled, or, where the axis gives `ticks`, those of its indices.
@@ -30,11 +27,11 @@ const CATEGORY_CENTRE = 0.5; // a category's tick sits halfway between its cell'
  * - `diagonal`: true to draw a dashed line where y equals x, as a figure of input against output tokens marks them
  *   equal.
  * - `yReference`: a y value at which a dashed horizontal rule is drawn across the cells, on a halo in the card's
- *   colour (`haloedReferenceRule` of `shared/charts.js`), as a coefficient of variation of 1 parts bursty from evenly
+ *   colour (`haloedReferenceRule` of `plot/frame.js`), as a coefficient of variation of 1 parts bursty from evenly
  *   spaced; none when not given.
  * - `valueLabel`: what a value is, the colour legend's title and the tooltip's; `valueFormat`: how it is written there.
  * - `margins`: Plot margins in place of the frame's.
- * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `shared/charts.js`).
+ * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `plot/frame.js`).
  * Required: `valueLabel` and `valueFormat`.
  */
 export async function drawCells(rows, body, colours, parameters) {

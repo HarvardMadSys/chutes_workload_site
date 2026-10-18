@@ -18,7 +18,8 @@
  */
 
 import { readAnswer } from "../shared/answers.js";
-import { distinct, showError, showErrorNote, showLoading } from "../shared/charts.js";
+import { showError, showErrorNote, showLoading } from "../shared/figure.js";
+import { distinct } from "../shared/rows.js";
 import { drawBars } from "./traffic_bars.js";
 import { mountTrafficControls } from "./traffic_controls.js";
 import {

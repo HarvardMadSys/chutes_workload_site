@@ -4,7 +4,7 @@ import { test } from "node:test";
 import {
   afterAxisTitle, axisMark, axisScale, axisText, axisTicks, axisValueText, axisWithTicks, bandAxisMark,
   colourLegendTicks, decadeTicks, extent, gridMark, logAxisTicks, MAX_LOG_TICKS, TICK_COUNT,
-} from "../site/js/axes/ticks.js";
+} from "../site/js/plot/axes.js";
 
 test("an axis given its ticks writes each as its text, so a log axis blanks none; without ticks Plot chooses them", () => {
   const makeAxis = (...args) => args;

@@ -13,7 +13,7 @@
  * `ENDPOINT_LABELS`).
  */
 
-import { panelRows } from "./charts.js";
+import { panelRows } from "./rows.js";
 import {
   endpointColours, familyColours, modelColours, OTHER_NAME, OTHER_SERIES, SERIES_SLOTS,
 } from "../theme/colours.js";

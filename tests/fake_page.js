@@ -198,7 +198,7 @@ export function controlsOf(row) {
 }
 
 /**
- * A figure's body, the place its chart is drawn, as `renderFigure` of `shared/charts.js` lays it out, as far as a
+ * A figure's body, the place its chart is drawn, as `renderFigure` of `shared/figure.js` lays it out, as far as a
  * legend reads it: its figure's place for the legend, `legendPlace`, found through `closest`.
  */
 export class FakeFigureBody extends FakeElement {

@@ -1,15 +1,15 @@
 /**
- * A chart's axes: how many ticks a linear axis asks Plot for, the powers of ten a log axis is ticked at, Plot's scale
- * options for a card's axis, its axis and grid marks (a band axis's among them), a value written as its axis writes
- * it, alone or in a tooltip, and the ticks of a colour legend on a log scale. A card's axis options are `{ label, log,
- * domain, ticks, tickFormat, tipFormat, inset }`, each optional: its title, whether it is a log axis, its `[low,
- * high]`, the values it ticks, how a tick is written, how a value is written in a tooltip where that differs from a
- * tick's, the whole of the value's line, which then names the value itself (a trace day with its date, "Day 150 · Sep
- * 8, 2025"), and the pixels its ends sit in from the plot's (Plot's scale `inset`), so an x axis's first label clears
- * the y axis's lowest. All are plain functions, tested with `node --test`; a mark's is given Plot.
+ * A card's axes as Plot takes them: Plot's scale options for a card's axis options, its axis and grid marks (a band
+ * axis's among them), a value as its axis writes it, alone or in a tooltip's text, the tick count a linear axis asks
+ * for, a log axis's powers of ten and a log colour legend's ticks. A card's axis options are `{ label, log, domain,
+ * ticks, tickFormat, tipFormat, inset }`, each optional: its title, whether it is a log axis, its `[low, high]`, the
+ * values it ticks, how a tick is written, how a value is written in a tooltip where that differs from a tick's, the
+ * whole of the value's line, which then names the value itself (a trace day with its date, "Day 150 · Sep 8, 2025"),
+ * and the pixels its ends sit in from the plot's (Plot's scale `inset`), so an x axis's first label clears the y axis's
+ * lowest. The chart kinds use it, in the styles of `plot/frame.js`; plain functions, a mark's given Plot.
  */
 
-import { AXIS_STYLE, GRID_STYLE } from "../shared/charts.js";
+import { AXIS_STYLE, GRID_STYLE } from "./frame.js";
 import { formatCount } from "../shared/format.js";
 
 /**

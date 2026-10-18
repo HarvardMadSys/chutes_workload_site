@@ -5,7 +5,7 @@ import { test } from "node:test";
 import { MIXES, mixLegend } from "../site/js/sections/mixes.js";
 import { statsRows } from "../site/js/sections/stats.js";
 import { donutSlices, namedSeries } from "../site/js/charts/donut.js";
-import { columnTotal } from "../site/js/shared/charts.js";
+import { columnTotal } from "../site/js/shared/rows.js";
 import { formatCompactCount } from "../site/js/shared/format.js";
 import { familyOrder } from "../site/js/traffic/traffic_filter.js";
 import {

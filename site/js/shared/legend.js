@@ -15,7 +15,8 @@
  * at first, ArrowLeft and ArrowRight move between its buttons, and Enter or Space toggles one, as a click does.
  */
 
-import { DASH, legendPlace, showError, showNote } from "./charts.js";
+import { DASH } from "../plot/frame.js";
+import { legendPlace, showError, showNote } from "./figure.js";
 
 // The note in place of a chart whose every series is hidden.
 const EVERY_SERIES_HIDDEN_NOTE = "Every series is hidden: click one in the legend to show it.";

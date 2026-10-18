@@ -5,7 +5,8 @@
  * `rowsInChoice` of `traffic/traffic_filter.js` keeps; a bar takes no click.
  */
 
-import { chartWidth, nameChart, renderFigure, showNote } from "../shared/charts.js";
+import { chartWidth } from "../plot/frame.js";
+import { nameChart, renderFigure, showNote } from "../shared/figure.js";
 import { formatCount, formatCountTick, formatQuantity } from "../shared/format.js";
 import { drawStackedBars, stackedBarsLegend } from "../charts/stacked_bars.js";
 import { drawWithLegend } from "../shared/legend.js";

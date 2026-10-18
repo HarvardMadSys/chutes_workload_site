@@ -2,11 +2,10 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  CHART_HEIGHT, chartFrame, chartName, chartWidth, colourScale, columnTotal, DASH, haloedReferenceRule, logColumns,
-  nameChart, panelRows, positiveRows, REFERENCE_HALO, REFERENCE_STYLE, referenceRule, sequentialColour, SURFACE_INK, titledFrame,
-} from "../site/js/shared/charts.js";
+  CHART_HEIGHT, chartFrame, chartWidth, colourScale, DASH, divergingColour, haloedReferenceRule, REFERENCE_HALO,
+  REFERENCE_STYLE, referenceRule, sequentialColour, SURFACE_INK, titledFrame,
+} from "../site/js/plot/frame.js";
 import { assignColours } from "../site/js/theme/colours.js";
-import { FakeElement } from "./fake_page.js";
 
 test("every chart starts from the same frame, as wide as its body", () => {
   const frame = chartFrame({ clientWidth: 300 });
@@ -34,40 +33,6 @@ test("a chart's margins hold its 14.6 px tick labels and axis titles", () => {
   assert.equal(frame.marginLeft, 72); // a count of six digits with its separator, as "150,000"
   assert.equal(frame.marginBottom, 48); // the x tick labels, and the axis title on a line below them
   assert.equal(frame.marginTop, 32); // the y axis title above the chart
-});
-
-test("a column's total sums it over the rows, and is 0 for no rows", () => {
-  assert.equal(columnTotal([{ requests: 3 }, { requests: 4 }], "requests"), 7);
-  assert.equal(columnTotal([], "requests"), 0);
-});
-
-/** A figure's body as `renderFigure` lays it out, its card holding the elements `parts` names by class. */
-function bodyOfFigure(parts) {
-  const figure = { querySelector: (selector) => parts[selector] ?? null };
-  return { closest: () => figure };
-}
-
-test("a chart is named by its card's title and insight, or its caption where the card has no insight", () => {
-  const title = { textContent: "Tokens per request" };
-  const insight = { textContent: "Each request adds little to a large context." };
-  const caption = { textContent: "Input, uncached input and output tokens of each request." };
-  const withInsight = bodyOfFigure({ ".figure-title": title, ".figure-insight": insight, ".figure-caption": caption });
-  assert.equal(chartName(withInsight), "Tokens per request: Each request adds little to a large context.");
-  const withCaption = bodyOfFigure({ ".figure-title": title, ".figure-caption": caption });
-  assert.equal(chartName(withCaption), "Tokens per request: Input, uncached input and output tokens of each request.");
-});
-
-test("a chart is named as one image by the name given, else by its card's", () => {
-  const caption = { textContent: "Each family's share of the requests." };
-  const chart = new FakeElement("svg");
-  const body = bodyOfFigure({ ".figure-title": { textContent: "Family mix" }, ".figure-caption": caption });
-  body.querySelectorAll = () => [chart];
-  nameChart(body);
-  assert.deepEqual([...chart.attributes], [
-    ["role", "img"], ["aria-label", "Family mix: Each family's share of the requests."],
-  ]);
-  nameChart({ querySelectorAll: () => [chart] }, "Input tokens distribution");
-  assert.equal(chart.getAttribute("aria-label"), "Input tokens distribution");
 });
 
 test("a chart whose y axis has no title has a small top margin, and a card's margins are kept", () => {
@@ -111,24 +76,6 @@ test("a dashed line is dashes of four pixels and gaps of three", () => {
   assert.ok(Object.isFrozen(DASH));
 });
 
-test("a panel's rows are those naming it; every row when no panel is asked for", () => {
-  const rows = [{ panel: "request_share", x: 1 }, { panel: "token_hit", x: 1 }];
-  assert.deepEqual(panelRows(rows, "token_hit"), [{ panel: "token_hit", x: 1 }]);
-  assert.equal(panelRows(rows, undefined), rows);
-});
-
-test("the columns on a log axis are the x columns where x is log and the y columns where y is log", () => {
-  assert.deepEqual(logColumns({ x: { log: true }, y: {} }, ["x"], ["y"]), ["x"]);
-  assert.deepEqual(logColumns({ x: { log: true }, y: { log: true } }, ["x_low", "x_high"], ["y"]), ["x_low", "x_high", "y"]);
-  assert.deepEqual(logColumns({}, ["x"], ["y"]), []);
-});
-
-test("a log axis drops the rows at or below zero in its columns, an output-token CDF's first point among them", () => {
-  const rows = [{ x: 0, cdf: 0 }, { x: 2, cdf: 0.01 }, { x: -1, cdf: 0.5 }];
-  assert.deepEqual(positiveRows(rows, ["x"]), [{ x: 2, cdf: 0.01 }]);
-  assert.equal(positiveRows(rows, []).length, 3);
-});
-
 test("a reference rule is a dashed horizontal rule at its value in the label ink, haloed over cells, or nothing", () => {
   const fakePlot = { ruleY: (...args) => ["ruleY", ...args] };
   assert.deepEqual(referenceRule(fakePlot, 1), ["ruleY", [1], REFERENCE_STYLE]);
@@ -141,4 +88,14 @@ test("a reference rule is a dashed horizontal rule at its value in the label ink
   assert.equal(REFERENCE_HALO.stroke, SURFACE_INK);
   const nothing = haloedReferenceRule(fakePlot, undefined);
   assert.deepEqual(nothing, [["ruleY", [], REFERENCE_HALO], ["ruleY", [], REFERENCE_STYLE]]);
+});
+
+test("the colour scale diverges from zero on the card's scheme and domain, RdBu when it names none", () => {
+  const valueFormat = (value) => value.toFixed(2);
+  assert.deepEqual(divergingColour({ colourDomain: [-1, 1], valueLabel: "Autocorrelation", valueFormat }), {
+    type: "diverging", scheme: "RdBu", pivot: 0, domain: [-1, 1], legend: true, label: "Autocorrelation",
+    tickFormat: valueFormat,
+  });
+  assert.equal(divergingColour({ scheme: "BuRd", valueLabel: "Autocorrelation" }).scheme, "BuRd");
+  assert.equal(divergingColour({ valueLabel: "Autocorrelation" }).domain, undefined);
 });

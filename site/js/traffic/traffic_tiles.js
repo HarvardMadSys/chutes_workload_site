@@ -7,7 +7,7 @@
  * `<li>` holding its value, its label and its notes, as the stats strip's numbers are.
  */
 
-import { textElement } from "../shared/charts.js";
+import { textElement } from "../shared/figure.js";
 import {
   formatCompactCount, formatPercent, formatSeconds, formatSignificant, formatSignificantSeconds, formatWholeCount,
   MISSING_TEXT,

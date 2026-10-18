@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { barTipText, drawnBars, referenceMarks } from "../site/js/charts/bars.js";
-import { REFERENCE_STYLE } from "../site/js/shared/charts.js";
+import { REFERENCE_STYLE } from "../site/js/plot/frame.js";
 import { assignColours } from "../site/js/theme/colours.js";
 
 const COLOURS = assignColours(["Request share", "Token hit"]);

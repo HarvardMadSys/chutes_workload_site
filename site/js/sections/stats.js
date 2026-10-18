@@ -9,7 +9,7 @@
  * A section's `context` is what the page gives every section; see `page/start.js`.
  */
 
-import { showError, showLoading } from "../shared/charts.js";
+import { showError, showLoading } from "../shared/figure.js";
 import { dateSpanText, formatCompactCount, formatCount } from "../shared/format.js";
 
 /** Show the loading state in `container`, then draw the stats strip into it from the trace totals, or the error. */

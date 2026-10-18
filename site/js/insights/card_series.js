@@ -5,7 +5,7 @@
  * takes a Map from policy to colour, its entries being policies). Pure functions, tested with `node --test`.
  */
 
-import { distinct, panelRows } from "../shared/charts.js";
+import { distinct, panelRows } from "../shared/rows.js";
 import {
   endpointFigureColours, figureColours, policyColours, SERIES_COLUMN, seriesLegend, seriesPolicy,
 } from "../shared/series.js";

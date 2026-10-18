@@ -402,7 +402,9 @@ site/                exactly the files that are deployed
   js/shared/         what the page's parts share
     answers.js       reads an answer by its query's name, a figure's among them
     libraries.js     the one module that names a library URL: Observable Plot, at a pinned version
-    charts.js        a chart's frame and ink, the loading and error states, the figure card's layout
+    figure.js        a figure's layout, its chart's name for a screen reader, the loading, note and error states
+    rows.js          the rows a chart or a sum is taken from: a column's total, distinct values, a panel's rows, and
+                     those a log axis has a place for
     format.js        numbers and dates as the page writes them
     layout.js        the header and the footer, every address off the site, and the markup of a link to one
     link_marks.js    the marks before the text of a link off the site: Hugging Face's, a document's and GitHub's
@@ -419,8 +421,10 @@ site/                exactly the files that are deployed
     scatter.js       a dot per point, shaded on a scale diverging from zero
     boxes.js         a box per series from its five statistics
     bars.js          a bar per x of a panel
-  js/axes/ticks.js   how many ticks an axis asks for, a log axis's powers of ten, a card's axis as Plot's scale and
-                     marks
+  js/plot/           what every chart kind gives Plot
+    frame.js         a chart's frame and ink, its reference rules, and its colour scales
+    axes.js          how many ticks an axis asks for, a log axis's powers of ten, a card's axis as Plot's scale and
+                     marks, and a value as its axis writes it
   js/theme/colours.js
                      the series colours as the style tokens give them, from one family order and one endpoint
                      order, the families taking ten

@@ -6,8 +6,9 @@
  * `q3` and `high`, and `count`, the values they summarise.
  */
 
-import { colourScale, logColumns, positiveRows, titledFrame } from "../shared/charts.js";
-import { axisMark, axisScale, axisTicks, bandAxisMark, gridMark } from "../axes/ticks.js";
+import { colourScale, titledFrame } from "../plot/frame.js";
+import { axisMark, axisScale, axisTicks, bandAxisMark, gridMark } from "../plot/axes.js";
+import { logColumns, positiveRows } from "../shared/rows.js";
 import { formatCount } from "../shared/format.js";
 import { SERIES_COLUMN, seriesLabel, shownRows } from "../shared/series.js";
 
@@ -27,12 +28,12 @@ const MEDIAN_WIDTH = 2; // pixels; the median's tick, thicker than the whiskers
  * Draw `rows` into `body`, one box per series of `colours.series` (a Map from series name to colour, in legend order)
  * the rows hold, leaving out the series in `hidden`, and return the chart. Its named parameters:
  * - `x`: the box axis's options `{ label, tickRotate }`, `tickRotate` slanting the series' names.
- * - `y`: the card's axis options (`axes/ticks.js`); on a log y axis, a box with a statistic at or below zero is not
+ * - `y`: the card's axis options (`plot/axes.js`); on a log y axis, a box with a statistic at or below zero is not
  *   drawn.
  * - `labels`: each series' label on the axis and in the tooltip where it is written otherwise than its name.
  * - `valueLabel`: what a value is, the tooltip's heading; `valueFormat`: how a statistic is written there.
  * - `margins`: Plot margins in place of the frame's.
- * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `shared/charts.js`).
+ * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `plot/frame.js`).
  * Required: `valueLabel` and `valueFormat`.
  */
 export async function drawBoxes(rows, body, colours, parameters, hidden) {

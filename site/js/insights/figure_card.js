@@ -19,7 +19,7 @@
  * the key to its bands.
  */
 
-import { legendPlace, nameChart, renderFigure, showError, showLoading } from "../shared/charts.js";
+import { legendPlace, nameChart, renderFigure, showError, showLoading } from "../shared/figure.js";
 import { readAnswer } from "../shared/answers.js";
 import { formatTraceDay } from "../shared/format.js";
 import { SERIES_COLUMN } from "../shared/series.js";
@@ -118,7 +118,7 @@ export function newCardElement(card) {
 }
 
 /**
- * Fill `container` with `card`'s words, as every figure card is laid out (`renderFigure` of `shared/charts.js`), its
+ * Fill `container` with `card`'s words, as every figure card is laid out (`renderFigure` of `shared/figure.js`), its
  * title an `h4` under its group's `h3`, and return its body, the place of its chart, showing the loading state. Its
  * Definition control opens on the definition alone.
  */

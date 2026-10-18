@@ -8,7 +8,7 @@
  * legend; a drawing gives back the charts drawn, `{ legend, labels, charts }`, which the legend draws again.
  */
 
-import { nameChart, showError, showErrorNote, showLoading, showNote, textElement } from "../shared/charts.js";
+import { nameChart, showError, showErrorNote, showLoading, showNote, textElement } from "../shared/figure.js";
 import {
   formatCount, formatCountTick, formatDurationTick, formatSignificantSeconds, formatWholeCount,
 } from "../shared/format.js";
