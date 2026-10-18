@@ -1,7 +1,7 @@
-"""The site's database in DuckDB over the artifact's frames and the trace table in memory, in which `make data` and the
+"""The site's database in DuckDB over the artifact's tables and the trace table in memory, in which `make data` and the
 tests run the site's queries.
 
-It is opened by registering (`register_tables`) each frame of `loading.ArtifactFrames` as the table of its name:
+It is opened by registering (`register_tables`) each Arrow table of `loading.ArtifactTables` under its name:
 `trace_totals`, `daily_rollup`, `function_name_daily_requests`, `chute_models` and `model_families`, and the calendar
 of `months.trace_calendar` as `trace_calendar`, to the daily rollup's last day. Then the setup query
 `setup/family_models` ranks the daily rollup's named models within their family, and its rows are registered as
@@ -17,7 +17,8 @@ import hashlib
 import pathlib
 
 import duckdb
-import pandas
+import pyarrow
+import pyarrow.compute
 
 from site_data import loading, months
 
@@ -46,26 +47,28 @@ def query_text_hash(queries_folder: pathlib.Path, name: str) -> str:
     return hashlib.sha256((queries_folder / f"{name}.sql").read_bytes()).hexdigest()
 
 
-def open_database(frames: loading.ArtifactFrames, weekly_histograms: pandas.DataFrame) -> duckdb.DuckDBPyConnection:
+def open_database(tables: loading.ArtifactTables, weekly_histograms: pyarrow.Table) -> duckdb.DuckDBPyConnection:
     """A new in-memory database on `THREADS` threads holding the site's eight tables: the seven of `register_tables`
-    over `frames`, and the trace table `weekly_histograms` as the table of its name."""
+    over `tables`, and the trace table `weekly_histograms` as the table of its name."""
     connection = duckdb.connect(config={"threads": THREADS})
-    register_tables(connection, frames)
+    register_tables(connection, tables)
     connection.register("weekly_histograms", weekly_histograms)
     return connection
 
 
-def register_tables(connection: duckdb.DuckDBPyConnection, frames: loading.ArtifactFrames) -> None:
-    """Register in `connection` each of the artifact's frames as the table of its name, the trace calendar to the
-    last day of the daily rollup, and the rows of `FAMILY_MODELS_QUERY` as `family_models`."""
-    connection.register("trace_totals", frames.trace_totals)
-    connection.register("daily_rollup", frames.daily_rollup)
-    connection.register("function_name_daily_requests", frames.function_name_daily_requests)
-    connection.register("chute_models", frames.chute_models)
-    connection.register("model_families", frames.model_families)
-    last_trace_day = frames.daily_rollup["day"].max().date()
+def register_tables(connection: duckdb.DuckDBPyConnection, tables: loading.ArtifactTables) -> None:
+    """Register in `connection` each of the artifact's tables under its name, the trace calendar to the last day of
+    the daily rollup, and the rows of `FAMILY_MODELS_QUERY` as `family_models`."""
+    connection.register("trace_totals", tables.trace_totals)
+    connection.register("daily_rollup", tables.daily_rollup)
+    connection.register("function_name_daily_requests", tables.function_name_daily_requests)
+    connection.register("chute_models", tables.chute_models)
+    connection.register("model_families", tables.model_families)
+    last_trace_day = pyarrow.compute.max(tables.daily_rollup["day"]).as_py().date()
     connection.register("trace_calendar", months.trace_calendar(last_trace_day))
-    connection.register("family_models", connection.execute(statement_text(FAMILY_MODELS_QUERY)).df())
+    # A whole Arrow table: `.arrow()` gives a stream, which the second query that joins `family_models` finds empty.
+    family_models = connection.execute(statement_text(FAMILY_MODELS_QUERY)).to_arrow_table()
+    connection.register("family_models", family_models)
 
 
 def run_query(connection: duckdb.DuckDBPyConnection, name: str, parameters: dict[str, str] | None = None) -> QueryRows:

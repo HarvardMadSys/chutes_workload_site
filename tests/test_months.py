@@ -3,13 +3,17 @@
 import datetime
 
 import duckdb
+import pyarrow
 
 from site_data import months
 
 
-def calendar_row(calendar, trace_day: datetime.date) -> dict:
+def calendar_row(calendar: pyarrow.Table, trace_day: datetime.date) -> dict:
     """The calendar's row of `trace_day`, as a dict from column to value."""
-    return calendar[calendar["trace_day"] == trace_day].iloc[0].to_dict()
+    for row in calendar.to_pylist():
+        if row["trace_day"] == trace_day:
+            return row
+    raise AssertionError(f"the calendar has no row for {trace_day}")
 
 
 def test_the_first_trace_day_is_the_trace_s_start() -> None:
@@ -36,10 +40,10 @@ def test_a_trace_month_is_labelled_with_its_first_day_s_calendar_month() -> None
 
 def test_the_calendar_holds_every_day_to_the_last() -> None:
     calendar = months.trace_calendar(datetime.date(1971, 1, 2))
-    assert list(calendar.columns) == ["trace_day", "calendar_day", "month", "calendar_month"]
-    assert len(calendar) == 367
-    assert calendar["trace_day"].tolist()[-1] == datetime.date(1971, 1, 2)
-    assert calendar["month"].nunique() == 13
+    assert calendar.column_names == ["trace_day", "calendar_day", "month", "calendar_month"]
+    assert calendar.num_rows == 367
+    assert calendar["trace_day"].to_pylist()[-1] == datetime.date(1971, 1, 2)
+    assert len(set(calendar["month"].to_pylist())) == 13
 
 
 def test_the_calendar_s_days_are_dates_in_the_database() -> None:

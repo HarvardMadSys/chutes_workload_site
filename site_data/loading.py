@@ -1,21 +1,17 @@
-"""Reading the paper's artifact into frames: the three caches the site's queries read, the model names and the family
-table; and reading the site's trace table, which this repository holds, into a frame.
+"""Reading the paper's artifact into Arrow tables: the three caches the site's queries read, the model names and the
+family table; and reading the site's trace table, which this repository holds, into an Arrow table.
 
 The artifact is a checkout of the paper's artifact repository. Each cache is the Parquet file
-`data/paper/cache/<name>.parquet`, read whole into a frame of its columns; the model names are the
+`data/paper/cache/<name>.parquet`, read whole into a table of its columns and types; the model names are the
 `chute_id` and `name` columns of `data/paper/chute_models.csv`, and the family table is
 `data/paper/model_families.csv` whole. The trace table is `weekly_histograms.parquet` of the tables folder, by default
 this repository's `tables/`, read whole. A file that is not there stops the step with a message naming it and saying
 how to supply it, before anything is read or written.
-
-pandas reads an integer column that holds nulls as float; `with_nullable_integers` gives such a column back its
-integer type, with the nulls kept, so that an answer writes its counts as integers.
 """
 
 import dataclasses
 import pathlib
 
-import pandas
 import pyarrow
 import pyarrow.csv
 import pyarrow.parquet
@@ -38,8 +34,8 @@ TRACE_HINT = "pass the released trace's Parquet file as --trace"
 
 
 @dataclasses.dataclass(frozen=True)
-class ArtifactFrames:
-    """The artifact's rows the site's queries read, each frame named as its table is.
+class ArtifactTables:
+    """The artifact's rows the site's queries read, each table named as the site's database names it.
 
     `trace_totals`: one row, the whole trace's first and last request time, requests, input and output tokens, users
     (distinct anonymised user ids), models and serving instances. `daily_rollup`: one row per trace day, family, chute
@@ -50,30 +46,30 @@ class ArtifactFrames:
     the family table, its `match_order`, `family` and `pattern`.
     """
 
-    trace_totals: pandas.DataFrame
-    daily_rollup: pandas.DataFrame
-    function_name_daily_requests: pandas.DataFrame
-    chute_models: pandas.DataFrame
-    model_families: pandas.DataFrame
+    trace_totals: pyarrow.Table
+    daily_rollup: pyarrow.Table
+    function_name_daily_requests: pyarrow.Table
+    chute_models: pyarrow.Table
+    model_families: pyarrow.Table
 
 
-def load_artifact(artifact: pathlib.Path) -> ArtifactFrames:
-    """The frames of the artifact checkout `artifact`; stops naming the first of its files that is missing."""
+def load_artifact(artifact: pathlib.Path) -> ArtifactTables:
+    """The tables of the artifact checkout `artifact`; stops naming the first of its files that is missing."""
     cache_paths = {}
     for name in CACHE_NAMES:
         cache_paths[name] = required_file(artifact / CACHE_FOLDER / f"{name}.parquet", ARTIFACT_FILE_HINT)
     model_names_path = required_file(artifact / MODEL_NAMES_FILE, ARTIFACT_FILE_HINT)
     model_families_path = required_file(artifact / MODEL_FAMILIES_FILE, ARTIFACT_FILE_HINT)
-    return ArtifactFrames(
+    return ArtifactTables(
         trace_totals=read_cache(cache_paths["trace_totals"]),
         daily_rollup=read_cache(cache_paths["daily_rollup"]),
         function_name_daily_requests=read_cache(cache_paths["function_name_daily_requests"]),
         chute_models=read_model_names(model_names_path),
-        model_families=pyarrow.csv.read_csv(model_families_path).to_pandas(),
+        model_families=pyarrow.csv.read_csv(model_families_path),
     )
 
 
-def load_trace_table(tables_folder: pathlib.Path) -> pandas.DataFrame:
+def load_trace_table(tables_folder: pathlib.Path) -> pyarrow.Table:
     """The trace table of the tables folder `tables_folder`, `weekly_histograms.parquet`; stops naming it if missing.
 
     One row per trace week (`week`, seven trace days, week 0 the trace's first seven), `family`, `chute_id` (null for
@@ -92,22 +88,12 @@ def required_file(path: pathlib.Path, hint: str) -> pathlib.Path:
     return path
 
 
-def read_cache(path: pathlib.Path) -> pandas.DataFrame:
-    """The rows of the Parquet file at `path`, its integer columns kept as integers."""
-    table = pyarrow.parquet.read_table(path)
-    return with_nullable_integers(table.to_pandas(), table.schema)
+def read_cache(path: pathlib.Path) -> pyarrow.Table:
+    """The rows of the Parquet file at `path`, each column of the type the file gives it."""
+    return pyarrow.parquet.read_table(path)
 
 
-def read_model_names(path: pathlib.Path) -> pandas.DataFrame:
+def read_model_names(path: pathlib.Path) -> pyarrow.Table:
     """The `chute_id` and `name` of every row of the model names file at `path`."""
-    return pyarrow.csv.read_csv(path).select(MODEL_NAME_COLUMNS).to_pandas()
+    return pyarrow.csv.read_csv(path).select(MODEL_NAME_COLUMNS)
 
-
-def with_nullable_integers(frame: pandas.DataFrame, table_schema: pyarrow.Schema) -> pandas.DataFrame:
-    """The frame with each integer column of the Parquet table that arrived as float, because it holds nulls, as
-    `Int64`."""
-    restored = {}
-    for field in table_schema:
-        if pyarrow.types.is_integer(field.type) and pandas.api.types.is_float_dtype(frame[field.name]):
-            restored[field.name] = "Int64"
-    return frame.astype(restored)

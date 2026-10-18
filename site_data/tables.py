@@ -33,9 +33,9 @@ def main(arguments: list[str] | None = None) -> None:
     """Read the trace and the artifact named on the command line and write the trace table and its sidecar."""
     options = parsed_arguments(arguments)
     trace_path = loading.required_file(options.trace, loading.TRACE_HINT)
-    frames = loading.load_artifact(options.artifact)
+    artifact_tables = loading.load_artifact(options.artifact)
     started = time.monotonic()
-    connection = open_trace_database(frames, trace_path)
+    connection = open_trace_database(artifact_tables, trace_path)
     table = histogram_table(connection)
     trace_rows = connection.view(TRACE_VIEW).shape[0]
     written = write_table(table, trace_rows, options.out)
@@ -54,13 +54,14 @@ def parsed_arguments(arguments: list[str] | None) -> argparse.Namespace:
     return parser.parse_args(arguments)
 
 
-def open_trace_database(frames: loading.ArtifactFrames, trace_path: pathlib.Path) -> duckdb.DuckDBPyConnection:
-    """A new in-memory database on DuckDB's default threads holding the site's tables over `frames`
+def open_trace_database(artifact_tables: loading.ArtifactTables,
+                        trace_path: pathlib.Path) -> duckdb.DuckDBPyConnection:
+    """A new in-memory database on DuckDB's default threads holding the site's tables over `artifact_tables`
     (`site_database.register_tables`) and the Parquet file `trace_path` as the view `TRACE_VIEW`."""
     # Every thread, not the answers' one: the table's sums are integer counts, the same in any order, and the query
     # sorts its rows.
     connection = duckdb.connect()
-    site_database.register_tables(connection, frames)
+    site_database.register_tables(connection, artifact_tables)
     connection.read_parquet(str(trace_path)).create_view(TRACE_VIEW)
     return connection
 

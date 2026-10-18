@@ -1,14 +1,14 @@
-"""Fixtures shared by the tests: the fixture artifact (`fixture_artifact.py`) and its frames; the fixture trace, the
-trace table's database over it and the frames, and the tables folder the builder writes from them; the site's database
-over the frames and that folder's trace table; the artifact's own checkout, which the environment variable `ARTIFACT`
-names, as `make test` passes it; and the files git tracks."""
+"""Fixtures shared by the tests: the fixture artifact (`fixture_artifact.py`) and its tables; the fixture trace, the
+trace table's database over it and the artifact's tables, and the tables folder the builder writes from them; the
+site's database over the artifact's tables and that folder's trace table; the artifact's own checkout, which the
+environment variable `ARTIFACT` names, as `make test` passes it; and the files git tracks."""
 
 import os
 import pathlib
 import subprocess
 
 import duckdb
-import pandas
+import pyarrow
 import pytest
 
 import fixture_artifact
@@ -23,21 +23,21 @@ def artifact(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
 
 
 @pytest.fixture
-def frames(artifact: pathlib.Path) -> loading.ArtifactFrames:
-    """The fixture artifact's frames."""
+def artifact_tables(artifact: pathlib.Path) -> loading.ArtifactTables:
+    """The fixture artifact's tables."""
     return loading.load_artifact(artifact)
 
 
 @pytest.fixture
-def weekly_histograms(fixture_tables: pathlib.Path) -> pandas.DataFrame:
+def weekly_histograms(fixture_tables: pathlib.Path) -> pyarrow.Table:
     """The fixture's trace table."""
     return loading.load_trace_table(fixture_tables)
 
 
 @pytest.fixture
-def connection(frames: loading.ArtifactFrames, weekly_histograms: pandas.DataFrame) -> duckdb.DuckDBPyConnection:
-    """The site's database over the fixture artifact's frames and the fixture's trace table."""
-    return site_database.open_database(frames, weekly_histograms)
+def connection(artifact_tables: loading.ArtifactTables, weekly_histograms: pyarrow.Table) -> duckdb.DuckDBPyConnection:
+    """The site's database over the fixture artifact's tables and the fixture's trace table."""
+    return site_database.open_database(artifact_tables, weekly_histograms)
 
 
 @pytest.fixture(scope="session")
@@ -56,9 +56,10 @@ def fixture_tables(artifact: pathlib.Path, fixture_trace: pathlib.Path,
 
 
 @pytest.fixture
-def trace_connection(frames: loading.ArtifactFrames, fixture_trace: pathlib.Path) -> duckdb.DuckDBPyConnection:
-    """The trace table's database over the fixture artifact's frames and the fixture trace."""
-    return tables.open_trace_database(frames, fixture_trace)
+def trace_connection(artifact_tables: loading.ArtifactTables,
+                     fixture_trace: pathlib.Path) -> duckdb.DuckDBPyConnection:
+    """The trace table's database over the fixture artifact's tables and the fixture trace."""
+    return tables.open_trace_database(artifact_tables, fixture_trace)
 
 
 @pytest.fixture

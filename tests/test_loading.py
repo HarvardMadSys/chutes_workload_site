@@ -4,44 +4,50 @@ with their columns, and a missing file stops the step naming it and saying how t
 import pathlib
 import re
 
-import pandas
+import duckdb
 import pyarrow
+import pyarrow.compute
+import pyarrow.parquet
 import pytest
 
 import fixture_artifact
 from site_data import loading
 
 
-def test_every_cache_loads_with_its_columns(frames: loading.ArtifactFrames) -> None:
-    assert list(frames.trace_totals.columns) == ["first_started_at", "last_started_at", "requests", "input_tokens",
-                                                 "output_tokens", "users", "models", "instances"]
-    assert list(frames.daily_rollup.columns) == ["day", "family", "chute_id", "function_group", "requests",
-                                                 "input_tokens", "input_counted", "output_tokens", "output_counted",
-                                                 "ttft_sum", "ttft_counted"]
-    assert list(frames.function_name_daily_requests.columns) == ["day", "function_group", "requests"]
-    assert len(frames.daily_rollup) == 7
-    assert frames.trace_totals["requests"].tolist() == [fixture_artifact.TOTAL_REQUESTS]
+def test_every_cache_loads_with_its_columns(artifact_tables: loading.ArtifactTables) -> None:
+    assert artifact_tables.trace_totals.column_names == ["first_started_at", "last_started_at", "requests",
+                                                         "input_tokens", "output_tokens", "users", "models",
+                                                         "instances"]
+    assert artifact_tables.daily_rollup.column_names == ["day", "family", "chute_id", "function_group", "requests",
+                                                         "input_tokens", "input_counted", "output_tokens",
+                                                         "output_counted", "ttft_sum", "ttft_counted"]
+    assert artifact_tables.function_name_daily_requests.column_names == ["day", "function_group", "requests"]
+    assert artifact_tables.daily_rollup.num_rows == 7
+    assert artifact_tables.trace_totals["requests"].to_pylist() == [fixture_artifact.TOTAL_REQUESTS]
 
 
-def test_the_model_names_keep_the_chute_id_and_name(frames: loading.ArtifactFrames) -> None:
-    assert list(frames.chute_models.columns) == ["chute_id", "name"]
-    assert frames.chute_models["chute_id"].tolist()[0] == "chute-01"
-    assert frames.chute_models["name"].tolist()[-1] == "model-idle"
+def test_the_model_names_keep_the_chute_id_and_name(artifact_tables: loading.ArtifactTables) -> None:
+    assert artifact_tables.chute_models.column_names == ["chute_id", "name"]
+    assert artifact_tables.chute_models["chute_id"].to_pylist()[0] == "chute-01"
+    assert artifact_tables.chute_models["name"].to_pylist()[-1] == "model-idle"
 
 
-def test_the_family_table_keeps_its_three_columns(frames: loading.ArtifactFrames) -> None:
-    assert list(frames.model_families.columns) == ["match_order", "family", "pattern"]
-    assert frames.model_families["family"].tolist() == ["DeepSeek", "DeepSeek", "gpt-oss"]
+def test_the_family_table_keeps_its_three_columns(artifact_tables: loading.ArtifactTables) -> None:
+    assert artifact_tables.model_families.column_names == ["match_order", "family", "pattern"]
+    assert artifact_tables.model_families["family"].to_pylist() == ["DeepSeek", "DeepSeek", "gpt-oss"]
 
 
-def test_the_trace_table_loads_with_its_columns(fixture_tables: pathlib.Path, frames: loading.ArtifactFrames) -> None:
+def test_the_trace_table_loads_with_its_columns(fixture_tables: pathlib.Path,
+                                                artifact_tables: loading.ArtifactTables) -> None:
     weekly_histograms = loading.load_trace_table(fixture_tables)
-    assert list(weekly_histograms.columns) == ["week", "family", "chute_id", "endpoint_group", "metric", "bin",
-                                               "requests"]
-    assert len(weekly_histograms) == 22
+    assert weekly_histograms.column_names == ["week", "family", "chute_id", "endpoint_group", "metric", "bin",
+                                              "requests"]
+    assert weekly_histograms.num_rows == 22
     # Each request is in one bin of each metric it recorded, as the rollup counts the requests that recorded each.
-    counted = frames.daily_rollup[["input_counted", "output_counted", "ttft_counted"]].to_numpy().sum()
-    assert weekly_histograms["requests"].sum() == counted
+    counted = 0
+    for column in ["input_counted", "output_counted", "ttft_counted"]:
+        counted += pyarrow.compute.sum(artifact_tables.daily_rollup[column]).as_py()
+    assert pyarrow.compute.sum(weekly_histograms["requests"]).as_py() == counted
 
 
 def test_a_missing_trace_table_stops_naming_it_and_saying_to_run_make_tables(tmp_path: pathlib.Path) -> None:
@@ -64,11 +70,11 @@ def test_a_missing_file_stops_naming_it(tmp_path: pathlib.Path, missing: pathlib
         loading.load_artifact(artifact)
 
 
-def test_an_integer_column_holding_nulls_stays_integer() -> None:
-    table = pyarrow.table({"requests": pyarrow.array([3, None], pyarrow.int64()),
+def test_an_integer_column_holding_nulls_is_an_integer_in_the_database(tmp_path: pathlib.Path) -> None:
+    cache = pyarrow.table({"requests": pyarrow.array([3, None], pyarrow.int64()),
                            "tokens": pyarrow.array([1.5, None], pyarrow.float64())})
-    frame = loading.with_nullable_integers(table.to_pandas(), table.schema)
-    assert str(frame["requests"].dtype) == "Int64"
-    assert frame["requests"].tolist()[0] == 3
-    assert pandas.isna(frame["requests"].tolist()[1])
-    assert pandas.api.types.is_float_dtype(frame["tokens"])
+    pyarrow.parquet.write_table(cache, tmp_path / "cache.parquet")
+    connection = duckdb.connect()
+    connection.register("cache", loading.read_cache(tmp_path / "cache.parquet"))
+    assert connection.table("cache").types == ["BIGINT", "DOUBLE"]
+    assert connection.execute("SELECT requests, tokens FROM cache").fetchall() == [(3, 1.5), (None, None)]

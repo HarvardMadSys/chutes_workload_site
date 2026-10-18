@@ -11,13 +11,20 @@ names (`TRACE_MONTH_NAMES`, `site/js/insights/figure_card.js`), which the node t
 
 import datetime
 
-import pandas
+import pyarrow
 
 TRACE_START = datetime.date(2025, 4, 11)  # the trace's first day: the paper's Table 2 span, 2025-04-11 to 2026-04-12
 TRACE_EPOCH = datetime.date(1970, 1, 1)  # the trace's first day as the caches write it
+# The calendar's columns and their types: days as dates, the trace month as a 64-bit integer.
+TRACE_CALENDAR_SCHEMA = pyarrow.schema([
+    ("trace_day", pyarrow.date32()),
+    ("calendar_day", pyarrow.date32()),
+    ("month", pyarrow.int64()),
+    ("calendar_month", pyarrow.string()),
+])
 
 
-def trace_calendar(last_trace_day: datetime.date) -> pandas.DataFrame:
+def trace_calendar(last_trace_day: datetime.date) -> pyarrow.Table:
     """One row per trace day from the first to `last_trace_day`, inclusive: `trace_day` (in 1970 time),
     `calendar_day`, `month` (the trace month, 1 for the first) and `calendar_month` (`YYYY-MM` of the trace month's
     first day's calendar day)."""
@@ -31,7 +38,7 @@ def trace_calendar(last_trace_day: datetime.date) -> pandas.DataFrame:
             "calendar_month": calendar_month(trace_day),
         })
         trace_day += datetime.timedelta(days=1)
-    return pandas.DataFrame(rows, columns=["trace_day", "calendar_day", "month", "calendar_month"])
+    return pyarrow.Table.from_pylist(rows, schema=TRACE_CALENDAR_SCHEMA)
 
 
 def calendar_day(trace_day: datetime.date) -> datetime.date:

@@ -1,4 +1,4 @@
-"""The site's database: every frame of the artifact is the table of its name, with the calendar, the family models
+"""The site's database: every table of the artifact is registered under its name, with the calendar, the family models
 and the trace table its eight tables, and a query is run from its file."""
 
 import datetime
@@ -9,7 +9,7 @@ import test_queries
 from site_data import site_database
 
 
-def test_every_frame_is_the_table_of_its_name(connection: duckdb.DuckDBPyConnection) -> None:
+def test_every_artifact_table_is_registered_under_its_name(connection: duckdb.DuckDBPyConnection) -> None:
     counts = {}
     for table in ["trace_totals", "daily_rollup", "function_name_daily_requests", "chute_models", "model_families"]:
         counts[table] = connection.table(table).shape[0]

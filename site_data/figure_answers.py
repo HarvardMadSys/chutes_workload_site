@@ -59,7 +59,8 @@ def read_figure_tables(artifact: pathlib.Path) -> list[FigureTable]:
     missing, before any is read."""
     table_paths = {}
     for name in listed_figures(artifact):
-        table_paths[name] = loading.required_file(artifact / PLOTDATA_FOLDER / f"{name}.parquet", loading.ARTIFACT_FILE_HINT)
+        table_path = artifact / PLOTDATA_FOLDER / f"{name}.parquet"
+        table_paths[name] = loading.required_file(table_path, loading.ARTIFACT_FILE_HINT)
     tables = []
     for name, path in table_paths.items():
         tables.append(FigureTable(name=name, rows=table_rows(path)))

@@ -94,8 +94,8 @@ def rollup_sum(value: float) -> float:
     return 0.0 if pandas.isna(value) else value
 
 
-def test_each_entry_of_the_fixture_trace_adds_up_to_its_rollup_row(frames: loading.ArtifactFrames) -> None:
-    rollup_rows = frames.daily_rollup.to_dict("records")
+def test_each_entry_of_the_fixture_trace_adds_up_to_its_rollup_row(artifact_tables: loading.ArtifactTables) -> None:
+    rollup_rows = artifact_tables.daily_rollup.to_pylist()
     for row, requests in zip(rollup_rows, fixture_artifact.TRACE_REQUESTS, strict=True):
         recorded_inputs = [value for value in requests.input_tokens if value is not None]
         recorded_outputs = [value for value in requests.output_tokens if value is not None]
@@ -114,9 +114,9 @@ def test_the_trace_query_gives_the_fixture_s_weekly_histograms(trace_connection:
 
 
 def test_the_fixture_s_histograms_add_up_to_the_rollup_s_counted_requests(
-        trace_connection: duckdb.DuckDBPyConnection, frames: loading.ArtifactFrames) -> None:
+        trace_connection: duckdb.DuckDBPyConnection, artifact_tables: loading.ArtifactTables) -> None:
     table = tables.histogram_table(trace_connection).to_pandas()
-    assert table_requests_by_week(table) == rollup_counted_by_week(frames.daily_rollup)
+    assert table_requests_by_week(table) == rollup_counted_by_week(artifact_tables.daily_rollup.to_pandas())
 
 
 def command(trace: pathlib.Path, artifact: pathlib.Path, output: pathlib.Path) -> list[str]:
@@ -177,7 +177,7 @@ def test_the_tracked_table_agrees_with_the_artifact_s_rollup(artifact_checkout: 
     counted requests over the week's days: the query's family rule places every model where the artifact's does, and
     keeps the chute ids the rollup keeps."""
     table = pyarrow.parquet.read_table(loading.TABLES_FOLDER / loading.TRACE_TABLE_FILE).to_pandas()
-    rollup = rollup_counted_by_week(loading.load_artifact(artifact_checkout).daily_rollup)
+    rollup = rollup_counted_by_week(loading.load_artifact(artifact_checkout).daily_rollup.to_pandas())
     requests = table_requests_by_week(table)
     differing = []
     for group in sorted(rollup.keys() | requests.keys(), key=str):  # a key holds None, so it is sorted as text
