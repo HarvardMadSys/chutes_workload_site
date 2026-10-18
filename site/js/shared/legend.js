@@ -136,9 +136,9 @@ export async function drawWithLegend(body, legend, drawChart, legendState = {}) 
     }
     legendState.onToggle?.(hidden);
   }
-  const hidden = legendState.hidden ?? new Set();
-  mountLegend(legendPlace(body), legend, { hidden, onToggle });
-  await drawShownSeries(body, legend, hidden, drawChart);
+  const hiddenAtFirst = legendState.hidden ?? new Set();
+  mountLegend(legendPlace(body), legend, { hidden: hiddenAtFirst, onToggle });
+  await drawShownSeries(body, legend, hiddenAtFirst, drawChart);
 }
 
 /**
