@@ -13,7 +13,7 @@ CONTRIBUTING gives.
 
 ## 1. The page's folders
 
-- [ ] 1.1 `js/explore/` becomes `js/page/` and `js/pages/explore.js`
+- [x] 1.1 `js/explore/` becomes `js/page/` and `js/pages/explore.js`
       becomes `js/page/main.js` (design D1, D2): `start.js`,
       `topic_tabs.js`, `topics.js` (from `figure_sections.js`,
       `FIGURE_SECTIONS` as `TOPICS`), and `scrolling_row.js` from
@@ -29,7 +29,7 @@ CONTRIBUTING gives.
       *Verify:* `grep -rn "Explore page\|landing page\|js/explore\|js/pages" site tests README.md CONTRIBUTING.md CLAUDE.md`
       finds nothing; `node --test` loads every module; snapshots
       unchanged.
-- [ ] 1.2 `js/landing/` becomes `js/sections/`, and `donuts.js`
+- [x] 1.2 `js/landing/` becomes `js/sections/`, and `donuts.js`
       becomes `mixes.js` (design D2); `page/main.js` imports from
       there.
       *Verify:* `grep -rn "landing/\|donuts.js" site tests README.md CONTRIBUTING.md`
@@ -37,7 +37,7 @@ CONTRIBUTING gives.
 
 ## 2. The Insights' words
 
-- [ ] 2.1 `insights/overview.js` becomes `insights/workload.js` with
+- [x] 2.1 `insights/overview.js` becomes `insights/workload.js` with
       `WORKLOAD_TOPIC` (design D3); `index.html`'s classes
       `figure-section` and `figure-sections` become `traffic`, `topic`
       and `insights`, each `style.css` selector of `.figure-section`
@@ -56,7 +56,7 @@ CONTRIBUTING gives.
 
 ## 3. The legend's rule and the shared layer
 
-- [ ] 3.1 The legend's rule has one home (design D5): that a legend
+- [x] 3.1 The legend's rule has one home (design D5): that a legend
       of fewer than two series hides nothing moves into
       `drawShownSeries`, so that `drawDistributionCurves` calls only
       that; `drawWithLegend`'s and `traffic.js`'s `shared` becomes
@@ -64,7 +64,7 @@ CONTRIBUTING gives.
       *Verify:* the legend tests pass unchanged, except for imports and
       the parameter's name; a one-series chart in the explorer still draws
       with no legend; snapshots unchanged.
-- [ ] 3.2 `shared/charts.js` splits into `plot/frame.js`,
+- [x] 3.2 `shared/charts.js` splits into `plot/frame.js`,
       `shared/figure.js` and `shared/rows.js`, and `axes/ticks.js`
       becomes `plot/axes.js` (design D6); `divergingColour` moves to
       `plot/frame.js`; `charts.test.js` splits into
@@ -77,7 +77,7 @@ CONTRIBUTING gives.
 
 ## 4. Series, breakdowns and a card's colours
 
-- [ ] 4.1 The breakdown (design D4): `BY_FAMILY`, `BY_MODEL`,
+- [x] 4.1 The breakdown (design D4): `BY_FAMILY`, `BY_MODEL`,
       `BY_ENDPOINT` with the `Breakdown` typedef in `shared/series.js`,
       `choiceBreakdown` in `traffic_filter.js`, a mix's `breakdown` in
       `sections/mixes.js`, `drawTrafficBars` returning
@@ -86,7 +86,7 @@ CONTRIBUTING gives.
       `traffic_filter.test.js` follow.
       *Verify:* `grep -rnw "MODEL_SERIES\|FAMILY_SERIES\|ENDPOINT_SERIES\|choiceSeries" site tests`
       finds nothing; snapshots unchanged.
-- [ ] 4.2 A card's colours sit with the cards (design D7): the fixed
+- [x] 4.2 A card's colours sit with the cards (design D7): the fixed
       and highlighted colours, `figureColours` and
       `endpointFigureColours` to `insights/card_series.js`; the
       policies' separator, colours, `seriesPolicy`, `policyColours`
@@ -97,7 +97,7 @@ CONTRIBUTING gives.
       *Verify:* `shared/series.js`' header is one paragraph with no
       paper name in it; the routing card's legend lists each policy
       once; snapshots unchanged.
-- [ ] 4.3 `figure_card.js` draws a card (design D8): the trace's axes
+- [x] 4.3 `figure_card.js` draws a card (design D8): the trace's axes
       to `plot/trace_axes.js`, `COUNT_COLOUR` to `card_series.js`;
       `context.orders` becomes `context.mixes`, `startPage` builds the
       shared answers before it mounts the Insights and adds the history
@@ -111,7 +111,7 @@ CONTRIBUTING gives.
 
 ## 5. One name for one shape
 
-- [ ] 5.1 The traffic names of design D5: `drawTrafficBars`,
+- [x] 5.1 The traffic names of design D5: `drawTrafficBars`,
       `colourOrders`, `barSeries` with `summary` passed beside it,
       `distributionCharts` as the parameter of
       `drawDistributionCurves`, `drawing` in `drawDayBars`; and the
@@ -124,7 +124,7 @@ CONTRIBUTING gives.
 
 ## 6. Test file names
 
-- [ ] 6.1 The node test files take the names of design D9's table by
+- [x] 6.1 The node test files take the names of design D9's table by
       `git mv`, those task 3.2 split or renamed already aside; README's Layout block lists them under the rule;
       `tests/test_naming.py` gains
       `test_node_test_files_start_with_a_folder`, with a planted case.
@@ -133,7 +133,7 @@ CONTRIBUTING gives.
 
 ## 7. The Words section
 
-- [ ] 7.1 `CONTRIBUTING.md` opens with the Words section of design
+- [x] 7.1 `CONTRIBUTING.md` opens with the Words section of design
       D10, every name in it as the code now has it; README's and
       CLAUDE.md's headers point to it; README's Layout block describes
       `page/`, `sections/`, `shared/`, `plot/` and `insights/` as
