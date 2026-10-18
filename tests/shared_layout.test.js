@@ -1,13 +1,9 @@
-// The header and footer (`shared/layout.js`): their links to the page's sections and elsewhere, the page they head, and
-// the query string.
+// The header and footer (`shared/layout.js`): their links to the page's sections and elsewhere, and the query string.
+// The page they head is checked in page_index.test.js.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { LINKED_SECTIONS, renderFooter, renderHeader, queryString } from "../site/js/shared/layout.js";
-
-// The page, whose sections the header and footer link by anchor.
-const PAGE_FILE = new URL("../site/index.html", import.meta.url);
+import { renderFooter, renderHeader, queryString } from "../site/js/shared/layout.js";
 
 // URL keys, as the page gives them to the header.
 const PAGE_KEYS = "model=qwen3&period=q3";
@@ -104,28 +100,6 @@ test("the footer holds the brand, its line and the two lists of links, with no h
   assert.deepEqual(titles, ["On this site", "Elsewhere"]);
   assert.doesNotMatch(markup, /<h[1-6]/, "the footer's list titles are no headings");
   assert.doesNotMatch(markup, /Copyright|Accessibility|footer-legal/);
-});
-
-test("the page is the site's one page of sections, titled with the dataset's name and run by its module", () => {
-  const page = readFileSync(PAGE_FILE, "utf8");
-  assert.match(page, /<title>Chutes Production Trace<\/title>/);
-  assert.match(page, /<script type="module" src="js\/page\/main\.js"><\/script>/);
-  for (const section of LINKED_SECTIONS) {
-    assert.match(page, new RegExp(`<section id="${section.anchor.slice(1)}"`), `index.html has no section ${section.anchor}`);
-  }
-});
-
-test("the page runs Overview, Traffic Explorer, Insights, Cite and Team, each of the four a heading alone", () => {
-  const page = readFileSync(PAGE_FILE, "utf8");
-  const order = [...page.matchAll(/<section (?:id="([a-z-]+)" )?class="([a-z -]+)"/g)].map((match) => match[1] ?? match[2]);
-  // The topics' sections are not in the markup: the page writes them from the topic list (`page/start.js`).
-  assert.deepEqual(order, ["hero", "overview", "traffic", "insights", "cite", "team"]);
-  for (const section of LINKED_SECTIONS) {
-    const start = page.indexOf(`<section id="${section.anchor.slice(1)}"`);
-    const firstHeading = page.slice(start).match(/<h2 id="[^"]+">([^<]+)<\/h2>/)[1];
-    assert.equal(firstHeading, section.title, section.anchor);
-  }
-  assert.doesNotMatch(page, /class="eyebrow"/);
 });
 
 test("the footer's line counts the months in digits as the hero's lede does, and says One year while the count is unknown", () => {

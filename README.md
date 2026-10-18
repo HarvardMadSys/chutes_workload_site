@@ -579,17 +579,20 @@ tests/               what make test runs
                      and its legend
   insights_routing_panels.test.js
                      the routing policies' colours, one per policy for every model
+  insights_workload.test.js, insights_tokens.test.js, insights_users.test.js, insights_evolution.test.js
+  insights_caching.test.js, insights_balancing.test.js
+                     each topic's cards drawn from their shipped answers as the spec describes them, in the file of
+                     the topic module that declares them: a tooltip, a log axis, a raster's rows and rules, a series
+                     hidden in a CDF card, a CDF's straight lines, the hit grid's all-cached row, a bands card's key,
+                     the caching cards' axes and the eviction cards' tooltips, the hourly lines' gaps, the occupancy
+                     in hours, the user zooms' even split, the routing card's rows and policy legend
   insights_cards_charts.test.js
-                     cards drawn from their shipped answers as the spec describes them: a tooltip, a log axis, a
-                     raster's rows and rules, a series hidden in a CDF card, a CDF's straight lines, the hourly lines'
-                     gaps, the routing card's rows and policy legend, a bands card's key, the hit grid's all-cached
-                     row, the shared colour and the day axis
-  insights_cards_caching_balancing.test.js
-                     the caching and balancing cards' axes, the eviction cards' tooltips listing every algorithm,
-                     the occupancy's tooltip in hours and the user zooms' even split
+                     what cards of more than one topic share: the colour of a count and the trace's day axis
   insights_cards_domains.test.js
                      every card's and panel's fixed axis domain holding its shipped answer's values, but the clips
                      the paper's axes intend, each listed with its reason
+  page_index.test.js
+                     the page, index.html: its title, its module, and its sections in order, each headed by its title
   plot_trace_axes.test.js
                      the trace's month axis: its names, derived from the first day, the star of the partial last
                      month explained in every definition on it, and its inset from the plot's edges
@@ -611,7 +614,8 @@ tests/               what make test runs
                      recording what they ask of it (recordingExplorer)
   page_fixtures.js   the page's tests' Insights section holding a section per topic, and which of them are shown
   insights_fixtures.js
-                     the Insights' tests' every card, every group and the card that draws a figure (cardOf)
+                     the Insights' tests' every card, every group, the card that draws a figure (cardOf) and the
+                     tick labels of its chart's axis (tickLabels)
   palette_contrast.test.js, palette.js
                      the colours' contrast in both schemes, read from style.css
   module_headers.test.js
