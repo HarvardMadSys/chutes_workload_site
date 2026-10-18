@@ -1296,14 +1296,15 @@ section[id] {
   grid-column: 1 / -1;
 }
 
-.figure-section {
+.traffic,
+.topic {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-/* The figure sections, one after the other, spaced as the page spaces its parts. */
-.figure-sections {
+/* The Insights' heading, tabs and topics, one after the other, spaced as the page spaces its parts. */
+.insights {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -1397,13 +1398,16 @@ section[id] {
 }
 
 /* A figure's card may shrink below its content, so a wide chart scrolls inside the card, not the page. */
-.figure-section .card {
+.traffic .card,
+.topic .card {
   min-width: 0;
 }
 
 /* A figure card not yet drawn is about as tall as a drawn one, so the cards below it start out of view. */
-.figure-section .card-grid > .card:empty,
-.figure-section .card-grid > .card:has(.loading) {
+.traffic .card-grid > .card:empty,
+.traffic .card-grid > .card:has(.loading),
+.topic .card-grid > .card:empty,
+.topic .card-grid > .card:has(.loading) {
   min-height: var(--loading-card-height);
 }
 

@@ -3,9 +3,9 @@
 A snapshot is one folder per page state, `tests/snapshots/<state>/`, holding one text file per unit the state shows:
 each chart's SVG, or an Insights card's chart's name and tick labels, each legend's entries, each card's texts, the
 stats strip. `snapshot_units.py` names the states and says what each file holds, `snapshot_traffic.py` the Traffic
-Explorer's. The states are the page opened at each of its six Insights topics' anchors
-(`index.html#insights-tokens`), each in a fresh page. A unit that is the same in every state is written once, with
-the first state: the page's hero, stats strip, Overview, Traffic Explorer, cite, team and footer.
+Explorer's. The states are the page opened at each of its six Insights topics' anchors (`index.html#insights-tokens`),
+each in a fresh page, and each state's folder is named by its anchor. A unit that is the same in every state is
+written once, with the first state: the page's hero, stats strip, Overview, Traffic Explorer, cite, team and footer.
 
     .venv/bin/python tests/snapshot.py           # compare: fails naming each unit that changed (make test)
     .venv/bin/python tests/snapshot.py --write   # rewrite every file (make snapshots)
@@ -144,7 +144,7 @@ def other_topics_answers(page, topic: str, requested: list[str]) -> list[str]:
     """The figures of `requested` that are the cards' of a topic other than `topic`: none, when a topic shown reads
     only its own answers."""
     others = set()
-    for other in snapshot_units.EXPLORE_STATES.values():
+    for other in snapshot_units.PAGE_STATES:
         if other != topic:
             others |= topic_figures(page, other)
     return sorted(set(requested) & others)
@@ -178,7 +178,7 @@ def read_state(page, address: str, topic: str, with_page_units: bool) -> dict[st
         raise PageError(f"opened at #{topic}, the page requested other topics' answers: {', '.join(strays)}")
     units = snapshot_units.topic_units(page, topic)
     if with_page_units:
-        page_units = snapshot_units.explore_page_units(page) | snapshot_traffic.traffic_units(page)
+        page_units = snapshot_units.page_units(page) | snapshot_traffic.traffic_units(page)
         shared = sorted(set(units) & set(page_units))
         if shared:
             raise snapshot_units.SharedTitleError(f"the topic and the page both show {', '.join(shared)}")
@@ -191,11 +191,11 @@ def read_states(browser, address: str) -> dict[str, dict[str, str]]:
     `address`; the first state also holds the page's units that no topic changes."""
     errors = []
     states = {}
-    for state, topic in snapshot_units.EXPLORE_STATES.items():
+    for state in snapshot_units.PAGE_STATES:
         page = browser.new_page(viewport=VIEWPORT, locale=LOCALE, timezone_id=TIME_ZONE, color_scheme=COLOUR_SCHEME)
         record_errors(page, errors)
         try:
-            states[state] = read_state(page, address, topic, with_page_units=not states)
+            states[state] = read_state(page, address, state, with_page_units=not states)
         except (playwright.sync_api.Error, AssertionError) as error:  # a state that did not draw: say why, with what the browser reported
             raise PageError(f"in the state {state}: {error}\nthe browser reported:\n" + "\n".join(errors)) from error
         except snapshot_units.SharedTitleError as error:

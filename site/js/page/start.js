@@ -65,8 +65,8 @@ export function followHistory(showEntryTopic) {
  */
 function mountInsights() {
   const topics = TOPICS.map(placeTopic);
-  const drawnSections = new Set();
-  const drawShown = () => drawShownTopic(topics, drawnSections);
+  const drawnTopics = new Set();
+  const drawShown = () => drawShownTopic(topics, drawnTopics);
   const showEntryTopic = mountTopicTabs(document.querySelector("#topic-tabs"), TOPICS, drawShown);
   return { showEntryTopic, drawShown };
 }
@@ -107,15 +107,15 @@ function placeGroup(section, group) {
 
 /**
  * Draw the charts of every card of every group of the topic of `topics` shown now (each `{ section, cards }`, as
- * `placeTopic` returns it), unless `drawnSections` holds its section, which it then does; each card reads its answer
+ * `placeTopic` returns it), unless `drawnTopics` holds its section, which it then does; each card reads its answer
  * and shows its own error where it cannot.
  */
-function drawShownTopic(topics, drawnSections) {
+function drawShownTopic(topics, drawnTopics) {
   const shown = topics.find((topic) => !topic.section.hidden);
-  if (drawnSections.has(shown.section)) {
+  if (drawnTopics.has(shown.section)) {
     return;
   }
-  drawnSections.add(shown.section);
+  drawnTopics.add(shown.section);
   for (const { card, body } of shown.cards) {
     drawFigureChart(body, card);
   }

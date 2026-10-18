@@ -157,7 +157,7 @@ test("a count's colour is viridis on a log scale from a quarter along it, ticked
   assert.ok(Object.isFrozen(COUNT_COLOUR));
 });
 
-test("the overview's four daily lines and the three hourly lines share the trace's day axis", () => {
+test("the workload topic's four daily lines and the three hourly lines share the trace's day axis", () => {
   const figures = [
     "fig_request_rate_day", "fig_token_rate_day", "fig_daily_unique_models", "fig_function_name_daily_requests",
     "fig_lb_request_rate", "fig_lb_active_instances", "fig_lb_maxmean_tokens",

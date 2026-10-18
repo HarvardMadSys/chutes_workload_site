@@ -19,16 +19,16 @@ class SharedTitleError(Exception):
     """Two cards of one state share a title, so their units, which are named by title, would share files."""
 
 
-# The page's states, each a folder of `tests/snapshots/`, and the Insights topic each shows, by its section id,
-# which is also the anchor the page is opened at to show it; in the order of the topic tabs.
-EXPLORE_STATES = {
-    "explore-overview": "insights-overview",
-    "explore-tokens": "insights-tokens",
-    "explore-users": "insights-users",
-    "explore-evolution": "insights-evolution",
-    "explore-caching": "insights-caching",
-    "explore-balancing": "insights-balancing",
-}
+# The page's states, each the page opened at an Insights topic's anchor, its section's id, to show that topic; in the
+# order of the topic tabs. A state's folder of `tests/snapshots/` is named by its anchor.
+PAGE_STATES = [
+    "insights-overview",
+    "insights-tokens",
+    "insights-users",
+    "insights-evolution",
+    "insights-caching",
+    "insights-balancing",
+]
 
 # Plot numbers each clip path, marker and pattern in the order charts are drawn, which follows the order their answers
 # arrive, so the number is left out: `plot-clip-7` is written `plot-clip`.
@@ -84,7 +84,7 @@ PANEL_TITLE = ".chart-panel-title"
 
 def state_names() -> list[str]:
     """The folder name of every state, in the order the states are read."""
-    return list(EXPLORE_STATES)
+    return list(PAGE_STATES)
 
 
 def plain_text(text: str) -> str:
@@ -254,7 +254,7 @@ def stats_lines(page) -> str:
     return "\n".join(lines)
 
 
-def explore_page_units(page) -> dict[str, str]:
+def page_units(page) -> dict[str, str]:
     """The page's units outside the Insights and the Traffic Explorer (`snapshot_traffic.py`): hero, stats
     strip, Overview cards, cite, team, footer."""
     units = {

@@ -43,11 +43,11 @@ def test_a_card_title_is_a_file_name() -> None:
 
 
 def test_every_topic_is_a_state() -> None:
-    assert snapshot_units.state_names() == list(snapshot_units.EXPLORE_STATES)
-    assert "explore-balancing" in snapshot_units.state_names()
+    assert snapshot_units.state_names() == list(snapshot_units.PAGE_STATES)
+    assert "insights-balancing" in snapshot_units.state_names()
 
 
 def test_every_state_s_topic_is_a_section_of_the_page() -> None:
     page = PAGE.read_text()
-    for topic in snapshot_units.EXPLORE_STATES.values():
+    for topic in snapshot_units.PAGE_STATES:
         assert f'<section id="{topic}"' in page, f"index.html has no section {topic}"

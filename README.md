@@ -444,7 +444,7 @@ site/                exactly the files that are deployed
   js/insights/       the figure cards and the topics
     figure_card.js   a card, its chart drawn from its answer by its kind
     card_series.js   a card's series: their order, each palette's colours, the card's legend
-    overview.js, tokens.js, users.js, evolution.js, caching.js, balancing.js
+    workload.js, tokens.js, users.js, evolution.js, caching.js, balancing.js
                      one module per topic: its takeaway, its groups' headings and takeaways, its cards' words,
                      kinds and charts' parameters
     routing_panels.js

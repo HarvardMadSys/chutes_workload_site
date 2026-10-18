@@ -24,7 +24,7 @@ const LABELLED_HOURS = Object.freeze([0, 4, 8, 12, 16, 20]);
 const WEEKDAY_LABELS = Object.freeze(["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]);
 
 /** The topic "The workload at a glance". */
-export const OVERVIEW_TOPIC = Object.freeze({
+export const WORKLOAD_TOPIC = Object.freeze({
   selector: "#insights-overview",
   // placeholder: the takeaway is the section's closing conclusion in plain words, for the authors.
   takeaway: "Demand changes all year, in volume, in which models are active and in how the API is called; one request rate would not describe it.",

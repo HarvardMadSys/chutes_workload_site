@@ -10,13 +10,13 @@
 import { BALANCING_TOPIC } from "../insights/balancing.js";
 import { CACHING_TOPIC } from "../insights/caching.js";
 import { EVOLUTION_TOPIC } from "../insights/evolution.js";
-import { OVERVIEW_TOPIC } from "../insights/overview.js";
 import { TOKENS_TOPIC } from "../insights/tokens.js";
 import { USERS_TOPIC } from "../insights/users.js";
+import { WORKLOAD_TOPIC } from "../insights/workload.js";
 
 /** The six topics of the Insights, in the order of their tabs. */
 export const TOPICS = Object.freeze([
-  OVERVIEW_TOPIC,
+  WORKLOAD_TOPIC,
   TOKENS_TOPIC,
   USERS_TOPIC,
   EVOLUTION_TOPIC,

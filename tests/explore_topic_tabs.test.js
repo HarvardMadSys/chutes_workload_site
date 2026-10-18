@@ -26,8 +26,8 @@ function mountedTabs(hash, onShow = () => undefined) {
     createElement: () => new FakeElement(),
   };
   const row = new FakeElement("div", "topic-tabs");
-  const figureSections = TOPIC_ANCHORS.map((anchor) => ({ selector: `#${anchor}` }));
-  const showEntryTopic = mountTopicTabs(row, figureSections, onShow);
+  const topics = TOPIC_ANCHORS.map((anchor) => ({ selector: `#${anchor}` }));
+  const showEntryTopic = mountTopicTabs(row, topics, onShow);
   window.addEventListener("popstate", (event) => showEntryTopic(event.state));
   return { tabs: row.children, sections, history: window.history };
 }

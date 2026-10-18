@@ -18,21 +18,21 @@ const INSIGHTS_ANCHOR = "insights";
 const TAB_ID_PREFIX = "tab-";
 
 /**
- * The topics of the sections `figureSections` name (each `{ selector }`, the selector of a topic's section), read from
- * their headings on the page: `[{ anchor, number, title }]`, the section's id, its number ("01") and its title
- * ("The workload at a glance").
+ * Each of `topics` (each `{ selector }`, the selector of a topic's section) as its tab shows it, read from its heading
+ * on the page: `[{ anchor, number, title }]`, the section's id, its number ("01") and its title ("The workload at a
+ * glance").
  */
-function pageTopics(figureSections) {
-  const topics = [];
-  for (const section of figureSections) {
-    const element = document.querySelector(section.selector);
+function pageTopics(topics) {
+  const tabTopics = [];
+  for (const topic of topics) {
+    const element = document.querySelector(topic.selector);
     const heading = element.querySelector("h2");
     const number = heading.querySelector(".topic-number").textContent;
     // The heading is the number's element, a space and the title, its last text node.
     const title = heading.lastChild.textContent.trim();
-    topics.push({ anchor: element.id, number, title });
+    tabTopics.push({ anchor: element.id, number, title });
   }
-  return topics;
+  return tabTopics;
 }
 
 /**
@@ -111,17 +111,17 @@ export function showTopic(topicSections, tabs, anchor) {
 }
 
 /**
- * Draw the tabs into `row` for the sections `figureSections` name, show the topic the URL's hash names (the first by
+ * Draw the tabs into `row` for `topics`, show the topic the URL's hash names (the first by
  * default), keep it in the history entry the page opened on, and wire the tabs: a click or a key shows its topic and
  * writes its anchor as a new history entry. Return `showEntryTopic(state)`, which shows the topic of the history entry
  * that Back or Forward returned to, `state` being the entry's state. `onShow()` is called each time a tab, a key, Back
  * or Forward shows a topic, after it is shown, so that its figures are drawn at their cards' width; the topic shown on
  * mounting is shown without it, so the page chooses when that topic's figures are drawn.
  */
-export function mountTopicTabs(row, figureSections, onShow) {
-  const topics = pageTopics(figureSections);
-  const anchors = topics.map((topic) => topic.anchor);
-  const tabs = topics.map(topicTab);
+export function mountTopicTabs(row, topics, onShow) {
+  const tabTopics = pageTopics(topics);
+  const anchors = tabTopics.map((topic) => topic.anchor);
+  const tabs = tabTopics.map(topicTab);
   row.replaceChildren(...tabs);
   const view = { row, tabs, topicSections: anchors.map((anchor) => document.getElementById(anchor)), onShow };
   for (const tab of tabs) {
