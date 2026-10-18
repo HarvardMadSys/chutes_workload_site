@@ -10,7 +10,7 @@ import {
   formatCountTick, formatPercent, formatSeconds, formatSecondsTick, formatShare, formatSignificant, formatThousandsTick,
   formatWholeCount,
 } from "../shared/format.js";
-import { HIGHLIGHTED_LABELS, HIGHLIGHTED_SERIES } from "../shared/series.js";
+import { HIGHLIGHTED_LABELS, HIGHLIGHTED_SERIES } from "./card_series.js";
 import { frozenCard } from "./figure_card.js";
 
 // The y axis of every CDF of this topic: the share of requests at or below a value, in percent.

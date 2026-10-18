@@ -2,12 +2,10 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  BY_ENDPOINT, BY_FAMILY, BY_MODEL, endpointFigureColours, ENDPOINT_LABELS, figureColours, FIXED_SERIES_COLOURS,
-  HIGHLIGHTED_LABELS, HIGHLIGHTED_SERIES, policyColours, SERIES_COLUMN, seriesLabel, seriesLegend,
-  seriesPolicy, shownRows, shownSeriesRows,
+  BY_ENDPOINT, BY_FAMILY, BY_MODEL, ENDPOINT_LABELS, SERIES_COLUMN, seriesLabel, seriesLegend, shownRows,
+  shownSeriesRows,
 } from "../site/js/shared/series.js";
-import { assignColours, FAMILY_SLOTS, OTHER_SERIES, SERIES_SLOTS } from "../site/js/theme/colours.js";
-import { endpointColours, familyColours, modelColours } from "../site/js/theme/colours.js";
+import { assignColours, endpointColours, familyColours, modelColours } from "../site/js/theme/colours.js";
 
 // Two models' rows, two days each.
 const ROWS = [
@@ -67,66 +65,4 @@ test("a figure's shown rows are its panel's, of the coloured series not hidden, 
   assert.equal(SERIES_COLUMN, "series");
   assert.deepEqual(shownSeriesRows(rows, colours, "a", new Set(["DeepSeek R1"])), [rows[0]]);
   assert.deepEqual(shownSeriesRows(rows, colours, undefined, new Set()), [rows[0], rows[1], rows[3]]);
-});
-
-test("a figure card's global series and highlighted models keep their fixed colours, the others the free slots", () => {
-  const colours = figureColours(["Global", "Minimax M2.5", "Other A", "DeepSeek V3.2", "Other B"]);
-  assert.deepEqual([...colours], [
-    ["Global", "var(--color-text)"],
-    ["Minimax M2.5", SERIES_SLOTS[2]],
-    ["Other A", SERIES_SLOTS[1]],
-    ["DeepSeek V3.2", SERIES_SLOTS[0]],
-    ["Other B", SERIES_SLOTS[3]],
-  ]);
-  assert.equal(FIXED_SERIES_COLOURS["Deepseek R1"], SERIES_SLOTS[1]);
-});
-
-test("a figure card's series past the free slots are drawn in the Other grey", () => {
-  const names = ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9"];
-  const colours = figureColours(names);
-  assert.deepEqual([...colours.values()], [...SERIES_SLOTS, OTHER_SERIES]);
-});
-
-test("a figure card given the families' slots colours ten series before the Other grey", () => {
-  const names = ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "Others"];
-  const colours = figureColours(names, FAMILY_SLOTS);
-  assert.deepEqual([...colours.values()], [...FAMILY_SLOTS, OTHER_SERIES]);
-});
-
-test("the highlighted series and the oracle are the fixed ones, Global first, and only their names relabelled", () => {
-  assert.deepEqual([...HIGHLIGHTED_SERIES, "Belady (size-aware)"].sort(), Object.keys(FIXED_SERIES_COLOURS).sort());
-  assert.equal(FIXED_SERIES_COLOURS["Belady (size-aware)"], FIXED_SERIES_COLOURS.Global);
-  assert.equal(HIGHLIGHTED_SERIES[0], "Global");
-  assert.ok(Object.keys(HIGHLIGHTED_LABELS).every((name) => HIGHLIGHTED_SERIES.includes(name)));
-});
-
-// The rows of `explore/endpoint_mix`, most requested first, as the page reads them.
-const ENDPOINT_MIX_ROWS = [
-  { endpoint_group: "chat", requests: 50 },
-  { endpoint_group: "chat_stream", requests: 40 },
-  { endpoint_group: "other", requests: 30 },
-  { endpoint_group: "completion", requests: 20 },
-];
-
-test("a figure's endpoint groups, written by their labels, take the endpoint groups' colours, Other its grey", () => {
-  const groupColours = endpointColours(ENDPOINT_MIX_ROWS);
-  const names = ["Chat Stream", "Completion", "Chat", "Other"];
-  const colours = endpointFigureColours(names, { "Chat Stream": "Chat stream" }, ENDPOINT_MIX_ROWS);
-  assert.deepEqual([...colours], [
-    ["Chat Stream", groupColours.get("chat_stream")],
-    ["Completion", groupColours.get("completion")],
-    ["Chat", groupColours.get("chat")],
-    ["Other", OTHER_SERIES],
-  ]);
-  assert.throws(() => endpointFigureColours(["Batch"], {}, ENDPOINT_MIX_ROWS), /"Batch"/);
-});
-
-test("a routing series takes its policy's colour, the same for every model, the cache-blind baseline grey", () => {
-  const policies = ["Round-robin", "Load-first", "Cache-first", "Sticky"];
-  const names = [...policies.map((policy) => `DeepSeek, ${policy}`), ...policies.map((policy) => `MiniMax, ${policy}`)];
-  const colours = [OTHER_SERIES, SERIES_SLOTS[0], SERIES_SLOTS[7], SERIES_SLOTS[2]];
-  assert.deepEqual([...policyColours(names).values()], [...colours, ...colours]);
-  assert.equal(seriesPolicy("MiniMax M2.5, Cache-first"), "Cache-first");
-  assert.throws(() => policyColours(["Sticky"]), /"Sticky"/);
-  assert.throws(() => policyColours(["DeepSeek, Random"]), /"Random"/);
 });

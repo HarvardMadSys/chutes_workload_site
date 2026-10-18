@@ -1,15 +1,76 @@
 /**
  * A figure card's series (`insights/figure_card.js` defines a card): the order they take their colours in, the colours
- * each of the card's palettes gives them, and the card's legend. A card's answer rows name their series in `series`;
- * a Map from series name to colour, in the order drawn, crosses to the chart and its legend (the policies' legend
+ * each of the card's palettes gives them, the global series and the three highlighted models in one fixed colour each
+ * on every card, and the card's legend. A card's answer rows name their series in `series`; a Map from series name to
+ * colour, in the order drawn, crosses to the chart and its legend (the policies' legend, `insights/routing_panels.js`,
  * takes a Map from policy to colour, its entries being policies). Pure functions, tested with `node --test`.
  */
 
 import { distinct, panelRows } from "../shared/rows.js";
-import {
-  endpointFigureColours, figureColours, policyColours, SERIES_COLUMN, seriesLegend, seriesPolicy,
-} from "../shared/series.js";
-import { FAMILY_SLOTS, SERIES_SLOTS } from "../theme/colours.js";
+import { ENDPOINT_LABELS, SERIES_COLUMN, seriesLabel, seriesLegend } from "../shared/series.js";
+import { endpointColours, FAMILY_SLOTS, OTHER_NAME, OTHER_SERIES, SERIES_SLOTS } from "../theme/colours.js";
+import { policyColours, policyLegend } from "./routing_panels.js";
+
+/**
+ * The series every figure card draws in one colour, by their names in the figure answers: the global series and the
+ * eviction figures' size-aware Belady oracle in the text's ink, as the paper draws its reference lines in black, and
+ * the three highlighted models in the first three series slots.
+ */
+export const FIXED_SERIES_COLOURS = Object.freeze({
+  Global: "var(--color-text)",
+  "Belady (size-aware)": "var(--color-text)",
+  "DeepSeek V3.2": SERIES_SLOTS[0],
+  "Deepseek R1": SERIES_SLOTS[1],
+  "Minimax M2.5": SERIES_SLOTS[2],
+});
+
+/** The global series and the three highlighted models, as the figure answers name them, in the paper's legend order. */
+export const HIGHLIGHTED_SERIES = Object.freeze(["Global", "DeepSeek V3.2", "Deepseek R1", "Minimax M2.5"]);
+
+/** The labels of the highlighted models whose names in the figure answers are not spelled as the models' own. */
+export const HIGHLIGHTED_LABELS = Object.freeze({ "Deepseek R1": "DeepSeek R1", "Minimax M2.5": "MiniMax M2.5" });
+
+/**
+ * A figure card's colours: a Map from each of `names`, in their order, to its colour, `FIXED_SERIES_COLOURS`' where it
+ * has one there, else the next of `slots` (the eight series slots when not given) that no fixed series of `names`
+ * takes, and `OTHER_SERIES` once the slots run out.
+ */
+export function figureColours(names, slots = SERIES_SLOTS) {
+  const fixed = names.filter((name) => Object.hasOwn(FIXED_SERIES_COLOURS, name));
+  const takenSlots = new Set(fixed.map((name) => FIXED_SERIES_COLOURS[name]));
+  const freeSlots = slots.filter((slot) => !takenSlots.has(slot));
+  const colours = new Map();
+  let nextFreeSlot = 0;
+  for (const name of names) {
+    if (Object.hasOwn(FIXED_SERIES_COLOURS, name)) {
+      colours.set(name, FIXED_SERIES_COLOURS[name]);
+    } else {
+      colours.set(name, nextFreeSlot < freeSlots.length ? freeSlots[nextFreeSlot] : OTHER_SERIES);
+      nextFreeSlot += 1;
+    }
+  }
+  return colours;
+}
+
+/**
+ * A figure card's colours where its series are the endpoint groups, as the Overview colours them: a Map from each of
+ * `names`, in order, to the colour `endpointColours(endpointMixRows)` gives the group whose label in `ENDPOINT_LABELS`
+ * is the series' label (`labels[name]`, else its name), "Other"'s grey for a group that folds into "Other". Throws a
+ * RangeError naming a series whose label is no group's.
+ */
+export function endpointFigureColours(names, labels, endpointMixRows) {
+  const groupColours = endpointColours(endpointMixRows);
+  const groupsByLabel = new Map(Object.entries(ENDPOINT_LABELS).map(([group, label]) => [label, group]));
+  const colours = new Map();
+  for (const name of names) {
+    const group = groupsByLabel.get(seriesLabel(labels, name));
+    if (group === undefined) {
+      throw new RangeError(`the series "${name}" is labelled as no endpoint group is`);
+    }
+    colours.set(name, groupColours.get(group) ?? groupColours.get(OTHER_NAME));
+  }
+  return colours;
+}
 
 /**
  * The colours a card's series may take, by the card's `palette`, each a function of the series' names, in order, the
@@ -90,24 +151,4 @@ export function cardColours(card, rows, legendRows, endpointMixRows = null) {
   }
   const names = card.series ?? seriesOrder(rows, legendRows);
   return PALETTES[palette](names, card.chart.labels ?? {}, endpointMixRows);
-}
-
-// The legend of routing series named "<model>, <policy>" (`series`, `[{ name }]`, coloured by `colours`, a Map from
-// series name to colour): one entry per policy, in the order the policies first appear, `{ name, label, names }`, the
-// policy as name and label and `names` the series of that policy, one per model, which its button hides and shows
-// together; its colours, a Map from policy to the colour its series share; and no series dashed.
-function policyLegend(series, colours) {
-  const entries = new Map();
-  for (const { name } of series) {
-    const policy = seriesPolicy(name);
-    if (!entries.has(policy)) {
-      entries.set(policy, { name: policy, label: policy, names: [] });
-    }
-    entries.get(policy).names.push(name);
-  }
-  const entryColours = new Map();
-  for (const entry of entries.values()) {
-    entryColours.set(entry.name, colours.get(entry.names[0]));
-  }
-  return { series: [...entries.values()], colours: entryColours, dashed: [] };
 }

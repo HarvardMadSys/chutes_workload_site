@@ -408,8 +408,7 @@ site/                exactly the files that are deployed
     format.js        numbers and dates as the page writes them
     layout.js        the header and the footer, every address off the site, and the markup of a link to one
     link_marks.js    the marks before the text of a link off the site: Hugging Face's, a document's and GitHub's
-    series.js        a chart's shown rows and its legend; the breakdowns, by model, by endpoint group and by family;
-                     the figure cards' fixed colours
+    series.js        a chart's shown rows and its legend; the breakdowns, by model, by endpoint group and by family
     legend.js        the legend of buttons that hides and shows a series
   js/charts/         the chart kinds
     stacked_bars.js  the Traffic Explorer's bars and the two monthly share cards
@@ -447,12 +446,14 @@ site/                exactly the files that are deployed
                      each titled in its own place, keyed by metric, on fixed axes
   js/insights/       the figure cards and the topics
     figure_card.js   a card, its chart drawn from its answer by its kind
-    card_series.js   a card's series: their order, each palette's colours, the card's legend
+    card_series.js   a card's series: their order, each palette's colours, the fixed and highlighted series, the
+                     card's legend
     workload.js, tokens.js, users.js, evolution.js, caching.js, balancing.js
                      one module per topic: its takeaway, its groups' headings and takeaways, its cards' words,
                      kinds and charts' parameters
     routing_panels.js
-                     the load-balancing topic's routing simulation card: its series and eight panels
+                     the load-balancing topic's routing simulation card: its series and eight panels, and the
+                     policies' colours and legend
   queries/           one .sql file per answer or table
     explore/         the seven queries make data answers, one answer each, daily_by_model's and
                      histograms_by_model's one per family
@@ -505,7 +506,10 @@ tests/               what make test runs
   insights_figure_cards.test.js
                      every card's kind, and its shipped answer holding that kind's columns
   insights_card_series.test.js
-                     a card's series' order, the colours each palette gives them, and its legend
+                     a card's series' order, the colours each palette gives them, the fixed and highlighted series,
+                     and its legend
+  insights_routing_panels.test.js
+                     the routing policies' colours, one per policy for every model
   insights_figure_charts.test.js
                      cards drawn from their shipped answers as the spec describes them: a tooltip, a log axis, a
                      raster's rows and rules, a series hidden in a CDF card, a CDF's straight lines, the hourly lines'

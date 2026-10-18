@@ -4,9 +4,9 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  cardColours, figureLegend, hasOneSeriesPerPanel, seriesOrder,
+  cardColours, endpointFigureColours, figureColours, figureLegend, FIXED_SERIES_COLOURS, hasOneSeriesPerPanel,
+  HIGHLIGHTED_LABELS, HIGHLIGHTED_SERIES, seriesOrder,
 } from "../site/js/insights/card_series.js";
-import { FIXED_SERIES_COLOURS } from "../site/js/shared/series.js";
 import { endpointColours, FAMILY_SLOTS, OTHER_SERIES, SERIES_SLOTS } from "../site/js/theme/colours.js";
 
 // A card as a topic lists it.
@@ -101,4 +101,56 @@ test("a card whose every panel holds one series has no legend; a card of panels 
   assert.equal(hasOneSeriesPerPanel(card, shared), false);
   assert.equal(figureLegend(card, shared, colours).series.length, 2);
   assert.equal(hasOneSeriesPerPanel({ ...card, panels: undefined }, rows), false);
+});
+
+test("a figure card's global series and highlighted models keep their fixed colours, the others the free slots", () => {
+  const colours = figureColours(["Global", "Minimax M2.5", "Other A", "DeepSeek V3.2", "Other B"]);
+  assert.deepEqual([...colours], [
+    ["Global", "var(--color-text)"],
+    ["Minimax M2.5", SERIES_SLOTS[2]],
+    ["Other A", SERIES_SLOTS[1]],
+    ["DeepSeek V3.2", SERIES_SLOTS[0]],
+    ["Other B", SERIES_SLOTS[3]],
+  ]);
+  assert.equal(FIXED_SERIES_COLOURS["Deepseek R1"], SERIES_SLOTS[1]);
+});
+
+test("a figure card's series past the free slots are drawn in the Other grey", () => {
+  const names = ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9"];
+  const colours = figureColours(names);
+  assert.deepEqual([...colours.values()], [...SERIES_SLOTS, OTHER_SERIES]);
+});
+
+test("a figure card given the families' slots colours ten series before the Other grey", () => {
+  const names = ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "Others"];
+  const colours = figureColours(names, FAMILY_SLOTS);
+  assert.deepEqual([...colours.values()], [...FAMILY_SLOTS, OTHER_SERIES]);
+});
+
+test("the highlighted series and the oracle are the fixed ones, Global first, and only their names relabelled", () => {
+  assert.deepEqual([...HIGHLIGHTED_SERIES, "Belady (size-aware)"].sort(), Object.keys(FIXED_SERIES_COLOURS).sort());
+  assert.equal(FIXED_SERIES_COLOURS["Belady (size-aware)"], FIXED_SERIES_COLOURS.Global);
+  assert.equal(HIGHLIGHTED_SERIES[0], "Global");
+  assert.ok(Object.keys(HIGHLIGHTED_LABELS).every((name) => HIGHLIGHTED_SERIES.includes(name)));
+});
+
+// The rows of `explore/endpoint_mix`, most requested first, as the page reads them.
+const ENDPOINT_MIX_ROWS = [
+  { endpoint_group: "chat", requests: 50 },
+  { endpoint_group: "chat_stream", requests: 40 },
+  { endpoint_group: "other", requests: 30 },
+  { endpoint_group: "completion", requests: 20 },
+];
+
+test("a figure's endpoint groups, written by their labels, take the endpoint groups' colours, Other its grey", () => {
+  const groupColours = endpointColours(ENDPOINT_MIX_ROWS);
+  const names = ["Chat Stream", "Completion", "Chat", "Other"];
+  const colours = endpointFigureColours(names, { "Chat Stream": "Chat stream" }, ENDPOINT_MIX_ROWS);
+  assert.deepEqual([...colours], [
+    ["Chat Stream", groupColours.get("chat_stream")],
+    ["Completion", groupColours.get("completion")],
+    ["Chat", groupColours.get("chat")],
+    ["Other", OTHER_SERIES],
+  ]);
+  assert.throws(() => endpointFigureColours(["Batch"], {}, ENDPOINT_MIX_ROWS), /"Batch"/);
 });

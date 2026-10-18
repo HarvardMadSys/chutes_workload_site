@@ -375,9 +375,9 @@ A line of words that is not the paper's own carries a `// placeholder:`
 comment above it, for the authors to review.
 `insights/figure_card.js` draws the card: it reads the answer, colours the
 series (`insights/card_series.js`: the global series and the three
-highlighted models in fixed colours, `FIXED_SERIES_COLOURS` of
-`shared/series.js`, the others the free slots of its palette in the order
-of its `series`, else the answer's), places a legend of buttons where there
+highlighted models in fixed colours, `FIXED_SERIES_COLOURS`, the others
+the free slots of its palette in the order of its `series`, else the
+answer's), places a legend of buttons where there
 is more than one series (none where each panel holds one series, which
 its title names), and draws the chart by its kind at the card's width. A
 topic makes each card with `frozenCard` of the same module, which freezes
@@ -446,7 +446,7 @@ table and the card's words.
 
 - *Fixed series colours.* The global series and the three highlighted
   models take the same colour on every card (`FIXED_SERIES_COLOURS` of
-  `shared/series.js`); a card of these series lists them in
+  `insights/card_series.js`); a card of these series lists them in
   `HIGHLIGHTED_SERIES` order, labels them with `HIGHLIGHTED_LABELS`, and
   draws the global series dashed (`dashed: ["Global"]`), its legend
   swatch dashed too.

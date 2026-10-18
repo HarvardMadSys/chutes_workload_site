@@ -10,7 +10,7 @@ import {
   formatCount, formatCountTick, formatDurationTick, formatPercent, formatSeconds, formatSecondsTick, formatShare,
   formatWholeCountTick,
 } from "../shared/format.js";
-import { HIGHLIGHTED_LABELS, HIGHLIGHTED_SERIES } from "../shared/series.js";
+import { HIGHLIGHTED_LABELS, HIGHLIGHTED_SERIES } from "./card_series.js";
 import { COUNT_COLOUR, frozenCard, TRACE_MONTH_AXIS } from "./figure_card.js";
 
 // An axis of the token hit ratio, 0 to 1, labelled every fifth as the paper's.
