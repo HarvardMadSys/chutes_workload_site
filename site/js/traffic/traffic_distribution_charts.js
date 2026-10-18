@@ -13,7 +13,7 @@ import {
   formatCount, formatCountTick, formatDurationTick, formatSignificantSeconds, formatWholeCount,
 } from "../shared/format.js";
 import { drawLines } from "../charts/lines.js";
-import { drawShownSeries, hasLegend } from "../shared/legend.js";
+import { drawShownSeries } from "../shared/legend.js";
 import { binTotals, cdfRows } from "./traffic_distributions.js";
 
 // The y axis of every chart: the share of the chosen requests at or below a value, in percent, ticked as every CDF on
@@ -158,13 +158,12 @@ export async function drawDistributionCharts(places, { rows, series, legend }, h
 /**
  * Draw the lines of `drawn`'s charts (as `drawDistributionCharts` gives them) again, the series of `hidden` left out,
  * as the bars' legend hides them: each chart whose every series of the legend is hidden shows the legend's note, and a
- * chart that fails shows its error in its place. A legend of fewer than two series hides none.
+ * chart that fails shows its error in its place. A legend of fewer than two series hides none (`drawShownSeries`).
  */
 export async function drawDistributionCurves(drawn, hidden) {
-  const hiddenHere = hasLegend(drawn.legend.series) ? hidden : new Set();
   const drawings = [];
   for (const chart of drawn.charts) {
-    const drawing = drawShownSeries(chart.body, drawn.legend, hiddenHere,
+    const drawing = drawShownSeries(chart.body, drawn.legend, hidden,
       (shownHidden) => drawCurves(chart, drawn, shownHidden));
     // No one awaits a legend's press, so a chart that fails shows its error in its own place.
     drawings.push(drawing.catch((error) => showError(chart.body, error)));

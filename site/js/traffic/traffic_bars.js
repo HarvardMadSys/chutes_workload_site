@@ -106,10 +106,10 @@ export function dayMonth(day) {
  * rows of `choice`, of the answer of `family` (null for every family), `requests` in all, their metric per day over the
  * days of `days` (the trace's) in the choice's range, stacked by the choice's series, each kind of series coloured in
  * the order of its rows of `orders` (`{ families, models, endpoints }`), with its legend, or a note when there are none.
- * The legend starts from and tells `shared` (`{ hidden, onToggle }`) as `drawWithLegend` takes it. Returns the bars'
- * `{ series, legend }`: their kind of series and their legend, empty when there are no bars.
+ * The legend starts from and tells `legendState` (`{ hidden, onToggle }`) as `drawWithLegend` takes it. Returns the
+ * bars' `{ series, legend }`: their kind of series and their legend, empty when there are no bars.
  */
-export async function drawBars(place, { choice, family, chosen, requests, days, orders }, shared) {
+export async function drawBars(place, { choice, family, chosen, requests, days, orders }, legendState) {
   const series = choiceSeries(choice, family?.name);
   const words = METRIC_WORDS[choice.metric];
   const body = renderFigure(place, {
@@ -126,7 +126,7 @@ export async function drawBars(place, { choice, family, chosen, requests, days, 
     return { series, legend };
   }
   const drawing = { days: periodDays(days, choice), series, colours: legend.colours, words };
-  await drawWithLegend(body, legend, (hidden) => drawDayBars(daily, body, drawing, hidden), "square", shared);
+  await drawWithLegend(body, legend, (hidden) => drawDayBars(daily, body, drawing, hidden), "square", legendState);
   return { series, legend };
 }
 

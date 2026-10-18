@@ -19,8 +19,8 @@ test("a chart may start from a hidden set, its buttons not pressed, and tell eac
   const body = new FakeFigureBody();
   const drawnWith = [];
   const told = [];
-  const shared = { hidden: new Set(["pi"]), onToggle: (hidden) => told.push([...hidden]) };
-  await drawWithLegend(body, LEGEND, (hidden) => drawnWith.push([...hidden]), "square", shared);
+  const legendState = { hidden: new Set(["pi"]), onToggle: (hidden) => told.push([...hidden]) };
+  await drawWithLegend(body, LEGEND, (hidden) => drawnWith.push([...hidden]), "square", legendState);
   assert.deepEqual(pressedStates(body), ["true", "false"]);
   body.legendPlace.children[0].dispatch("click");
   await settled();
@@ -36,8 +36,8 @@ test("a chart of one series is drawn with nothing hidden, whatever hidden set it
   const body = new FakeFigureBody();
   const drawnWith = [];
   const oneSeries = { series: LEGEND.series.slice(0, 1), colours: LEGEND.colours };
-  const shared = { hidden: new Set(["hermes"]) };
-  await drawWithLegend(body, oneSeries, (hidden) => drawnWith.push([...hidden]), "square", shared);
+  const legendState = { hidden: new Set(["hermes"]) };
+  await drawWithLegend(body, oneSeries, (hidden) => drawnWith.push([...hidden]), "square", legendState);
   assert.deepEqual(drawnWith, [[]]);
   assert.deepEqual(body.legendPlace.children, [], "no legend is placed");
 });
@@ -53,4 +53,15 @@ test("another chart follows a legend: drawn with its hidden set, or the note whe
     assert.deepEqual(body.children.map((child) => [child.className, child.textContent]), [
       ["note", "Every series is hidden: click one in the legend to show it."],
     ]);
+  });
+
+test("a chart following a legend of one series is drawn with nothing hidden, whatever hidden set it is given",
+  async (context) => {
+    useFakeDocument(context);
+    const body = new FakeElement("div");
+    const drawnWith = [];
+    const oneSeries = { series: LEGEND.series.slice(0, 1), colours: LEGEND.colours };
+    await drawShownSeries(body, oneSeries, new Set(["hermes"]), (hidden) => drawnWith.push([...hidden]));
+    assert.deepEqual(drawnWith, [[]]);
+    assert.deepEqual(body.children, [], "no note is shown");
   });

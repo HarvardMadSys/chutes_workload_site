@@ -194,8 +194,8 @@ async function drawChoice(view, choice) {
     endpoints: view.endpoints,
   };
   const bars = { choice, family, chosen, requests: summary.requests, days: view.days, orders };
-  const shared = { hidden: view.hidden, onToggle: (hidden) => followLegend(view, hidden) };
-  const drawnBars = await drawBars(view.figure, bars, shared);
+  const legendState = { hidden: view.hidden, onToggle: (hidden) => followLegend(view, hidden) };
+  const drawnBars = await drawBars(view.figure, bars, legendState);
   await drawDistributions(view, choice, { ...drawnBars, summary });
 }
 

@@ -96,18 +96,19 @@ export function hasLegend(series) {
 /**
  * Place `legend`'s buttons in the legend's place above `body` (`legendPlace`), their swatches shaped `swatch` ("square"
  * or "line", dashed for the legend's `dashed` series), and draw the chart into `body` with `drawChart(hidden)`. The
- * series hidden at first are `shared.hidden`, none when not given. Each click on a button hides or shows its series,
- * calls `drawChart` again with the new hidden set, then `shared.onToggle(hidden)` where given, so that other charts
- * the legend stands for follow it; a chart whose every series is hidden shows a note instead (`drawShownSeries`), and
- * a drawing after a click that fails shows its error in `body`. A legend of fewer than two series is not placed, and
- * its chart is drawn with nothing hidden. Settles when the first drawing has.
+ * series hidden at first are `legendState.hidden`, none when not given. Each click on a button hides or shows its
+ * series, calls `drawChart` again with the new hidden set, then `legendState.onToggle(hidden)` where given, so that
+ * other charts the legend stands for follow it; a chart whose every series is hidden shows a note instead
+ * (`drawShownSeries`), and a drawing after a click that fails shows its error in `body`. A legend of fewer than two
+ * series is not placed, and its chart is drawn with nothing hidden (`drawShownSeries`). Settles when the first
+ * drawing has.
  */
-export async function drawWithLegend(body, legend, drawChart, swatch = "square", shared = {}) {
+export async function drawWithLegend(body, legend, drawChart, swatch = "square", legendState = {}) {
+  let hidden = legendState.hidden ?? new Set();
   if (!hasLegend(legend.series)) {
-    await drawChart(new Set());
+    await drawShownSeries(body, legend, hidden, drawChart);
     return;
   }
-  let hidden = shared.hidden ?? new Set();
   async function onToggle(names) {
     hidden = toggledSeries(hidden, names);
     try {
@@ -116,7 +117,7 @@ export async function drawWithLegend(body, legend, drawChart, swatch = "square",
       // No one awaits a click, so the error is shown here, in the chart's place, as a failed first drawing's would be.
       showError(body, error);
     }
-    shared.onToggle?.(hidden);
+    legendState.onToggle?.(hidden);
   }
   mountLegend(legendPlace(body), legend.series, legend.colours, onToggle, swatch, legend.dashed ?? [], hidden);
   await drawShownSeries(body, legend, hidden, drawChart);
@@ -149,9 +150,14 @@ export function dashedBackground(colour) {
 
 /**
  * Draw a chart of `legend`'s series into `body` with `drawChart(hidden)`, or, where every series of the legend is in
- * `hidden` (`isEverySeriesHidden`), show the note that says so instead. Settles when the drawing has.
+ * `hidden` (`isEverySeriesHidden`), show the note that says so instead. A legend of fewer than two series (`hasLegend`)
+ * hides nothing: its chart is drawn with an empty hidden set, whatever `hidden` is. Settles when the drawing has.
  */
 export async function drawShownSeries(body, legend, hidden, drawChart) {
+  if (!hasLegend(legend.series)) {
+    await drawChart(new Set());
+    return;
+  }
   if (isEverySeriesHidden(legend.series, hidden)) {
     showNote(body, EVERY_SERIES_HIDDEN_NOTE);
     return;
