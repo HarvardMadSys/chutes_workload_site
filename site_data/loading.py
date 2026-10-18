@@ -39,7 +39,7 @@ class ArtifactTables:
 
     `trace_totals`: one row, the whole trace's first and last request time, requests, input and output tokens, users
     (distinct anonymised user ids), models and serving instances. `daily_rollup`: one row per trace day, family, chute
-    id (null for every model of the family outside its eight most requested named ones) and endpoint group, with
+    id (null for every model of the family outside the ones `setup/family_models.sql` names) and endpoint group, with
     requests, token sums, TTFT sum and how many requests recorded each; the family is one of the family table's, or
     `Other`. `function_name_daily_requests`: one row per trace day and endpoint group, with its requests.
     `chute_models`: one row per named chute, its `chute_id` and model `name`. `model_families`: one row per pattern of
@@ -73,7 +73,7 @@ def load_trace_table(tables_folder: pathlib.Path) -> pyarrow.Table:
     """The trace table of the tables folder `tables_folder`, `weekly_histograms.parquet`; stops naming it if missing.
 
     One row per trace week (`week`, `months.DAYS_PER_TRACE_WEEK` trace days, week 0 the trace's first), `family`,
-    `chute_id` (null for every model of the family outside its eight most requested named ones), `endpoint_group`,
+    `chute_id` (null for every model of the family outside the ones `setup/family_models.sql` names), `endpoint_group`,
     `metric` (`input_tokens`, `output_tokens` or `ttft`) and `bin` (a value v is in bin floor(4 * log2(v))), with the
     `requests` whose value fell in the bin. `site/queries/trace/weekly_histograms.sql` states each column's definition.
     """

@@ -1,7 +1,7 @@
 /**
- * The Insights' topic tabs: one row of the six numbered topics under the Insights heading, which shows one topic at a
- * time and hides the others. The row follows the ARIA tabs pattern: one tab stop, the shown tab; the arrow keys, Home
- * and End move to another tab and show its topic; each topic section is a tab panel labelled by its tab.
+ * The Insights' topic tabs: one row of the numbered topics of `TOPICS` under the Insights heading, which shows one
+ * topic at a time and hides the others. The row follows the ARIA tabs pattern: one tab stop, the shown tab; the arrow
+ * keys, Home and End move to another tab and show its topic; each topic section is a tab panel labelled by its tab.
  *
  * The shown topic is kept in the browser's history: the entry the page opened on holds its topic, a tab chosen writes
  * its topic's anchor as a new entry, and Back and Forward, which the page's start passes on, show the topic of the

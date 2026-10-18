@@ -117,7 +117,7 @@ export function centreUnit(plural, hiddenCount) {
 }
 
 /**
- * The names that keep a slice of their own in a donut coloured by `seriesColours`, in its order: every one but
+ * The names that keep a slice of their own in a donut coloured by `seriesColours`, in its order: every one except
  * "Other".
  */
 export function namedSeries(seriesColours) {

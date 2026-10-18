@@ -42,7 +42,7 @@ export const NO_FAMILY_ENTRIES = Object.freeze({ families: FAMILIES, models: NO_
 
 /**
  * A row of a daily answer of the explorer, by family or by model: on 2025-07-01, of the endpoint group chat, its
- * requests and every count zero and every sum null, but for the fields given.
+ * requests and every count zero and every sum null, except the fields given.
  */
 export function dayRow(fields) {
   return {

@@ -1,9 +1,6 @@
 """A small artifact checkout for the tests, written into a folder: the three caches the site reads, a few rows each,
 the model names, the family table, the figure list and the plot-ready table of each figure it lists. The trace whose
-requests its daily rollup counts is apart from it, in `fixture_trace.py`.
-
-Its rows, in the artifact's column types:
-
+requests its daily rollup counts is apart from it, in `fixture_trace.py`. Its rows, in the artifact's column types:
 - eleven named chutes in the model names, `chute-01` to `chute-10` and `chute-idle` (`MODEL_NAMES`), of which the
   daily rollup names `chute-01` to `chute-04`. The artifact's family rule places a name in the family of the first
   pattern of the family table that it contains, case-insensitively, and in `Other` when it contains none; each name
@@ -37,8 +34,8 @@ SECTION_FIGURES = {
 }
 EXTERNAL_FIGURE = "fig_routing_tradeoff.pdf"  # the one figure the list names under `external`
 TOTAL_REQUESTS = 140  # every request of the totals, the daily rollup and the daily endpoint counts
-# Each named chute but `chute-idle` and its model name. `chute-02`'s holds both of DeepSeek's patterns; `chute-04` and
-# the others contain no pattern. `chute-05` is DeepSeek's rest: named into DeepSeek, not among the rollup's kept
+# Each named chute except `chute-idle`, and its model name. `chute-02`'s holds both of DeepSeek's patterns; `chute-04`
+# and the others contain no pattern. `chute-05` is DeepSeek's rest: named into DeepSeek, not among the rollup's kept
 # chutes.
 MODEL_NAMES = {
     "chute-01": "DeepSeek-model-01", "chute-02": "deepseek-r1t-model-02", "chute-03": "gpt-oss-model-03",

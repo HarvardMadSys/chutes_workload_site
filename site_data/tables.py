@@ -1,20 +1,19 @@
 """Build the trace table: `python -m site_data.tables --trace <parquet> --artifact <dir> --out <dir>`.
 
-The trace table is the answer of the query `trace/weekly_histograms` over the released trace, held as the view
-`trace`, and the site's tables over the artifact, of which it reads `chute_models`, `model_families` and
-`family_models`: one row per trace week, family, kept model, endpoint group, metric and bin, with the requests in the
-bin (the query states each column's definition). The query is given the week as `months.py` defines it, its first
-day and length bound by name (`TRACE_QUERY_PARAMETERS`). The builder writes it into the out folder as
-`weekly_histograms.parquet`, its rows in the query's order, and beside it the sidecar `weekly_histograms.json`,
-`{"query": <the SHA-256 of the query's text, as hex>, "rows": <the table's rows>, "trace_rows": <the trace's rows>}`,
-by which `make test` tells a query edited since the table was built. It prints each file with its size, the rows and
-the time taken. A missing trace or artifact file stops the run with its message and exit status 1, before anything is
-written.
+The trace table is the answer of the query `trace/weekly_histograms`, which defines each column: one row per trace
+week, family, kept model, endpoint group, metric and bin, with the requests in the bin. The query reads the released
+trace, as the view `trace`, and the site's tables `chute_models`, `model_families` and `family_models`; the week of
+`months.py` is bound by name (`TRACE_QUERY_PARAMETERS`). The builder writes into the out folder:
 
-The table is built once from the trace, which is too large to read on every `make data`, and tracked; it is rebuilt
-when the family table, the daily rollup's kept models, the query, or the week of `months.py` (its epoch or its length)
-change. The sidecar hashes the query's text alone, not the two parameters, so after a change to the week only the
-check of the table against the artifact's rollup, with `ARTIFACT`, finds a table not rebuilt.
+- `weekly_histograms.parquet`, the table, its rows in the query's order;
+- `weekly_histograms.json`, its sidecar, `{"query": <the SHA-256 of the query's text, as hex>, "rows": <the table's
+  rows>, "trace_rows": <the trace's rows>}`, by which `make test` tells a query edited since the table was built.
+
+It prints each file with its size, the rows and the time taken. A missing trace or artifact file stops the run with
+its message and exit status 1, before anything is written. The table is tracked, since the trace is too large to read
+on every `make data`, and rebuilt when the family table, the daily rollup's kept models, the query, or the week (its
+epoch or its length) change. The sidecar hashes the query's text alone, so a change to the week is found only by the
+check of the table against the artifact's rollup, with `ARTIFACT`.
 """
 
 import argparse

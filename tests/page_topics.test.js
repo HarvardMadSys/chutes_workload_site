@@ -64,7 +64,7 @@ test("no card object is held by two groups", () => {
   }
 });
 
-test("a card has every field, each a string, its chart's parameters, and no field but the optional ones", () => {
+test("a card has every field, each a string, its chart's parameters, and otherwise only the optional ones", () => {
   for (const card of everyCard()) {
     for (const field of CARD_FIELDS) {
       assert.equal(typeof card[field], "string", `${card.figure}: ${field}`);

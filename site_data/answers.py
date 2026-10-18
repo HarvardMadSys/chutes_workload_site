@@ -1,13 +1,11 @@
-"""The answers of the site's queries: every query of `queries/explore/` run over the site's database, each written as
-`all/explore/<query>.json`, and the SHA-256 of the text of each query an answer depends on written to
-`all/queries.json` as `{"<folder>/<query>": "<hex>"}`, so a query edited since can be found (`stale_queries`). An
-answer depends on its own query and on the setup query `setup/family_models`, whose rows the answers that name a
-family's models read.
+"""The answers of the site's queries, each in the JSON form of `answer_files.py`, its keys the query's columns in order.
 
-A family query (`FAMILY_QUERIES`) takes the family as its one parameter, `$family`: it is run once per family of the
-family mix (`FAMILIES_QUERY`), in the mix's order, and written as `all/explore/<query>/<family_slug>.json`, its hash
-recorded once.
-Each answer is written in the JSON form of `answer_files.py`, its keys the query's column names in the query's order.
+- Every query of `queries/explore/` is run over the site's database and written as `all/explore/<query>.json`.
+- A family query (`FAMILY_QUERIES`) takes the family as its one parameter, `$family`: it is run once per family of the
+  family mix (`FAMILIES_QUERY`), in the mix's order, and written as `all/explore/<query>/<family_slug>.json`.
+- `all/queries.json`, `{"<folder>/<query>": "<hex>"}`, holds the SHA-256 of the text of each query an answer depends
+  on, a family query's once, so a query edited since is found (`stale_queries`). An answer depends on its own query
+  and on `setup/family_models`, whose rows the answers that name a family's models read.
 """
 
 import dataclasses

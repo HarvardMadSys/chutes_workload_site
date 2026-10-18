@@ -1,22 +1,20 @@
 /**
- * The page's start: it asks for the answers the sections share, writes the Insights' topic sections with their groups
- * and cards and mounts their topic tabs, mounts the header and renders the footer, then runs the page's sections, once,
- * from their answer files. The topics (`page/topics.js`) are shown one at a time behind the tabs of the `#topic-tabs`
- * row (`page/topic_tabs.js`); a topic's figures are drawn from their answers the first time it is shown, so a topic
- * never shown requests none. The topic the page opens on is drawn once the sections have drawn or shown their errors; a
- * topic a tab shows before then is drawn at once.
+ * The page's start: it asks once for the answers the sections share, writes the Insights' topic sections
+ * (`page/topics.js`), shown one at a time behind the tabs of the `#topic-tabs` row (`page/topic_tabs.js`), mounts the
+ * header, renders the footer, then runs the sections, once. A topic's figures are drawn the first time it is shown,
+ * so a topic never shown requests none. The topic the page opens on is drawn
+ * once the sections have drawn or shown their errors; a topic a tab shows before then is drawn at once.
  *
- * The page's module names its sections, each `{ id, run }`: the id of its place in `index.html` and the function that
- * runs it, which shows its loading state at once and then draws its answer. A section runs as `run(container,
- * context)` with `context = { totals, mixes, replaceQuery, onReturn }`:
- * - `totals`, the promised rows of `explore/trace_totals`, one row of the whole trace's counts, asked for once for the
- *   stats strip and the months the hero and the footer count;
- * - `mixes`, `{ families, endpoints }`, the promised rows of `explore/family_mix` and of `explore/endpoint_mix`, each
- *   most requested first: the donuts' rows and colour orders, the Traffic Explorer's families in their order, and
- *   the order every chart, the Insights' cards among them, colours the endpoint groups by, each asked for once;
- * - `replaceQuery(params)`, which writes `params` to the address bar and the header's brand;
- * - `onReturn(redraw)`, which calls `redraw()` each time Back or Forward returns to a history entry, after the tabs
- *   show its topic and the header takes its query; this module is the page's one listener of `popstate`.
+ * The page's module names its sections, each `{ id, run }`: the id of its place in `index.html`, and the function
+ * that shows its loading state at once and then draws its answer, run as `run(container, context)`. The `context`:
+ * - `totals`: the promised rows of `explore/trace_totals`, one row of the whole trace's counts, for the stats strip
+ *   and the months the hero and the footer count;
+ * - `mixes`: `{ families, endpoints }`, the promised rows of `explore/family_mix` and `explore/endpoint_mix`, most
+ *   requested first: the donuts' rows, the Traffic Explorer's families in order, and the colour order of the
+ *   families and the endpoint groups on every chart, the Insights' cards among them;
+ * - `replaceQuery(params)`: writes `params` to the address bar and the header's brand;
+ * - `onReturn(redraw)`: calls `redraw()` each time Back or Forward returns to a history entry, after the tabs show
+ *   its topic and the header takes its query; this module is the page's one listener of `popstate`.
  */
 
 import { readAnswer } from "../shared/answers.js";

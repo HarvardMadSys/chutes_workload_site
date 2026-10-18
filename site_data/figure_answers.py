@@ -1,15 +1,14 @@
-"""The answers of the paper's figures: for every figure the artifact's `config/figures.json` lists, the rows of its
-plot-ready table, `data/paper/plotdata/<figure>.parquet` in the artifact, written as `all/figures/<figure>.json`, and
-`all/figures.json`, `{"<figure>": <row count>, ...}` in the list's order.
+"""The answers of the paper's figures: each figure's plot-ready table, copied as rows with no query.
 
-The list names each figure by its PDF's file name: under `sections`, a list of names per paper section, and under
-`external`, one key per name; `count` says how many names it holds. A figure is named by its file name without
-`.pdf`. A plot-ready table holds the columns of one chart kind, as the column contract in README's "Where the numbers
-come from" lists them; the step copies them as they are, with no query, rounding or renaming, and does not check the
-kind. An answer is written in the JSON form of `answer_files.py`, its keys the table's columns in the table's order.
+- `all/figures/<figure>.json`: the rows of the artifact's `data/paper/plotdata/<figure>.parquet`, for every figure the
+  artifact's `config/figures.json` lists, its columns as they are, not rounded or renamed, its kind not checked
+  (README's column contract);
+- `all/figures.json`: `{"<figure>": <row count>, ...}`, in the list's order.
 
-`read_figure_tables` reads every table in memory, stopping on the first that is missing before anything is written;
-`write_figure_answers` then writes them.
+The list names a figure by its PDF's file name: under `sections`, a list of names per paper section; under `external`,
+one key per name; `count` is how many names it holds. A figure's name is its file name without `.pdf`. An answer is in
+the JSON form of `answer_files.py`, its keys the table's columns in order. `read_figure_tables` reads every table,
+stopping on the first that is missing before anything is written; `write_figure_answers` then writes them.
 """
 
 import dataclasses

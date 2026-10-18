@@ -1,17 +1,16 @@
-"""The states of a snapshot, and the units read from each in the browser: each unit is one block a visitor sees (a
-chart, a legend, a block of text), returned as the text written to its file, `<state>/<unit>.txt`. The states are the
-Insights' topics, read from the tab row, and the figures of each topic's cards and the figure an answer's address
-names are read to check what a state requested.
-
-Text units hold one line per entry, whitespace collapsed: a card's texts as `label: text`, a legend's entries as `text
-| pressed=… | mark`, a control's choice as `field: choice | selected=…`, an axis as `x-axis: label | label …`. An
-Overview chart's SVG is written one element per line with Plot's numbered ids made plain, so `git diff` shows which
-element changed; an Insights card's chart, which may hold thousands of cells, is written as its accessible name
-(`name: …`) and, for each place it draws in, the card's body or each of its panels, the panel's title (`panel: …`),
-its colour legend's title and labelled ticks (`colour-legend: Models: 1 | 10 | 100`), its axes' tick labels and its
-axes' titles (`x-axis title: …`). Colours are recorded as the CSS tokens the page names (`var(--series-5)`), so a
-series moved to another colour slot is caught. Every reading function takes a Playwright page or locator and reads it
-as it is now; this module imports no Playwright itself.
+"""The states of a snapshot, and the units read from each in the browser. A unit is one block a visitor sees (a chart, a
+legend, a block of text), returned as its file's text, `<state>/<unit>.txt`. The states are the Insights' topics, read
+from the tab row; the figures of each topic's cards and the figure an answer's address names are read to check what a
+state requested. A text unit holds one line per entry, whitespace collapsed: a card's texts as `label: text`, a
+legend's entries as `text | pressed=… | mark`, a control's choice as `field: choice | selected=…`, an axis as
+`x-axis: label | label …`. A chart is written:
+- an Overview chart: its SVG, one element per line, Plot's numbered ids made plain, so `git diff` shows which element
+  changed;
+- an Insights card's chart, which may hold thousands of cells: its accessible name (`name: …`) and, for each place it
+  draws in, the card's body or each of its panels, the panel's title (`panel: …`), its colour legend's title and
+  labelled ticks (`colour-legend: Models: 1 | 10 | 100`), its axes' tick labels and titles (`x-axis title: …`).
+Colours are the CSS tokens the page names (`var(--series-5)`), so a series moved to another colour slot is caught.
+Every reading function takes a Playwright page or locator and reads it as it is now; this module imports no Playwright.
 """
 
 import re

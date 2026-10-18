@@ -1,14 +1,14 @@
-"""The site's database in DuckDB over the artifact's tables and the trace table in memory, in which `make data` and the
-tests run the site's queries.
+"""The site's database: DuckDB in memory, in which `make data` and the tests run the site's queries. Its nine tables:
 
-It is opened by registering (`register_tables`) each Arrow table of `loading.ArtifactTables` under its name:
-`trace_totals`, `daily_rollup`, `function_name_daily_requests`, `chute_models` and `model_families`, and the calendar
-of `months.trace_calendar` as `trace_calendar` and the weeks of `months.trace_weeks` as `trace_weeks`, both to the
-daily rollup's last day. Then the setup query `setup/family_models` ranks the daily rollup's named models within their
-family, and its rows are registered as `family_models`, the one definition of a family's models. Last, the trace table
-(`loading.load_trace_table`) is registered as `weekly_histograms`: nine tables in all. A query's name is its path
-under `site/queries/` without `.sql`; `run_query` gives its result as `QueryRows`, a query that takes a parameter
-(`$family`) being given its value by name.
+- the five of `loading.ArtifactTables`, each under its name (`trace_totals`, `daily_rollup`,
+  `function_name_daily_requests`, `chute_models`, `model_families`), and `trace_calendar` and `trace_weeks`, from
+  `months.trace_calendar` and `months.trace_weeks` to the daily rollup's last day (`register_tables`);
+- `family_models`, the rows of the setup query `setup/family_models`, which ranks the daily rollup's named models
+  within their family: the one definition of a family's models;
+- `weekly_histograms`, the trace table (`loading.load_trace_table`).
+
+A query's name is its path under `site/queries/` without `.sql`. `run_query` gives its result as `QueryRows`, a query
+that takes a parameter (`$family`) being given its value by name.
 """
 
 import dataclasses

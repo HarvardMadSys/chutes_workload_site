@@ -1,20 +1,20 @@
 /**
- * The Traffic Explorer: a row of controls (a family drop-down, a model drop-down, an endpoint drop-down, a metric
- * drop-down, period buttons) over one wide card of, from the top, four tiles (`traffic/traffic_tiles.js`), the chosen
- * metric per day as stacked bars with their legend (`traffic/traffic_bars.js`), the day range's slider
- * (`traffic/traffic_range.js`) and a row of three charts, the distributions of the input tokens, output tokens and TTFT
- * (`traffic/traffic_distribution_charts.js`), whose series the bars' legend hides and shows with the bars'.
+ * The Traffic Explorer: a row of controls, which keep the choice in the URL (`traffic/traffic_controls.js`), over one
+ * wide card of, from the top:
+ * - four tiles (`traffic/traffic_tiles.js`);
+ * - the chosen metric per day as stacked bars with their legend (`traffic/traffic_bars.js`);
+ * - the day range's slider (`traffic/traffic_range.js`);
+ * - the distributions of the input tokens, output tokens and TTFT (`traffic/traffic_distribution_charts.js`), whose
+ *   series the bars' legend hides and shows with the bars'.
  *
- * Its rows come from the `explore/daily_by_family` answer, read once, and from a family's
- * `explore/daily_by_model/<family_slug>` answer, read the first time the family is chosen and kept for the visit. The
- * families are the Overview's family mix, listed and coloured in its order, a family's models take their colours in
- * the order of their requests, and the endpoint groups from the Overview's order (`context.mixes`). A change of the
- * choice (`traffic/traffic_choice.js`) filters the rows once (`traffic/traffic_filter.js`), writes the tiles and draws
- * the bars again; so does the slider as a handle moves. Once the bars are drawn, the tiles' percentiles are written
- * and the three charts drawn from the histogram answer, read and kept as the daily ones are. The controls keep the
- * choice in the URL (`traffic/traffic_controls.js`). A family's answer that cannot be read, at the opening or on a
- * choice, shows its error in the bars' place and the three charts' places, the tiles keeping their numbers without
- * percentiles; a histogram answer's, in the charts' places, the tiles without percentiles.
+ * Its rows are the `explore/daily_by_family` answer, read once, and a family's `explore/daily_by_model/<family_slug>`,
+ * read the first time the family is chosen and kept for the visit. The families and the endpoint groups take the
+ * Overview's order (`context.mixes`); a family's models, the order of their requests. A change of the choice
+ * (`traffic/traffic_choice.js`), or of the slider as a handle moves, filters the rows once
+ * (`traffic/traffic_filter.js`), writes the tiles and draws the bars again. Once the bars are drawn, the tiles'
+ * percentiles are written and the three charts drawn from the histogram answer, read and kept as the daily ones are. A
+ * family's answer that cannot be read shows its error in the bars' and the charts' places, the tiles keeping their
+ * numbers without percentiles; a histogram answer's, in the charts' places, the tiles without percentiles.
  */
 
 import { readAnswer } from "../shared/answers.js";

@@ -62,7 +62,7 @@ def test_a_node_test_file_named_for_no_folder_is_named(tmp_path: pathlib.Path) -
 
 def misnamed_node_test_files(tests: pathlib.Path, javascript: pathlib.Path) -> list[str]:
     """The node test files of `tests`, sorted, whose name's word before the first "_", or whole name before ".test.js",
-    is no folder of `javascript`; but for `NAMED_NODE_CHECKS` and a test helper's test, a `<name>.test.js` whose
+    is no folder of `javascript`, except `NAMED_NODE_CHECKS` and a test helper's test, a `<name>.test.js` whose
     `<name>.js` is in `tests`."""
     folders = {path.name for path in javascript.iterdir() if path.is_dir()}
     misnamed = []

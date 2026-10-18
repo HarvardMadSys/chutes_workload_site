@@ -1,6 +1,6 @@
 // The Insights' fixed axes hold the shipped data: for every card and panel whose x or y axis has a numeric domain
 // (`chartParameters` of `insights/figure_card.js`), the values its chart draws on that axis, from the figure's answer
-// as `make data` wrote it, fall inside that domain, but for the clips the paper's axes intend, each with its reason.
+// as `make data` wrote it, fall inside that domain, except the clips the paper's axes intend, each with its reason.
 // A rebuild that outgrows a domain fails here: the fix is a wider domain, with `make snapshots` and its diff reviewed,
 // or a listed clip with its reason.
 import assert from "node:assert/strict";
@@ -52,8 +52,8 @@ const INTENDED_CLIPS = Object.freeze([
 
 /**
  * Every chart of every card with a numeric domain on an axis: `{ card, entry, axis, parameters }`, `entry` the panel of
- * the card's `panels` the chart draws, or null for a card of one chart. A domain of anything but numbers, such as
- * categories, is left out.
+ * the card's `panels` the chart draws, or null for a card of one chart. A domain of anything other than numbers, such
+ * as categories, is left out.
  */
 function chartsWithDomains() {
   const charts = [];
@@ -154,7 +154,7 @@ function isIntended(figure, axis) {
   return INTENDED_CLIPS.some((clip) => clip.figure === figure && clip.axis === axis);
 }
 
-test("every fixed domain of a card or a panel holds the shipped data, but the intended clips", () => {
+test("every fixed domain of a card or a panel holds the shipped data, except the intended clips", () => {
   const unintended = clippedCharts().filter((chart) => !isIntended(chart.figure, chart.axis));
   assert.deepEqual(unintended.map((chart) => chart.message), []);
 });

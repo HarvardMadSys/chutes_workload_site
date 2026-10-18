@@ -12,7 +12,7 @@ from repository_root import JAVASCRIPT_FOLDER, ROOT
 
 MAX_FUNCTION_LINES = 50  # a longer function does two jobs
 MAX_MODULE_LINES = 300  # a longer module holds two purposes
-MAX_MODULES_PER_FOLDER = 9  # a folder holds one purpose and about eight modules
+MAX_MODULES_PER_FOLDER = 9  # a folder holds one purpose and at most nine modules
 LIBRARIES_MODULE = ROOT / "site" / "js" / "shared" / "libraries.js"  # the only file that names a library URL
 QUERIES_FOLDER = ROOT / "site" / "queries"  # the only place SQL is written
 ANSWERS_MODULE = JAVASCRIPT_FOLDER / "shared" / "answers.js"  # the page's answers
@@ -162,7 +162,7 @@ def test_a_global_set_outside_the_fake_is_named(tmp_path: pathlib.Path) -> None:
 
 
 def globals_set_outside_the_fake(tests: pathlib.Path) -> list[str]:
-    """Each setting or mock of a property of `globalThis` (`GLOBAL_PROPERTY_SET`) in a JavaScript file of `tests` but
+    """Each setting or mock of a property of `globalThis` (`GLOBAL_PROPERTY_SET`) in a JavaScript file of `tests` except
     `GLOBALS_SETTER`, sorted by file, at the line where it starts, written without its spaces and its "=":
     "<file>:<line> globalThis.document", "<file>:<line> mock.method(globalThis"."""
     found = []

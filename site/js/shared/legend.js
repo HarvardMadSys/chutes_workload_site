@@ -1,17 +1,12 @@
 /**
- * The legend of a chart of more than one series, as one button per entry, an entry being one series or, with `names`,
- * several: a click hides the entry's series, or shows them again, and the chart is drawn anew from the rows it already
- * has, with no query. A hidden entry's button is struck through and not pressed.
- *
- * A legend is a `Legend` (below): an entry's `name` is the series' value in the rows and its `label` the text its
- * button shows; its `names`, where it has them, are the series its button hides and shows together, as one routing
- * policy's series of every model, `[name]` where it has none. The hidden series are a Set of the rows' series names,
- * held by the legend's buttons (`mountLegend`); the set a legend starts from and the function told of each change are
- * its `LegendState`. The set lives as long as one drawing of the chart, unless its caller keeps it for the next, and it
- * is never written to the URL.
+ * The legend of a chart of more than one series: one button per entry (`Legend`, below). A click hides the entry's
+ * series, or shows them again, and the chart is drawn anew from the rows it has, with no query; a hidden entry's
+ * button is struck through and not pressed. The hidden series are a Set of the rows' series names, held by the
+ * buttons (`mountLegend`) and started from a `LegendState`. The set lives for one drawing of the chart, unless its
+ * caller keeps it for the next, and is never written to the URL.
  *
  * From the keyboard a legend is one tab stop, a group of buttons: Tab reaches the last button focused in it, the first
- * at first, ArrowLeft and ArrowRight move between its buttons, and Enter or Space toggles one, as a click does.
+ * at first; ArrowLeft and ArrowRight move between its buttons; Enter or Space toggles one, as a click does.
  */
 
 import { DASH } from "../plot/frame.js";
@@ -20,7 +15,9 @@ import { legendPlace, showError, showNote } from "./figure.js";
 /**
  * A legend: the entries it lists, their colours, and how their swatches are drawn.
  * @typedef {object} Legend
- * @property {Array<{name: string, label: string, names?: string[]}>} series  the entries, in order
+ * @property {Array<{name: string, label: string, names?: string[]}>} series  the entries, in order: an entry's `name`
+ *   is the series' value in the rows, its `label` its button's text, and its `names` the series its button hides and
+ *   shows together, as one routing policy's series of every model; `[name]` when not given
  * @property {Map<string, string>} colours  each entry's colour, by its name
  * @property {string} [swatch]  "square" (the default) or "line"
  * @property {string[]} [dashed]  the series drawn dashed, whose line swatches are dashed; none when not given

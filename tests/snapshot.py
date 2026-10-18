@@ -1,26 +1,24 @@
-"""The snapshot test: what a visitor sees on six states of the site, kept as text in `tests/snapshots/` and compared.
-
-A snapshot is one folder per page state, `tests/snapshots/<state>/`, holding one text file per unit the state shows:
-each chart's SVG, or an Insights card's chart's name and tick labels, each legend's entries, each card's texts, the
-stats strip. `snapshot_units.py` says what each file holds, `snapshot_traffic.py` the Traffic Explorer's. The states are
-the page opened at each of its Insights topics' anchors (`index.html#insights-tokens`), each in a fresh page, and each
-state's folder is named by its anchor; the anchors are read once from the tab row's `aria-controls`. A unit that is
-the same in every state is written once, with the first state: the page's hero, stats strip, Overview, Traffic
-Explorer, cite, team and footer.
+"""The snapshot test: what a visitor sees in each state of the site, kept as text in `tests/snapshots/` and compared.
 
     .venv/bin/python tests/snapshot.py           # compare: fails naming each unit that changed (make test)
     .venv/bin/python tests/snapshot.py --write   # rewrite every file (make snapshots)
 
-Each state also checks that the page, opened at a topic, requested no other topic's figure answers.
+A state is the page opened, in a fresh page, at one of its Insights topics' anchors (`index.html#insights-tokens`),
+the anchors read once from the tab row's `aria-controls`. Its folder, `tests/snapshots/<state>/`, named by its anchor,
+holds one text file per unit it shows: each chart's SVG, or an Insights card's chart's name and tick labels, each
+legend's entries, each card's texts, the stats strip (`snapshot_units.py`; the Traffic Explorer's,
+`snapshot_traffic.py`). A unit the same in every state, the page's hero, stats strip, Overview, Traffic Explorer,
+cite, team and footer, is written once, with the first state. Each state also checks that the page, opened at its
+topic, requested no other topic's figure answers.
 
-Regenerate with `make snapshots` when a change is meant to alter a chart or a text, and review the diff of
-`tests/snapshots/` like code: it is what a visitor will see differently. A data rebuild changes it too. Where Chromium
-cannot start (`make setup-browser` installs it), compare skips and exits 0, so the rest of `make test` still counts,
-but says so in framed lines on standard error (`SKIP_MESSAGE`). Plot, from jsDelivr, and the fonts, from Google, are
-part of what is compared, so the test needs the network: offline it fails, naming the requests that failed.
+Run `make snapshots` when a change is meant to alter a chart or a text, and review the diff of `tests/snapshots/` like
+code: it is what a visitor will see differently. A data rebuild changes it too.
 
 The site is served from `site/` by Python's own HTTP server on a free port and opened in headless Chromium, at a fixed
-width, locale, time zone and colour scheme, so that every machine writes the same text.
+width, locale, time zone and colour scheme, so that every machine writes the same text. Plot, from jsDelivr, and the
+fonts, from Google, are part of what is compared, so the test needs the network: offline it fails, naming the
+requests that failed. Where Chromium cannot start (`make setup-browser` installs it), compare skips and exits 0, so
+the rest of `make test` still counts, and says so in framed lines on standard error (`SKIP_MESSAGE`).
 """
 
 import argparse
@@ -55,8 +53,9 @@ TOPIC_CHARTS_DRAWN = """(topic) => {
   const bodies = [...document.querySelectorAll(`#${topic} .figure-body`)];
   return bodies.length > 0 && bodies.every((body) => body.querySelector('svg[role="img"]') !== null);
 }"""
-# The charts each state draws outside the Insights, by the selector of the section that holds them.
-CHART_COUNTS = {"#overview": 2, "#traffic": 4}  # the two donuts; the Traffic Explorer's bars and its three distributions
+# The charts each state draws outside the Insights, by the selector of the section that holds them: the two donuts;
+# the Traffic Explorer's bars and its three distributions.
+CHART_COUNTS = {"#overview": 2, "#traffic": 4}
 # True once each section the argument names holds as many drawn charts as it gives: a chart's place holding an SVG
 # that the page has named, the last step of every drawing, whole axes and labels included.
 CHARTS_DRAWN = """(counts) => Object.entries(counts).every(([section, count]) => {
@@ -193,7 +192,8 @@ def read_states(browser, address: str) -> dict[str, dict[str, str]]:
         record_errors(page, errors)
         try:
             states[state] = read_state(page, address, state, with_page_units=not states)
-        except (playwright.sync_api.Error, AssertionError) as error:  # a state that did not draw: say why, with what the browser reported
+        except (playwright.sync_api.Error, AssertionError) as error:
+            # A state that did not draw: say why, with what the browser reported.
             raise PageError(f"in the state {state}: {error}\nthe browser reported:\n" + "\n".join(errors)) from error
         except snapshot_units.SharedTitleError as error:
             raise PageError(f"in the state {state}: {error}") from error
@@ -275,7 +275,8 @@ def main(arguments: list[str]) -> int:
     with served_site(SITE_FOLDER) as address, playwright.sync_api.sync_playwright() as browsers:
         try:
             browser = browsers.chromium.launch()
-        except (playwright.sync_api.Error, AssertionError) as error:  # Chromium is not installed, or cannot start on this machine
+        except (playwright.sync_api.Error, AssertionError) as error:
+            # Chromium is not installed, or cannot start on this machine.
             if write:
                 raise
             print(SKIP_MESSAGE.format(reason=str(error).splitlines()[0]), file=sys.stderr)

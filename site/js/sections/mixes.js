@@ -1,15 +1,11 @@
 /**
  * The Overview's two donuts over the whole trace: the family mix, each model family's share of the requests
- * (`explore/family_mix`), and the endpoint mix, each endpoint group's share (`explore/endpoint_mix`). Each answer is
- * also its series' colour order, so the page asks for it once and gives its rows as `context.mixes.families` and
- * `context.mixes.endpoints`.
- *
- * A donut names each series its colours name, in those colours: the families as the Traffic Explorer colours them
- * (`familyColours`), the endpoint groups as `endpointColours` does, every other name folded into "Other". The donut
- * kind (`charts/donut.js`) draws it, the slices' total in its centre. Its legend hides and shows a slice
- * (`shared/legend.js`).
- *
- * A section's `context` is what the page gives every section; see `page/start.js`.
+ * (`explore/family_mix`), and the endpoint mix, each endpoint group's (`explore/endpoint_mix`). Each answer is also
+ * its series' colour order, so the page asks for it once and gives its rows as `context.mixes` (`page/start.js`).
+ * A donut names the series its colours name, in those colours, every other name folded into "Other": the families as
+ * the Traffic Explorer colours them (`familyColours`), the endpoint groups by `endpointColours`. The donut kind
+ * (`charts/donut.js`) draws it, the slices' total in its centre; its legend (`shared/legend.js`) hides and shows a
+ * slice.
  */
 
 import { renderFigure, showError, showLoading } from "../shared/figure.js";

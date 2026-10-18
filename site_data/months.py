@@ -1,15 +1,14 @@
-"""Trace days, trace weeks and trace months, and the calendar dates they stand for.
+"""Trace days, trace weeks and trace months, and the calendar dates they stand for: all the data step's date arithmetic.
 
-The trace's timestamps count from its first day, which the caches write as 1970-01-01, so a cache's day is a trace
-day and its month a trace month: `date_trunc('month')` in that 1970 time, month 1 being 1970-01 and month 13 1971-01.
-A trace month is a month-long stretch of days from the trace's first day, not a calendar month. `trace_calendar`
-gives each trace day its calendar day and each trace month the calendar month its first day falls in, which labels
-the whole trace month, as the paper's axes do. A trace week is `DAYS_PER_TRACE_WEEK` trace days, week 0 the trace's
-first seven; `trace_weeks` gives each week the calendar days of its first and last trace day within the trace. All
-the data step's date arithmetic is here; the queries join the calendar and the weeks, and the trace query, which gives
-a request its week, is bound `TRACE_EPOCH` and `DAYS_PER_TRACE_WEEK` (`tables.TRACE_QUERY_PARAMETERS`). The browser
-holds copies of the first day (`TRACE_FIRST_DAY`, `site/js/shared/format.js`) and the months' names
-(`TRACE_MONTH_NAMES`, `site/js/insights/figure_card.js`), which the node tests tie to this calendar.
+The caches count the trace's timestamps from its first day, written 1970-01-01, so a cache's day is a trace day, and:
+- a trace month is `date_trunc('month')` in that 1970 time, month 1 being 1970-01 and month 13 1971-01: a month-long
+  stretch of days from the trace's first, not a calendar month;
+- a trace week is `DAYS_PER_TRACE_WEEK` trace days, week 0 the trace's first seven.
+`trace_calendar` gives each trace day its calendar day, and each trace month the calendar month its first day falls
+in, which labels it as the paper's axes do; `trace_weeks` gives each week the calendar days of its first and last trace
+day within the trace. The queries join the two; the trace query is bound `TRACE_EPOCH` and `DAYS_PER_TRACE_WEEK`
+(`tables.TRACE_QUERY_PARAMETERS`). The browser's copies, `TRACE_FIRST_DAY` (`site/js/shared/format.js`) and
+`TRACE_MONTH_NAMES` (`site/js/plot/trace_axes.js`), are tied to this calendar by the node tests.
 """
 
 import datetime

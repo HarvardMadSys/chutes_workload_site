@@ -21,7 +21,7 @@ const TO_ID = "traffic-range-to";
  * The period buttons, in their order: All, then the calendar quarters the trace spans, each by its label and its first
  * and last calendar day ("YYYY-MM-DD"), null for no bound. A button sets the day range to its days within the trace
  * (`periodRange`): the trace starts on April 11, 2025, so Q2 '25 holds its days from then; the trace's last twelve
- * days, April 1 to 12, 2026, begin a quarter the trace does not finish, so no button but All holds them.
+ * days, April 1 to 12, 2026, begin a quarter the trace does not finish, so no button except All holds them.
  */
 export const PERIODS = Object.freeze([
   Object.freeze({ label: "All", firstDay: null, lastDay: null }),
