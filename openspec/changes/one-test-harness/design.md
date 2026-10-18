@@ -39,16 +39,20 @@ The names below are those after the earlier changes of the series:
 
 ### D1. The exports of `tests/fake_page.js`
 
-`tests/fake_page.js` is the one module through which a node test
+`tests/fake_page.js` is the one import through which a node test
 reaches the browser. Every later test uses these exports and no other
-stand-in for the browser:
+stand-in for the browser. The element is held in `tests/fake_element.js`
+and re-exported here: the fake in one module came to 347 lines, over
+the 300 a module may hold, so it is split by what each part holds, the
+element (about 200 lines) and the page (about 150), and a test still
+imports from `fake_page.js` alone:
 
 ```js
 /** The address the fake page is opened at, before its query and anchor. */
 export const PAGE_ADDRESS = "http://localhost/index.html";
 
 /** An element of the page, or the window: what the page's modules set on it and read from it (D2). */
-export class FakeElement { constructor(tag = "", id = "") }
+export { FakeElement } from "./fake_element.js";   // class FakeElement { constructor(tag = "", id = "") }
 
 /** The browser's history as the page uses it: entries, pushState, replaceState, back, forward (unchanged). */
 export class FakeHistory { constructor(window, address) }
@@ -75,17 +79,22 @@ export function deferred()
 Gone from it: `useFakeDocument` (`useFakePage` with no options does its
 job), `FakeFigureBody` (a test draws into the body that `renderFigure`
 makes, D2), and what belongs to one section's tests (D5): `EVERYTHING`
-and `controlsOf` to the explorer's fixtures, `TOPIC_ANCHORS`,
-`TOPIC_TITLES`, `topicSections` and `shownIds` to the page's.
+and `controlsOf` to the explorer's fixtures, `topicSections` and
+`shownIds` to the page's; `TOPIC_ANCHORS` and `TOPIC_TITLES` go (D5);
+and `fetchedAnswer` goes, since `useFakePage`'s `answers` do its job.
 
-`fake_page.js` imports nothing from `site/`, so that a fault in a page
-module never breaks the fake every test stands on. Its own tests stay
-in `tests/fake_page.test.js`, which `distributions-below` started.
+`fake_page.js` and `fake_element.js` import nothing from `site/`, so
+that a fault in a page module never breaks the fake every test stands
+on. The page's own tests stay in `tests/fake_page.test.js`, which
+`distributions-below` started; the element's are in
+`tests/fake_element.test.js`, a helper's test named after it, the one
+file that imports `fake_element.js` directly.
 
 ### D2. One `FakeElement`
 
-One class serves every element the tests make or the page's modules
-create through `document.createElement`, and the window. It has, as
+One class, in `tests/fake_element.js` and imported through
+`fake_page.js`, serves every element the tests make or the page's
+modules create through `document.createElement`, and the window. It has, as
 plain fields, what the modules set and read: `tag`, `id`, `className`,
 `textContent`, `value`, `hidden`, `dataset` (an object), `style` (an
 object), `attributes` (a `Map`), `classes` (the set `classList.toggle`
@@ -109,10 +118,13 @@ field the test reads back. Its methods:
 | `scrollIntoView()` | does nothing: the fake page has no layout |
 | `getBoundingClientRect()` | `{ left: 0, right: 0 }` |
 
-The selectors are `distributions-below`'s. This change adds one rule to
-them: a selector of any other form (`:not(…)`, `>`, `,`, `[class$=…]`)
-throws an `Error` naming it, so that a test never passes on a selector
-the fake misread.
+The selectors are `distributions-below`'s, and one more form of a
+simple selector: a tag followed by one data attribute, with or without
+a value (`button[data-copy]`, `tag[data-x="v"]`), by which the cite
+section's copy buttons are found. This change adds one rule to them: a
+selector of any other form (`:not(…)`, `>`, `,`, `[class$=…]`, a tag
+with a class or with two attributes) throws an `Error` naming it, so
+that a test never passes on a selector the fake misread.
 
 The other additions each replace a private fake:
 
@@ -140,7 +152,7 @@ checks every chart's name in Chromium.
 
 Not taken: a DOM library (happy-dom or jsdom) as a dev dependency. The
 page's modules use about twenty members of an element; the fake that
-has them is one module under 300 lines, read in one sitting, and its
+has them is two modules under 300 lines each (D1), read in one sitting, and its
 methods name exactly what the modules rely on. A whole DOM would hide
 that, would let a test lean on layout the page does not do in node, and
 would be a second npm dependency beside wrangler. Not taken either: a
@@ -229,7 +241,9 @@ Each fixture module imports only `fake_page.js` and the site's modules.
   each quarter's ends); `FAMILIES` (Kin and Other as the family
   drop-down offers them); `KIN_ROWS` and `dayRow(fields)` (a daily row
   of the explorer's answers, every count zero but those given);
-  `controlsOf(row)`, from `fake_page.js`; `pressedButtons(buttons)`; and
+  `MOUNT_ENTRIES` and `NO_FAMILY_ENTRIES` (the families and days, and
+  the no-family models, the controls are mounted with in both controls
+  files); `controlsOf(row)`, from `fake_page.js`; `pressedButtons(buttons)`; and
   `recordingExplorer()` (the page's part the controls are given,
   recording the queries written, the returns asked for, the choices
   drawn and the families whose models were asked for; today
@@ -237,6 +251,9 @@ Each fixture module imports only `fake_page.js` and the site's modules.
 - `tests/insights_fixtures.js`: `everyCard()`, `everyGroup()` and
   `cardOf(figure)`, over `TOPICS`; today `everyCard` and `cardOf` are
   written twice each and `everyGroup` once beside a third `everyCard`.
+  And `tickLabels(figure, axis)`, the tick labels of the axis of a
+  card's chart, which the caching and the balancing topics' tests both
+  read once D6 parts them.
 - `tests/page_fixtures.js`: `topicSections()`, a `section#insights`
   holding one `section#<id>` per topic of `TOPICS`, for a test that
   mounts the tabs without the page's start (a test that runs the start
@@ -257,9 +274,9 @@ tests between files in four places, each by that rule:
 | Today, after `one-vocabulary` | After this change |
 |---|---|
 | `insights_figure_card.test.js` | the module's own tests stay: the card's element, its parts, its Definition control, its parameters, a frozen card, a failed read. The checks of every card against its shipped answer (its kind's columns, its panels, its series, its palette, its legend, the index) move to `insights_cards_answers.test.js` |
-| `insights_cards_charts.test.js`, `insights_cards_caching_balancing.test.js` | the tests of one card move to the test of the topic module that declares it: `insights_workload.test.js`, `insights_tokens.test.js`, `insights_users.test.js`, `insights_evolution.test.js`, `insights_caching.test.js`, `insights_balancing.test.js`; a test of cards of two topics (the trace's day axis that the daily and the hourly lines share) stays in `insights_cards_charts.test.js`; `insights_cards_caching_balancing.test.js` goes |
+| `insights_cards_charts.test.js`, `insights_cards_caching_balancing.test.js` | the tests of one card move to the test of the topic module that declares it: `insights_workload.test.js`, `insights_tokens.test.js`, `insights_users.test.js`, `insights_evolution.test.js`, `insights_caching.test.js`, `insights_balancing.test.js`; a test of cards of two topics (the trace's day axis that the daily and the hourly lines share, and the colour of a count that the users' and the caching topics' cards take) stays in `insights_cards_charts.test.js`; `insights_cards_caching_balancing.test.js` goes |
 | `shared_layout.test.js` | its two tests of `index.html`'s sections and module move to `page_index.test.js`, the page's file beside its module's |
-| `plot_frame.test.js`, `charts_bands.test.js`, `page_topics.test.js`, `sections_hero.test.js`, `sections_team.test.js`, `insights_cards_answers.test.js` | lose or rewrite the tests of D7 |
+| `plot_frame.test.js`, `shared_layout.test.js`, `page_index.test.js`, `page_topics.test.js`, `sections_hero.test.js`, `sections_team.test.js`, `insights_cards_answers.test.js` | lose or rewrite the tests of D7 |
 
 The Insights' card checks were split in two by size: the caching and
 balancing cards in one file and the other four topics' in another, 367
@@ -289,12 +306,12 @@ removed guards what nothing brings back. These go:
 | "a chart's margins hold its 14.6 px tick labels and axis titles" (72, 48, 32), `plot_frame.test.js` | asserts the frame's margins against their own literals |
 | `assert.equal(CHART_HEIGHT, 240)` in "a chart is as tall as its card's height", `plot_frame.test.js` | the constant's literal; the same test's next asserts, that a chart takes `CHART_HEIGHT` where its card gives no height and the card's height where it does, stay |
 | "a dashed line is dashes of four pixels and gaps of three" (`DASH`), `plot_frame.test.js` | the constant's literal; the legend's "a dashed swatch is its colour in dashes of four pixels and gaps of three" checks the dash as drawn |
-| "the percentiles run from the 10th to the 90th" (`PERCENTILES`), `charts_bands.test.js` | copies the bands' columns; `insights_cards_answers` checks every bands card's answer for them, so a column that moves fails there |
+| "the percentiles run from the 10th to the 90th" (`PERCENTILES`), `charts_bands.test.js` (already gone, with `one-chart-interface`) | copies the bands' columns; `insights_cards_answers` checks every bands card's answer for them, so a column that moves fails there |
 | "the header links no About page", `shared_layout.test.js` | the header's links are checked as an exact list of four by "the header links the page's four sections by anchor alone"; an About link fails that |
-| `doesNotMatch(markup, /Copyright\|Accessibility\|footer-legal/)` in the footer's test, `shared_layout.test.js` | the footer's lists are checked exactly, and its text is a snapshot unit, so a returning line shows there |
+| `doesNotMatch(markup, /Copyright\|Accessibility\|footer-legal/)` in the footer's test, `shared_layout.test.js` (its title losing "and no copyright or policy text") | the footer's lists are checked exactly, and its text is a snapshot unit, so a returning line shows there |
 | `doesNotMatch(page, /class="eyebrow"/)`, `page_index.test.js` | a removed feature; every section's text is a snapshot unit |
 | "the hero has no eyebrow above its title", `sections_hero.test.js` | a removed feature; the hero is a snapshot unit, and "the title is the page's h1" stays |
-| "the six topics are in the order of their tabs" (`SELECTORS`), `page_topics.test.js` | after `one-home-per-rule` both sides are read from `TOPICS`, so it compares the list with itself |
+| "the six topics are in the order of their tabs" (`SELECTORS`), `page_topics.test.js` (already gone, with `one-home-per-rule`) | after `one-home-per-rule` both sides are read from `TOPICS`, so it compares the list with itself |
 | "every topic holds its cards in groups of the paper's runs" (`GROUP_CARD_COUNTS`), `page_topics.test.js` | copies the topic modules' groups; a card missing or added fails "every figure answer of the index is drawn once" and, with `ARTIFACT`, `test_figures_registry.py` |
 | "only the two share cards name the legend, and only the ratio, the TTL coverage and the routing are wide" (`SHARE_PANELS`, `WIDE_CARDS`), `page_topics.test.js` | copies three cards' `isWide` and two cards' `legend`; the spec's table names them, and moving a flag is the change itself |
 | `assert.deepEqual(Object.keys(PALETTES), [...])` in "a card naming a palette names one of the palettes", `insights_cards_answers.test.js` | copies the object's keys; the test's loop, that every card's palette is one of them, stays |
@@ -310,7 +327,8 @@ Rewritten, not dropped:
   own, as every module does.
 - `shared_layout.test.js`'s URL keys, `model=qwen3&period=q3`, use the
   `period` key that the page no longer reads. They become live keys,
-  `family=qwen&endpoint=chat`.
+  `family=qwen&endpoint=chat`, in the header's tests and in the query
+  string's, which used `period` too.
 
 Kept: the kinds' columns (`KIND_COLUMNS`), the spec's contract of the
 figure answers, and the card's fields (`CARD_FIELDS`), which catch a
@@ -384,19 +402,20 @@ fixture's own arithmetic with itself.
 - `test_site_database.py` imports `test_queries` for `SITE_TABLES`. The
   query test "reads only the site's tables" takes the tables from the
   `connection` fixture (`SHOW TABLES`), so the database is the one list.
-  `test_site_database.py` keeps its literal set of the eight names: that
-  test is where the eight are stated.
+  `test_site_database.py` keeps its literal set of the nine names: that
+  test is where the nine are stated.
 - `test_queries.py`'s docstring that names `test_tables.FIXTURE_HISTOGRAMS`
   names `fixture_trace.WEEKLY_HISTOGRAMS`.
 
-Two tests in `test_repository.py` hold the rules of this change, each
-with a planted case, as its existing tests do:
+Two tests hold the rules of this change, each with a planted case, as
+the existing rule tests do:
 
-- no Python test module imports a module named `test_*`, and no node
-  test file imports a `*.test.js` file;
-- no file of `tests/` but `fake_page.js` assigns a property of
-  `globalThis` or mocks a method of it (`globalThis.<name> =`,
-  `mock.method(globalThis`).
+- in `test_naming.py`, beside the rule on test files' names: no Python
+  test module imports a module named `test_*`, and no node test file
+  imports a `*.test.js` file;
+- in `test_repository.py`: no file of `tests/` but `fake_page.js`
+  assigns a property of `globalThis` or mocks a method of it
+  (`globalThis.<name> =`, `mock.method(globalThis`).
 
 ### D10. A readable run
 

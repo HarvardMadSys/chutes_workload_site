@@ -20,6 +20,7 @@ import fixture_trace
 from repository_root import ROOT
 from site_data import loading, months, site_database, tables
 
+
 class WeekGroup(typing.NamedTuple):
     """A trace week's requests of one family, kept model (None for the family's other models) and endpoint group that
     recorded one metric."""

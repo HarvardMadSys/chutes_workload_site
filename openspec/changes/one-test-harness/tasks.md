@@ -46,26 +46,30 @@ mentions in the same commit.
 - [ ] 2.3 `tests/counted_requests.py` of design D9;
       `test_built_data.py`, `test_answers.py` and `test_tables.py` use
       it; `test_queries.py` reads the site's tables from the database;
-      `test_site_database.py` states its eight; the repository test
-      that no test module imports a test module, with its planted case.
+      `test_site_database.py` states its nine; the naming test
+      (`test_naming.py`) that no test module imports a test module, with
+      its planted case.
       *Verify:* `grep -nE "^(import|from) test_" tests/*.py` finds
-      nothing; the new repository test fails on a planted
+      nothing; the new naming test fails on a planted
       `import test_tables`; snapshots unchanged.
 
 ## 3. One fake page
 
 - [ ] 3.1 `tests/fake_page.js` with the exports of design D1: the one
-      `FakeElement` of design D2, `useFakePage` of design D3,
-      `shippedAnswer` of design D4. `tests/fake_page.test.js` gains
-      tests of a selector of another form throwing, `closest`,
-      `parentElement` set by `append` and `replaceChildren`, the
-      `innerHTML` reading, and `useFakePage`'s answers, 404, rejected
-      promise, `reads`, `onRead`, `frames` and the globals removed after
-      the test. `useFakeDocument`, `FakeFigureBody`, `EVERYTHING`,
-      `controlsOf`, `TOPIC_ANCHORS` and `TOPIC_TITLES` stay until 3.7,
-      so that every file still runs.
+      `FakeElement` of design D2, held in `tests/fake_element.js` and
+      re-exported, `useFakePage` of design D3, `shippedAnswer` of design
+      D4. `tests/fake_element.test.js` tests a selector of another form
+      throwing, `closest`, `parentElement` set by `append` and
+      `replaceChildren` and the `innerHTML` reading;
+      `tests/fake_page.test.js` tests `useFakePage`'s answers, 404,
+      rejected promise, `reads`, `onRead`, `frames` and the globals
+      removed after the test. `useFakeDocument` and `FakeFigureBody`
+      stay until their last users move, and `EVERYTHING`, `controlsOf`,
+      `TOPIC_ANCHORS` and `TOPIC_TITLES` move to the section fixtures,
+      so that every file still runs and the fake stays under 300 lines.
       *Verify:* the new tests pass and every other test runs unchanged;
-      `fake_page.js` imports nothing from `site/`; snapshots unchanged.
+      `fake_page.js` and `fake_element.js` import nothing from `site/`;
+      snapshots unchanged.
 - [ ] 3.2 The legend's tests on the shared fake:
       `shared_legend.test.js` and `shared_legend_state.test.js`, the
       private `FakeElement` and `useFakeDocument` gone, `click()`

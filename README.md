@@ -518,10 +518,11 @@ site/                exactly the files that are deployed
                      figures/<figure>.json, and figures.json
 tests/               what make test runs
   conftest.py, fixture_artifact.py, fixture_plotdata.py, fixture_trace.py, repository_root.py
-                     the fixture artifact (a few rows of each cache, the model names, a figure list of ten figures,
-                     one per chart kind, with their plot-ready tables), a small trace whose requests add up to its
-                     daily rollup and its trace table counted by hand, the site's database over them, the
-                     artifact's checkout as ARTIFACT, the tracked files, the root folder
+                     the fixture artifact (a few rows of each cache, its daily rollup written row by row, the model
+                     names, a figure list of ten figures, one per chart kind, with their plot-ready tables), a small
+                     trace whose requests add up to that rollup and its trace table counted by hand
+                     (fixture_trace.py), the site's database over them, the artifact's checkout as ARTIFACT, the
+                     tracked files, the root folder
   test_loading.py, test_months.py, test_site_database.py, test_main.py
                      the data step on the fixture artifact, against values counted by hand
   test_queries.py    every .sql file run over the fixture: its columns, the tables it reads, its numbers
@@ -535,7 +536,8 @@ tests/               what make test runs
                      the step
   counted_requests.py
                      the requests per family and metric that the daily and the histogram answers count, which
-                     test_answers.py and test_built_data.py compare
+                     test_answers.py and test_built_data.py compare, and each metric's counted column of the daily
+                     rollup, which test_tables.py reads
   test_built_data.py
                      the shipped data: tracked, the figure answers its index lists, every answer current, the
                      histograms by family counting each family's requests as the daily answer does, and with
@@ -558,12 +560,14 @@ tests/               what make test runs
                      and no other topic's figure answers requested; framed lines on standard error when Chromium
                      cannot start
   snapshots/         one folder per page state, one text file per unit, rewritten by make snapshots
-  *.test.js          node --test: one file per JavaScript module with pure functions, and the checks of the whole
-                     page below. Each is named after the folder of the module it tests and then the module, the
-                     folder written once (charts_lines.test.js for charts/lines.js, traffic.test.js for
-                     traffic/traffic.js); a module's second file adds what it tests, and a check over every Insights
-                     card is insights_cards_<what>.test.js. Three are named otherwise: palette_contrast,
-                     module_headers, and the test of a test helper, named after it (fake_page.test.js)
+  *.test.js          node --test, with the spec reporter (one line per test, the failing ones listed again at the
+                     end with their file and line): one file per JavaScript module with pure functions, and the
+                     checks of the whole page below. Each is named after the folder of the module it tests and then
+                     the module, the folder written once (charts_lines.test.js for charts/lines.js, traffic.test.js
+                     for traffic/traffic.js); a module's second file adds what it tests, and a check over every
+                     Insights card is insights_cards_<what>.test.js. Named otherwise: palette_contrast,
+                     module_headers, and the test of a test helper, named after it (fake_page.test.js,
+                     fake_element.test.js)
   insights_cards_words.test.js
                      the word counts of every card's insight, caption and definition, of each topic's takeaway,
                      and of each group's heading and takeaway
@@ -602,11 +606,13 @@ tests/               what make test runs
   shared_legend_state.test.js
                      a legend that other charts follow: its first hidden set, each click's set told, and the note
                      of every series hidden in another chart
-  fake_page.js       the stand-in for the browser that the node tests drive the page's modules with: the
-                     page's document, window, fetch and animation frames for one test (useFakePage), the
-                     browser's history and an answer the page ships; it exports the element of fake_element.js
+  fake_page.js       the stand-in for the browser that the node tests drive the page's modules with, the one
+                     import of it: the page's document, window, fetch and animation frames for one test
+                     (useFakePage), the browser's history and an answer the page ships (shippedAnswer); it
+                     re-exports the element of fake_element.js
   fake_element.js    the one stand-in for an element or the window: found by selector (querySelector,
-                     querySelectorAll, closest), its parent, and the elements of markup written into it
+                     querySelectorAll, closest), a selector of another form throwing, its parent, and the
+                     elements of markup written into it
   traffic_fixtures.js
                      the Traffic Explorer's tests' choice of everything, the trace's days and families the controls
                      are mounted with, Kin's daily answer by model and a daily row (dayRow), a controls row's

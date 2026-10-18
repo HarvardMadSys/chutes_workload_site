@@ -34,8 +34,10 @@ the topics declared once of `one-home-per-rule`.
 
 ## What Changes
 
-- **One fake page.** `tests/fake_page.js` holds one `FakeElement` for
-  every element, one `useFakePage` that sets `document`, `window` with
+- **One fake page.** `tests/fake_page.js` is the one import of the
+  fake: one `FakeElement` for every element (held in
+  `tests/fake_element.js`, which it re-exports), one `useFakePage` that
+  sets `document`, `window` with
   its history, `fetch`, `requestAnimationFrame` and `ResizeObserver` for
   one test and removes them after it, and one `shippedAnswer`. The
   legend's and the figure card's private fakes, `FakeCardPart`,
@@ -49,9 +51,10 @@ the topics declared once of `one-home-per-rule`.
   of every card against its answer leave the figure card's own test for
   `insights_cards_answers.test.js`; the index page's tests leave the
   layout's. Every name follows `one-vocabulary`'s rule.
-- **Restating tests dropped.** Up to eight tests and four asserts that
-  copy a constant or a list, or guard a removed feature, go; the Team's
-  test checks its markup instead of copying its five authors.
+- **Restating tests dropped.** Six tests and four asserts that copy a
+  constant or a list, or guard a removed feature, go (two more of the
+  kind were gone already); the Team's test checks its markup instead of
+  copying its five authors.
 - **The fixture's trace table by hand.** `tests/fixture_trace.py` holds
   the fixture trace and its trace table counted by hand. The tests'
   site database is opened over that table and no longer runs the
@@ -64,25 +67,27 @@ the topics declared once of `one-home-per-rule`.
   line per test, and the failing tests listed again at the end with
   their file and line.
 - **The rules are tested.** The repository test fails on a browser
-  global set outside `fake_page.js` and on a test module importing a
-  test module.
+  global set outside `fake_page.js`, and the naming test on a test
+  module importing a test module.
 
 ## What it moves
 
 - Nothing under `site/`, `site_data/`, `tables/` or `tests/snapshots/`
   changes. The snapshots must not change; that is the check that no
   site code moved.
-- New in `tests/`: the three fixture modules,
-  `insights_cards_answers.test.js`, `page_index.test.js`, the six topic
-  modules' tests, `fixture_trace.py` and `counted_requests.py`;
+- New in `tests/`: `fake_element.js` and `fake_element.test.js`, the
+  three fixture modules, `insights_cards_answers.test.js`,
+  `page_index.test.js`, the six topic modules' tests, `fixture_trace.py`
+  and `counted_requests.py`;
   `insights_cards_caching_balancing.test.js` goes. README's layout block
   names the test files, and `test_readme.py` requires every name to
   exist, so its `tests/` entries follow in the same commit, as do
   CONTRIBUTING's mentions of a test file. `one-home-per-fact` rewrites
   both documents afterwards.
-- The node suite loses up to eight tests and four asserts (design D7)
-  and gains the fake page's own tests; pytest gains two repository
-  tests.
+- The node suite loses six tests and four asserts (design D7) and
+  gains the fake's own tests, 427 tests before and 436 after; pytest
+  gains the two rules' tests, each with its planted case, 176 before
+  and 180 after.
 - The pytest fixture `fixture_trace` becomes `trace_file`, since the new
   module `fixture_trace.py` takes the name.
 

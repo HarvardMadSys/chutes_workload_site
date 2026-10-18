@@ -2,8 +2,8 @@
  * The one stand-in for an element of the page, or for the window, that the node tests use (`FakeElement`): the fields
  * and methods the page's modules set and call, an element found under another by a tag, a class, an id, a data
  * attribute or a tag with a data attribute, or a chain of them, its nearest ancestor that one matches, and the elements
- * of markup written into it. The tests import it from `fake_page.js`, the one module through which they reach the
- * browser.
+ * of markup written into it. The tests import it through `fake_page.js`, the one import through which they reach the
+ * browser, but its own test, `fake_element.test.js`, which imports it here.
  */
 
 // The five forms of a simple selector the fake element reads, each matched whole: a tag, a class, an id, a data
