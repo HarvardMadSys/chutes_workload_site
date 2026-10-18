@@ -186,8 +186,9 @@ to the page module's `SECTIONS`. A section of `main.page` is laid out
 at the page's width by the stylesheet's `.page > section`, which caps it
 at the page's width less the gutters, `.page` keeping the gutters as its
 padding; the Traffic Explorer's `#traffic` alone is uncapped. A new
-topic of figures is a module of `js/insights/` instead, added to `FIGURE_SECTIONS` and to `index.html`'s
-Insights, where it becomes a tab.
+topic of figures is a module of `js/insights/` instead, added to
+`FIGURE_SECTIONS` and to `index.html`'s Insights, where it becomes a
+tab.
 
 ## Patterns to copy
 
@@ -472,11 +473,11 @@ table and the card's words.
 Overview's `donut` and the Traffic Explorer's `stacked_bars`, and the
 figures' `lines` (a CDF among them), `bands`, `cells`, `raster`,
 `scatter`, `boxes` and `bars`, the stacked bars drawing the two monthly
-shares too and the lines the Traffic Explorer's distribution charts. These nine
-chart modules are not quite a card's nine kinds: `CHART_KINDS` of
-`insights/figure_card.js` names `cdf`, drawn by `lines`, and no `donut`,
-which only the Overview draws, for its two mixes, by family and by
-endpoint. Each module exports one draw function of one
+shares too and the lines the Traffic Explorer's distribution charts.
+These nine chart modules are not quite a card's nine kinds:
+`CHART_KINDS` of `insights/figure_card.js` names `cdf`, drawn by
+`lines`, and no `donut`, which only the Overview draws, for its two
+mixes, by family and by endpoint. Each module exports one draw function of one
 interface, `draw<Kind>(rows, body, colours, parameters, hidden)`: the rows
 of its answer, the place to draw into, `colours.series` (the Map of its
 series' colours in the legend's order), its named parameters (a card's
@@ -636,13 +637,13 @@ Insights' figures are drawn from their plot-ready tables.
   `NARROW_PLOT_WIDTH`, more than `MAX_NARROW_TICKS` ticks are thinned to
   every other one. Its labels are slanted so that thirteen fit a
   card. The explorer's distribution charts are ticked as "The
-  distribution charts" says. A figure's axes are the paper's: its titles, its log scales,
-  ticked at the powers of ten (every second or more past
-  `MAX_LOG_TICKS`), its limits, and its ticks where the card gives them,
-  so that a phone's axis does not run its labels together. The one
-  exception is the per-user inter-arrival band card, on a linear axis to
-  `IAT_CAP_SECONDS` (400 s) that clips its bands, so that the median's
-  move over the year shows. One format per
+  distribution charts" says. A figure's axes are the paper's: its
+  titles, its log scales, ticked at the powers of ten (every second or
+  more past `MAX_LOG_TICKS`), its limits, and its ticks where the card
+  gives them, so that a phone's axis does not run its labels together.
+  The one exception is the per-user inter-arrival band card, on a
+  linear axis to `IAT_CAP_SECONDS` (400 s) that clips its bands, so that
+  the median's move over the year shows. One format per
   quantity: an axis's counts as "1k", "600M" (`formatCountTick`); a value
   in a legend, a tooltip, a tile or the stats strip with one decimal kept
   ("129.1k", "94.0%", "4.3 s", and three figures in billions, "2.04B"),

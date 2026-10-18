@@ -106,18 +106,18 @@ function mountSlider(context, choice) {
     onInput: (range) => page.inputs.push(range),
     onChange: (range) => page.changes.push(range),
   });
-  const [track, dayRow] = page.container.children;
-  const [span, fromInput, toInput] = track.children;
-  const [fromDay, toDay] = dayRow.children;
+  const track = page.container.querySelector(".range-track");
+  const span = page.container.querySelector(".range-span");
+  const [fromInput, toInput] = page.container.querySelectorAll(".range-track input");
+  const [fromDay, toDay] = page.container.querySelectorAll(".range-day");
   return { ...page, track, span, from: { input: fromInput, day: fromDay }, to: { input: toInput, day: toDay } };
 }
 
 test("the range is one track holding the bar and the two handles, over a row of the days at its ends", (context) => {
   const page = mountSlider(context, { from: "2025-07-03", to: "" });
   assert.deepEqual(page.container.children.map((child) => child.className), ["range-track", "range-days"]);
-  assert.deepEqual(page.track.children.map((child) => child.tag), ["div", "input", "input"]);
-  assert.equal(page.span.className, "range-span");
-  assert.deepEqual([page.from.day.className, page.to.day.className], ["range-day", "range-day"]);
+  assert.deepEqual(page.track.children, [page.span, page.from.input, page.to.input], "the bar, then the handles");
+  assert.deepEqual(page.container.querySelector(".range-days").children, [page.from.day, page.to.day]);
   assert.deepEqual([page.from.day.textContent, page.to.day.textContent], ["2025-07-03", "2025-07-09"]);
 });
 

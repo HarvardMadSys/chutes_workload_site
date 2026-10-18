@@ -134,10 +134,10 @@ and `querySelectorAll(selector)`: `selector` is one simple selector, a
 tag (`input`), a class (`.range-track`), an id (`#traffic-explorer`) or
 a data attribute (`[data-copy]`, `[data-copy="bibtex"]`), or several
 simple selectors parted by spaces, each matched among the descendants
-of the last match, as the browser does; `matches(simple)` on an
-element decides each. The fake keeps its `classes` set and its
-`attributes` map, so matching is a lookup; about thirty lines, with a
-test of their own in `tests/fake_page.test.js`. The explorer's tests
+of the last match; `matches(simple)` on an element decides each. The
+fake keeps its `classes` set and its `attributes` map, so matching is a
+lookup; about sixty lines with the check that throws on a selector of
+an unread form, with a test of their own in `tests/fake_page.test.js`. The explorer's tests
 (`traffic.test.js`, `traffic_tiles.test.js`,
 `traffic_distribution_charts.test.js`, `traffic_controls.test.js`,
 `traffic_period_buttons.test.js`) then reach the controls, the tiles,
@@ -147,8 +147,8 @@ selectors the stylesheet and `tests/snapshot_traffic.py` use; the
 and the Insights' tests keep their child indices until
 `one-test-harness`.
 
-Not taken: a DOM library under node. The fakes are forty lines the
-reader can hold; a library is a dependency and a second DOM to learn.
+Not taken: a DOM library under node. The fake is code the reader can
+hold; a library is a dependency and a second DOM to learn.
 
 ### D6. One treatment of a family that cannot be read
 
@@ -157,7 +157,9 @@ error in the bars and the three charts and leaves the tiles without
 percentiles (`showChoiceError`), while the same failure on a choice
 shows the error in the bars alone and snaps the drop-down back. Both
 now go through `showChoiceError`; the controls still snap back to the
-family shown last, as they do. The explorer's header lists, in one
+family shown last, as they do. An answer still loading from before the
+failure draws nothing over the error: `view.showingError` stands from
+the failure until the next choice is drawn. The explorer's header lists, in one
 sentence, which failure shows where.
 
 ### D7. Tests
@@ -176,8 +178,10 @@ sentence, which failure shows where.
   row of three); the histogram answer read once the bars are drawn,
   the charts and the notes loading until then; a failed read, at the
   opening and on a choice, showing the error in the bars and the three
-  places and the tiles without percentiles; the legend redrawing the
-  charts.
+  places and the tiles without percentiles, also when an earlier
+  histogram answer lands after the failure. The legend's redrawing of
+  the charts is not a node test, since the bars need Plot, from the
+  CDN: the charts' unit test and the Chromium check cover the press.
 - `tests/snapshot_traffic.py`: the charts read from
   `.traffic-distributions .distribution-chart`, named by their
   accessible name as now; `make snapshots` once, the three charts'

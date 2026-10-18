@@ -55,12 +55,13 @@ the paper, surfaces and inks retuned dark. The ten series slots SHALL
 be the same hues in both schemes, at least 30° apart in OKLCH, each at
 least 3:1 in contrast against its scheme's card, and a test SHALL check
 every colour token's contrast in both schemes. Every section SHALL be
-laid out at the page's width, centred, except the Traffic Explorer's,
-which SHALL span the window less the gutters. The gutters SHALL be the
-page's padding, and the width a cap on each section, the page's width
-less the gutters, which the Traffic Explorer's section alone does not
-take; the header and the footer SHALL cap themselves at the page's
-width, gutters included, so a section's edges meet their content's.
+laid out at the page's content width, centred, except the Traffic
+Explorer's, which SHALL span the window less the gutters. The gutters
+SHALL be the page's padding, and the page's content width, its width
+less the gutters, a cap on each section that the Traffic Explorer's
+alone does not take; the header and the footer SHALL cap themselves at
+the page's width, gutters included, so a section's edges meet their
+content's.
 
 #### Scenario: A heading
 - **WHEN** any heading renders
@@ -72,4 +73,4 @@ width, gutters included, so a section's edges meet their content's.
 
 #### Scenario: A section's width
 - **WHEN** the window is wider than the page's width
-- **THEN** every section except the Traffic Explorer's SHALL be centred at the page's width less the gutters, its edges under the header's content's, and the explorer's SHALL reach the gutters at both sides, with no horizontal scroll
+- **THEN** every section except the Traffic Explorer's SHALL be centred at the page's content width, its edges under the header's content's, and the explorer's SHALL reach the gutters at both sides, with no horizontal scroll

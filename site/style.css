@@ -866,6 +866,11 @@ section[id] {
   border-radius: var(--radius-small);
 }
 
+/* A family read that fails as the page opens leaves the list empty: no bordered line above the error. */
+.traffic-tiles:empty {
+  display: none;
+}
+
 @media (max-width: 50rem) {
   .traffic-tiles {
     grid-template-columns: repeat(2, minmax(0, 1fr));

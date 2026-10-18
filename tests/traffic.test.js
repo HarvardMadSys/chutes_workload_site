@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { runTraffic } from "../site/js/traffic/traffic.js";
-import { controlsOf, deferred, FakeElement, PAGE_ADDRESS, runFrames, settled } from "./fake_page.js";
+import { controlsOf, deferred, FakeElement, fetchedAnswer, PAGE_ADDRESS, runFrames, settled } from "./fake_page.js";
 
 // The answer files the explorer reads: every family's rows, and the family Kin's by model.
 const FAMILY_FILE = "data/all/explore/daily_by_family.json";
@@ -60,14 +60,6 @@ function runExplorer(context, query, answers) {
   return { ...page, running: runTraffic(page.container, explorerContext) };
 }
 
-// The response to fetching an answer whose promised rows are `rows`, or a 404 where there are none.
-function fetchedAnswer(rows) {
-  if (rows === undefined) {
-    return { ok: false, status: 404, statusText: "Not Found" };
-  }
-  return { ok: true, json: () => rows };
-}
-
 // What the bars' body in the explorer's `container` holds: the class of its paragraph, "note" once bars of no
 // request are drawn, or "none" before the bars' figure is placed or while its body is empty.
 function barsState(container) {
@@ -90,8 +82,7 @@ test("the explorer loads until the URL's family is read; one that cannot be show
     assert.deepEqual(page.container.children.map((child) => child.className), ["loading"]);
     kin.reject(new Error("Could not fetch kin"));
     await page.running;
-    const [controls] = page.container.children;
-    assert.equal(controls.className, "controls traffic-controls");
+    const controls = page.container.querySelector(".traffic-controls");
     assert.equal(controlsOf(controls).family.value, "", "the controls show the choice without the family");
     const barsNote = page.container.querySelector(".traffic-bars p");
     assert.deepEqual([barsNote.className, barsNote.textContent], ["note is-error", "Could not fetch kin"]);
@@ -286,12 +277,17 @@ test("a failed histogram read shows its error in the charts, logged once, the no
 
 test("a family that cannot be read on a choice shows its error in the bars and charts, the tiles without percentiles",
   async (context) => {
+    // The opening's histogram answer lands after the failed choice, and draws nothing over its error.
+    const histograms = deferred();
+    const answers = { [FAMILY_FILE]: FAMILY_ROWS, [HISTOGRAMS_FILE]: histograms.promise };
     // No row is of the endpoint group chosen, so the bars, which node cannot draw without Plot, are a note.
-    const page = runExplorer(context, "?endpoint=completion", { [FAMILY_FILE]: FAMILY_ROWS, [HISTOGRAMS_FILE]: [] });
-    await page.running;
+    const page = runExplorer(context, "?endpoint=completion", answers);
+    await settled();
     const { tiles } = explorerParts(page.container);
     const family = chooseFamily(page.container, "kin");
     await settled();
+    histograms.resolve([]);
+    await page.running;
     assert.equal(page.container.querySelector(".traffic-bars p").className, "note is-error");
     assert.deepEqual(chartStates(page.container), ERROR_STATES);
     assert.deepEqual(tileValues(tiles), ["0", "—", "—", "—"], "the tiles keep their numbers");

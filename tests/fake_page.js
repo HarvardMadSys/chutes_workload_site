@@ -1,7 +1,8 @@
 /**
  * Stand-ins for the parts of the page the node tests drive, as node has no page of its own: an element, found under
  * another by a tag, a class, an id or a data attribute, or a chain of them; the Traffic Explorer's controls in its
- * controls row; a figure's body with its legend's place, the topic sections the tabs read, and the browser's history.
+ * controls row; a figure's body with its legend's place, the topic sections the tabs read, the browser's history, and
+ * the response to fetching an answer.
  */
 
 /** The topics' anchors on the page, in the order of their tabs. */
@@ -31,6 +32,14 @@ export function useFakeDocument(context) {
 /** Wait until every promise a click or a draw started, and that can settle, has: a redraw runs after its click returns. */
 export function settled() {
   return new Promise((resolve) => setImmediate(resolve));
+}
+
+/** The response to fetching an answer whose promised rows are `rows`, or a 404 where there are none. */
+export function fetchedAnswer(rows) {
+  if (rows === undefined) {
+    return { ok: false, status: 404, statusText: "Not Found" };
+  }
+  return { ok: true, json: () => rows };
 }
 
 /** Run the animation frames asked for, as the browser does before it paints. */
@@ -142,7 +151,7 @@ export class FakeElement {
   /**
    * Every element under this one that `selector` finds, in document order, each once: `selector` is one simple selector
    * of `matches`, or several parted by spaces, the first matched among all the elements under this one and each next
-   * among the elements under each match of the one before, as the browser does.
+   * among the elements under each match of the one before.
    */
   querySelectorAll(selector) {
     const simples = selector.trim().split(/\s+/);
