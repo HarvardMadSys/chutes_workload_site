@@ -13,8 +13,9 @@ written once, with the first state: the page's hero, stats strip, Overview, Traf
 Each state also checks that the page, opened at a topic, requested no other topic's figure answers.
 
 Regenerate with `make snapshots` when a change is meant to alter a chart or a text, and review the diff of
-`tests/snapshots/` like code: it is what a visitor will see differently. A data rebuild changes it too. Compare skips,
-saying so, where Chromium is not installed (`make setup-browser`). Plot, from jsDelivr, and the fonts, from Google, are
+`tests/snapshots/` like code: it is what a visitor will see differently. A data rebuild changes it too. Where Chromium
+cannot start (`make setup-browser` installs it), compare skips and exits 0, so the rest of `make test` still counts,
+but says so in framed lines on standard error (`SKIP_MESSAGE`). Plot, from jsDelivr, and the fonts, from Google, are
 part of what is compared, so the test needs the network: offline it fails, naming the requests that failed.
 
 The site is served from `site/` by Python's own HTTP server on a free port and opened in headless Chromium, at a fixed
@@ -65,7 +66,14 @@ TILE_VALUE = "#traffic-explorer .traffic-tiles li strong"  # the value of each o
 A_DIGIT = re.compile(r"\d")  # a tile showing a number, not its loading or missing text
 MONTH_COUNT = re.compile(r"\d+ months? of")  # the hero's lede and the footer's line, once the totals give the months
 FIGURE_ANSWER = re.compile(r"/data/all/figures/(?P<figure>[^/?#]+)\.json$")  # the address of a figure's answer
-SKIP_MESSAGE = "snapshots skipped: Chromium could not start ({reason}). `make setup-browser` installs it."
+# What the test prints to standard error, as the last thing `make test` prints, when Chromium cannot start: framed, so
+# that a skip is not read as a pass.
+SKIP_MESSAGE = """\
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SNAPSHOTS SKIPPED: Chromium could not start ({reason}).
+No chart, legend or text of the page was compared.
+Run `make setup-browser`, then `make test` again.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"""
 
 
 class PageError(Exception):
@@ -264,7 +272,8 @@ def parse_arguments(arguments: list[str]) -> argparse.Namespace:
 
 def main(arguments: list[str]) -> int:
     """Compare the site with its snapshots, or with `--write` rewrite them; the exit code is 1 when a unit changed or
-    the site could not be read, 0 when Chromium cannot start and the comparison is skipped."""
+    the site could not be read, 0 when Chromium cannot start and the comparison is skipped, saying so in
+    `SKIP_MESSAGE`'s framed lines on standard error."""
     write = parse_arguments(arguments).write
     with served_site(SITE_FOLDER) as address, playwright.sync_api.sync_playwright() as browsers:
         try:
@@ -272,7 +281,7 @@ def main(arguments: list[str]) -> int:
         except (playwright.sync_api.Error, AssertionError) as error:  # Chromium is not installed, or cannot start on this machine
             if write:
                 raise
-            print(SKIP_MESSAGE.format(reason=str(error).splitlines()[0]))
+            print(SKIP_MESSAGE.format(reason=str(error).splitlines()[0]), file=sys.stderr)
             return 0
         try:
             files = snapshot_files(read_states(browser, address))
