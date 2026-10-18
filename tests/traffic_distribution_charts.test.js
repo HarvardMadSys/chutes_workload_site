@@ -31,7 +31,7 @@ function placeTexts(places) {
 
 // A histogram row of the trace's first week, of the family `family`, of the metric `metric` in the bin `bin`.
 function histogramRow(family, metric, bin) {
-  return { week: 0, first_day: "2025-04-11", family, metric, bins: [bin], requests: [3] };
+  return { week: 0, first_day: "2025-04-11", last_day: "2025-04-17", family, metric, bins: [bin], requests: [3] };
 }
 
 test("a TTFT tick is written as a duration under a minute and in seconds from a minute", () => {

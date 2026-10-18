@@ -1,4 +1,5 @@
-"""Trace months: each trace day's calendar day, its trace month and the calendar month that month is labelled with."""
+"""Trace months and weeks: each trace day's calendar day, its trace month and the calendar month that month is
+labelled with; each trace week's first and last calendar day."""
 
 import datetime
 
@@ -50,3 +51,25 @@ def test_the_calendar_s_days_are_dates_in_the_database() -> None:
     connection = duckdb.connect()
     connection.register("trace_calendar", months.trace_calendar(datetime.date(1970, 1, 3)))
     assert connection.table("trace_calendar").types == ["DATE", "DATE", "BIGINT", "VARCHAR"]
+
+
+def test_a_trace_week_is_seven_trace_days_from_the_trace_s_first() -> None:
+    weeks = months.trace_weeks(datetime.date(1970, 1, 15)).to_pylist()
+    assert weeks == [
+        {"week": 0, "first_day": datetime.date(2025, 4, 11), "last_day": datetime.date(2025, 4, 17)},
+        {"week": 1, "first_day": datetime.date(2025, 4, 18), "last_day": datetime.date(2025, 4, 24)},
+        {"week": 2, "first_day": datetime.date(2025, 4, 25), "last_day": datetime.date(2025, 4, 25)},
+    ]
+
+
+def test_the_last_week_ends_on_the_last_trace_day() -> None:
+    weeks = months.trace_weeks(datetime.date(1971, 1, 2))
+    assert weeks.num_rows == 53
+    assert weeks.to_pylist()[-1] == {"week": 52, "first_day": datetime.date(2026, 4, 10),
+                                     "last_day": datetime.date(2026, 4, 12)}
+
+
+def test_the_weeks_are_integers_and_dates_in_the_database() -> None:
+    connection = duckdb.connect()
+    connection.register("trace_weeks", months.trace_weeks(datetime.date(1970, 1, 3)))
+    assert connection.table("trace_weeks").types == ["INTEGER", "DATE", "DATE"]

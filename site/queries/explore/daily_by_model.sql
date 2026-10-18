@@ -17,7 +17,6 @@ SELECT trace_calendar.calendar_day AS day,
 FROM daily_rollup
 JOIN trace_calendar ON trace_calendar.trace_day = daily_rollup.day::DATE
 LEFT JOIN family_models ON family_models.chute_id = daily_rollup.chute_id
-                       AND family_models.rank <= 8  -- the eight models a family's drop-down names
 WHERE daily_rollup.family = $family
 GROUP BY trace_calendar.calendar_day, family_models.chute_id, model, endpoint_group
 ORDER BY trace_calendar.calendar_day, model, endpoint_group;

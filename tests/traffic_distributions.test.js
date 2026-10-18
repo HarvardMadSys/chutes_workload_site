@@ -3,34 +3,28 @@ import { test } from "node:test";
 
 import {
   binMiddle, binTotals, binUpperEdge, cdfRows, choicePercentiles, histogramRowsInChoice, metricBins,
-  percentile, percentileText, requestTotal, weekLastDay, weeksInRange,
+  percentile, percentileText, requestTotal, weeksInRange,
 } from "../site/js/traffic/traffic_distributions.js";
 import { formatSignificantSeconds } from "../site/js/shared/format.js";
 
-// A histogram row of the week starting on `first_day`, of the family Kin's chat requests' input tokens.
+// A histogram row of the week from `first_day` to `last_day`, of the family Kin's chat requests' input tokens.
 function weekRow(fields) {
   return {
-    week: 0, first_day: "2025-04-11", family: "Kin", endpoint_group: "chat", metric: "input_tokens", bins: [40],
-    requests: [1], ...fields,
+    week: 0, first_day: "2025-04-11", last_day: "2025-04-17", family: "Kin", endpoint_group: "chat",
+    metric: "input_tokens", bins: [40], requests: [1], ...fields,
   };
 }
 
-// Three trace weeks, from April 11, April 18 and April 25, 2025.
+// Three trace weeks, from April 11, April 18 and April 25, 2025, the last ending on the trace's last day, April 26.
 const THREE_WEEKS = [
-  weekRow({ week: 0, first_day: "2025-04-11" }),
-  weekRow({ week: 1, first_day: "2025-04-18" }),
-  weekRow({ week: 2, first_day: "2025-04-25" }),
+  weekRow({ week: 0, first_day: "2025-04-11", last_day: "2025-04-17" }),
+  weekRow({ week: 1, first_day: "2025-04-18", last_day: "2025-04-24" }),
+  weekRow({ week: 2, first_day: "2025-04-25", last_day: "2025-04-26" }),
 ];
 
 function firstDays(rows) {
   return rows.map((row) => row.first_day);
 }
-
-test("a trace week's last day is six days after its first, across a month's and a year's end", () => {
-  assert.equal(weekLastDay("2025-04-11"), "2025-04-17");
-  assert.equal(weekLastDay("2025-04-28"), "2025-05-04");
-  assert.equal(weekLastDay("2025-12-29"), "2026-01-04");
-});
 
 test("a week is kept when it holds a chosen day, at either end of the range", () => {
   assert.deepEqual(firstDays(weeksInRange(THREE_WEEKS, "", "")), ["2025-04-11", "2025-04-18", "2025-04-25"]);
@@ -38,6 +32,8 @@ test("a week is kept when it holds a chosen day, at either end of the range", ()
   assert.deepEqual(firstDays(weeksInRange(THREE_WEEKS, "2025-04-18", "2025-04-24")), ["2025-04-18"]);
   assert.deepEqual(firstDays(weeksInRange(THREE_WEEKS, "2025-04-24", "")), ["2025-04-18", "2025-04-25"]);
   assert.deepEqual(firstDays(weeksInRange(THREE_WEEKS, "", "2025-04-17")), ["2025-04-11"]);
+  assert.deepEqual(firstDays(weeksInRange(THREE_WEEKS, "2025-04-26", "")), ["2025-04-25"]);
+  assert.deepEqual(firstDays(weeksInRange(THREE_WEEKS, "2025-04-27", "")), [], "the last week ends on its last day");
 });
 
 test("the histogram rows of a choice are those of its model and endpoint group in the weeks of its range", () => {
@@ -45,7 +41,7 @@ test("the histogram rows of a choice are those of its model and endpoint group i
     weekRow({ chute_id: "id-a", model: "A" }),
     weekRow({ chute_id: null, model: "Other Kin" }),
     weekRow({ chute_id: "id-a", model: "A", endpoint_group: "completion" }),
-    weekRow({ chute_id: "id-a", model: "A", first_day: "2025-04-18" }),
+    weekRow({ chute_id: "id-a", model: "A", first_day: "2025-04-18", last_day: "2025-04-24" }),
   ];
   const choice = { family: "kin", model: "id-a", endpoint: "chat", metric: "", from: "", to: "2025-04-17" };
   assert.deepEqual(histogramRowsInChoice(rows, choice), [rows[0]]);
@@ -55,7 +51,7 @@ test("the histogram rows of a choice are those of its model and endpoint group i
 test("the bin maps sum each series' requests by bin over the weeks, a series the colours do not name as Other", () => {
   const rows = [
     weekRow({ bins: [40, 41], requests: [3, 1] }),
-    weekRow({ first_day: "2025-04-18", bins: [39, 40], requests: [2, 5] }),
+    weekRow({ first_day: "2025-04-18", last_day: "2025-04-24", bins: [39, 40], requests: [2, 5] }),
     weekRow({ family: "Pi", bins: [41], requests: [7] }),
     weekRow({ family: "Rho", bins: [41], requests: [1] }),
     weekRow({ metric: "ttft", bins: [0], requests: [9] }),

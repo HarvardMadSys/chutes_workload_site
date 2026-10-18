@@ -19,9 +19,10 @@ EXPECTED_COLUMNS = {
                                "input_counted", "output_tokens", "output_counted", "ttft_sum", "ttft_counted"],
     "explore/endpoint_mix": ["endpoint_group", "requests"],
     "explore/family_mix": ["family", "family_slug", "requests"],
-    "explore/histograms_by_family": ["week", "first_day", "family", "endpoint_group", "metric", "bins", "requests"],
-    "explore/histograms_by_model": ["week", "first_day", "chute_id", "model", "endpoint_group", "metric", "bins",
-                                    "requests"],
+    "explore/histograms_by_family": ["week", "first_day", "last_day", "family", "endpoint_group", "metric", "bins",
+                                     "requests"],
+    "explore/histograms_by_model": ["week", "first_day", "last_day", "chute_id", "model", "endpoint_group", "metric",
+                                    "bins", "requests"],
     "explore/trace_totals": ["first_day", "last_day", "months", "requests", "input_tokens", "output_tokens", "users",
                              "models", "instances"],
     "setup/family_models": ["family", "chute_id", "name", "requests", "rank"],
@@ -29,7 +30,7 @@ EXPECTED_COLUMNS = {
 }
 # The tables of the site's database, the only ones a query of `SITE_TABLE_FOLDERS` may read.
 SITE_TABLES = {"trace_totals", "daily_rollup", "function_name_daily_requests", "chute_models", "model_families",
-               "trace_calendar", "family_models", "weekly_histograms"}
+               "trace_calendar", "trace_weeks", "family_models", "weekly_histograms"}
 SITE_TABLE_FOLDERS = ("explore/", "setup/")  # the folders of the queries over the site's tables alone
 # The only tables the trace query reads: the trace, and the models and families that place its requests.
 TRACE_QUERY_TABLES = {"trace", "chute_models", "model_families", "family_models"}
@@ -170,7 +171,8 @@ def test_a_family_s_daily_rows_name_its_models_and_its_rest(connection: duckdb.D
 def test_the_histograms_by_family_sum_a_family_s_models_bin_by_bin(connection: duckdb.DuckDBPyConnection) -> None:
     """Counted by hand from the trace table's rows (`test_tables.FIXTURE_HISTOGRAMS`): DeepSeek's chat_stream outputs
     in week 0 are chute-01's 29 in bin 14 and 1 in bin 18 and its other models' 10 in bin 13; its completion TTFTs in
-    week 4, which starts on trace day 28, are 14 in bin -8 and 1 in bin -4."""
+    week 4, which starts on trace day 28 and ends on the rollup's last, trace day 32, are 14 in bin -8 and 1 in bin
+    -4."""
     histograms = query_records(connection, "explore/histograms_by_family")
     keys = [(row["week"], row["family"], row["endpoint_group"], row["metric"]) for row in histograms]
     assert keys == [
@@ -181,11 +183,13 @@ def test_the_histograms_by_family_sum_a_family_s_models_bin_by_bin(connection: d
         (0, "gpt-oss", "chat", "input_tokens"), (0, "gpt-oss", "chat", "output_tokens"), (0, "gpt-oss", "chat", "ttft"),
         (4, "DeepSeek", "completion", "output_tokens"), (4, "DeepSeek", "completion", "ttft"),
     ]
-    assert histograms[4] == {"week": 0, "first_day": datetime.date(2025, 4, 11), "family": "DeepSeek",
+    assert histograms[4] == {"week": 0, "first_day": datetime.date(2025, 4, 11),
+                             "last_day": datetime.date(2025, 4, 17), "family": "DeepSeek",
                              "endpoint_group": "chat_stream", "metric": "output_tokens", "bins": [13, 14, 18],
                              "requests": [10, 29, 1]}
-    assert histograms[12] == {"week": 4, "first_day": datetime.date(2025, 5, 9), "family": "DeepSeek",
-                              "endpoint_group": "completion", "metric": "ttft", "bins": [-8, -4], "requests": [14, 1]}
+    assert histograms[12] == {"week": 4, "first_day": datetime.date(2025, 5, 9), "last_day": datetime.date(2025, 5, 13),
+                              "family": "DeepSeek", "endpoint_group": "completion", "metric": "ttft", "bins": [-8, -4],
+                              "requests": [14, 1]}
 
 
 def test_a_family_s_histograms_name_its_models_and_its_rest(connection: duckdb.DuckDBPyConnection) -> None:

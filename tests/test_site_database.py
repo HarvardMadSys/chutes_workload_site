@@ -1,5 +1,5 @@
-"""The site's database: every table of the artifact is registered under its name, with the calendar, the family models
-and the trace table its eight tables, and a query is run from its file."""
+"""The site's database: every table of the artifact is registered under its name, with the calendar, the weeks, the
+family models and the trace table its nine tables, and a query is run from its file."""
 
 import datetime
 
@@ -17,10 +17,10 @@ def test_every_artifact_table_is_registered_under_its_name(connection: duckdb.Du
                       "model_families": 3}
 
 
-def test_the_database_holds_eight_tables(connection: duckdb.DuckDBPyConnection) -> None:
+def test_the_database_holds_nine_tables(connection: duckdb.DuckDBPyConnection) -> None:
     tables = {row[0] for row in connection.execute("SELECT name FROM (SHOW TABLES)").fetchall()}
     assert tables == test_queries.SITE_TABLES
-    assert len(tables) == 8
+    assert len(tables) == 9
 
 
 def test_the_trace_table_is_registered_as_weekly_histograms(connection: duckdb.DuckDBPyConnection) -> None:
@@ -37,6 +37,11 @@ def test_the_calendar_runs_to_the_daily_rollup_s_last_day(connection: duckdb.Duc
     calendar = connection.table("trace_calendar").df()
     assert calendar["trace_day"].tolist()[-1].date() == datetime.date(1970, 2, 2)
     assert calendar["month"].tolist()[-1] == 2
+
+
+def test_the_weeks_run_to_the_daily_rollup_s_last_day(connection: duckdb.DuckDBPyConnection) -> None:
+    weeks = connection.table("trace_weeks").fetchall()
+    assert weeks[-1] == (4, datetime.date(2025, 5, 9), datetime.date(2025, 5, 13))
 
 
 def test_the_family_models_are_registered_when_the_database_opens(connection: duckdb.DuckDBPyConnection) -> None:

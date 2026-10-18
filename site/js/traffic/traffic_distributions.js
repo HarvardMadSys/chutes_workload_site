@@ -2,10 +2,11 @@
  * The distributions of the Traffic Explorer's chosen requests, plain functions tested with `node --test`: the histogram
  * rows of the trace weeks holding a chosen day, folded into bin maps (a Map from bin to requests), their CDF rows,
  * their percentiles and the texts these are written in. The rows are `explore/histograms_by_family`'s, `{ week,
- * first_day, family, endpoint_group, metric, bins, requests }`, or a family's `explore/histograms_by_model/<slug>`'s,
- * with `chute_id` and `model` for `family`: `metric` is `input_tokens`, `output_tokens` or `ttft`, and `bins` and
- * `requests` are parallel lists in bin order. A bin `b` holds the values `v` with `floor(BINS_PER_DOUBLING · log2(v))
- * = b`, a token count at or below 1 in bin 0; a TTFT is in seconds, and its bins can be negative.
+ * first_day, last_day, family, endpoint_group, metric, bins, requests }`, `first_day` and `last_day` the calendar days
+ * of the week's first and last trace day, or a family's `explore/histograms_by_model/<slug>`'s, with `chute_id` and
+ * `model` for `family`: `metric` is `input_tokens`, `output_tokens` or `ttft`, and `bins` and `requests` are parallel
+ * lists in bin order. A bin `b` holds the values `v` with `floor(BINS_PER_DOUBLING · log2(v)) = b`, a token count at
+ * or below 1 in bin 0; a TTFT is in seconds, and its bins can be negative.
  */
 
 import { formatSignificant, MISSING_TEXT } from "../shared/format.js";
@@ -18,12 +19,6 @@ import { isOfModelAndEndpoint } from "./traffic_filter.js";
  */
 export const BINS_PER_DOUBLING = 4;
 
-// A trace week is seven trace days, the trace's first week starting on its first day.
-const DAYS_PER_WEEK = 7;
-
-// The characters of a calendar day, "YYYY-MM-DD".
-const DAY_LENGTH = "YYYY-MM-DD".length;
-
 // The shares of the requests the tiles' percentiles are read at: the median and the 90th percentile.
 const P50_SHARE = 0.5;
 const P90_SHARE = 0.9;
@@ -31,20 +26,15 @@ const P90_SHARE = 0.9;
 // The mark before a percentile, which is read at its bin's middle and so is near the true one, not it.
 const NEAR = "≈";
 
-/** The last day of the trace week whose first day is `firstDay` ("YYYY-MM-DD"): six days after it. */
-export function weekLastDay(firstDay) {
-  return addDays(firstDay, DAYS_PER_WEEK - 1);
-}
-
 /**
  * The rows of `rows` whose trace week holds a day from `from` to `to` ("YYYY-MM-DD", each "" for the trace's end on
- * its side): a week whose `first_day` is at most `to` and whose last day is at least `from`.
+ * its side): a week whose `first_day` is at most `to` and whose `last_day` is at least `from`.
  */
 export function weeksInRange(rows, from, to) {
   const kept = [];
   for (const row of rows) {
     const startsByTo = to === "" || row.first_day <= to;
-    const endsByFrom = from === "" || weekLastDay(row.first_day) >= from;
+    const endsByFrom = from === "" || row.last_day >= from;
     if (startsByTo && endsByFrom) {
       kept.push(row);
     }
@@ -169,12 +159,6 @@ export function choicePercentiles(rows) {
  */
 export function percentileText(value, format = formatSignificant) {
   return value === null ? MISSING_TEXT : `${NEAR}${format(value)}`;
-}
-
-// The day `count` days after `day` ("YYYY-MM-DD"), counted in UTC, as the trace's days are.
-function addDays(day, count) {
-  const [year, month, dayOfMonth] = day.split("-").map(Number);
-  return new Date(Date.UTC(year, month - 1, dayOfMonth + count)).toISOString().slice(0, DAY_LENGTH);
 }
 
 // Add the requests of `row` to the bin map `bins`, bin by bin.

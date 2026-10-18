@@ -1,12 +1,14 @@
-"""Trace days and trace months, and the calendar dates they stand for.
+"""Trace days, trace weeks and trace months, and the calendar dates they stand for.
 
 The trace's timestamps count from its first day, which the caches write as 1970-01-01, so a cache's day is a trace
 day and its month a trace month: `date_trunc('month')` in that 1970 time, month 1 being 1970-01 and month 13 1971-01.
 A trace month is a month-long stretch of days from the trace's first day, not a calendar month. `trace_calendar`
 gives each trace day its calendar day and each trace month the calendar month its first day falls in, which labels
-the whole trace month, as the paper's axes do. All the data step's date arithmetic is here; the queries join the
-calendar. The browser holds copies of the first day (`TRACE_FIRST_DAY`, `site/js/shared/format.js`) and the months'
-names (`TRACE_MONTH_NAMES`, `site/js/insights/figure_card.js`), which the node tests tie to this calendar.
+the whole trace month, as the paper's axes do. A trace week is `DAYS_PER_TRACE_WEEK` trace days, week 0 the trace's
+first seven; `trace_weeks` gives each week the calendar days of its first and last trace day within the trace. All
+the data step's date arithmetic is here; the queries join the calendar and the weeks. The browser holds copies of the
+first day (`TRACE_FIRST_DAY`, `site/js/shared/format.js`) and the months' names (`TRACE_MONTH_NAMES`,
+`site/js/insights/figure_card.js`), which the node tests tie to this calendar.
 """
 
 import datetime
@@ -15,12 +17,19 @@ import pyarrow
 
 TRACE_START = datetime.date(2025, 4, 11)  # the trace's first day, 2025-04-11, as the artifact's `trace_totals` gives it
 TRACE_EPOCH = datetime.date(1970, 1, 1)  # the trace's first day as the caches write it
+DAYS_PER_TRACE_WEEK = 7  # a trace week is seven trace days, week 0 the trace's first seven
 # The calendar's columns and their types: days as dates, the trace month as a 64-bit integer.
 TRACE_CALENDAR_SCHEMA = pyarrow.schema([
     ("trace_day", pyarrow.date32()),
     ("calendar_day", pyarrow.date32()),
     ("month", pyarrow.int64()),
     ("calendar_month", pyarrow.string()),
+])
+# The weeks' columns and their types: the week as a 32-bit integer, the trace table's type, and its days as dates.
+TRACE_WEEKS_SCHEMA = pyarrow.schema([
+    ("week", pyarrow.int32()),
+    ("first_day", pyarrow.date32()),
+    ("last_day", pyarrow.date32()),
 ])
 
 
@@ -39,6 +48,24 @@ def trace_calendar(last_trace_day: datetime.date) -> pyarrow.Table:
         })
         trace_day += datetime.timedelta(days=1)
     return pyarrow.Table.from_pylist(rows, schema=TRACE_CALENDAR_SCHEMA)
+
+
+def trace_weeks(last_trace_day: datetime.date) -> pyarrow.Table:
+    """One row per trace week from week 0 to the week of `last_trace_day`: `week`, and the calendar days of its first
+    and last trace day within the trace (`first_day`, `last_day`), so the last week ends on `last_trace_day`'s."""
+    rows = []
+    week = 0
+    first_trace_day = TRACE_EPOCH
+    while first_trace_day <= last_trace_day:
+        last_day_of_week = first_trace_day + datetime.timedelta(days=DAYS_PER_TRACE_WEEK - 1)
+        rows.append({
+            "week": week,
+            "first_day": calendar_day(first_trace_day),
+            "last_day": calendar_day(min(last_day_of_week, last_trace_day)),
+        })
+        week += 1
+        first_trace_day += datetime.timedelta(days=DAYS_PER_TRACE_WEEK)
+    return pyarrow.Table.from_pylist(rows, schema=TRACE_WEEKS_SCHEMA)
 
 
 def calendar_day(trace_day: datetime.date) -> datetime.date:

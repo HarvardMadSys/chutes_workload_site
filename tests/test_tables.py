@@ -15,12 +15,10 @@ import pytest
 
 import fixture_artifact
 from repository_root import ROOT
-from site_data import loading, site_database, tables
+from site_data import loading, months, site_database, tables
 
 # Each metric of the trace table and the daily rollup's column counting the requests that recorded it.
 COUNTED_COLUMNS = {"input_tokens": "input_counted", "output_tokens": "output_counted", "ttft": "ttft_counted"}
-TRACE_EPOCH = pandas.Timestamp("1970-01-01")  # the trace's first day, from which its weeks count
-DAYS_PER_WEEK = 7  # a trace week is seven trace days
 # The fixture's weekly histograms, counted by hand from `fixture_artifact.TRACE_REQUESTS`: (week, family, chute id,
 # endpoint group, metric, bin, requests). An input of 100 tokens is in bin 26, 50 in 22 and 40 in 21; an output of 20
 # in 17, 13 in 14, 23 in 18, 10 in 13, 12 in 14 and 0 in 0; a TTFT of 6 s in bin 10, 0.5 s in -4 and 0.25 s in -8.
@@ -79,7 +77,7 @@ def rollup_counted_by_week(daily_rollup: pandas.DataFrame) -> dict[WeekGroup, in
     """The daily rollup's counted requests per trace week, family, kept model, endpoint group and metric: each
     metric's counted column summed over the week's days; a group none of whose requests recorded the metric is left
     out, as the table has no row for it."""
-    weeks = (daily_rollup["day"] - TRACE_EPOCH).dt.days // DAYS_PER_WEEK
+    weeks = (daily_rollup["day"] - pandas.Timestamp(months.TRACE_EPOCH)).dt.days // months.DAYS_PER_TRACE_WEEK
     counted = {}
     for metric, column in COUNTED_COLUMNS.items():
         sums = daily_rollup.groupby([weeks, "family", "chute_id", "function_group"], dropna=False)[column].sum()
