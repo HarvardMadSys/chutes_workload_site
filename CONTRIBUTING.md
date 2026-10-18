@@ -388,10 +388,10 @@ tests.
    `make snapshots`.
 
 **A pure JavaScript module with its test** (`site/js/shared/format.js`,
-`tests/shared_format.test.js`): a header saying what the module holds,
-exported functions each with a JSDoc stating its definition, module-level
-constants with a comment, helpers below the exports, and a `node --test`
-file with one `test()` per behaviour. The test file is named after the
+`tests/shared_format.test.js`): a header saying what the module holds;
+exported functions, each with a JSDoc stating its definition; module-level
+constants with a comment; helpers below the exports. Its `node --test`
+file has one `test()` per behaviour. The test file is named after the
 module, its folder's word first, as README's Layout says
 (`tests/test_naming.py` checks it). What two test modules share is a module
 of its own, as `tests/counted_requests.py`, never a test module imported.
@@ -457,8 +457,8 @@ table and the card's words.
    `data/paper/plotdata/<figure>.parquet` and lists the figure in its
    `config/figures.json`.
 2. **The card**, in its topic's module of `js/insights/`, in the group
-   whose run it belongs to, in the paper's order: its words, its `kind`,
-   and in `chart` the paper's axes (titles, log scales, limits and ticks)
+   whose run it belongs to, in the paper's order. It holds its words, its
+   `kind`, and in `chart` the paper's axes (titles, log scales, limits and ticks)
    and its kind's parameters, with `panels`, `legend`, `series` or
    `palette` where the figure needs them. A figure that says something no
    group says starts a group of its own, with a heading and a takeaway (a
@@ -494,11 +494,11 @@ table and the card's words.
   the month axis says what the star of the partial last month means in its
   definition. One topic's axes are constants of its module.
 
-**The chart kinds** (`js/charts/`) are nine modules, one per shape: the
-Overview's `donut`, the Traffic Explorer's `stacked_bars` (the two monthly
-shares too), and the figures' `lines` (a CDF among them, and the
-explorer's distribution charts), `bands`, `cells`, `raster`, `scatter`,
-`boxes` and `bars`. Each exports one draw function, as the draw contract
+**The chart kinds** (`js/charts/`) are nine modules, one per shape. The
+Overview draws `donut`, the Traffic Explorer `stacked_bars`, which also
+draws the two monthly shares. The figures draw `lines` (a CDF and the
+explorer's distribution charts among them), `bands`, `cells`, `raster`,
+`scatter`, `boxes` and `bars`. Each exports one draw function, as the draw contract
 in `plot/frame.js` states it; it replaces the place's content with one Plot
 chart, except the donut, which draws plain SVG of its own.
 
@@ -606,7 +606,7 @@ check of a draw function.
 
 **The node tests' browser.** The node tests drive the page's modules on
 the fake page of `tests/fake_page.js`, the one import through which a test
-reaches the browser; `tests/test_repository.py` fails on any other file of
+reaches the browser. `tests/test_repository.py` fails on any other file of
 `tests/` that sets or mocks a property of `globalThis`. A test reaches an
 element by a selector of a form `tests/fake_element.js` reads, never by its
 place among an element's children. What two test files of one folder share

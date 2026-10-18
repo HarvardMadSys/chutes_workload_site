@@ -4,10 +4,10 @@ A static website for the Chutes production trace, the dataset of the paper
 *A Year in LLM Serving: Workload Evolution, Caching and Load-Balancing*: a
 year of LLM serving on Chutes, request by request.
 
-The site is one HTML page, ES modules, a stylesheet, the JSON answers of
-seven queries (the two that take a family are answered once per family,
-one file per family) and of the paper's 48 plot-ready tables, with
-Observable Plot drawing every chart in the browser. There is no
+The site is one HTML page, ES modules, a stylesheet and JSON answers, with
+Observable Plot drawing every chart in the browser. The answers are those
+of seven queries, the two that take a family answered once per family, and
+of the paper's 48 plot-ready tables. There is no
 server code, no bundler and no database in the browser. The site's own
 words (the page, a section, a topic, a card, a breakdown and the rest)
 are defined in the Words section of `CONTRIBUTING.md`.
@@ -23,12 +23,12 @@ does is the landing-page spec's, `openspec/specs/landing-page/spec.md`.
 - **Overview** (`#overview`): the family mix and the endpoint mix, two donuts.
 - **Traffic Explorer** (`#traffic`): the requests or tokens per day of a
   family, a model, an endpoint and a range of days, as four tiles, stacked
-  bars, a day-range slider and three distribution charts; the choice is
+  bars, a day-range slider and three distribution charts. The choice is
   kept in the URL (`TrafficChoice` in `site/js/traffic/traffic_choice.js`).
 - **Insights** (`#insights`): the paper's figures, each drawn in the
-  browser from its plot-ready table on a card, the cards in groups under
-  the topics of `TOPICS` (`site/js/page/topics.js`), one topic shown at a
-  time behind a row of tabs, its anchor in the URL's hash.
+  browser from its plot-ready table on a card. The cards sit in groups
+  under the topics of `TOPICS` (`site/js/page/topics.js`), one topic shown
+  at a time behind a row of tabs, its anchor in the URL's hash.
 - **Cite** (`#cite`), **Team** (`#team`) and the footer: the paper's
   BibTeX with a copy button; the lab, its collaborators and the paper's
   authors; the links on and off the site.
@@ -49,10 +49,10 @@ here (the site spec's "Definitions come from the artifact").
 - **The answers** come from three caches under the artifact's
   `data/paper/cache/`, its model names, `data/paper/chute_models.csv`, its
   family table, `data/paper/model_families.csv`, and the trace table.
-  `make data` holds each as a DuckDB table, adds three tables derived from
-  them (the site spec's "The cache tables" names the nine), and runs each
-  query of `site/queries/explore/` once, writing its rows to
-  `site/data/all/explore/<query>.json`; the two queries that take a
+  `make data` holds each as a DuckDB table and adds three tables derived
+  from them (the site spec's "The cache tables" names the nine). It runs
+  each query of `site/queries/explore/` once, writing its rows to
+  `site/data/all/explore/<query>.json`. The two queries that take a
   family, `daily_by_model` and `histograms_by_model`, it runs once per
   family of the `family_mix` answer, writing one file per family,
   `site/data/all/explore/<query>/<family slug>.json` (`deepseek.json`,
@@ -68,7 +68,7 @@ here (the site spec's "Definitions come from the artifact").
 
 - **The trace table**, `tables/weekly_histograms.parquet`, is the one
   thing the site builds from the released trace, the dataset's 91 GB
-  Parquet file of 6.1 billion requests: `make tables` runs the one query
+  Parquet file of 6.1 billion requests. `make tables` runs the one query
   of `site/queries/trace/`, `weekly_histograms.sql`, over it and tracks
   the result, 1.8 MB, so that `make data` never reads the trace. The site
   spec's "The trace table" defines its rows and bins.
@@ -79,7 +79,7 @@ here (the site spec's "Definitions come from the artifact").
   applies the rule when it writes the daily rollup, which carries each
   row's family; the site's answers never match a name against a pattern.
   The one query that does is the trace query, since the trace's rows
-  carry no family: it applies the same rule, and `make test`, given the
+  carry no family. It applies the same rule, and `make test`, given the
   artifact's checkout, checks the trace table against the daily rollup,
   so the two applications agree. The `family_mix` answer is the families'
   one home: their names, their slugs and their order, which the data step
@@ -88,10 +88,10 @@ here (the site spec's "Definitions come from the artifact").
   written as 1970-01-01, so a cache's month is a month-long stretch of
   days from the trace's first day, not a calendar month. The site turns
   each trace day into its calendar day from the trace's start,
-  2025-04-11, one constant in `site_data/months.py`, which is also the
-  home of the trace week (`TRACE_EPOCH` and `DAYS_PER_TRACE_WEEK`, bound
-  by name into the trace query by `TRACE_QUERY_PARAMETERS` of
-  `site_data/tables.py`). The browser holds the same day,
+  2025-04-11, one constant in `site_data/months.py`. That module is also
+  the home of the trace week (`TRACE_EPOCH` and `DAYS_PER_TRACE_WEEK`),
+  which `TRACE_QUERY_PARAMETERS` of `site_data/tables.py` binds by name
+  into the trace query. The browser holds the same day,
   `TRACE_FIRST_DAY` of `site/js/shared/format.js`, for its dated
   tooltips, tested against `trace_totals`. The site spec's "Trace days
   and months" says what each answer carries.
@@ -106,9 +106,9 @@ here (the site spec's "Definitions come from the artifact").
   row count in `site/data/all/figures.json`. A table is written by the
   figure's own reproduce script in the artifact, which draws the paper's
   PDF from the same table, so the paper and the site draw the same
-  numbers; except the four rasters and the nine density and P90 grids,
-  whose PDFs draw the points (a dot per request, matplotlib's hexagons)
-  that the table counts in cells. A card draws its figure from its answer
+  numbers. The exceptions are the four rasters and the nine density and
+  P90 grids: their PDFs draw the points (a dot per request, matplotlib's
+  hexagons) that the table counts in cells. A card draws its figure from its answer
   with the chart kind it names (`FigureCard` in
   `site/js/insights/figure_card.js`, which also says where a card's words
   come from). The column contract: a table's columns are those of its
@@ -142,13 +142,17 @@ npm ci               # wrangler, for make deploy and npm run check
 ```
 
 `make test` passes the artifact's checkout to the Python tests as
-`ARTIFACT`; the test that compares the Insights' cards with the artifact's
-figure list, the one that compares the shipped data with a rebuild, and
-the one that compares the trace table with the daily rollup skip where
-that checkout is not there, and pytest's summary names each with its
-reason (`-rs` in `pyproject.toml`). Without Chromium the snapshot test
-skips and exits 0, ending the run with framed lines on standard error
-that say no chart, legend or text was compared.
+`ARTIFACT`. Three tests skip where that checkout is not there, and
+pytest's summary names each with its reason (`-rs` in `pyproject.toml`):
+
+- the test that compares the Insights' cards with the artifact's figure
+  list;
+- the one that compares the shipped data with a rebuild;
+- the one that compares the trace table with the daily rollup.
+
+Without Chromium the snapshot test skips and exits 0, ending the run with
+framed lines on standard error that say no chart, legend or text was
+compared.
 
 ## Building the data
 
@@ -168,7 +172,7 @@ make tables TRACE=<the released trace's Parquet file> ARTIFACT=<the artifact's c
 ```
 
 It reads the trace once, on every thread, and writes
-`tables/weekly_histograms.parquet` and its sidecar; over the released
+`tables/weekly_histograms.parquet` and its sidecar. Over the released
 trace it takes about half a minute and 16 GB of memory on a 344-thread
 machine. `make test` fails while the query's text differs from the hash
 in the sidecar, and, given the artifact's checkout, while the table
@@ -210,11 +214,11 @@ push to `main` runs the suite and then deploys it, through
 `.github/workflows/deploy.yml` (GitHub Actions). Its job `test` installs
 the Python dependencies (`make setup`), Node (the version `.nvmrc`
 names) and Chromium with its system packages, and runs `make test
-ARTIFACT=`: the three tests that need the artifact's checkout skip ("Running
-it"), and every other test runs, the snapshot test among them. It needs
-no `npm ci`, as the node tests import nothing from npm. Its job
-`deploy` waits for it (`needs: test`), so a red `main` is never deployed,
-and runs `wrangler deploy` with two repository secrets, added under the
+ARTIFACT=`. The three tests that need the artifact's checkout skip
+("Running it"); every other test runs, the snapshot test among them. It
+needs no `npm ci`, as the node tests import nothing from npm. Its job
+`deploy` waits for it (`needs: test`), so a red `main` is never deployed.
+It runs `wrangler deploy` with two repository secrets, added under the
 repository's Settings > Secrets and variables > Actions:
 
 - `CLOUDFLARE_API_TOKEN`, a token made from the Cloudflare dashboard's
@@ -222,10 +226,10 @@ repository's Settings > Secrets and variables > Actions:
 - `CLOUDFLARE_ACCOUNT_ID`, the account the Worker belongs to.
 
 With the repository variable `CLOUDFLARE_ACCOUNT_SUBDOMAIN` set there too,
-the workflow then asks the published site for the page (`/`), the daily
-by-family answer, the histogram answer by family and one figure answer,
-and fails unless each answers 200 with its content type; without it, the
-run shows a warning that the site was not checked. `make deploy`
+the workflow then asks the published site for four files: the page (`/`),
+the daily by-family answer, the histogram answer by family and one figure
+answer. It fails unless each answers 200 with its content type. Without
+the variable, the run shows a warning that the site was not checked. `make deploy`
 publishes the same way from a machine with `npm ci` done and the token
 in `CLOUDFLARE_API_TOKEN`; run `make test` first. `npm run check` is a
 dry run.
