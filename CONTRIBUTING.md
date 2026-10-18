@@ -83,8 +83,8 @@ Each word below has one meaning in the code, the tests and these documents.
   a chart; **show** a state.
 - **state** and **unit**: the snapshot test opens the page in one state per
   topic, and reads each unit (a chart, a legend, a block of text) as text.
-- **placeholder**: `// placeholder:` marks words that are not the paper's
-  own, for the authors.
+- **placeholder**: a `// placeholder:` comment above a line of words that
+  are not the paper's own, for the authors to review.
 - **the paper's words**: placeholder copy keeps the paper's own words (its
   sections, panels, the overview paragraph); they are the authors', not the
   code's.
@@ -123,8 +123,10 @@ Each word below has one meaning in the code, the tests and these documents.
 - **One job per unit.** A function is at most 50 lines, a module at most 300,
   a folder of `site/js/` at most nine modules. A function that computes two
   things is split.
-- **Every module has tests.** The test table of "Verifying a change" says
-  which test checks each part.
+- **Every module has tests**: a node test file named after it, its folder's
+  word first (`charts_lines.test.js` for `charts/lines.js`;
+  `tests/test_naming.py` checks the word), or `tests/test_<module>.py`. The
+  test table of "Verifying a change" says which test checks each part.
 - **Docstrings state definitions; comments explain why.**
   - A module's header (its docstring in Python, its opening comment in
     JavaScript) says what the module holds.
@@ -154,10 +156,11 @@ Each word below has one meaning in the code, the tests and these documents.
     `$days_per_trace_week`, from `months.py` (`TRACE_QUERY_PARAMETERS` of
     `site_data/tables.py`).
 
-  A query of `queries/explore/` or `queries/setup/` reads the site's nine
+  A query of `queries/explore/` or `queries/setup/` reads the site's
   tables and nothing else. The site spec's "The cache tables" names them;
-  `tests/test_site_database.py` checks that the database holds nine, and
-  `tests/test_queries.py` reads them from the database to check each query.
+  `tests/test_site_database.py` checks that the database holds those and
+  no other, and `tests/test_queries.py` reads them from the database to
+  check each query.
   The trace query reads the view `trace`, `chute_models`, `model_families`
   and `family_models`, and nothing else (`TRACE_QUERY_TABLES`, in the same
   test file). `months.py` is the one place the data step computes a date: a
@@ -191,7 +194,7 @@ make tables
 
 make data
   the artifact's caches, chute_models.csv and model_families.csv, and tables/weekly_histograms.parquet
-  → nine tables in DuckDB, trace_calendar, trace_weeks and family_models among them
+  → the site's tables in DuckDB, trace_calendar, trace_weeks and family_models among them
   → queries/explore/<query>.sql
   → data/all/explore/<query>.json, a family query's data/all/explore/<query>/<family>.json, and data/all/queries.json
 
@@ -421,10 +424,10 @@ in `tests/page_topics.test.js` list the fields.
 
 **A figure card** is a `FigureCard` (`insights/figure_card.js`), of those
 fields and no other (`CARD_FIELDS` and `OPTIONAL_CARD_FIELDS` in
-`tests/page_topics.test.js`). A line of words that is not the paper's own
-carries a `// placeholder:` comment above it. The card's legend has a
-button per series where there is more than one, and none where each panel
-holds one series, which its title names. The workload topic's first card:
+`tests/page_topics.test.js`). Words that are not the paper's own are a
+placeholder, as Words says. The card's legend has a button per series
+where there is more than one, and none where each panel holds one
+series, which its title names. The workload topic's first card:
 
 ```js
 {
@@ -464,8 +467,8 @@ table and the card's words.
    and its kind's parameters, with `panels`, `legend`, `series` or
    `palette` where the figure needs them. A figure that says something no
    group says starts a group of its own, with a heading and a takeaway (a
-   `// placeholder:` comment above them where they are not the paper's
-   words). A check of the card as drawn goes in its topic module's test
+   placeholder where they are not the paper's words). A check of the card
+   as drawn goes in its topic module's test
    (`tests/insights_caching.test.js` for a card of `insights/caching.js`).
    The test table below names the other tests a card meets.
 3. **The answer.** Run `make data ARTIFACT=<the artifact's checkout>`,

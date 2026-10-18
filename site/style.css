@@ -1,14 +1,12 @@
 /*
  * The site's one stylesheet, in cascade order: the design tokens; the base, the elements' defaults; the layout of
  * the page, its sections and its card grid; the components every section uses; then each section's own rules, in the
- * page's order: header, hero and stats strip, Overview, Traffic Explorer, Insights, Cite, Team and footer. A later
- * rule wins over an earlier one of the same specificity, so a component's rules follow the base it changes, and each
- * media rule follows directly the rule it changes.
+ * page's order, under the banners Header, Hero, Overview donuts, Traffic Explorer, Insights, Cite and Team, and
+ * Footer; and last the reduced-motion rule. A later rule wins over an earlier one of the same specificity, so a
+ * component's rules follow the base it changes, and each media rule follows directly the rule it changes.
  *
- * Colours are tokens on :root, redefined for dark mode. Chart series colours
- * are the eight series slots, and two more for the families; a chart assigns
- * them in order and never cycles. Components are named after what they are,
- * not where they sit.
+ * Colours are tokens on :root, redefined for dark mode; how a chart takes the series slots is the site spec's
+ * "Chart colours" (openspec/specs/site/spec.md). Components are named after what they are, not where they sit.
  */
 
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Crimson+Text:wght@600;700&display=swap");
@@ -149,10 +147,7 @@ p {
   margin: 0 0 0.75rem;
 }
 
-select,
-input[type="text"],
-input[type="search"],
-input[type="number"] {
+select {
   font: inherit;
   font-size: 0.875rem;
   color: var(--color-text);
@@ -737,18 +732,10 @@ a[target="_blank"]::after {
   color: var(--color-text-faint);
 }
 
-/* A drop-down and a text box draw at different heights by default; one height lines the row up. */
-.control-field select,
-.control-field input {
+/* A drop-down's height, set so that it lines up with the period buttons in the controls row. */
+.control-field select {
   box-sizing: border-box;
   height: 2.375rem;
-}
-
-/* A text box starts narrow, so the fields share one row at desktop width, and fills its field once the row is shared
-   out. */
-.control-field input {
-  width: 8rem;
-  min-width: 100%;
 }
 
 .note {
@@ -775,9 +762,7 @@ a[target="_blank"]::after {
   content: "…";
 }
 
-/* A figure card not yet drawn is about as tall as a drawn one, so the cards below it start out of view. */
-.traffic .card-grid > .card:empty,
-.traffic .card-grid > .card:has(.loading),
+/* An Insights card not yet drawn is about as tall as a drawn one, so the cards below it start out of view. */
 .topic .card-grid > .card:empty,
 .topic .card-grid > .card:has(.loading) {
   min-height: var(--loading-card-height);
@@ -1639,10 +1624,6 @@ a[target="_blank"]::after {
   flex-direction: column;
 }
 
-.team-list a {
-  color: var(--color-text);
-}
-
 .team-list span {
   font-family: var(--font-mono);
   font-size: var(--font-size-smallest);
@@ -1750,6 +1731,8 @@ a[target="_blank"]::after {
     grid-column: 1 / -1;
   }
 }
+
+/* ---------- Reduced motion: last, so it wins over every transition above ---------- */
 
 @media (prefers-reduced-motion: reduce) {
   .brand-mark,

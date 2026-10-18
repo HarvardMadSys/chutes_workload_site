@@ -1,9 +1,9 @@
 /**
  * A chart's series, the names it draws: the column naming a row's series, a series' label, the rows of the series its
- * legend does not hide (of one panel, for a figure's answer), and the legend itself, `{ series, colours }`, the series
- * it lists, each `{ name, label }`, and their colours, a Map from name to colour; and the three breakdowns
- * (`Breakdown`), how the Overview and the Traffic Explorer split their rows into series, by model, by endpoint group
- * and by family, with the endpoint groups' labels. These are plain functions, tested with `node --test`.
+ * legend does not hide (of one panel, for a figure's answer), and the legend itself (`Legend` of `shared/legend.js`);
+ * and the three breakdowns (`Breakdown`), how the Overview and the Traffic Explorer split their rows into series, by
+ * model, by endpoint group and by family, with the endpoint groups' labels. These are plain functions, tested with
+ * `node --test`.
  */
 
 import { panelRows } from "./rows.js";
@@ -13,11 +13,13 @@ import { endpointColours, familyColours, modelColours } from "../theme/colours.j
 export const SERIES_COLUMN = "series";
 
 /**
- * How a chart splits its rows into series: `order`, the key of the rows that give the colour order (the page's
- * `context.mixes`, `page/start.js`, or the Traffic Explorer's `colourOrders`); `column`, the answer column naming a
- * row's series; `colours`, the function from those rows to a Map from series name to colour; and, where a series is
- * not written by its name, `labels`, each series' label.
- * @typedef {{ order: string, column: string, colours: function, labels?: object }} Breakdown
+ * How a chart splits its rows into series.
+ * @typedef {object} Breakdown
+ * @property {string} order  the key of the rows that give the colour order: of the page's `context.mixes`
+ *   (`page/start.js`) or of the Traffic Explorer's `colourOrders`
+ * @property {string} column  the answer column naming a row's series
+ * @property {function} colours  the function from the rows of `order` to a Map from series name to colour
+ * @property {object} [labels]  each series' label, by its name, where a series is not written by its name
  */
 
 /** By model, each written by its name: the Traffic Explorer with a family chosen. */

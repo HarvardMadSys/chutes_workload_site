@@ -10,10 +10,8 @@ trace, as the view `trace`, and the site's tables `chute_models`, `model_familie
   rows>, "trace_rows": <the trace's rows>}`, by which `make test` tells a query edited since the table was built.
 
 It prints each file with its size, the rows and the time taken. A missing trace or artifact file stops the run with
-its message and exit status 1, before anything is written. The table is tracked, since the trace is too large to read
-on every `make data`, and rebuilt when the family table, the daily rollup's kept models, the query, or the week (its
-epoch or its length) change. The sidecar hashes the query's text alone, so a change to the week is found only by the
-check of the table against the artifact's rollup, with `ARTIFACT`.
+its message and exit status 1, before anything is written. Why the table is tracked is README's "The trace table";
+when to rebuild it, and what the sidecar's hash misses, README's "Building the data".
 """
 
 import argparse

@@ -128,6 +128,7 @@ def test_the_family_mix_sums_to_the_trace_and_names_the_daily_families(connectio
 
 
 def test_the_daily_rows_slugs_are_the_family_mix_s(connection: duckdb.DuckDBPyConnection) -> None:
+    # Nothing reads `daily_by_family`'s slug; the page takes each family's slug from `family_mix`, the families' home.
     mix_slugs = {(row["family"], row["family_slug"]) for row in query_records(connection, "explore/family_mix")}
     by_family = query_records(connection, "explore/daily_by_family")
     assert {(row["family"], row["family_slug"]) for row in by_family} == mix_slugs

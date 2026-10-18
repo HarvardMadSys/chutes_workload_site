@@ -2,9 +2,10 @@
  * The Traffic Explorer's controls: the family, model, endpoint and metric drop-downs and the period buttons, kept in
  * step with the URL, which holds the explorer's choice (`TrafficChoice` of `traffic/traffic_choice.js`). The model
  * drop-down is disabled until a family is chosen, then offers the family's models, read from the family's answer. A
- * period button sets the day range to its days and shows pressed while the range is its days (`traffic_range.js`). A
- * change writes the new choice to the URL; Back or Forward to an entry of another choice shows that one; either then
- * hands the choice to the explorer to draw. What the two give each other is `ControlsCallbacks` and `MountedControls`.
+ * period button sets the day range to its days and shows pressed while the range is its days
+ * (`traffic/traffic_range.js`). A change writes the new choice to the URL; Back or Forward to an entry of another
+ * choice shows that one; either then hands the choice to the explorer to draw. What the two give each other is
+ * `ControlsCallbacks` and `MountedControls`.
  */
 
 import { textElement } from "../shared/figure.js";
@@ -20,7 +21,7 @@ const PERIOD_NAME_ID = "traffic-period-name";
 /**
  * What the explorer gives the controls.
  * @typedef {object} ControlsCallbacks
- * @property {function} modelsOf  `modelsOf(family)` resolves to the model drop-down's entries (`modelChoices`') for
+ * @property {function} modelsOf  `modelsOf(family)` resolves to the model drop-down's entries (`modelChoices`) for
  *   the family whose slug is `family`
  * @property {function} onChange  `onChange(choice)` draws a `TrafficChoice`
  * @property {function} onError  `onError(error)` shows a family's answer that cannot be read
@@ -39,7 +40,7 @@ const PERIOD_NAME_ID = "traffic-period-name";
 
 /**
  * Draw the controls into `row` showing the URL's choice, and resolve to the `MountedControls` once the choice's
- * family's models are read. `entries` is `{ families, days }`, the family drop-down's entries (`familyChoices`') and
+ * family's models are read. `entries` is `{ families, days }`, the family drop-down's entries (`familyChoices`) and
  * the trace's days; `explorer` is the `ControlsCallbacks`. Then:
  * - a key of the URL the choice does not keep, such as a model with no family or not among the family's, or a day
  *   outside the trace's, is rewritten with `context.replaceQuery`;

@@ -2,8 +2,8 @@
  * The page's start: it asks once for the answers the sections share, writes the Insights' topic sections
  * (`page/topics.js`), shown one at a time behind the tabs of the `#topic-tabs` row (`page/topic_tabs.js`), mounts the
  * header, renders the footer, then runs the sections, once. A topic's figures are drawn the first time it is shown,
- * so a topic never shown requests none. The topic the page opens on is drawn
- * once the sections have drawn or shown their errors; a topic a tab shows before then is drawn at once.
+ * so a topic never shown requests none. The topic the page opens on is drawn once the sections have drawn or shown
+ * their errors; a topic a tab shows before then is drawn at once.
  *
  * The page's module names its sections, each `{ id, run }`: the id of its place in `index.html`, and the function
  * that shows its loading state at once and then draws its answer, run as `run(container, context)`. The `context`:

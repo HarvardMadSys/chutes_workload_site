@@ -75,6 +75,59 @@ first-time reader needs is moved, not cut.
 | `plot/axes.js`'s header: the axis options | `AxisOptions`, written by one-chart-interface |
 | `traffic_controls.js`: the contract in the header and again in `mountTrafficControls` | `ControlsCallbacks` and `MountedControls` |
 | The distribution charts' data figures (99.9% at most 131,072, …) | dropped: the archived compact-explorer change records them (its design D3) |
+| `evolution.js` header: "The two share cards show the legend the paper draws once above both." | `SHARE_LEGEND`'s comment in `evolution.js` |
+| `balancing.js` header: "The routing simulation's series and panels are made by `insights/routing_panels.js`." | a comment on `balancing.js`'s import of `routing_panels.js` |
+| `caching.js`/`balancing.js` headers: definitions "or, for the simulation, its plotting script's" | the paragraph in `figure_card.js` ("its README's or, for a simulation, its plotting script's") |
+| `figure_card.js`: `frozenCard`'s JSDoc (no reader changes a card another reads; functions left) | `frozenTopic`'s JSDoc |
+| The kinds' JSDocs restating `AxisOptions` fields: cells' `categories`; bars' and boxes' `tickRotate` slant; stacked bars' `tickFormat` in the tooltip, `tipFormat`, `tickRotate`, `inset`, the y axis's `label`/`tickFormat` | `AxisOptions` (and `bandAxisMark`'s JSDoc for the slant's reason); stacked bars keeps its own domain/ticks defaults and "" tick as a list |
+| `shared/legend.js` header: an entry's `name`, `label`, `names` | the `Legend` typedef's `series` line |
+| `traffic_controls.js` header: the choice's shape `{ family, … to }` | `TrafficChoice` |
+| `traffic_choice.js` (`OTHER_MODEL`, `otherModelsText`) and `site_data/loading.py` (two docstrings): "eight most requested named ones" | `site/queries/setup/family_models.sql`, pointed to |
+| `page/main.js`, `page/topic_tabs.js`, `page/topics.js`: "six topics"; `snapshot.py`: "six states" | "the topics of `TOPICS`", "each state" |
+| CONTRIBUTING ("A topic and its groups", "A figure card" and its example) and README's line for `insights_figure_card.test.js`: `frozenCard` | renamed to `frozenTopic` / "a frozen topic" in place, so no document names a removed function; the passages themselves move in 4.2 |
+| README: Opening: "The site shows the trace's totals, its family and endpoint mixes, a Traffic Explorer …, and the paper's figures in six topics" | the tour right under it |
+| README: "The Traffic Explorer" bullet of "Where": the daily answers' rows, an average dividing by the requests that record it, the model names and the "Rest of Other" relabel (`otherModelsText`) | the site spec's "Answers" (rows); the landing-page spec's "Traffic Explorer" (averages, drop-down entries); `traffic/traffic_choice.js` (the relabel) |
+| README: "Trace months": the hero and footer's thirteen months; the month names and the star; a trace week, "the last holds three"; `trace_weeks` giving the weeks' days so the browser computes none | landing-page spec "Hero…", "Cite, Team and footer" (month count from `trace_totals`); this change's delta (names, star); site spec "Trace days and months" (weeks, the last ending on the trace's last day, "the page never computes a date"). The bullet keeps the start date, its home `months.py`, the week's constants and `TRACE_QUERY_PARAMETERS`, the JS copy `TRACE_FIRST_DAY` and its test |
+| README: "Model families": the data step answering for `family_mix`'s families and the page listing them in its order; "`daily_by_family` carries the same slug, which nothing reads" | kept as one sentence ("which the data step and the page follow"); the slug's expression is `site/queries/explore/daily_by_family.sql`'s comment; that nothing reads it, the comment on `tests/test_queries.py`'s slug test |
+| README: "The figure answers": the global series and the three highlighted models in one colour on every card | this change's landing-page delta ("Series colours SHALL come from the theme, the three highlighted models and the global series keeping one colour each across every card") |
+| README: "The figure cards' words are the paper's …; a line marked placeholder is not the paper's own" | `site/js/insights/figure_card.js`'s paragraph (batch A); README points to it ("which also says where a card's words come from") |
+| README: "The queries … none restates a definition the artifact owns …, but the trace query …" | site spec "Definitions come from the artifact" and "The cache tables" (the trace query's exception); README's opening paragraph of "Where" keeps "filter, group, count and sum" and the cache rule, pointing there |
+| README: "The answers" bullet: the nine tables' names (`chute_models`, `model_families`, `weekly_histograms`, the three derived tables with their modules) | site spec "The cache tables"; the Layout's `site_database.py`, `months.py` and `setup/family_models.sql` lines |
+| README: Building the data: "a rebuild writes the same bytes" (twice) | once, in the section's opening |
+| README: Building the data: "one file per query, and one file per family …", "the 48 figure answers" | "Where"'s answers bullet; the opening's 48 |
+| README: Layout `index.html`: the list of the page's sections | the tour (the entry now says "its parts as 'What the site shows' lists them, the Insights its heading and tab row alone") |
+| README: Layout: the helper modules' details (fake_page's `useFakePage`, `shippedAnswer`; traffic_fixtures' `SHIPPED_ROWS`, `TRACE_DAYS`, `dayRow`, `controlsOf`, `recordingExplorer`; conftest's database; the fixture artifact's rows) | each module's own header, which states them |
+| README: Layout: the node test reporter ("one line per test, the failing ones listed again …") | CONTRIBUTING "Verifying a change", which states it |
+| README: Layout: a few one-line trims (`site_data/`, `months.py`, `tables.py`, `main.js`, `topic_tabs.js`, `trace_axes.js`, `figure_card.js`, `explore/`) | the same facts in fewer words; `explore/` no longer counts "seven" (the opening does) |
+| CONTRIBUTING "How the site is put together": `index.html`'s list of sections | README's tour and its Layout line for `index.html` |
+| CONTRIBUTING "How the site is put together": what `context` holds, the mixes' uses | `page/start.js`' header (`totals`, `mixes`, `replaceQuery`, `onReturn`) |
+| CONTRIBUTING "How the site is put together": the header on a phone; the measured height for the scroll margin | site spec "Navigation"; `shared/layout.js` (the comment on the measured height) and `style.css`'s `--header-height` comment |
+| CONTRIBUTING "How the site is put together": `readAnswer`'s examples | `shared/answers.js`' header |
+| CONTRIBUTING "How the site is put together": the tabs' ARIA pattern, the hash, Back to the topic before | `page/topic_tabs.js`' header; landing-page spec "Insights" |
+| CONTRIBUTING "How the site is put together": `followHistory`: the entry's topic, the header's query | `page/start.js`' header (`onReturn`) |
+| CONTRIBUTING "How the site is put together": `placeTopic`: the tab panel, heading levels h2/h3/h4, takeaways, grids | the JSDoc of `placeTopic` and of the group's placing in `page/start.js` |
+| CONTRIBUTING "How the site is put together": the order of the reads (11 lines) | landing-page spec "The page appears before the data" (one sentence and its two tests kept) |
+| CONTRIBUTING "How the site is put together": the URL keys' values, the drop-downs' entries, `readTrafficChoice`'s fall-backs, the clamping, no `period` key, the slider writing on release, the period buttons, the keys changing nothing outside the explorer | `TrafficChoice`, `readTrafficChoice`, `writeTrafficChoice`, `modelChoices`/`otherModelsText` JSDoc, `MountedControls.chooseRange`; landing-page spec "Traffic Explorer" (keys, clamping, "no other key", the period buttons, "every figure as without the keys") |
+| CONTRIBUTING "How the site is put together": `.page` keeping the gutters as its padding | site spec "The look follows Open Data" ("The gutters SHALL be the page's padding") |
+| CONTRIBUTING "The chart kinds": the signature, `seriesColours`/`hidden`, the naming, the shared parameters, the height, the tooltip's cases | `plot/frame.js`' draw contract and `ChartParameters`; site spec "The chart kinds share one interface"; `CHART_HEIGHT`'s comment; landing-page "Figure cards…" (240 px, tooltips, CDF lines); `AxisOptions.tipFormat`, `TRACE_DAY_AXIS`, the day bars' `tipFormat` comment, `cells.js`' tooltip JSDoc, `donut.js`' slice comment, `LINES_PARAMETERS`' JSDoc (`tipAllSeries`, `series`) |
+| CONTRIBUTING "One answer per query" (21 lines) | README "The answers" bullet and "Building the data" (hashes, staleness); `family_mix.sql` and `daily_by_family.sql` comments (the families' one home, the slug); the test table rows |
+| CONTRIBUTING "The trace query": tables read, parameters, the sidecar's row counts, the staleness test | "The rules"' SQL rule; README's Layout and "Building the data"; `tests/fixture_trace.py`' header (`TRACE_REQUESTS`, `WEEKLY_HISTOGRAMS`) |
+| CONTRIBUTING "A list-valued answer": the histograms read after the bars | landing-page "Traffic Explorer" |
+| CONTRIBUTING "A JavaScript module": the naming test's two rules | README's Layout (`*.test.js` entry); the test table's row for `test_naming.py` |
+| CONTRIBUTING "A link off the site": which buttons carry marks, the SVG's form, the Cite link without one | `shared/link_marks.js`' header; landing-page "Hero…" and "Cite, Team and footer" |
+| CONTRIBUTING "Adding a figure" step 2: the five tests a card meets | the test table |
+| CONTRIBUTING "The patterns a card copies": the panels' details; the month axis's inset | `FigureCard.panels`; `TRACE_MONTH_AXIS`' JSDoc |
+| CONTRIBUTING "The legend": the typedefs' fields; fewer than two entries | `Legend`, `LegendState`; landing-page "Legend buttons" |
+| CONTRIBUTING "Verifying a change": the tables rebuild paragraph | README "Building the data"; the test table's row "The trace query" |
+| CONTRIBUTING: the `ARTIFACT` skipping and the deploy's test job | README "Running it" and "Deploying" (one sentence kept, pointing there) |
+| CONTRIBUTING: the fake page's helpers, the fixture files' contents, the selector forms | `tests/fake_page.js`' and `tests/fake_element.js`' headers; README's Layout; each fixture file's header |
+| CONTRIBUTING: the snapshot test's description, `wait_until_drawn`'s conditions, the skip message, the network | site spec "Tests"; `tests/snapshot.py`' header and `wait_until_drawn`'s docstring (CONTRIBUTING keeps how the diff is read and the retitled-unit note) |
+| `shared/series.js`: the breakdown's fields in a sentence; `insights/figure_card.js`: a chart kind's fields in `CHART_KINDS`' comment | the `Breakdown` and `ChartKind` typedefs, one `@property` per field |
+| `site_data/tables.py`' header: why the trace table is tracked, when to rebuild it, what the sidecar's hash misses | README "The trace table" and "Building the data"; the header points there |
+| README "User ids": why the strip says "User ids" | `sections/stats.js`' header, beside the code; README points there |
+| CONTRIBUTING "A figure card" and "Adding a figure", `figure_card.js`' topic paragraph, `routing_panels.js`' header: the `// placeholder:` convention | CONTRIBUTING's Words, "placeholder"; the others point there |
+| `style.css`' header: the series slots' order, never cycled | the site spec's "Chart colours"; the header points there |
+| README and CONTRIBUTING's arrow block: the number of the site's tables | the site spec's "The cache tables" |
 
 The spec may point at README for the two maps, the layout and the
 column contract, because each then has one home and
@@ -299,7 +352,10 @@ The rules, applied to README, CONTRIBUTING, the module headers and the
 JSDocs:
 
 - One fact per sentence; a sentence over 40 words is split unless it is
-  a list. A list of fields or cases is a bulleted list or a typedef.
+  a list. A list of the fields of a shape that crosses a module's
+  boundary is a `@typedef`, one `@property` per field, as the site spec's
+  "The code follows CONTRIBUTING" requires; a list of cases may be a
+  bulleted list.
 - "except" for an exception, never "but" ("every chart except a
   raster"). Each " but " is read, not replaced blindly.
 - A rule with cases is written as examples:

@@ -21,8 +21,8 @@ import { cardColours, ENDPOINT_PALETTE, figureLegend } from "./card_series.js";
 
 /*
  * A topic's words are the paper's, and its definitions the artifact's: its README's or, for a simulation, its plotting
- * script's. A line marked `// placeholder:` is not the paper's own, for the authors to review. A card's `kind` and
- * `chart` say how its figure is drawn from its answer.
+ * script's. A line that is not the paper's own is a placeholder (CONTRIBUTING's Words). A card's `kind` and `chart` say
+ * how its figure is drawn from its answer.
  */
 
 /**
@@ -67,11 +67,18 @@ import { cardColours, ENDPOINT_PALETTE, figureLegend } from "./card_series.js";
  */
 
 /**
- * The chart kinds a card may name, each `{ draw, swatch, defaults, parameterNames }`: the function that draws it, the
- * shape of its legend's swatches ("line" or "square"), the parameters every figure answer of the kind takes, which a
- * card's `chart` adds to, and the names of the parameters the kind reads (its `<KIND>_PARAMETERS`), which a card's
- * `chart` and its panels' are checked against. A CDF is drawn by the lines kind; a stacked-bars answer names its
- * columns `x`, `series`, `value`.
+ * A chart kind a card may name.
+ * @typedef {object} ChartKind
+ * @property {function} draw  the function that draws it
+ * @property {string} swatch  the shape of its legend's swatches, "line" or "square"
+ * @property {object} defaults  the parameters every figure answer of the kind takes, which a card's `chart` adds to
+ * @property {string[]} parameterNames  the names of the parameters the kind reads (its `<KIND>_PARAMETERS`), which a
+ *   card's `chart` and its panels' are checked against
+ */
+
+/**
+ * The chart kinds a card may name, each a `ChartKind` by its name. A CDF is drawn by the lines kind; a stacked-bars
+ * answer names its columns `x`, `series`, `value`.
  */
 export const CHART_KINDS = Object.freeze({
   lines: Object.freeze({

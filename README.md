@@ -50,7 +50,7 @@ here (the site spec's "Definitions come from the artifact").
   `data/paper/cache/`, its model names, `data/paper/chute_models.csv`, its
   family table, `data/paper/model_families.csv`, and the trace table.
   `make data` holds each as a DuckDB table and adds three tables derived
-  from them (the site spec's "The cache tables" names the nine). It runs
+  from them (the site spec's "The cache tables" names them all). It runs
   each query of `site/queries/explore/` once, writing its rows to
   `site/data/all/explore/<query>.json`. The two queries that take a
   family, `daily_by_model` and `histograms_by_model`, it runs once per
@@ -95,9 +95,8 @@ here (the site spec's "Definitions come from the artifact").
   `TRACE_FIRST_DAY` of `site/js/shared/format.js`, for its dated
   tooltips, tested against `trace_totals`. The site spec's "Trace days
   and months" says what each answer carries.
-- **User ids.** The stats strip says "User ids", not users: the release's
-  anonymous user ids rotate every quarter, so one person can hold several,
-  and the strip's count of ids exceeds the paper's count of people.
+- **User ids.** Why the stats strip says "User ids", not users, is the
+  header of `site/js/sections/stats.js`.
 - **The figure answers** are the artifact's plot-ready tables, one per
   figure its `config/figures.json` lists,
   `data/paper/plotdata/<figure>.parquet`, each written by

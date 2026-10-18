@@ -3,8 +3,8 @@
  * and output tokens, user ids, models and serving instances, and a line naming its first and last day. The counts come
  * from the one row of the `explore/trace_totals` answer, given as `context.totals`; none is typed.
  *
- * The strip says "User ids", not users: the release's user ids rotate every quarter, so the count is of ids, not of
- * people.
+ * The strip says "User ids", not users: the release's anonymous user ids rotate every quarter, so one person can hold
+ * several, and the strip's count of ids exceeds the paper's count of people.
  *
  * A section's `context` is what the page gives every section; see `page/start.js`.
  */
