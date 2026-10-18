@@ -17,15 +17,16 @@ The rules in `CONTRIBUTING.md` are binding. The ones that matter most:
 - Plain HTML, CSS and ES modules. No framework, no bundler, no npm
   runtime dependency; library URLs only in `site/js/shared/libraries.js`.
 - SQL only in `site/queries/**/*.sql`, over the artifact's caches, its
-  model names and family table, the derived tables `trace_calendar`
-  and `family_models`, and the trace table `weekly_histograms` (the
+  model names and family table, the derived tables `trace_calendar`,
+  `trace_weeks` and `family_models`, and the trace table `weekly_histograms` (the
   trace query alone reads the trace); never assembled from strings.
 - Every definition comes from the artifact; the site filters, counts, sums
   and draws. It reads the trace once, in `make tables TRACE=<the released
   trace's Parquet file>`, which builds the tracked trace table
   `tables/weekly_histograms.parquet` (the explorer's distributions) by the
   one query under `site/queries/trace/`; rerun it when the artifact's
-  family table or daily rollup, or that query, changes, then `make data`.
+  family table or daily rollup, that query, or the week of
+  `site_data/months.py` (its epoch or its length) changes, then `make data`.
   The Insights' figures are drawn in
   the browser from the artifact's plot-ready tables,
   `data/paper/plotdata/<figure>.parquet`, which `make data` copies column
