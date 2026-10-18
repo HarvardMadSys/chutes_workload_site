@@ -1,8 +1,8 @@
 /**
  * Stand-ins for the parts of the page the node tests drive, as node has no page of its own: an element, found under
  * another by a tag, a class, an id or a data attribute, or a chain of them; the Traffic Explorer's controls in its
- * controls row; a figure's body with its legend's place, the topic sections the tabs show, the browser's history, and
- * the response to fetching an answer.
+ * controls row; a part of a figure card, and a figure's body with its legend's place; the topic sections the tabs
+ * show, the browser's history, and the response to fetching an answer.
  */
 
 import { TOPICS } from "../site/js/page/topics.js";
@@ -191,6 +191,21 @@ function descendantsOf(element) {
 export function controlsOf(row) {
   const [family, model, endpoint, metric] = row.querySelectorAll(".control-field select");
   return { family, model, endpoint, metric, periods: row.querySelector(".period-buttons") };
+}
+
+/**
+ * An element of a figure card as the fake page builds it: a fake element with a place for the figure's name, whose
+ * `querySelector` finds a stand-in for any part, as a card's Definition control looks up its text.
+ */
+export class FakeCardPart extends FakeElement {
+  constructor(tag) {
+    super(tag);
+    this.dataset = {};
+  }
+
+  querySelector() {
+    return new FakeElement();
+  }
 }
 
 /**

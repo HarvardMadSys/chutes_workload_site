@@ -1,9 +1,15 @@
-// A figure's elements (`shared/figure.js`): its chart's name for a screen reader.
+// A figure's elements (`shared/figure.js`): its chart's name for a screen reader, and its parts, as many as the rows a
+// card spans in a group's grid.
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { chartName, nameChart } from "../site/js/shared/figure.js";
-import { FakeElement } from "./fake_page.js";
+import { chartName, nameChart, renderFigure } from "../site/js/shared/figure.js";
+import { FakeCardPart, FakeElement } from "./fake_page.js";
+
+// The site's stylesheet, and its rule that lays a card of a group's grid on its row's tracks, the rows it spans.
+const STYLE_FILE = new URL("../site/style.css", import.meta.url);
+const CARD_GRID_SPAN = /\.card-grid > \.card \{[^}]*grid-row: span (\d+);/;
 
 /** A figure's body as `renderFigure` lays it out, its card holding the elements `parts` names by class. */
 function bodyOfFigure(parts) {
@@ -32,4 +38,14 @@ test("a chart is named as one image by the name given, else by its card's", () =
   ]);
   nameChart({ querySelectorAll: () => [chart] }, "Input tokens distribution");
   assert.equal(chart.getAttribute("aria-label"), "Input tokens distribution");
+});
+
+test("a card in a grid spans one row for each part renderFigure appends to a figure with an insight", (context) => {
+  const span = Number(readFileSync(STYLE_FILE, "utf8").match(CARD_GRID_SPAN)[1]);
+  globalThis.document = { createElement: (tag) => new FakeCardPart(tag) };
+  context.after(() => delete globalThis.document);
+  const card = new FakeElement("article");
+  renderFigure(card, { title: "A title", insight: "An insight.", caption: "A caption.", definition: "Rows." });
+  const parts = card.children[0].children.length;
+  assert.equal(span, parts, `style.css spans a card over ${span} rows, but renderFigure appends ${parts} parts`);
 });

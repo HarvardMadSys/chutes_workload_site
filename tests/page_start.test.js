@@ -10,7 +10,7 @@ import { runTraffic } from "../site/js/traffic/traffic.js";
 import { mountTrafficControls } from "../site/js/traffic/traffic_controls.js";
 import { familyChoices, modelChoices } from "../site/js/traffic/traffic_choice.js";
 import {
-  deferred, EVERYTHING, FakeElement, FakeHistory, PAGE_ADDRESS, settled, shownIds, topicSections,
+  deferred, EVERYTHING, FakeCardPart, FakeElement, FakeHistory, PAGE_ADDRESS, settled, shownIds, topicSections,
 } from "./fake_page.js";
 
 // Two families, Qwen and Other, as the family drop-down offers them.
@@ -122,19 +122,6 @@ test("Back after a choice and then a tab keeps the choice, which is not drawn ag
   assert.match(page.header.innerHTML, /href="index\.html\?endpoint=chat"/);
   assert.deepEqual(shownIds(page.sections), ["insights-overview"]);
 });
-
-// An element of a figure card as the fake page builds it: a fake element with a place for the figure's name, whose
-// `querySelector` finds a stand-in for any part, as a card's Definition control looks up its text.
-class FakeCardPart extends FakeElement {
-  constructor(tag) {
-    super(tag);
-    this.dataset = {};
-  }
-
-  querySelector() {
-    return new FakeElement();
-  }
-}
 
 // A card as a topic lists it, its figure `figure`.
 function cardOf(figure) {

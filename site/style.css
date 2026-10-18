@@ -1253,7 +1253,8 @@ section[id] {
 
 /*
  * A figure card in a grid lays its parts on its row's tracks, so the charts of a row start at one height whatever the
- * length of their insights, captions and legends: its six (title, insight, legend, chart, caption, Definition).
+ * length of their insights, captions and legends. It spans a row for each of the six parts `renderFigure` appends to a
+ * card with an insight: title, insight, legend, chart, caption and Definition; tests/shared_figure.test.js counts them.
  */
 .card-grid > .card {
   display: grid;
