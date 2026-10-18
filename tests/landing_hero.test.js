@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { ledeText, renderHero } from "../site/js/landing/hero.js";
+import { ledeText, renderHero } from "../site/js/sections/hero.js";
 import { monthCountText } from "../site/js/shared/layout.js";
 
 test("the lede's first words count the months in digits, one month in the singular, and say One year unknown", () => {

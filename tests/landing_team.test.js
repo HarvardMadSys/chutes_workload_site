@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { renderTeam } from "../site/js/landing/team.js";
+import { renderTeam } from "../site/js/sections/team.js";
 
 // The authors' names and affiliations as the Team section writes them, in the order it writes them.
 function authorsOf(html) {

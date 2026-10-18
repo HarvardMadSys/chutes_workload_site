@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { datesLine, statsRows } from "../site/js/landing/stats.js";
+import { datesLine, statsRows } from "../site/js/sections/stats.js";
 
 // One row of the trace totals, as `explore/trace_totals` answers it.
 const TOTALS_ROW = Object.freeze({

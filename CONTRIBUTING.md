@@ -299,7 +299,7 @@ frozen dataclass for anything that crosses a boundary, and functions that
 each do one job.
 
 **A link off the site** (`externalLink` of `shared/layout.js`, the hero's
-buttons in `landing/hero.js`): it opens in a new tab and ends in an arrow,
+buttons in `sections/hero.js`): it opens in a new tab and ends in an arrow,
 which the stylesheet draws after its text (`a[target="_blank"]::after`).
 The hero's Dataset, Paper and Code buttons and the footer's Elsewhere
 links name a mark in their entries, `mark: "huggingface"`, `"document"`

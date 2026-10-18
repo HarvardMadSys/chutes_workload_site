@@ -424,10 +424,10 @@ site/                exactly the files that are deployed
   js/theme/colours.js
                      the series colours as the style tokens give them, from one family order and one endpoint
                      order, the families taking ten
-  js/landing/        the page's opening and closing parts
+  js/sections/       the page's sections that have no folder of their own
     hero.js, stats.js
                      the title, lede and buttons; the stats strip of the trace's totals
-    donuts.js        the Overview's family and endpoint mixes
+    mixes.js         the Overview's family and endpoint mixes, each drawn as a donut
     cite.js, team.js
                      the citation's sentence and copy buttons; the lab and the authors
   js/traffic/        the Traffic Explorer: its section, its filter, its controls, its bars, its day range, its tiles,

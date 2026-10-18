@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { renderHero } from "../site/js/landing/hero.js";
+import { renderHero } from "../site/js/sections/hero.js";
 import { renderFooter, renderHeader } from "../site/js/shared/layout.js";
 import { LINK_MARKS, linkMark } from "../site/js/shared/link_marks.js";
 

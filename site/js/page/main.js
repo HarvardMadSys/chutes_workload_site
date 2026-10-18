@@ -5,11 +5,11 @@
 
 import { startPage } from "./start.js";
 import { runTraffic } from "../traffic/traffic.js";
-import { runMixes } from "../landing/donuts.js";
-import { mountCopyButtons, renderCiteLine } from "../landing/cite.js";
-import { renderHero } from "../landing/hero.js";
-import { runStats } from "../landing/stats.js";
-import { renderTeam } from "../landing/team.js";
+import { runMixes } from "../sections/mixes.js";
+import { mountCopyButtons, renderCiteLine } from "../sections/cite.js";
+import { renderHero } from "../sections/hero.js";
+import { runStats } from "../sections/stats.js";
+import { renderTeam } from "../sections/team.js";
 
 // Each section: the id of its place in index.html, and the function that runs it.
 const SECTIONS = Object.freeze([

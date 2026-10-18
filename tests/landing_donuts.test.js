@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { MIXES, mixLegend } from "../site/js/landing/donuts.js";
-import { statsRows } from "../site/js/landing/stats.js";
+import { MIXES, mixLegend } from "../site/js/sections/mixes.js";
+import { statsRows } from "../site/js/sections/stats.js";
 import { donutSlices, namedSeries } from "../site/js/charts/donut.js";
 import { columnTotal } from "../site/js/shared/charts.js";
 import { formatCompactCount } from "../site/js/shared/format.js";

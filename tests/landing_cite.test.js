@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { copySource, mountCopyButtons, renderCiteLine } from "../site/js/landing/cite.js";
+import { copySource, mountCopyButtons, renderCiteLine } from "../site/js/sections/cite.js";
 import { URLS } from "../site/js/shared/layout.js";
 
 // The page, which holds the BibTeX block.
