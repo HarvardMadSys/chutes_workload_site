@@ -20,8 +20,6 @@ import pyarrow
 import pyarrow.csv
 import pyarrow.parquet
 
-from site_data import paths
-
 CACHE_FOLDER = pathlib.Path("data") / "paper" / "cache"  # in the artifact: the paper's committed caches
 MODEL_NAMES_FILE = pathlib.Path("data") / "paper" / "chute_models.csv"  # in the artifact: each chute's model name
 MODEL_NAME_COLUMNS = ["chute_id", "name"]  # the columns of the model names the queries read
@@ -30,6 +28,8 @@ MODEL_FAMILIES_FILE = pathlib.Path("data") / "paper" / "model_families.csv"  # i
 CACHE_NAMES = ["trace_totals", "daily_rollup", "function_name_daily_requests"]
 # This repository's tables folder, where `make tables` writes the trace table: the data step's default `--tables`.
 TABLES_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "tables"
+TRACE_TABLE_FILE = "weekly_histograms.parquet"  # in the tables folder: the trace table, built once from the trace
+TRACE_TABLE_SIDECAR_FILE = "weekly_histograms.json"  # in the tables folder: the trace table's query hash and row counts
 # What the message of a missing file tells the reader to do: for a file of the artifact, and for the trace table.
 ARTIFACT_FILE_HINT = "pass a checkout of the paper's artifact repository as --artifact"
 TRACE_TABLE_HINT = "run make tables to build it from the released trace"
@@ -79,7 +79,7 @@ def load_trace_table(tables_folder: pathlib.Path) -> pandas.DataFrame:
     (`input_tokens`, `output_tokens` or `ttft`) and `bin` (a value v is in bin floor(4 * log2(v))), with the `requests`
     whose value fell in the bin. `site/queries/trace/weekly_histograms.sql` states each column's definition.
     """
-    return read_cache(required_file(tables_folder / paths.TRACE_TABLE_FILE, TRACE_TABLE_HINT))
+    return read_cache(required_file(tables_folder / TRACE_TABLE_FILE, TRACE_TABLE_HINT))
 
 
 def required_file(path: pathlib.Path, hint: str = ARTIFACT_FILE_HINT) -> pathlib.Path:

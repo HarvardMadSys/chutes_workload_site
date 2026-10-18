@@ -7,9 +7,9 @@ The list names each figure by its PDF's file name: under `sections`, a list of n
 `.pdf`. A plot-ready table's columns are those of one chart
 kind (`lines`: `series`, `x`, `y` and an optional `panel`; `cdf`: `series`, `x`, `cdf`; `bands`, `cells`, `raster`,
 `scatter`, `boxes`, `bars`, `stacked_bars`, `legend`); the step copies them as they are, with no query, rounding or
-renaming, and does not check the kind. An answer is written as a query's answer is (`answers.answer_text`): a JSON
+renaming, and does not check the kind. An answer is written as a query's answer is (`answer_files.answer_text`): a JSON
 list with one object per row, its keys the table's columns in the table's order, its values through
-`answers.json_value`.
+`answer_files.json_value`.
 
 `read_figure_tables` reads every table in memory, stopping on the first that is missing before anything is written;
 `write_figure_answers` then writes them.
@@ -22,7 +22,7 @@ import shutil
 
 import pyarrow.parquet
 
-from site_data import answers, loading, paths
+from site_data import answer_files, loading
 
 FIGURE_LIST_FILE = pathlib.Path("config") / "figures.json"  # in the artifact: the figures the paper includes
 PLOTDATA_FOLDER = pathlib.Path("data") / "paper" / "plotdata"  # in the artifact: one plot-ready table per figure
@@ -73,7 +73,7 @@ def table_rows(path: pathlib.Path) -> list[dict]:
     for row in pyarrow.parquet.read_table(path).to_pylist():
         values = {}
         for column, value in row.items():
-            values[column] = answers.json_value(value)
+            values[column] = answer_files.json_value(value)
         rows.append(values)
     return rows
 
@@ -81,15 +81,16 @@ def table_rows(path: pathlib.Path) -> list[dict]:
 def write_figure_answers(tables: list[FigureTable], data_directory: pathlib.Path) -> list[pathlib.Path]:
     """Replace the data folder's figure answers with one answer per table and write their index; the answer files
     written, in the tables' order."""
-    answers_directory = data_directory / paths.ANSWERS_FOLDER
-    figures_directory = answers_directory / paths.FIGURE_ANSWERS_FOLDER
+    answers_directory = data_directory / answer_files.ANSWERS_FOLDER
+    figures_directory = answers_directory / answer_files.FIGURE_ANSWERS_FOLDER
     if figures_directory.exists():
         shutil.rmtree(figures_directory)  # a figure since removed from the list keeps no answer
     figures_directory.mkdir(parents=True)
     written = []
     row_counts = {}
     for table in tables:
-        written.append(answers.write_answer(figures_directory / f"{table.name}.json", table.rows))
+        path = data_directory / answer_files.figure_answer_path(table.name)
+        written.append(answer_files.write_answer(path, table.rows))
         row_counts[table.name] = len(table.rows)
-    (answers_directory / paths.FIGURE_INDEX_FILE).write_text(json.dumps(row_counts, indent=1) + "\n")
+    (answers_directory / answer_files.FIGURE_INDEX_FILE).write_text(json.dumps(row_counts, indent=1) + "\n")
     return written

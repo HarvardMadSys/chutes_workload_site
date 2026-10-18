@@ -15,7 +15,7 @@ import pytest
 
 import fixture_artifact
 from repository_root import ROOT
-from site_data import answers, loading, paths, site_database, tables
+from site_data import loading, site_database, tables
 
 # Each metric of the trace table and the daily rollup's column counting the requests that recorded it.
 COUNTED_COLUMNS = {"input_tokens": "input_counted", "output_tokens": "output_counted", "ttft": "ttft_counted"}
@@ -127,13 +127,13 @@ def command(trace: pathlib.Path, artifact: pathlib.Path, output: pathlib.Path) -
 def test_the_builder_writes_the_table_and_its_sidecar(artifact: pathlib.Path, fixture_trace: pathlib.Path,
                                                       tmp_path: pathlib.Path, capsys: pytest.CaptureFixture) -> None:
     tables.main(command(fixture_trace, artifact, tmp_path))
-    table = pyarrow.parquet.read_table(tmp_path / "tables" / paths.TRACE_TABLE_FILE)
+    table = pyarrow.parquet.read_table(tmp_path / "tables" / loading.TRACE_TABLE_FILE)
     assert table.schema.names == ["week", "family", "chute_id", "endpoint_group", "metric", "bin", "requests"]
     assert [str(field.type) for field in table.schema] == ["int32", "string", "string", "string", "string", "int32",
                                                            "int64"]
     assert [tuple(row.values()) for row in table.to_pylist()] == FIXTURE_HISTOGRAMS
-    sidecar = json.loads((tmp_path / "tables" / paths.TRACE_TABLE_SIDECAR_FILE).read_text())
-    query_hash = answers.query_text_hash(site_database.QUERIES_FOLDER, tables.QUERY)
+    sidecar = json.loads((tmp_path / "tables" / loading.TRACE_TABLE_SIDECAR_FILE).read_text())
+    query_hash = site_database.query_text_hash(site_database.QUERIES_FOLDER, tables.QUERY)
     assert sidecar == {"query": query_hash, "rows": len(FIXTURE_HISTOGRAMS),
                        "trace_rows": fixture_artifact.TOTAL_REQUESTS}
     assert re.search(r"^22 rows from 140 trace rows in \d+ s$", capsys.readouterr().out, re.MULTILINE)
@@ -143,7 +143,7 @@ def test_a_rebuild_writes_the_same_bytes(artifact: pathlib.Path, fixture_trace: 
                                          tmp_path: pathlib.Path) -> None:
     tables.main(command(fixture_trace, artifact, tmp_path / "first"))
     tables.main(command(fixture_trace, artifact, tmp_path / "second"))
-    for name in [paths.TRACE_TABLE_FILE, paths.TRACE_TABLE_SIDECAR_FILE]:
+    for name in [loading.TRACE_TABLE_FILE, loading.TRACE_TABLE_SIDECAR_FILE]:
         first = (tmp_path / "first" / "tables" / name).read_bytes()
         assert first == (tmp_path / "second" / "tables" / name).read_bytes(), f"{name} differs on a rebuild"
 
@@ -156,27 +156,27 @@ def test_a_missing_trace_stops_naming_it_before_writing(artifact: pathlib.Path, 
 
 
 def test_the_trace_table_is_tracked(tracked_files: set[str]) -> None:
-    for name in [paths.TRACE_TABLE_FILE, paths.TRACE_TABLE_SIDECAR_FILE]:
+    for name in [loading.TRACE_TABLE_FILE, loading.TRACE_TABLE_SIDECAR_FILE]:
         path = (loading.TABLES_FOLDER / name).relative_to(ROOT).as_posix()
         assert path in tracked_files, f"{path} is not tracked; run make tables and commit it"
 
 
 def test_the_tracked_table_comes_from_its_query_s_current_text() -> None:
-    sidecar = json.loads((loading.TABLES_FOLDER / paths.TRACE_TABLE_SIDECAR_FILE).read_text())
-    query_hash = answers.query_text_hash(site_database.QUERIES_FOLDER, tables.QUERY)
+    sidecar = json.loads((loading.TABLES_FOLDER / loading.TRACE_TABLE_SIDECAR_FILE).read_text())
+    query_hash = site_database.query_text_hash(site_database.QUERIES_FOLDER, tables.QUERY)
     assert sidecar["query"] == query_hash, f"{tables.QUERY} was edited since the trace table was built; run make tables"
 
 
 def test_the_tracked_table_holds_the_rows_its_sidecar_counts() -> None:
-    sidecar = json.loads((loading.TABLES_FOLDER / paths.TRACE_TABLE_SIDECAR_FILE).read_text())
-    assert pyarrow.parquet.read_metadata(loading.TABLES_FOLDER / paths.TRACE_TABLE_FILE).num_rows == sidecar["rows"]
+    sidecar = json.loads((loading.TABLES_FOLDER / loading.TRACE_TABLE_SIDECAR_FILE).read_text())
+    assert pyarrow.parquet.read_metadata(loading.TABLES_FOLDER / loading.TRACE_TABLE_FILE).num_rows == sidecar["rows"]
 
 
 def test_the_tracked_table_agrees_with_the_artifact_s_rollup(artifact_checkout: pathlib.Path) -> None:
     """Each week's requests per family, kept model and endpoint group, metric by metric, are the daily rollup's
     counted requests over the week's days: the query's family rule places every model where the artifact's does, and
     keeps the chute ids the rollup keeps."""
-    table = pyarrow.parquet.read_table(loading.TABLES_FOLDER / paths.TRACE_TABLE_FILE).to_pandas()
+    table = pyarrow.parquet.read_table(loading.TABLES_FOLDER / loading.TRACE_TABLE_FILE).to_pandas()
     rollup = rollup_counted_by_week(loading.load_artifact(artifact_checkout).daily_rollup)
     requests = table_requests_by_week(table)
     differing = []

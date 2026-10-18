@@ -10,11 +10,12 @@ import typing
 
 import test_tables
 from repository_root import ROOT
-from site_data import answers, figure_answers, loading, paths, site_database
+from site_data import answer_files, answers, figure_answers, loading, site_database
 
 DATA_FOLDER = ROOT / "site" / "data"  # the answers make data writes
-FIGURE_ANSWERS_FOLDER = DATA_FOLDER / paths.ANSWERS_FOLDER / paths.FIGURE_ANSWERS_FOLDER  # one answer per figure
-FIGURE_INDEX = DATA_FOLDER / paths.ANSWERS_FOLDER / paths.FIGURE_INDEX_FILE  # each figure answer's row count
+# One answer per figure.
+FIGURE_ANSWERS_FOLDER = DATA_FOLDER / answer_files.ANSWERS_FOLDER / answer_files.FIGURE_ANSWERS_FOLDER
+FIGURE_INDEX = DATA_FOLDER / answer_files.ANSWERS_FOLDER / answer_files.FIGURE_INDEX_FILE  # each answer's row count
 
 
 def test_the_built_data_is_tracked(tracked_files: set[str]) -> None:
@@ -43,7 +44,7 @@ def listed_figure_answer_files(index_text: str) -> set[str]:
     repository."""
     listed = set()
     for name in json.loads(index_text):
-        listed.add((FIGURE_ANSWERS_FOLDER / f"{name}.json").relative_to(ROOT).as_posix())
+        listed.add((DATA_FOLDER / answer_files.figure_answer_path(name)).relative_to(ROOT).as_posix())
     return listed
 
 
@@ -59,17 +60,17 @@ def figure_answer_mismatches(listed: set[str], tracked: set[str]) -> list[str]:
 
 def test_every_query_has_its_answer() -> None:
     for name in answers.single_answer_query_names():
-        assert (DATA_FOLDER / paths.answer_file(name)).is_file(), f"{name} has no answer; run make data"
+        assert (DATA_FOLDER / answer_files.answer_path(name)).is_file(), f"{name} has no answer; run make data"
 
 
 def test_a_family_query_has_one_answer_per_family_and_no_other() -> None:
     """Each family query's folder holds one file per family of the by-family answer, named by its slug."""
-    family_rows = json.loads((DATA_FOLDER / paths.answer_file(answers.FAMILIES_QUERY)).read_text())
+    family_rows = json.loads((DATA_FOLDER / answer_files.answer_path(answers.FAMILIES_QUERY)).read_text())
     families = answers.families(family_rows)
     slugs = {family.slug for family in families}
     assert len(slugs) == len(families), "two families share a slug, and so one answer file"
     for name in answers.FAMILY_QUERIES:
-        written = {path.stem for path in (DATA_FOLDER / paths.ANSWERS_FOLDER / name).glob("*.json")}
+        written = {path.stem for path in (DATA_FOLDER / answer_files.ANSWERS_FOLDER / name).glob("*.json")}
         assert written == slugs, f"{name}'s answers are not one per family; run make data"
 
 
@@ -87,8 +88,8 @@ class FamilyMetric(typing.NamedTuple):
 def test_the_histograms_by_family_count_the_requests_the_daily_answer_counts() -> None:
     """Each family's requests in its histograms of a metric are the daily answer's requests that record the metric, so
     the trace table and the daily rollup the bars are drawn from agree on every family."""
-    histograms = json.loads((DATA_FOLDER / paths.answer_file("explore/histograms_by_family")).read_text())
-    daily = json.loads((DATA_FOLDER / paths.answer_file("explore/daily_by_family")).read_text())
+    histograms = json.loads((DATA_FOLDER / answer_files.answer_path("explore/histograms_by_family")).read_text())
+    daily = json.loads((DATA_FOLDER / answer_files.answer_path("explore/daily_by_family")).read_text())
     assert histogram_counts(histograms) == daily_counts(daily), "the histograms and the daily answer differ"
 
 
@@ -119,8 +120,8 @@ def test_the_answers_are_the_ones_the_artifact_gives(artifact_checkout: pathlib.
     connection = site_database.open_database(loading.load_artifact(artifact_checkout), weekly_histograms)
     answers.write_answers(connection, tmp_path)
     figure_answers.write_figure_answers(figure_answers.read_figure_tables(artifact_checkout), tmp_path)
-    rebuilt = files_by_name(tmp_path / paths.ANSWERS_FOLDER)
-    committed = files_by_name(DATA_FOLDER / paths.ANSWERS_FOLDER)
+    rebuilt = files_by_name(tmp_path / answer_files.ANSWERS_FOLDER)
+    committed = files_by_name(DATA_FOLDER / answer_files.ANSWERS_FOLDER)
     assert sorted(rebuilt) == sorted(committed), "the answers' files differ from a rebuild; run make data"
     for name, path in rebuilt.items():
         assert path.read_bytes() == committed[name].read_bytes(), f"{name} differs from a rebuild; run make data"

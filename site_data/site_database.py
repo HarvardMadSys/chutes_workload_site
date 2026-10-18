@@ -13,6 +13,7 @@ by name.
 """
 
 import dataclasses
+import hashlib
 import pathlib
 
 import duckdb
@@ -38,6 +39,11 @@ class QueryRows:
 def statement_text(name: str) -> str:
     """The text of the statement `name`: the file `site/queries/<name>.sql`."""
     return (QUERIES_FOLDER / f"{name}.sql").read_text()
+
+
+def query_text_hash(queries_folder: pathlib.Path, name: str) -> str:
+    """The SHA-256, as hex, of the bytes of the query `name`, the file `<queries_folder>/<name>.sql`."""
+    return hashlib.sha256((queries_folder / f"{name}.sql").read_bytes()).hexdigest()
 
 
 def open_database(frames: loading.ArtifactFrames, weekly_histograms: pandas.DataFrame) -> duckdb.DuckDBPyConnection:

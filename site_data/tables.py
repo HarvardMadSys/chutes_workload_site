@@ -23,7 +23,7 @@ import duckdb
 import pyarrow
 import pyarrow.parquet
 
-from site_data import answers, loading, paths, site_database
+from site_data import loading, site_database
 
 QUERY = "trace/weekly_histograms"  # the trace table's query, the one query over the trace
 TRACE_VIEW = "trace"  # the name the query reads the trace by
@@ -80,9 +80,9 @@ def histogram_table(connection: duckdb.DuckDBPyConnection) -> pyarrow.Table:
 def write_table(table: pyarrow.Table, trace_rows: int, folder: pathlib.Path) -> list[pathlib.Path]:
     """Write `table` as the trace table into `folder`, making it, and its sidecar beside it; the two files."""
     folder.mkdir(parents=True, exist_ok=True)
-    table_path = folder / paths.TRACE_TABLE_FILE
+    table_path = folder / loading.TRACE_TABLE_FILE
     pyarrow.parquet.write_table(table, table_path)
-    sidecar_path = folder / paths.TRACE_TABLE_SIDECAR_FILE
+    sidecar_path = folder / loading.TRACE_TABLE_SIDECAR_FILE
     sidecar_path.write_text(sidecar_text(table.num_rows, trace_rows))
     return [table_path, sidecar_path]
 
@@ -91,7 +91,7 @@ def sidecar_text(table_rows: int, trace_rows: int) -> str:
     """The sidecar of a trace table of `table_rows` rows built from `trace_rows` trace rows by the current query, as
     `answers.py` writes the queries' hashes: indented JSON, keys sorted, and a trailing newline."""
     sidecar = {
-        "query": answers.query_text_hash(site_database.QUERIES_FOLDER, QUERY),
+        "query": site_database.query_text_hash(site_database.QUERIES_FOLDER, QUERY),
         "rows": table_rows,
         "trace_rows": trace_rows,
     }

@@ -14,12 +14,12 @@ import pytest
 
 import fixture_artifact
 import fixture_plotdata
-from site_data import figure_answers, paths
+from site_data import answer_files, figure_answers
 
 
 def figures_folder(data_directory: pathlib.Path) -> pathlib.Path:
     """The folder of the figure answers in the data folder `data_directory`."""
-    return data_directory / paths.ANSWERS_FOLDER / paths.FIGURE_ANSWERS_FOLDER
+    return data_directory / answer_files.ANSWERS_FOLDER / answer_files.FIGURE_ANSWERS_FOLDER
 
 
 def file_hashes(folder: pathlib.Path) -> dict[str, str]:
@@ -56,7 +56,7 @@ def test_a_list_whose_count_disagrees_stops_naming_both_numbers(tmp_path: pathli
 
 def test_every_listed_figure_is_answered(artifact: pathlib.Path, tmp_path: pathlib.Path) -> None:
     written = figure_answers.write_figure_answers(figure_answers.read_figure_tables(artifact), tmp_path)
-    expected = [figures_folder(tmp_path) / f"{name}.json" for name in figure_answers.listed_figures(artifact)]
+    expected = [tmp_path / answer_files.figure_answer_path(name) for name in figure_answers.listed_figures(artifact)]
     assert written == expected
     assert sorted(figures_folder(tmp_path).iterdir()) == sorted(expected)
 
@@ -67,23 +67,23 @@ def test_an_answer_equals_its_plotdata_column_for_column(artifact: pathlib.Path,
     """The answer, read back as a frame, is the table as pandas reads it: the same columns in the same order, the same
     values, integers as integers and a NaN or a null as a missing value."""
     figure_answers.write_figure_answers(figure_answers.read_figure_tables(artifact), tmp_path)
-    answer = json.loads((figures_folder(tmp_path) / f"{figure}.json").read_text())
+    answer = json.loads((tmp_path / answer_files.figure_answer_path(figure)).read_text())
     plotdata = pandas.read_parquet(artifact / figure_answers.PLOTDATA_FOLDER / f"{figure}.parquet")
     pandas.testing.assert_frame_equal(pandas.DataFrame(answer), plotdata)
 
 
 def test_an_answer_writes_a_missing_value_as_null(artifact: pathlib.Path, tmp_path: pathlib.Path) -> None:
     figure_answers.write_figure_answers(figure_answers.read_figure_tables(artifact), tmp_path)
-    cells = json.loads((figures_folder(tmp_path) / "fig_seasonality.json").read_text())
+    cells = json.loads((tmp_path / answer_files.figure_answer_path("fig_seasonality")).read_text())
     assert cells[1] == {"x_low": 1, "x_high": 2, "y_low": 0, "y_high": 1, "value": None}  # a NaN in the table
-    lines = json.loads((figures_folder(tmp_path) / "fig_routing_tradeoff.json").read_text())
+    lines = json.loads((tmp_path / answer_files.figure_answer_path("fig_routing_tradeoff")).read_text())
     assert lines[2] == {"panel": "b", "series": "Global", "x": 0, "y": None}  # a null in the table
 
 
 def test_the_index_holds_each_figure_s_row_count_in_the_list_s_order(artifact: pathlib.Path,
                                                                     tmp_path: pathlib.Path) -> None:
     figure_answers.write_figure_answers(figure_answers.read_figure_tables(artifact), tmp_path)
-    index = json.loads((tmp_path / paths.ANSWERS_FOLDER / paths.FIGURE_INDEX_FILE).read_text())
+    index = json.loads((tmp_path / answer_files.ANSWERS_FOLDER / answer_files.FIGURE_INDEX_FILE).read_text())
     assert list(index) == figure_answers.listed_figures(artifact)
     for name, table in fixture_plotdata.plotdata_tables().items():
         assert index[name] == table.num_rows, name

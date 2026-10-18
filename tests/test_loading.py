@@ -9,7 +9,7 @@ import pyarrow
 import pytest
 
 import fixture_artifact
-from site_data import loading, paths
+from site_data import loading
 
 
 def test_every_cache_loads_with_its_columns(frames: loading.ArtifactFrames) -> None:
@@ -45,7 +45,7 @@ def test_the_trace_table_loads_with_its_columns(fixture_tables: pathlib.Path, fr
 
 
 def test_a_missing_trace_table_stops_naming_it_and_saying_to_run_make_tables(tmp_path: pathlib.Path) -> None:
-    missing = tmp_path / paths.TRACE_TABLE_FILE
+    missing = tmp_path / loading.TRACE_TABLE_FILE
     with pytest.raises(SystemExit, match=re.escape(f"missing {missing}: run make tables")):
         loading.load_trace_table(tmp_path)
 

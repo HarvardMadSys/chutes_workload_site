@@ -371,15 +371,15 @@ site_data/           builds tables/ from the released trace (make tables), and s
                      and plot-ready tables and tables/ (make data)
   __init__.py        the package's summary
   __main__.py        the command make data runs: reads the artifact, writes the answers and the figure answers
-  loading.py         reads the three caches, the model names and the family table into frames, and the trace table;
-                     a missing file stops the step
+  loading.py         reads the three caches, the model names and the family table into frames, and the trace table,
+                     whose file names it holds; a missing file stops the step
   months.py          the trace's start date, and the calendar of its trace days and trace months
   site_database.py   the site's database in DuckDB: the caches, model names and family table as tables, with
                      trace_calendar and family_models, and the trace table as weekly_histograms
   answers.py         runs every query of site/queries/explore/, a family's query once per family, writes its
                      answers and the queries' hashes
   figure_answers.py  writes the plot-ready table of every figure the artifact lists as its answer, and their index
-  paths.py           the names of the files the two steps write, into site/data/ and into tables/
+  answer_files.py    where the answers and figure answers go in site/data/, and the JSON form they are written in
   tables.py          the command make tables runs: the trace query over the released trace, written as the trace
                      table and its sidecar
 tables/              built by make tables from the released trace, and tracked

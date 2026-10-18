@@ -8,7 +8,7 @@ import pytest
 
 import fixture_artifact
 from repository_root import ROOT
-from site_data import __main__, answers, figure_answers, paths
+from site_data import __main__, answer_files, answers, figure_answers, loading
 
 
 def command(artifact: pathlib.Path, tables_folder: pathlib.Path, output: pathlib.Path) -> list[str]:
@@ -24,17 +24,17 @@ def test_the_step_writes_every_answer_and_prints_its_size(artifact: pathlib.Path
     __main__.main(command(artifact, fixture_tables, tmp_path))
     printed = capsys.readouterr().out
     for name in answers.single_answer_query_names():
-        answer = tmp_path / "data" / paths.answer_file(name)
+        answer = tmp_path / "data" / answer_files.answer_path(name)
         assert f"{answer}  {answer.stat().st_size:,} bytes" in printed
     for name in answers.FAMILY_QUERIES:
-        family_answer = tmp_path / "data" / paths.family_answer_file(name, "gpt-oss")
+        family_answer = tmp_path / "data" / answer_files.answer_path(name, "gpt-oss")
         assert f"{family_answer}  {family_answer.stat().st_size:,} bytes" in printed
     # Five, and one per family of three for each of the two family queries.
     assert re.search(r"^11 answers, [\d,]+ bytes$", printed, re.MULTILINE)
-    figure_answer = tmp_path / "data" / paths.ANSWERS_FOLDER / paths.FIGURE_ANSWERS_FOLDER / "fig_seasonality.json"
+    figure_answer = tmp_path / "data" / answer_files.figure_answer_path("fig_seasonality")
     assert f"{figure_answer}  {figure_answer.stat().st_size:,} bytes" in printed
     assert re.search(r"^10 figure answers, [\d,]+ bytes$", printed, re.MULTILINE)  # one per chart kind
-    assert (tmp_path / "data" / paths.ANSWERS_FOLDER / paths.FIGURE_INDEX_FILE).is_file()
+    assert (tmp_path / "data" / answer_files.ANSWERS_FOLDER / answer_files.FIGURE_INDEX_FILE).is_file()
 
 
 def test_a_missing_artifact_folder_stops_before_writing(fixture_tables: pathlib.Path, tmp_path: pathlib.Path,
@@ -55,7 +55,7 @@ def test_a_missing_cache_stops_before_writing(fixture_tables: pathlib.Path, tmp_
 
 
 def test_a_missing_trace_table_stops_before_writing(artifact: pathlib.Path, tmp_path: pathlib.Path) -> None:
-    missing = tmp_path / "no_tables" / paths.TRACE_TABLE_FILE
+    missing = tmp_path / "no_tables" / loading.TRACE_TABLE_FILE
     with pytest.raises(SystemExit, match=re.escape(f"missing {missing}: run make tables")):
         __main__.main(command(artifact, tmp_path / "no_tables", tmp_path))
     assert not (tmp_path / "data").exists()
