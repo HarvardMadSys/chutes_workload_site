@@ -13,13 +13,9 @@ import {
   formatCount, formatCountTick, formatDurationTick, formatSignificantSeconds, formatWholeCount,
 } from "../shared/format.js";
 import { drawLines } from "../charts/lines.js";
+import { SHARE_OF_REQUESTS_AXIS } from "../plot/axes.js";
 import { drawShownSeries } from "../shared/legend.js";
 import { binTotals, cdfRows } from "./traffic_distributions.js";
-
-// The y axis of every chart: the share of the chosen requests at or below a value, in percent, ticked as every CDF on
-// the page is.
-// placeholder: its label, for the authors.
-const SHARE_OF_REQUESTS = Object.freeze({ label: "Share of requests" });
 
 // A TTFT tick of at least a minute is written in seconds, "100 s": a power of ten of seconds is no whole count of
 // minutes, which `formatDurationTick` would write with three decimals.
@@ -191,7 +187,7 @@ async function drawCurves(chart, distributionCharts, hidden) {
   const { distributionChart } = chart;
   await drawLines(chart.rows, chart.body, distributionCharts.legend.colours, {
     x: distributionChart.x,
-    y: SHARE_OF_REQUESTS,
+    y: SHARE_OF_REQUESTS_AXIS,
     cdf: true,
     labels: distributionCharts.labels,
     valueLabel: distributionChart.valueLabel,

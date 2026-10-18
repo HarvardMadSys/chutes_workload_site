@@ -10,11 +10,9 @@ import {
   formatCountTick, formatPercent, formatSeconds, formatSecondsTick, formatShare, formatSignificant, formatThousandsTick,
   formatWholeCount,
 } from "../shared/format.js";
+import { SHARE_OF_REQUESTS_AXIS } from "../plot/axes.js";
 import { HIGHLIGHTED_LABELS, HIGHLIGHTED_SERIES } from "./card_series.js";
 import { frozenCard } from "./figure_card.js";
-
-// The y axis of every CDF of this topic: the share of requests at or below a value, in percent.
-const SHARE_OF_REQUESTS = Object.freeze({ label: "Share of requests" });
 
 // The latency grids' extent, as the paper draws them: input buckets up to 34K tokens, output buckets up to 8,200.
 const INPUT_DOMAIN = Object.freeze([0, 34]);
@@ -68,7 +66,7 @@ export const TOKENS_TOPIC = Object.freeze({
             x: {
               label: "Input tokens", log: true, domain: [10, 1e6], ticks: [100, 1e3, 1e4, 1e5], tickFormat: formatCountTick,
             },
-            y: SHARE_OF_REQUESTS,
+            y: SHARE_OF_REQUESTS_AXIS,
             dashed: ["Global"],
             labels: HIGHLIGHTED_LABELS,
             valueLabel: "Input tokens",
@@ -85,7 +83,7 @@ export const TOKENS_TOPIC = Object.freeze({
           series: HIGHLIGHTED_SERIES,
           chart: {
             x: { label: "Output tokens", log: true, domain: [1, 2e4], tickFormat: formatCountTick },
-            y: SHARE_OF_REQUESTS,
+            y: SHARE_OF_REQUESTS_AXIS,
             dashed: ["Global"],
             labels: HIGHLIGHTED_LABELS,
             valueLabel: "Output tokens",
@@ -108,7 +106,7 @@ export const TOKENS_TOPIC = Object.freeze({
               label: "Output / input tokens", log: true, domain: [5e-4, 100], ticks: [0.01, 0.1, 1, 10, 100],
               tickFormat: String,
             },
-            y: SHARE_OF_REQUESTS,
+            y: SHARE_OF_REQUESTS_AXIS,
             dashed: ["Global"],
             labels: HIGHLIGHTED_LABELS,
             valueLabel: "Ratio",
@@ -135,7 +133,7 @@ export const TOKENS_TOPIC = Object.freeze({
           series: HIGHLIGHTED_SERIES,
           chart: {
             x: { label: "End-to-end latency", log: true, domain: [0.1, 300], tickFormat: formatSecondsTick },
-            y: SHARE_OF_REQUESTS,
+            y: SHARE_OF_REQUESTS_AXIS,
             dashed: ["Global"],
             labels: HIGHLIGHTED_LABELS,
             valueLabel: "Latency",
@@ -153,7 +151,7 @@ export const TOKENS_TOPIC = Object.freeze({
           chart: {
             // Quarters rather than the paper's fifths: six percentages crowd a phone's axis.
             x: { label: "TTFT / duration", domain: [0, 1], ticks: [0, 0.25, 0.5, 0.75, 1], tickFormat: formatPercent },
-            y: SHARE_OF_REQUESTS,
+            y: SHARE_OF_REQUESTS_AXIS,
             dashed: ["Global"],
             labels: HIGHLIGHTED_LABELS,
             valueLabel: "Fraction of the duration",

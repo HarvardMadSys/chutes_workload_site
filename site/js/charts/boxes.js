@@ -6,7 +6,7 @@
  * `q3` and `high`, and `count`, the values they summarise.
  */
 
-import { colourScale, titledFrame } from "../plot/frame.js";
+import { colourScale, MEDIAN_STROKE_WIDTH, titledFrame } from "../plot/frame.js";
 import { axisMark, axisScale, axisTicks, bandAxisMark, gridMark } from "../plot/axes.js";
 import { nameChart } from "../shared/figure.js";
 import { logColumns, positiveRows } from "../shared/rows.js";
@@ -23,7 +23,6 @@ const STATISTICS = Object.freeze([
 ]);
 const BOX_OPACITY = 0.55; // a box is a tint of its colour, so the median's tick reads over it
 const BOX_PADDING = 0.4; // the share of each band left empty around its box
-const MEDIAN_WIDTH = 2; // pixels; the median's tick, thicker than the whiskers
 
 /** Every parameter a boxes chart reads, all of them shared ones (`ChartParameters` of `plot/frame.js`). */
 export const BOXES_PARAMETERS = Object.freeze([
@@ -56,7 +55,7 @@ export async function drawBoxes(rows, body, seriesColours, parameters, hidden) {
       axisMark(Plot, "y", yAxis, yTicks),
       Plot.ruleX(boxes, { x: SERIES_COLUMN, y1: "low", y2: "high", stroke: SERIES_COLUMN }),
       Plot.barY(boxes, { x: SERIES_COLUMN, y1: "q1", y2: "q3", fill: SERIES_COLUMN, fillOpacity: BOX_OPACITY }),
-      Plot.tickY(boxes, { x: SERIES_COLUMN, y: "median", stroke: "currentColor", strokeWidth: MEDIAN_WIDTH }),
+      Plot.tickY(boxes, { x: SERIES_COLUMN, y: "median", stroke: "currentColor", strokeWidth: MEDIAN_STROKE_WIDTH }),
       Plot.tip(boxes, Plot.pointerX({ x: SERIES_COLUMN, y: "median", title: (box) => boxTipText(box, parameters) })),
     ],
   }));

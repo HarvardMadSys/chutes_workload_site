@@ -1,10 +1,10 @@
 /**
  * The Plot options every chart kind starts from: a chart's frame (its margins, its height and the width of its body)
- * and ink, the styles of its grid and axes, the dash of a dashed line, its reference rules, and its colour scales,
- * ordinal, sequential and diverging; the parameters most kinds share (`ChartParameters`, below) and the draw contract
- * every kind keeps. The kinds of `js/charts/` draw with them and `plot/axes.js` takes its styles from here; the legend
- * takes the dash for its swatches, and the Traffic Explorer's bars their width for their month ticks. The colours
- * themselves come from `theme/colours.js`. Plain functions, tested with `node --test`.
+ * and ink, the styles of its grid and axes, the dash of a dashed line, its reference rules, a median's stroke width,
+ * and its colour scales, ordinal, sequential and diverging; the parameters most kinds share (`ChartParameters`, below)
+ * and the draw contract every kind keeps. The kinds of `js/charts/` draw with them and `plot/axes.js` takes its styles
+ * from here; the legend takes the dash for its swatches, and the Traffic Explorer's bars their width for their month
+ * ticks. The colours themselves come from `theme/colours.js`. Plain functions, tested with `node --test`.
  */
 
 /**
@@ -54,6 +54,7 @@ export const SURFACE_INK = "var(--color-surface)";
 export const REFERENCE_STYLE = Object.freeze({ stroke: "currentColor", strokeDasharray: DASH.join(",") });
 /** The halo under a level drawn over cells: a solid rule in the card's colour, 4 px wide, framing the dashes. */
 export const REFERENCE_HALO = Object.freeze({ stroke: SURFACE_INK, strokeWidth: 4 });
+export const MEDIAN_STROKE_WIDTH = 2; // pixels: a median's line or tick, drawn heavier than the rest of its mark
 
 // The Plot options every chart shares, so every chart has the same ink, in the page's own face: Plot's default face
 // draws a name's punctuation otherwise than the page's text does.

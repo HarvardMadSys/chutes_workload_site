@@ -7,7 +7,7 @@
  * `p75` and `p90`, in order of `x`.
  */
 
-import { titledFrame } from "../plot/frame.js";
+import { MEDIAN_STROKE_WIDTH, titledFrame } from "../plot/frame.js";
 import { axisMark, axisScale, axisTicks, axisValueText, gridMark } from "../plot/axes.js";
 import { nameChart } from "../shared/figure.js";
 import { logColumns, positiveRows } from "../shared/rows.js";
@@ -27,7 +27,6 @@ const OUTER_BAND_OPACITY = 0.18;
 const INNER_BAND_OPACITY = 0.25; // the 25th-to-75th band, drawn over the outer one
 // How opaque the inner band reads where it lies over the outer one, as it always does: the key's swatch matches it.
 const INNER_BAND_SEEN_OPACITY = 1 - (1 - OUTER_BAND_OPACITY) * (1 - INNER_BAND_OPACITY);
-const MEDIAN_WIDTH = 2; // pixels; the median is the line a reader follows, so it is drawn heavier than Plot's 1.5
 
 // The key's three entries, in the order it lists them: the outer band, the inner band and the median.
 const KEY_ENTRIES = Object.freeze([
@@ -72,7 +71,7 @@ export async function drawBands(rows, body, seriesColours, parameters, hidden) {
       axisMark(Plot, "y", yAxis, yTicks),
       Plot.areaY(drawn, { x: "x", y1: "p10", y2: "p90", fill: colour, fillOpacity: OUTER_BAND_OPACITY, clip }),
       Plot.areaY(drawn, { x: "x", y1: "p25", y2: "p75", fill: colour, fillOpacity: INNER_BAND_OPACITY, clip }),
-      Plot.line(drawn, { x: "x", y: "p50", stroke: colour, strokeWidth: MEDIAN_WIDTH, clip }),
+      Plot.line(drawn, { x: "x", y: "p50", stroke: colour, strokeWidth: MEDIAN_STROKE_WIDTH, clip }),
       Plot.tip(drawn, Plot.pointerX({ x: "x", y: "p50", title: (row) => bandTipText(row, parameters) })),
     ],
   }));

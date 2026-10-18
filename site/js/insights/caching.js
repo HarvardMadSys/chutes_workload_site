@@ -10,6 +10,7 @@ import {
   formatCount, formatCountTick, formatDurationTick, formatPercent, formatSeconds, formatSecondsTick, formatShare,
   formatWholeCountTick,
 } from "../shared/format.js";
+import { SHARE_OF_REQUESTS_AXIS } from "../plot/axes.js";
 import { TRACE_MONTH_AXIS } from "../plot/trace_axes.js";
 import { COUNT_COLOUR, HIGHLIGHTED_LABELS, HIGHLIGHTED_SERIES } from "./card_series.js";
 import { frozenCard } from "./figure_card.js";
@@ -18,9 +19,6 @@ import { frozenCard } from "./figure_card.js";
 const HIT_RATIO_AXIS = Object.freeze({
   label: "Token hit ratio", domain: [0, 1], ticks: [0, 0.2, 0.4, 0.6, 0.8, 1], tickFormat: String,
 });
-
-// The y axis of the hit-ratio CDFs: the share of requests at or below a ratio, in percent.
-const SHARE_OF_REQUESTS = Object.freeze({ label: "Share of requests" });
 
 // The CDF by input length's series, in the paper's legend order.
 const INPUT_LENGTH_SERIES = Object.freeze(["Global", "<1K input", ">8K input"]);
@@ -59,7 +57,7 @@ export const CACHING_TOPIC = Object.freeze({
           series: INPUT_LENGTH_SERIES,
           chart: {
             x: HIT_RATIO_AXIS,
-            y: SHARE_OF_REQUESTS,
+            y: SHARE_OF_REQUESTS_AXIS,
             dashed: ["Global"],
             valueLabel: "Token hit ratio",
             valueFormat: formatCount,
@@ -76,7 +74,7 @@ export const CACHING_TOPIC = Object.freeze({
           series: HIGHLIGHTED_SERIES,
           chart: {
             x: HIT_RATIO_AXIS,
-            y: SHARE_OF_REQUESTS,
+            y: SHARE_OF_REQUESTS_AXIS,
             dashed: ["Global"],
             labels: HIGHLIGHTED_LABELS,
             valueLabel: "Token hit ratio",

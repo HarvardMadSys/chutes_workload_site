@@ -1,7 +1,8 @@
 /**
  * A card's axes as Plot takes them: Plot's scale options for a card's axis options (`AxisOptions`, below), its axis and
  * grid marks (a band axis's among them), a value as its axis writes it, alone or in a tooltip's text, the tick count a
- * linear axis asks for, a log axis's powers of ten and a log colour legend's ticks. The chart kinds use it, in the
+ * linear axis asks for, a log axis's powers of ten and a log colour legend's ticks; and the y axis of a CDF of
+ * requests, which the Insights' topics and the Traffic Explorer's distributions share. The chart kinds use it, in the
  * styles of `plot/frame.js`; plain functions, a mark's given Plot.
  */
 
@@ -36,6 +37,11 @@ export const TICK_COUNT = 4;
 
 /** The most powers of ten a log axis labels: over a wider range it labels every second, third or more. */
 export const MAX_LOG_TICKS = 6;
+
+// The y axis of every CDF of requests on the page, an Insights card's or the Traffic Explorer's: the share of the
+// requests at or below a value, in percent.
+// placeholder: its label, for the authors.
+export const SHARE_OF_REQUESTS_AXIS = Object.freeze({ label: "Share of requests" });
 
 /**
  * An axis mark made by `makeAxis` (`Plot.axisX` or `Plot.axisY`) with `options`, labelling each of `ticks` when given,
