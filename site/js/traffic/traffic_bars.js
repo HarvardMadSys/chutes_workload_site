@@ -10,7 +10,7 @@ import { nameChart, renderFigure, showNote } from "../shared/figure.js";
 import { formatCount, formatCountTick, formatQuantity } from "../shared/format.js";
 import { drawStackedBars, stackedBarsLegend } from "../charts/stacked_bars.js";
 import { drawWithLegend } from "../shared/legend.js";
-import { choiceSeries, dailyValues, periodDays } from "./traffic_filter.js";
+import { choiceBreakdown, dailyValues, periodDays } from "./traffic_filter.js";
 
 // The bars' margins, in pixels: room on the left for a count tick ("600M"), below for a slanted month ("2025-04"),
 // and little on the right, so the bars take the card's width.
@@ -105,30 +105,30 @@ export function dayMonth(day) {
 /**
  * Draw the bars' figure into `place` for `bars`, `{ choice, family, chosen, requests, days, orders }`: the `chosen`
  * rows of `choice`, of the answer of `family` (null for every family), `requests` in all, their metric per day over the
- * days of `days` (the trace's) in the choice's range, stacked by the choice's series, each kind of series coloured in
- * the order of its rows of `orders` (`{ families, models, endpoints }`), with its legend, or a note when there are none.
- * The legend starts from and tells `legendState` (`{ hidden, onToggle }`) as `drawWithLegend` takes it. Returns the
- * bars' `{ series, legend }`: their kind of series and their legend, empty when there are no bars.
+ * days of `days` (the trace's) in the choice's range, stacked by the choice's breakdown, each breakdown's series
+ * coloured in the order of its rows of `orders` (`{ families, models, endpoints }`), with its legend, or a note when
+ * there are none. The legend starts from and tells `legendState` (`{ hidden, onToggle }`) as `drawWithLegend` takes it.
+ * Returns the bars' `{ breakdown, legend }`: their breakdown and their legend, empty when there are no bars.
  */
 export async function drawBars(place, { choice, family, chosen, requests, days, orders }, legendState) {
-  const series = choiceSeries(choice, family?.name);
+  const breakdown = choiceBreakdown(choice, family?.name);
   const words = METRIC_WORDS[choice.metric];
   const body = renderFigure(place, {
     title: words.title,
-    caption: `${words.valueLabel} ${CHART_CAPTIONS[series.order]}${words.note}`,
+    caption: `${words.valueLabel} ${CHART_CAPTIONS[breakdown.order]}${words.note}`,
     definition: CHART_DEFINITION,
     rows: formatQuantity(requests, "request", "requests"),
   });
-  const colours = series.colours(orders[series.order]);
-  const daily = dailyValues(chosen, series.column, choice.metric, colours);
-  const legend = stackedBarsLegend(daily, colours, { seriesColumn: series.column, labels: series.labels });
+  const colours = breakdown.colours(orders[breakdown.order]);
+  const daily = dailyValues(chosen, breakdown.column, choice.metric, colours);
+  const legend = stackedBarsLegend(daily, colours, { seriesColumn: breakdown.column, labels: breakdown.labels });
   if (daily.length === 0) {
     showNote(body, NO_REQUESTS_NOTE);
-    return { series, legend };
+    return { breakdown, legend };
   }
-  const drawing = { days: periodDays(days, choice), series, colours: legend.colours, words };
+  const drawing = { days: periodDays(days, choice), breakdown, colours: legend.colours, words };
   await drawWithLegend(body, legend, (hidden) => drawDayBars(daily, body, drawing, hidden), "square", legendState);
-  return { series, legend };
+  return { breakdown, legend };
 }
 
 // Draw the bars of the series not in `hidden`, one per day of `bars.days`, the months written as `monthTicks` says,
@@ -142,7 +142,7 @@ async function drawDayBars(daily, body, bars, hidden) {
     xTickFormat: dayMonth,
     xTipFormat: String, // a bar's tooltip names its whole day, where its tick names only the month
     xTickRotate: MONTH_LABEL_ANGLE,
-    seriesColumn: bars.series.column,
+    seriesColumn: bars.breakdown.column,
     valueColumn: "value",
     valueLabel: bars.words.valueLabel,
     yLabel: null,
@@ -151,7 +151,7 @@ async function drawDayBars(daily, body, bars, hidden) {
     margins: DAILY_MARGINS,
     inset: DAY_BAR_INSET,
     segmentInset: DAY_BAR_INSET,
-    labels: bars.series.labels,
+    labels: bars.breakdown.labels,
   }, hidden);
   nameChart(body);
 }

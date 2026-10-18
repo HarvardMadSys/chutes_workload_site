@@ -3,8 +3,8 @@
  * under a one-line title: the chosen requests' distribution of its value as a CDF per series of the bars, in the bars'
  * legend's colours, over the trace weeks holding a chosen day (`traffic/traffic_distributions.js`), on a fixed log x
  * axis. The module makes the three places in the row it is given, keyed by metric, `{ input_tokens, output_tokens,
- * ttft }`; where the row stands is the explorer's choice. The charts are drawn from `{ rows, series, legend }`: the
- * choice's histogram rows, the bars' kind of series (`choiceSeries` of `traffic/traffic_filter.js`) and the bars'
+ * ttft }`; where the row stands is the explorer's choice. The charts are drawn from `{ rows, breakdown, legend }`:
+ * the choice's histogram rows, the bars' breakdown (`choiceBreakdown` of `traffic/traffic_filter.js`) and the bars'
  * legend; a drawing gives back the charts drawn, `{ legend, labels, charts }`, which the legend draws again.
  */
 
@@ -137,20 +137,20 @@ export function showChartsError(places, error) {
 }
 
 /**
- * Draw the three charts into their `places`, `{ input_tokens, output_tokens, ttft }`, from `{ rows, series, legend }`,
- * the series of `hidden` left out, and return the charts drawn, `{ legend, labels, charts }`, each chart `{ body,
- * distributionChart, rows }`: its place, its entry of `DISTRIBUTION_CHARTS` and its CDF rows. The rows beyond the x
- * domain's ends are kept: the line is cut at the chart's edge rather than ended before it. Settles when every chart
- * has drawn.
+ * Draw the three charts into their `places`, `{ input_tokens, output_tokens, ttft }`, from
+ * `{ rows, breakdown, legend }`, the series of `hidden` left out, and return the charts drawn,
+ * `{ legend, labels, charts }`, each chart `{ body, distributionChart, rows }`: its place, its entry of
+ * `DISTRIBUTION_CHARTS` and its CDF rows. The rows beyond the x domain's ends are kept: the line is cut at the chart's
+ * edge rather than ended before it. Settles when every chart has drawn.
  */
-export async function drawDistributionCharts(places, { rows, series, legend }, hidden) {
+export async function drawDistributionCharts(places, { rows, breakdown, legend }, hidden) {
   const charts = [];
   for (const distributionChart of DISTRIBUTION_CHARTS) {
-    const totals = binTotals(rows, series.column, distributionChart.metric, legend.colours);
+    const totals = binTotals(rows, breakdown.column, distributionChart.metric, legend.colours);
     const chartRows = listedRows(cdfRows(totals), legend);
     charts.push({ body: places[distributionChart.metric], distributionChart, rows: chartRows });
   }
-  const drawn = { legend, labels: series.labels ?? {}, charts };
+  const drawn = { legend, labels: breakdown.labels ?? {}, charts };
   await drawDistributionCurves(drawn, hidden);
   return drawn;
 }

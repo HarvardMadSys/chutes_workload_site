@@ -188,7 +188,7 @@ async function drawChoice(view, choice) {
   const summary = trafficSummary(chosen);
   view.summary = summary;
   renderTiles(view.tiles, summary, null);
-  // The order each kind of series takes its colours in: the families', the family's models' and the Overview's.
+  // The order each breakdown's series take their colours in: the families', the family's models' and the Overview's.
   const orders = {
     families: view.families,
     models: family === null ? [] : modelOrder(family.rows),
@@ -205,10 +205,10 @@ function stillWanted(view, choice) {
   return isSameChoice(view.choice, choice) && !view.showingError;
 }
 
-// The three charts and the tiles' percentiles of `choice`, once its bars are drawn (`drawnBars`, `{ series, legend,
-// summary }`), from its histogram answer, the charts loading while it is read. A choice the explorer has moved on
-// from, or one whose places show a family's error, before or while the answer is read, touches nothing; a failed read
-// shows its error in the charts and leaves the tiles without percentiles.
+// The three charts and the tiles' percentiles of `choice`, once its bars are drawn (`drawnBars`, `{ breakdown,
+// legend, summary }`), from its histogram answer, the charts loading while it is read. A choice the explorer has
+// moved on from, or one whose places show a family's error, before or while the answer is read, touches nothing; a
+// failed read shows its error in the charts and leaves the tiles without percentiles.
 async function drawDistributions(view, choice, drawnBars) {
   if (!stillWanted(view, choice)) {
     return;
@@ -233,7 +233,7 @@ async function drawDistributions(view, choice, drawnBars) {
 async function drawHistograms(view, choice, drawnBars, answer) {
   const rows = histogramRowsInChoice(answer, choice);
   renderTiles(view.tiles, drawnBars.summary, choicePercentiles(rows));
-  const distributions = { rows, series: drawnBars.series, legend: drawnBars.legend };
+  const distributions = { rows, breakdown: drawnBars.breakdown, legend: drawnBars.legend };
   const distributionCharts = await drawDistributionCharts(view.chartPlaces, distributions, view.hidden);
   if (stillWanted(view, choice)) {
     view.distributionCharts = distributionCharts;

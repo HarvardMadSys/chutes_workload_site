@@ -18,7 +18,7 @@ function shippedAnswer(name) {
 }
 
 test("the two donuts are the family mix and the endpoint mix", () => {
-  assert.deepEqual(MIXES.map((mix) => [mix.title, mix.series.order, mix.series.column]), [
+  assert.deepEqual(MIXES.map((mix) => [mix.title, mix.breakdown.order, mix.breakdown.column]), [
     ["Model families", "families", "family"],
     ["Endpoint mix", "endpoints", "endpoint_group"],
   ]);
@@ -70,7 +70,7 @@ test("each shipped donut's centre, the sum of its slices, is its answer's total 
   for (const [mix, name] of [[MIXES[0], "explore/family_mix"], [MIXES[1], "explore/endpoint_mix"]]) {
     const rows = shippedAnswer(name);
     const named = namedSeries(mixLegend(mix, rows).colours);
-    const centre = columnTotal(donutSlices(rows, mix.series.column, "requests", named), "count");
+    const centre = columnTotal(donutSlices(rows, mix.breakdown.column, "requests", named), "count");
     assert.equal(centre, columnTotal(rows, "requests"), mix.title);
     assert.equal(centre, totalsRow.requests, mix.title);
     assert.equal(formatCompactCount(centre), stripRequests, mix.title);

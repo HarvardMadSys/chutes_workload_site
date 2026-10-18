@@ -15,7 +15,7 @@
  */
 
 import { foldedRows } from "../charts/stacked_bars.js";
-import { ENDPOINT_LABELS, ENDPOINT_SERIES, FAMILY_SERIES, MODEL_SERIES } from "../shared/series.js";
+import { BY_ENDPOINT, BY_FAMILY, BY_MODEL, ENDPOINT_LABELS } from "../shared/series.js";
 import { OTHER_NAME } from "../theme/colours.js";
 import { clippedRange } from "./traffic_range.js";
 
@@ -206,19 +206,19 @@ export function trafficSummary(rows) {
 }
 
 /**
- * The series the bars stack by: the families (`FAMILY_SERIES`) while no family is chosen; the models of the family
- * named `familyName` once one is (`MODEL_SERIES`, its "Other" written as the model drop-down names it, "Other
- * <family>"); the endpoint groups (`ENDPOINT_SERIES`) once a model is.
+ * The breakdown the bars stack by: by family (`BY_FAMILY`) while no family is chosen; by the models of the family
+ * named `familyName` once one is (`BY_MODEL`, its "Other" written as the model drop-down names it, "Other
+ * <family>"); by endpoint group (`BY_ENDPOINT`) once a model is.
  */
-export function choiceSeries(choice, familyName) {
+export function choiceBreakdown(choice, familyName) {
   if (choice.family === "") {
-    return FAMILY_SERIES;
+    return BY_FAMILY;
   }
   if (choice.model === "") {
     // The family's other models fold into the models' "Other" (`modelColours`), named here for the family.
-    return Object.freeze({ ...MODEL_SERIES, labels: Object.freeze({ [OTHER_NAME]: otherModelsName(familyName) }) });
+    return Object.freeze({ ...BY_MODEL, labels: Object.freeze({ [OTHER_NAME]: otherModelsName(familyName) }) });
   }
-  return ENDPOINT_SERIES;
+  return BY_ENDPOINT;
 }
 
 /**

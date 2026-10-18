@@ -3,11 +3,11 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
-  choiceSeries, dailyValues, endpointChoices, familyChoices, familyOrder, isSameChoice, metricChoices, modelChoices,
+  choiceBreakdown, dailyValues, endpointChoices, familyChoices, familyOrder, isSameChoice, metricChoices, modelChoices,
   modelOrder, OTHER_MODEL, periodDays, readTrafficChoice, rowsInChoice, trafficSummary, writeTrafficChoice,
 } from "../site/js/traffic/traffic_filter.js";
 import { PERIODS, periodRange } from "../site/js/traffic/traffic_range.js";
-import { ENDPOINT_SERIES, FAMILY_SERIES, MODEL_SERIES } from "../site/js/shared/series.js";
+import { BY_ENDPOINT, BY_FAMILY, BY_MODEL } from "../site/js/shared/series.js";
 import { familyColours, modelColours } from "../site/js/theme/colours.js";
 
 /** The rows of the shipped answer of the query `name`, as the page reads them. */
@@ -152,13 +152,13 @@ test("a summary of no requests has no averages and no share", () => {
 });
 
 test("the bars are by family with no family chosen, by model with one, and by endpoint group with a model", () => {
-  assert.equal(choiceSeries(EVERYTHING, undefined), FAMILY_SERIES);
-  assert.equal(choiceSeries({ ...EVERYTHING, endpoint: "chat" }, undefined).column, "family");
-  const byModel = choiceSeries({ ...EVERYTHING, family: "kin" }, "Kin");
-  assert.deepEqual([byModel.column, byModel.order, byModel.colours], ["model", "models", MODEL_SERIES.colours]);
+  assert.equal(choiceBreakdown(EVERYTHING, undefined), BY_FAMILY);
+  assert.equal(choiceBreakdown({ ...EVERYTHING, endpoint: "chat" }, undefined).column, "family");
+  const byModel = choiceBreakdown({ ...EVERYTHING, family: "kin" }, "Kin");
+  assert.deepEqual([byModel.column, byModel.order, byModel.colours], ["model", "models", BY_MODEL.colours]);
   assert.deepEqual(byModel.labels, { Other: "Other Kin" });
-  assert.equal(choiceSeries({ ...EVERYTHING, family: "kin", model: "id-a" }, "Kin"), ENDPOINT_SERIES);
-  assert.equal(choiceSeries({ ...EVERYTHING, family: "kin", model: OTHER_MODEL }, "Kin"), ENDPOINT_SERIES);
+  assert.equal(choiceBreakdown({ ...EVERYTHING, family: "kin", model: "id-a" }, "Kin"), BY_ENDPOINT);
+  assert.equal(choiceBreakdown({ ...EVERYTHING, family: "kin", model: OTHER_MODEL }, "Kin"), BY_ENDPOINT);
 });
 
 test("a family's other models fold into Other in the bars, their requests summed per day", () => {
@@ -234,7 +234,7 @@ test("a family's model drop-down offers its named models by requests, then Other
 test("the family Other's other models are Rest of Other, in its drop-down and on its bars", () => {
   const texts = modelChoices(ROWS, "Other").map((choice) => choice.text);
   assert.deepEqual(texts, ["All Other models", "B", "A", "Rest of Other"]);
-  assert.deepEqual(choiceSeries({ ...EVERYTHING, family: "other" }, "Other").labels, { Other: "Rest of Other" });
+  assert.deepEqual(choiceBreakdown({ ...EVERYTHING, family: "other" }, "Other").labels, { Other: "Rest of Other" });
 });
 
 test("the shipped DeepSeek drop-down offers its eight models and Other DeepSeek", () => {

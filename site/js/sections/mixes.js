@@ -15,11 +15,11 @@
 import { renderFigure, showError, showLoading } from "../shared/figure.js";
 import { columnTotal } from "../shared/rows.js";
 import { formatCompactCount, formatQuantity } from "../shared/format.js";
-import { ENDPOINT_SERIES, FAMILY_SERIES } from "../shared/series.js";
+import { BY_ENDPOINT, BY_FAMILY } from "../shared/series.js";
 import { drawWithLegend } from "../shared/legend.js";
 import { donutLegend, drawDonut } from "../charts/donut.js";
 
-/** The two donuts, in the page's order: each card's words and the series it slices the requests by. */
+/** The two donuts, in the page's order: each card's words and the breakdown it slices the requests by. */
 export const MIXES = Object.freeze([
   Object.freeze({
     // placeholder: the family mix's title, caption and definition, for the authors.
@@ -27,14 +27,14 @@ export const MIXES = Object.freeze([
     caption: "Each family's share of the requests.",
     definition: "Requests over the whole trace, by the family of the model they asked for, as the Traffic Explorer "
       + "groups them; the models in no family are Other.",
-    series: FAMILY_SERIES,
+    breakdown: BY_FAMILY,
   }),
   Object.freeze({
     title: "Endpoint mix",
     caption: "Each endpoint group's share of the requests.",
     definition: "Requests over the whole trace, by the endpoint they were sent to: chat or completion, streamed or "
       + "not. Requests to any other endpoint are Other.",
-    series: ENDPOINT_SERIES,
+    breakdown: BY_ENDPOINT,
   }),
 ]);
 
@@ -54,15 +54,15 @@ export async function runMixes(container, context) {
 
 /**
  * The legend of a mix's donut over `rows`, its answer's rows, which are also its colour order: `{ series, colours }`,
- * its slices largest first and "Other" last, each labelled with its share, in the colours `mix.series` gives them.
+ * its slices largest first and "Other" last, each labelled with its share, in the colours `mix.breakdown` gives them.
  */
 export function mixLegend(mix, rows) {
-  const { column, colours, labels } = mix.series;
+  const { column, colours, labels } = mix.breakdown;
   return donutLegend(rows, colours(rows), { nameColumn: column, countColumn: "requests", labels });
 }
 
 async function drawMix(place, mix, context) {
-  const rows = await context.orders[mix.series.order];
+  const rows = await context.orders[mix.breakdown.order];
   const body = renderFigure(place, {
     title: mix.title,
     caption: mix.caption,
@@ -71,10 +71,10 @@ async function drawMix(place, mix, context) {
   });
   const legend = mixLegend(mix, rows);
   await drawWithLegend(body, legend, (hidden) => drawDonut(rows, body, { series: legend.colours }, {
-    nameColumn: mix.series.column,
+    nameColumn: mix.breakdown.column,
     countColumn: "requests",
     unit: "requests",
     totalFormat: formatCompactCount, // a billion requests is too wide for the centre written in full
-    labels: mix.series.labels,
+    labels: mix.breakdown.labels,
   }, hidden));
 }

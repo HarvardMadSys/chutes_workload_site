@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  endpointFigureColours, ENDPOINT_LABELS, ENDPOINT_SERIES, FAMILY_SERIES, figureColours, FIXED_SERIES_COLOURS,
-  HIGHLIGHTED_LABELS, HIGHLIGHTED_SERIES, MODEL_SERIES, policyColours, SERIES_COLUMN, seriesLabel, seriesLegend,
+  BY_ENDPOINT, BY_FAMILY, BY_MODEL, endpointFigureColours, ENDPOINT_LABELS, figureColours, FIXED_SERIES_COLOURS,
+  HIGHLIGHTED_LABELS, HIGHLIGHTED_SERIES, policyColours, SERIES_COLUMN, seriesLabel, seriesLegend,
   seriesPolicy, shownRows, shownSeriesRows,
 } from "../site/js/shared/series.js";
 import { assignColours, FAMILY_SLOTS, OTHER_SERIES, SERIES_SLOTS } from "../site/js/theme/colours.js";
@@ -30,15 +30,15 @@ test("a legend lists the series the rows hold, in the colours' order, each label
   assert.equal(legend.colours, colours);
 });
 
-test("the models and the endpoint groups are each coloured by their order's rows and named by their column", () => {
-  assert.deepEqual([MODEL_SERIES.order, MODEL_SERIES.column, MODEL_SERIES.colours], ["models", "model", modelColours]);
-  assert.deepEqual([ENDPOINT_SERIES.order, ENDPOINT_SERIES.column, ENDPOINT_SERIES.colours],
+test("each breakdown colours its series by its order's rows and names them by its column", () => {
+  assert.deepEqual([BY_MODEL.order, BY_MODEL.column, BY_MODEL.colours], ["models", "model", modelColours]);
+  assert.deepEqual([BY_ENDPOINT.order, BY_ENDPOINT.column, BY_ENDPOINT.colours],
     ["endpoints", "endpoint_group", endpointColours]);
-  assert.deepEqual([FAMILY_SERIES.order, FAMILY_SERIES.column, FAMILY_SERIES.colours],
+  assert.deepEqual([BY_FAMILY.order, BY_FAMILY.column, BY_FAMILY.colours],
     ["families", "family", familyColours]);
-  assert.equal(MODEL_SERIES.labels, undefined, "a model is written by its name");
-  assert.equal(FAMILY_SERIES.labels, undefined, "a family is written by its name");
-  assert.equal(ENDPOINT_SERIES.labels, ENDPOINT_LABELS);
+  assert.equal(BY_MODEL.labels, undefined, "a model is written by its name");
+  assert.equal(BY_FAMILY.labels, undefined, "a family is written by its name");
+  assert.equal(BY_ENDPOINT.labels, ENDPOINT_LABELS);
 });
 
 test("each endpoint group is labelled in words", () => {

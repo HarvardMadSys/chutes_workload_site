@@ -5,12 +5,8 @@
  * the three highlighted models in one fixed colour each on every card, in the paper's legend order and with their
  * labels. These are plain functions, tested with `node --test`.
  *
- * And the kinds of series the Overview and the Traffic Explorer draw, the models, the endpoint groups and the
- * families, each `{ order, column, colours, labels? }`: `order`, the key of the orders (the page's `context.orders`,
- * `page/start.js`, and the Traffic Explorer's own) whose rows give the colour order;
- * `column`, the column of an answer naming a row's series; `colours(orderRows)`, a Map from name to colour; and, for a
- * kind whose series are not written by their names, `labels`, each series' label (the endpoint groups'
- * `ENDPOINT_LABELS`).
+ * And the three breakdowns, how the Overview and the Traffic Explorer split their rows into series: by model, by
+ * endpoint group and by family (`Breakdown`).
  */
 
 import { panelRows } from "./rows.js";
@@ -21,18 +17,23 @@ import {
 /** The column of a figure's answer naming each row's series. */
 export const SERIES_COLUMN = "series";
 
-/** The models as a chart's series, each written by its name: the Traffic Explorer's bars of a family's models. */
-export const MODEL_SERIES = Object.freeze({
+/**
+ * How a chart splits its rows into series: `order`, the key of the rows that give the colour order (the page's
+ * `context.orders`, `page/start.js`, or the Traffic Explorer's own orders); `column`, the answer column naming a row's
+ * series; `colours`, the function from those rows to a Map from series name to colour; and, where a series is not
+ * written by its name, `labels`, each series' label.
+ * @typedef {{ order: string, column: string, colours: function, labels?: object }} Breakdown
+ */
+
+/** By model, each written by its name: the Traffic Explorer with a family chosen. */
+export const BY_MODEL = Object.freeze({
   order: "models",
   column: "model",
   colours: modelColours,
 });
 
-/**
- * The model families as a chart's series, each written by its name; the Overview's family mix and the Traffic Explorer
- * order them by requests.
- */
-export const FAMILY_SERIES = Object.freeze({
+/** By family, each written by its name: the Overview's family mix, the Traffic Explorer with no family chosen. */
+export const BY_FAMILY = Object.freeze({
   order: "families",
   column: "family",
   colours: familyColours,
@@ -47,8 +48,11 @@ export const ENDPOINT_LABELS = Object.freeze({
   other: "Other",
 });
 
-/** The endpoint groups as a chart's series, each written by its label, "Chat stream". */
-export const ENDPOINT_SERIES = Object.freeze({
+/**
+ * By endpoint group, each written by its label, "Chat stream": the Overview's endpoint mix, the Traffic Explorer with a
+ * model chosen.
+ */
+export const BY_ENDPOINT = Object.freeze({
   order: "endpoints",
   column: "endpoint_group",
   colours: endpointColours,
