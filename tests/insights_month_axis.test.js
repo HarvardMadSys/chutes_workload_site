@@ -6,9 +6,10 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { axisScale } from "../site/js/plot/axes.js";
+import { chartParameters } from "../site/js/insights/figure_card.js";
 import {
-  chartParameters, PARTIAL_TRACE_MONTH, TRACE_MONTH_AXIS, TRACE_MONTH_NAMES, TRACE_MONTH_TICKS, traceMonthName,
-} from "../site/js/insights/figure_card.js";
+  PARTIAL_TRACE_MONTH, TRACE_MONTH_AXIS, TRACE_MONTH_NAMES, TRACE_MONTH_TICKS, traceMonthName,
+} from "../site/js/plot/trace_axes.js";
 import { TOPICS, topicCards } from "../site/js/page/topics.js";
 import { TRACE_FIRST_DAY } from "../site/js/shared/format.js";
 

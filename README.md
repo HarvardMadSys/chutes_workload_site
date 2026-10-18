@@ -393,8 +393,9 @@ site/                exactly the files that are deployed
   js/page/           the page's module and its start, the Insights' topics and their tabs
     main.js          the page's module: it names the page's sections, starts the charting library's load and starts
                      the page
-    start.js         places the Insights' groups and cards and draws their tabs, draws the header and footer, runs
-                     the sections, then draws the shown topic, and follows Back and Forward
+    start.js         asks for the answers the sections share, places the Insights' groups and cards and draws their
+                     tabs, draws the header and footer, runs the sections, then draws the shown topic, and follows
+                     Back and Forward
     topic_tabs.js    the Insights' tabs, one topic shown at a time, the shown one in the URL's hash
     topics.js        the Insights' six topics in the order of their tabs, and a topic's cards group by group
     scrolling_row.js
@@ -424,6 +425,8 @@ site/                exactly the files that are deployed
     frame.js         a chart's frame and ink, its reference rules, and its colour scales
     axes.js          how many ticks an axis asks for, a log axis's powers of ten, a card's axis as Plot's scale and
                      marks, and a value as its axis writes it
+    trace_axes.js    the trace's day and month axes that cards hand to the kinds, the months named and the partial
+                     last starred
   js/theme/colours.js
                      the series colours as the style tokens give them, from one family order and one endpoint
                      order, the families taking ten
@@ -447,7 +450,7 @@ site/                exactly the files that are deployed
   js/insights/       the figure cards and the topics
     figure_card.js   a card, its chart drawn from its answer by its kind
     card_series.js   a card's series: their order, each palette's colours, the fixed and highlighted series, the
-                     card's legend
+                     count colour, the card's legend
     workload.js, tokens.js, users.js, evolution.js, caching.js, balancing.js
                      one module per topic: its takeaway, its groups' headings and takeaways, its cards' words,
                      kinds and charts' parameters

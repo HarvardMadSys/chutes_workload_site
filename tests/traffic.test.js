@@ -53,7 +53,7 @@ function runExplorer(context, query, answers) {
     return fetchedAnswer(await answers[file]);
   });
   const explorerContext = {
-    orders: { endpoints: Promise.resolve([{ endpoint_group: "chat", requests: 10 }]) },
+    mixes: { endpoints: Promise.resolve([{ endpoint_group: "chat", requests: 10 }]) },
     replaceQuery: (params) => page.replaced.push(params.toString()),
     onReturn: (redraw) => page.returns.push(redraw),
   };

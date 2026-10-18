@@ -18,8 +18,9 @@ import {
 import { axisTicks } from "../site/js/plot/axes.js";
 import { cellTipText } from "../site/js/charts/cells.js";
 import { drawWithLegend, hasLegend } from "../site/js/shared/legend.js";
-import { cardColours, figureLegend } from "../site/js/insights/card_series.js";
-import { chartParameters, COUNT_COLOUR, TRACE_DAY_AXIS } from "../site/js/insights/figure_card.js";
+import { cardColours, COUNT_COLOUR, figureLegend } from "../site/js/insights/card_series.js";
+import { chartParameters } from "../site/js/insights/figure_card.js";
+import { TRACE_DAY_AXIS } from "../site/js/plot/trace_axes.js";
 import { TOPICS, topicCards } from "../site/js/page/topics.js";
 import { sequentialColour, titledFrame } from "../site/js/plot/frame.js";
 import { SERIES_SLOTS } from "../site/js/theme/colours.js";

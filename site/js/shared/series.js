@@ -14,7 +14,7 @@ export const SERIES_COLUMN = "series";
 
 /**
  * How a chart splits its rows into series: `order`, the key of the rows that give the colour order (the page's
- * `context.orders`, `page/start.js`, or the Traffic Explorer's own orders); `column`, the answer column naming a row's
+ * `context.mixes`, `page/start.js`, or the Traffic Explorer's own orders); `column`, the answer column naming a row's
  * series; `colours`, the function from those rows to a Map from series name to colour; and, where a series is not
  * written by its name, `labels`, each series' label.
  * @typedef {{ order: string, column: string, colours: function, labels?: object }} Breakdown

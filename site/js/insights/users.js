@@ -7,7 +7,8 @@
  */
 
 import { formatCount, formatWholeCountTick } from "../shared/format.js";
-import { COUNT_COLOUR, frozenCard } from "./figure_card.js";
+import { COUNT_COLOUR } from "./card_series.js";
+import { frozenCard } from "./figure_card.js";
 
 // The token-shape figures' axes, as the paper's: the users' medians up to 10⁶ input and 10⁵ output tokens, the
 // models' up to 10⁵ on both axes, so that the line of equal input and output is the diagonal.

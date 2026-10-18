@@ -7,8 +7,9 @@
  */
 
 import { formatCountTick, formatPercent, formatShare, formatWholeCount } from "../shared/format.js";
+import { TRACE_MONTH_AXIS, TRACE_MONTH_TICKS } from "../plot/trace_axes.js";
 import { SERIES_SLOTS } from "../theme/colours.js";
-import { frozenCard, TRACE_MONTH_AXIS, TRACE_MONTH_TICKS } from "./figure_card.js";
+import { frozenCard } from "./figure_card.js";
 
 // The legend of the two monthly share cards: the ten most requested models and Others.
 const SHARE_LEGEND = "fig_top10_model_monthly_share_legend";

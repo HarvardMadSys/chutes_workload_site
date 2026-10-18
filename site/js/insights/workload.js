@@ -7,7 +7,8 @@
 
 import { formatCompactCount, formatCount, formatCountTick } from "../shared/format.js";
 import { ENDPOINT_LABELS } from "../shared/series.js";
-import { frozenCard, TRACE_DAY_AXIS } from "./figure_card.js";
+import { TRACE_DAY_AXIS } from "../plot/trace_axes.js";
+import { frozenCard } from "./figure_card.js";
 
 // The API functions' labels where the answer writes a function's name otherwise than the site's endpoint groups.
 const FUNCTION_LABELS = Object.freeze({

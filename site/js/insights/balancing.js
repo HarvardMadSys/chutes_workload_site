@@ -11,7 +11,8 @@ import {
   formatCompactCount, formatCount, formatCountTick, formatHours, formatHoursTick, formatPercentage, formatSecondsTick,
   formatWholeCountTick,
 } from "../shared/format.js";
-import { frozenCard, TRACE_DAY_AXIS } from "./figure_card.js";
+import { TRACE_DAY_AXIS } from "../plot/trace_axes.js";
+import { frozenCard } from "./figure_card.js";
 import { routingFigurePanels, routingFigureSeries } from "./routing_panels.js";
 
 // The largest step, in days, the three hourly lines are drawn across: an hour and a half, so a line breaks where an

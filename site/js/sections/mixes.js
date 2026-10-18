@@ -1,8 +1,8 @@
 /**
  * The Overview's two donuts over the whole trace: the family mix, each model family's share of the requests
  * (`explore/family_mix`), and the endpoint mix, each endpoint group's share (`explore/endpoint_mix`). Each answer is
- * also its series' colour order, so the page asks for it once and gives its rows as `context.orders.families` and
- * `context.orders.endpoints`.
+ * also its series' colour order, so the page asks for it once and gives its rows as `context.mixes.families` and
+ * `context.mixes.endpoints`.
  *
  * A donut names each series its colours name, in those colours: the families as the Traffic Explorer colours them
  * (`familyColours`), the endpoint groups as `endpointColours` does, every other name folded into "Other". The donut
@@ -62,7 +62,7 @@ export function mixLegend(mix, rows) {
 }
 
 async function drawMix(place, mix, context) {
-  const rows = await context.orders[mix.breakdown.order];
+  const rows = await context.mixes[mix.breakdown.order];
   const body = renderFigure(place, {
     title: mix.title,
     caption: mix.caption,

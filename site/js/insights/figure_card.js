@@ -21,7 +21,6 @@
 
 import { legendPlace, nameChart, renderFigure, showError, showLoading } from "../shared/figure.js";
 import { readAnswer } from "../shared/answers.js";
-import { formatTraceDay } from "../shared/format.js";
 import { SERIES_COLUMN } from "../shared/series.js";
 import { bandKey, bandsColour, drawBands } from "../charts/bands.js";
 import { drawBars } from "../charts/bars.js";
@@ -55,53 +54,8 @@ export const CHART_KINDS = Object.freeze({
   }),
 });
 
-/**
- * A card's colours for a count, of models, users, requests or instances, as the paper shades one: viridis on a log
- * scale, from a quarter of the way along it, since its first colour, a near-black purple, vanishes into the dark
- * scheme's card. A card spreads it into its `chart`.
- */
-export const COUNT_COLOUR = Object.freeze({ scheme: "viridis", schemeStart: 0.25, colourLog: true });
-
-/** A card's x axis of the trace's days, day 0 being its first; a tooltip gives the day's date (`formatTraceDay`). */
-export const TRACE_DAY_AXIS = Object.freeze({
-  label: "Day of the trace", tipFormat: formatTraceDay,
-});
-
-/**
- * The trace's months an axis of its months 1 to 13 labels: every sixth from the first, the first, the middle and the
- * last; five month names run together on a phone, and a name says which month it is, so fewer are needed.
- */
-export const TRACE_MONTH_TICKS = Object.freeze([1, 7, 13]);
-
-/**
- * The names of the trace's months 1 to 13, in order: each is named by the calendar month its first day falls in, as
- * `trace_calendar`'s `calendar_month` labels it (`site_data/months.py`).
- */
-export const TRACE_MONTH_NAMES = Object.freeze([
-  "Apr '25", "May '25", "Jun '25", "Jul '25", "Aug '25", "Sep '25", "Oct '25", "Nov '25", "Dec '25", "Jan '26",
-  "Feb '26", "Mar '26", "Apr '26",
-]);
-
-/** The trace month that holds only the trace's last two days, its name starred so a reader does not compare it. */
-export const PARTIAL_TRACE_MONTH = 13;
-
-// Pixels between the plot's edges and the first and last months, so that "Apr '25" clears the y axis's lowest label.
-const TRACE_MONTH_INSET = 20;
-
-/**
- * A card's x axis of the trace's months, 1 to 13, ticked by their names (`traceMonthName`), its ends inset
- * `TRACE_MONTH_INSET` pixels from the plot's.
- */
-export const TRACE_MONTH_AXIS = Object.freeze({
-  label: "Month", ticks: TRACE_MONTH_TICKS, tickFormat: traceMonthName, inset: TRACE_MONTH_INSET,
-});
-
 // The kind whose card shows the key to its bands (`bandKey` of `charts/bands.js`) in place of a legend of buttons.
 const BANDS_KIND = "bands";
-
-// The palette of the endpoint groups, whose card reads their colour order, the answer `ENDPOINT_ORDER`.
-const ENDPOINT_PALETTE = "endpoints";
-const ENDPOINT_ORDER = "explore/endpoint_mix";
 
 // The folder of the figure answers, under the answers' folder: the figure `name`'s answer is `figures/<name>`.
 const FIGURE_ANSWERS = "figures/";
@@ -135,14 +89,16 @@ export function renderFigureCard(container, card) {
 }
 
 /**
- * Read `card`'s answer, its legend answer where it names one and the endpoint groups' order where its palette is
- * theirs, and draw its chart into `body` by its kind: a bands card with its key above it (`bandKey`), any other with
- * a legend of buttons above it where its rows hold more than one series, each click redrawing the chart from the rows
- * already read. An answer that cannot be read, or a chart that fails to draw, shows its error in `body`.
+ * Read `card`'s answer and its legend answer where it names one, and draw its chart into `body` by its kind: a bands
+ * card with its key above it (`bandKey`), any other with a legend of buttons above it where its rows hold more than
+ * one series, each click redrawing the chart from the rows already read. A card whose palette is the endpoint groups'
+ * takes their colour order from `mixes.endpoints`, the page's promised rows of the endpoint mix (`page/start.js`). An
+ * answer that cannot be read, or a chart that fails to draw, shows its error in `body`.
  */
-export async function drawFigureChart(body, card) {
+export async function drawFigureChart(body, card, mixes) {
   try {
-    const answers = [readAnswer(`${FIGURE_ANSWERS}${card.figure}`), legendAnswer(card), endpointOrder(card)];
+    const endpointMix = card.palette === "endpoints" ? mixes.endpoints : null;
+    const answers = [readAnswer(`${FIGURE_ANSWERS}${card.figure}`), legendAnswer(card), endpointMix];
     const [rows, legendRows, endpointMixRows] = await Promise.all(answers);
     const colours = cardColours(card, rows, legendRows, endpointMixRows);
     if (card.kind === BANDS_KIND) {
@@ -157,15 +113,6 @@ export async function drawFigureChart(body, card) {
   } catch (error) {
     showError(body, error);
   }
-}
-
-/**
- * The name of the trace month `month` (1 to 13), from `TRACE_MONTH_NAMES`, with a star for `PARTIAL_TRACE_MONTH`: 1 →
- * "Apr '25", 13 → "Apr '26*".
- */
-export function traceMonthName(month) {
-  const name = TRACE_MONTH_NAMES[month - 1];
-  return month === PARTIAL_TRACE_MONTH ? `${name}*` : name;
 }
 
 /**
@@ -207,11 +154,6 @@ async function legendAnswer(card) {
     return null;
   }
   return readAnswer(`${FIGURE_ANSWERS}${card.legend}`);
-}
-
-// The rows of `explore/endpoint_mix`, the endpoint groups' colour order, for a card of their palette; else null.
-async function endpointOrder(card) {
-  return card.palette === ENDPOINT_PALETTE ? readAnswer(ENDPOINT_ORDER) : null;
 }
 
 // Draw the chart of `card` into `body`, or one chart per panel under the panels' titles, of the series not in

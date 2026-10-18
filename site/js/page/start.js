@@ -1,18 +1,19 @@
 /**
- * The page's start: it places the Insights' groups and cards and draws their topic tabs, draws the header and
- * the footer, then runs the page's sections, once, from their answer files. The topics (`page/topics.js`)
- * are shown one at a time behind the tabs of the `#topic-tabs` row (`page/topic_tabs.js`); a topic's figures are
- * drawn from their answers the first time it is shown, so a topic never shown requests none. The topic the page opens
- * on is drawn once the sections have drawn or shown their errors; a topic a tab shows before then is drawn at once.
+ * The page's start: it asks for the answers the sections share, places the Insights' groups and cards and draws their
+ * topic tabs, draws the header and the footer, then runs the page's sections, once, from their answer files. The
+ * topics (`page/topics.js`) are shown one at a time behind the tabs of the `#topic-tabs` row (`page/topic_tabs.js`); a
+ * topic's figures are drawn from their answers the first time it is shown, so a topic never shown requests none. The
+ * topic the page opens on is drawn once the sections have drawn or shown their errors; a topic a tab shows before
+ * then is drawn at once.
  *
  * The page's module names its sections, each `{ id, run }`: the id of its place in `index.html` and the function that
  * runs it, which shows its loading state at once and then draws its answer. A section runs as `run(container,
- * context)` with `context = { totals, orders, replaceQuery, onReturn }`:
+ * context)` with `context = { totals, mixes, replaceQuery, onReturn }`:
  * - `totals`, the promised rows of `explore/trace_totals`, one row of the whole trace's counts, asked for once for the
  *   stats strip and the months the hero and the footer count;
- * - `orders`, `{ families, endpoints }`, the promised rows of `explore/family_mix` and of `explore/endpoint_mix`, each
- *   most requested first: the donuts' rows and colour orders, and the order every chart colours the endpoint groups
- *   by, each asked for once;
+ * - `mixes`, `{ families, endpoints }`, the promised rows of `explore/family_mix` and of `explore/endpoint_mix`, each
+ *   most requested first: the donuts' rows and colour orders, and the order every chart, the Insights' cards among
+ *   them, colours the endpoint groups by, each asked for once;
  * - `replaceQuery(params)`, which writes `params` to the address bar and the header's brand;
  * - `onReturn(redraw)`, which calls `redraw()` each time Back or Forward returns to a history entry, after the tabs
  *   show its topic and the header takes its query; this module is the page's one listener of `popstate`.
@@ -31,12 +32,13 @@ import { mountTopicTabs } from "./topic_tabs.js";
  * topic's figures. Settles once the sections have drawn or failed.
  */
 export async function startPage({ sections, showMonthCount }) {
-  const insights = mountInsights();
+  const answers = sharedAnswers();
+  const insights = mountInsights(answers.mixes);
   const pageHistory = followHistory(insights.showEntryTopic);
   renderFooter(document.querySelector("#site-footer"), null);
   showMonthCount(null);
   renderPageHeader();
-  const context = sectionContext(pageHistory);
+  const context = sectionContext(answers, pageHistory);
   // Settled, not all fulfilled: the shown topic is drawn whatever a section did.
   await Promise.allSettled([showMonths(context.totals, showMonthCount), runEverySection(sections, context)]);
   // The shown topic's figures wait for the sections, so that the explorer's answers, the page's largest, have the
@@ -60,13 +62,13 @@ export function followHistory(showEntryTopic) {
 /**
  * Write each topic's takeaway and place its groups and their cards, each card's chart loading, then draw the topic
  * tabs; return `{ showEntryTopic, drawShown }`, the tabs' `showEntryTopic` and `drawShown()`, which draws the charts of
- * the topic shown now the first time it is shown (`drawShownTopic`). A tab, a key, Back or Forward calls `drawShown`
- * as it shows a topic; the topic shown on opening waits for the page to call it.
+ * the topic shown now the first time it is shown (`drawShownTopic`), with the page's `mixes`. A tab, a key, Back or
+ * Forward calls `drawShown` as it shows a topic; the topic shown on opening waits for the page to call it.
  */
-function mountInsights() {
+function mountInsights(mixes) {
   const topics = TOPICS.map(placeTopic);
   const drawnTopics = new Set();
-  const drawShown = () => drawShownTopic(topics, drawnTopics);
+  const drawShown = () => drawShownTopic(topics, drawnTopics, mixes);
   const showEntryTopic = mountTopicTabs(document.querySelector("#topic-tabs"), TOPICS, drawShown);
   return { showEntryTopic, drawShown };
 }
@@ -107,25 +109,34 @@ function placeGroup(section, group) {
 
 /**
  * Draw the charts of every card of every group of the topic of `topics` shown now (each `{ section, cards }`, as
- * `placeTopic` returns it), unless `drawnTopics` holds its section, which it then does; each card reads its answer
- * and shows its own error where it cannot.
+ * `placeTopic` returns it), unless `drawnTopics` holds its section, which it then does; each card reads its answer,
+ * takes the endpoint groups' order from `mixes` where it colours them, and shows its own error where it cannot.
  */
-function drawShownTopic(topics, drawnTopics) {
+function drawShownTopic(topics, drawnTopics, mixes) {
   const shown = topics.find((topic) => !topic.section.hidden);
   if (drawnTopics.has(shown.section)) {
     return;
   }
   drawnTopics.add(shown.section);
   for (const { card, body } of shown.cards) {
-    drawFigureChart(body, card);
+    drawFigureChart(body, card, mixes);
   }
 }
 
-/** What every section is given, `pageHistory` being `followHistory`'s; see the module's comment. */
-function sectionContext(pageHistory) {
+/**
+ * The answers the sections share, `{ totals, mixes }`, each asked for once; the Insights' cards take the endpoint mix
+ * from `mixes` too. See the module's comment.
+ */
+function sharedAnswers() {
   const totals = promisedRows("explore/trace_totals");
-  const orders = { families: promisedRows("explore/family_mix"), endpoints: promisedRows("explore/endpoint_mix") };
-  return { totals, orders, replaceQuery: pageHistory.replaceQuery, onReturn: pageHistory.onReturn };
+  const mixes = { families: promisedRows("explore/family_mix"), endpoints: promisedRows("explore/endpoint_mix") };
+  return { totals, mixes };
+}
+
+/** What every section is given: the `answers` of `sharedAnswers` and `pageHistory`, `followHistory`'s. */
+function sectionContext(answers, pageHistory) {
+  const { totals, mixes } = answers;
+  return { totals, mixes, replaceQuery: pageHistory.replaceQuery, onReturn: pageHistory.onReturn };
 }
 
 /**

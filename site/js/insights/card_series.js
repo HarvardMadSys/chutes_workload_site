@@ -1,9 +1,10 @@
 /**
  * A figure card's series (`insights/figure_card.js` defines a card): the order they take their colours in, the colours
  * each of the card's palettes gives them, the global series and the three highlighted models in one fixed colour each
- * on every card, and the card's legend. A card's answer rows name their series in `series`; a Map from series name to
- * colour, in the order drawn, crosses to the chart and its legend (the policies' legend, `insights/routing_panels.js`,
- * takes a Map from policy to colour, its entries being policies). Pure functions, tested with `node --test`.
+ * on every card, and the card's legend; and the colour scheme of a card that shades a count. A card's answer rows name
+ * their series in `series`; a Map from series name to colour, in the order drawn, crosses to the chart and its legend
+ * (the policies' legend, `insights/routing_panels.js`, takes a Map from policy to colour, its entries being
+ * policies). Pure functions, tested with `node --test`.
  */
 
 import { distinct, panelRows } from "../shared/rows.js";
@@ -71,6 +72,13 @@ export function endpointFigureColours(names, labels, endpointMixRows) {
   }
   return colours;
 }
+
+/**
+ * A card's colours for a count, of models, users, requests or instances, as the paper shades one: viridis on a log
+ * scale, from a quarter of the way along it, since its first colour, a near-black purple, vanishes into the dark
+ * scheme's card. A card spreads it into its `chart`.
+ */
+export const COUNT_COLOUR = Object.freeze({ scheme: "viridis", schemeStart: 0.25, colourLog: true });
 
 /**
  * The colours a card's series may take, by the card's `palette`, each a function of the series' names, in order, the

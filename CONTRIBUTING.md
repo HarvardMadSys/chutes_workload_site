@@ -50,7 +50,7 @@ binding, and `make test` checks the countable ones.
     JavaScript holds two copies for its axes and tooltips: the trace's
     first day, `TRACE_FIRST_DAY` of `shared/format.js`, which
     `tests/format.test.js` checks against the shipped `trace_totals`, and
-    the months' names, `TRACE_MONTH_NAMES` of `insights/figure_card.js`,
+    the months' names, `TRACE_MONTH_NAMES` of `plot/trace_axes.js`,
     which `tests/insights_month_axis.test.js` derives from that first
     day by `months.py`'s rule; a change to the calendar is made in both,
     and those tests fail until it is;
@@ -107,12 +107,13 @@ checks that each path it names exists.
 - The page's module, `js/page/main.js`, lists its sections in
   `SECTIONS`, each `{ id, run }`, starts the charting library's load
   (see "JavaScript style") and calls `startPage` of `page/start.js`
-  with the sections. `startPage` places the Insights' groups and cards
-  and their tabs, draws the header and the footer, and runs each section as
-  `run(container, context)`; `context` is described in `page/start.js`.
-  Its `orders` are the rows of `explore/family_mix` and
-  `explore/endpoint_mix`, asked for once: the donuts' rows, and the order
-  every chart colours the endpoint groups by.
+  with the sections. `startPage` asks for the answers the sections share,
+  places the Insights' groups and cards and their tabs, draws the header
+  and the footer, and runs each section as `run(container, context)`;
+  `context` is described in `page/start.js`. Its `mixes` are the rows of
+  `explore/family_mix` and `explore/endpoint_mix`, asked for once: the
+  donuts' rows, and the order every chart, the Insights' cards among
+  them, colours the endpoint groups by.
 - The header links the page's sections by anchor alone (`LINKED_SECTIONS`
   of `shared/layout.js`); its brand links the page with the URL's keys. On
   a phone it is two rows, the brand and the four links, which wrap, and the
@@ -466,7 +467,8 @@ table and the card's words.
   from the plot's edges by its `inset` so its first name clears the y
   axis's lowest label; a card on it says what the star means in its
   definition), is
-  exported once from `insights/figure_card.js`; one topic's axes are
+  exported once, the colour from `insights/card_series.js` and the
+  trace's axes from `plot/trace_axes.js`; one topic's axes are
   constants of its module.
 
 **The chart kinds** (`js/charts/`), nine modules, one per shape: the

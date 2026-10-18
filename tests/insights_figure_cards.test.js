@@ -104,6 +104,9 @@ function useFakeDocument(context) {
   context.mock.method(console, "error", () => undefined);
 }
 
+// The page's mixes as `page/start.js` promises them, the endpoint mix of one group.
+const MIXES = Object.freeze({ endpoints: Promise.resolve([{ endpoint_group: "chat", requests: 1 }]) });
+
 // A card as a topic lists it.
 const CARD = Object.freeze({
   figure: "fig_a",
@@ -210,16 +213,17 @@ test("the Definition control opens on the definition alone, with no link and no 
   assert.equal(details.querySelector(".figure-rows"), null);
 });
 
-test("a card of the endpoints' palette reads the endpoint groups' order with its answer", async (context) => {
-  useFakeDocument(context);
-  const read = [];
-  context.mock.method(globalThis, "fetch", async (file) => {
-    read.push(file);
-    return { ok: false, status: 404, statusText: "Not Found" };
+test("a card of the endpoints' palette takes their order from the page's mixes and reads its answer alone",
+  async (context) => {
+    useFakeDocument(context);
+    const read = [];
+    context.mock.method(globalThis, "fetch", async (file) => {
+      read.push(file);
+      return { ok: false, status: 404, statusText: "Not Found" };
+    });
+    await drawFigureChart(new FakeElement("div"), { ...CARD, palette: "endpoints" }, MIXES);
+    assert.deepEqual(read, ["data/all/figures/fig_a.json"]);
   });
-  await drawFigureChart(new FakeElement("div"), { ...CARD, palette: "endpoints" });
-  assert.deepEqual(read, ["data/all/figures/fig_a.json", "data/all/explore/endpoint_mix.json"]);
-});
 
 test("a frozen card holds only frozen objects and lists, and its functions as they were", () => {
   const tickFormat = (value) => `${value}`;
@@ -249,7 +253,7 @@ test("an answer that cannot be read shows its error in the chart's place", async
   useFakeDocument(context);
   context.mock.method(globalThis, "fetch", async () => ({ ok: false, status: 404, statusText: "Not Found" }));
   const body = new FakeElement("div");
-  await drawFigureChart(body, CARD);
+  await drawFigureChart(body, CARD, MIXES);
   const [note] = body.children;
   assert.equal(note.className, "note is-error");
   assert.match(note.textContent, /data\/all\/figures\/fig_a\.json: 404/);

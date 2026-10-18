@@ -270,6 +270,8 @@ test("the opening topic's figures are read once the explorer has drawn: the dail
     assert.deepEqual(page.reads.slice(3, 5), [DAILY_FILE, HISTOGRAMS_FILE]);
     // The first topic's cards read no legend answer, so its figures are every read of the figures' folder.
     assert.deepEqual(figureReads(page.reads), topicFigureFiles(TOPICS[0]));
+    // Its Daily API calls card takes the endpoint mix the page read for the Overview.
+    assert.equal(page.reads.filter((file) => file === ENDPOINTS_FILE).length, 1);
   });
 
 test("a tab pressed before the explorer has drawn reads its topic's figures at once, and the opening topic's never",

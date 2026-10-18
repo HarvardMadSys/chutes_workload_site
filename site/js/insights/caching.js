@@ -10,8 +10,9 @@ import {
   formatCount, formatCountTick, formatDurationTick, formatPercent, formatSeconds, formatSecondsTick, formatShare,
   formatWholeCountTick,
 } from "../shared/format.js";
-import { HIGHLIGHTED_LABELS, HIGHLIGHTED_SERIES } from "./card_series.js";
-import { COUNT_COLOUR, frozenCard, TRACE_MONTH_AXIS } from "./figure_card.js";
+import { TRACE_MONTH_AXIS } from "../plot/trace_axes.js";
+import { COUNT_COLOUR, HIGHLIGHTED_LABELS, HIGHLIGHTED_SERIES } from "./card_series.js";
+import { frozenCard } from "./figure_card.js";
 
 // An axis of the token hit ratio, 0 to 1, labelled every fifth as the paper's.
 const HIT_RATIO_AXIS = Object.freeze({

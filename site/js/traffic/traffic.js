@@ -8,7 +8,7 @@
  * Its rows come from the `explore/daily_by_family` answer, read once, and from a family's
  * `explore/daily_by_model/<family_slug>` answer, read the first time the family is chosen and kept for the visit. The
  * families take their colours in the order of their requests, a family's models in the order of theirs, and the
- * endpoint groups from the Overview's order (`context.orders`). A change filters the rows once
+ * endpoint groups from the Overview's order (`context.mixes`). A change filters the rows once
  * (`traffic/traffic_filter.js`, which defines the choice) and draws the tiles and bars again; so does the slider as
  * a handle moves. Once the bars are drawn, the three charts and the tiles' percentiles are drawn from the histogram
  * answer, read and kept as the daily ones are. The controls keep the choice in the URL (`traffic/traffic_controls.js`).
@@ -55,7 +55,7 @@ async function drawExplorer(container, context) {
     families: familyOrder(familyRows),
     familyAnswers: new Map(), // each family's answer, by its slug, from the first time the family is chosen
     histogramAnswers: new Map(), // each histogram answer, by its family's slug ("" for every family), once asked for
-    endpoints: await context.orders.endpoints,
+    endpoints: await context.mixes.endpoints,
     days: distinct(familyRows.map((row) => row.day)),
     tiles: document.createElement("ul"),
     figure: document.createElement("div"),
