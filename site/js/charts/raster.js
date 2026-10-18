@@ -51,7 +51,7 @@ export async function drawRaster(rows, body, seriesColours, parameters, hidden) 
   // The colour scale spans the cells' own values, whatever pooling keeps of them.
   const colourParameters = { ...parameters, colourDomain: rasterColourDomain(parameters, rows) };
   const legendTicks = colourLegendTicks(colourParameters, rows.map((row) => row.value));
-  const chart = Plot.plot({
+  body.replaceChildren(Plot.plot({
     ...frame,
     x: { domain: [0, grid.columnCount] },
     y: { domain: rasterYDomain(grid.rowCount) },
@@ -74,8 +74,7 @@ export async function drawRaster(rows, body, seriesColours, parameters, hidden) 
       axisMark(Plot, "x", xAxis, xTicks),
       axisMark(Plot, "y", yAxis, yTicks),
     ],
-  });
-  body.replaceChildren(chart);
+  }));
   nameChart(body, parameters.name);
 }
 

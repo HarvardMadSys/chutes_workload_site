@@ -32,9 +32,9 @@ export const STACKED_BARS_PARAMETERS = Object.freeze([
  * values when not given; its `ticks` the x values ticked, every bar's when not given; its `tickFormat` writes a tick,
  * "" for an unlabelled one, and a bar's x in the tooltip, "Apr '25", unless its `tipFormat` is given; its
  * `tickRotate` slants the ticks' labels, so that a label at every bar keeps clear of its neighbours; its `inset` sets
- * the first and last bars in from the plot's edges, none when not given. The y axis's `label` titles the chart, none
- * where the card's title already says what the bars count; its `tickFormat` writes the value axis's ticks. Its own
- * parameters:
+ * the first and last bars in from the plot's edges, none when not given. The y axis's `label` titles the value axis,
+ * none where the card's title already says what the bars count; its `tickFormat` writes the value axis's ticks. Its
+ * own parameters:
  * - `xColumn`, `seriesColumn` and `valueColumn`: the columns holding a row's bar, its series and its value, a
  *   segment's height.
  * - `barInset`: the pixels taken off the left and the right of a bar, `BAR_INSET` when not given; 0 where a bar is a
@@ -51,7 +51,7 @@ export async function drawStackedBars(rows, body, seriesColours, parameters, hid
   const folded = foldedRows(rows, seriesColours, { xColumn, seriesColumn, valueColumn });
   const shown = shownRows(folded, seriesColumn, hidden);
   const stacked = [...seriesColours.keys()].filter((name) => shown.some((row) => row[seriesColumn] === name));
-  const chart = Plot.plot({
+  body.replaceChildren(Plot.plot({
     ...titledFrame(body, y.label ?? null, margins, parameters.height),
     x: { type: "band", domain: x.domain ?? distinct(shown.map((row) => row[xColumn])), inset: x.inset ?? 0 },
     color: colourScale(seriesColours, stacked),
@@ -70,8 +70,7 @@ export async function drawStackedBars(rows, body, seriesColours, parameters, hid
       }),
       Plot.ruleY([0], AXIS_STYLE),
     ],
-  });
-  body.replaceChildren(chart);
+  }));
   nameChart(body, parameters.name);
 }
 

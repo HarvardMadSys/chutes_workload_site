@@ -38,7 +38,7 @@ export async function drawScatter(rows, body, seriesColours, parameters, hidden)
   const drawn = drawnScatterPoints(rows, parameters);
   const xTicks = axisTicks(xAxis, drawn.map((point) => point.x));
   const yTicks = axisTicks(yAxis, drawn.map((point) => point.y));
-  const chart = Plot.plot({
+  body.replaceChildren(Plot.plot({
     ...titledFrame(body, yAxis.label ?? null, margins, parameters.height),
     x: axisScale(xAxis),
     y: axisScale(yAxis),
@@ -52,8 +52,7 @@ export async function drawScatter(rows, body, seriesColours, parameters, hidden)
       pointDots(Plot, drawn),
       Plot.tip(drawn, Plot.pointer({ x: "x", y: "y", title: (point) => pointTipText(point, parameters) })),
     ],
-  });
-  body.replaceChildren(chart);
+  }));
   nameChart(body, parameters.name);
 }
 

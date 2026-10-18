@@ -159,7 +159,7 @@ test("a dashed swatch is its colour in dashes of four pixels and gaps of three",
     "repeating-linear-gradient(to right, var(--series-3) 0 4px, transparent 4px 7px)");
 });
 
-test("a click on a legend button tells the new hidden set and flips the button", (context) => {
+test("a click on a legend button tells the new hidden set and sets the button from it", (context) => {
   useFakeDocument(context);
   const container = new FakeElement("div");
   const told = [];

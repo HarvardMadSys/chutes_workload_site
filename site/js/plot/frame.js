@@ -18,7 +18,8 @@
  * @property {string} [panel]  the panel drawn, of a multi-panel answer
  * @property {number} [height]  the chart's height in pixels, CHART_HEIGHT when not given
  * @property {object} [margins]  Plot margins in place of the frame's
- * @property {string} [name]  the chart's accessible name; its card's title and insight when not given
+ * @property {string} [name]  the chart's accessible name; its figure's title and insight, or its caption where it has
+ *   none, when not given (`chartName` of `shared/figure.js`)
  */
 
 // The draw contract. Every chart kind of `js/charts/` is drawn by one function of five arguments,
@@ -29,7 +30,8 @@
 // `seriesColours` and `hidden` too, and does not read them. The function is `async` and returns nothing, so every kind
 // is called and awaited the same way. Its last step names the chart it drew for a screen reader,
 // `nameChart(body, parameters.name)` of `shared/figure.js`: by `parameters.name` where given, else by its figure's
-// title and insight or caption (`chartName`); so no caller, a legend's redrawing among them, names a chart.
+// title and insight, or its caption where it has none (`chartName`); so no caller, a legend's redrawing among them,
+// names a chart.
 
 /** A chart's height in pixels where its card gives none, so a grid of figures lines up. */
 export const CHART_HEIGHT = 240;

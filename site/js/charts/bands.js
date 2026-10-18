@@ -14,7 +14,7 @@ import { logColumns, positiveRows } from "../shared/rows.js";
 import { SERIES_SLOTS } from "../theme/colours.js";
 
 /** The percentile columns of a bands answer, low to high, with the name the tooltip gives each. */
-export const PERCENTILES = Object.freeze([
+const PERCENTILES = Object.freeze([
   Object.freeze({ column: "p10", label: "10th" }),
   Object.freeze({ column: "p25", label: "25th" }),
   Object.freeze({ column: "p50", label: "Median" }),
@@ -62,7 +62,7 @@ export async function drawBands(rows, body, seriesColours, parameters, hidden) {
   const yTicks = axisTicks(yAxis, [...drawn.map((row) => row.p10), ...drawn.map((row) => row.p90)]);
   // A band past a domain's end would be drawn over the axis titles; the frame cuts it off instead.
   const clip = xAxis.domain !== undefined || yAxis.domain !== undefined;
-  const chart = Plot.plot({
+  body.replaceChildren(Plot.plot({
     ...titledFrame(body, yAxis.label ?? null, margins, parameters.height),
     x: axisScale(xAxis, xValues),
     y: axisScale(yAxis),
@@ -75,8 +75,7 @@ export async function drawBands(rows, body, seriesColours, parameters, hidden) {
       Plot.line(drawn, { x: "x", y: "p50", stroke: colour, strokeWidth: MEDIAN_WIDTH, clip }),
       Plot.tip(drawn, Plot.pointerX({ x: "x", y: "p50", title: (row) => bandTipText(row, parameters) })),
     ],
-  });
-  body.replaceChildren(chart);
+  }));
   nameChart(body, parameters.name);
 }
 

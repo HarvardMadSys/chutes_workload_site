@@ -14,7 +14,7 @@ import { formatCount } from "../shared/format.js";
 import { SERIES_COLUMN, seriesLabel, shownRows } from "../shared/series.js";
 
 /** The statistics of a box, high to low, with the name the tooltip gives each. */
-export const STATISTICS = Object.freeze([
+const STATISTICS = Object.freeze([
   Object.freeze({ column: "high", label: "High" }),
   Object.freeze({ column: "q3", label: "75th" }),
   Object.freeze({ column: "median", label: "Median" }),
@@ -45,7 +45,7 @@ export async function drawBoxes(rows, body, seriesColours, parameters, hidden) {
   const boxes = drawnBoxes(rows, seriesColours, parameters, hidden);
   const names = boxes.map((box) => box[SERIES_COLUMN]);
   const yTicks = axisTicks(yAxis, [...boxes.map((box) => box.low), ...boxes.map((box) => box.high)]);
-  const chart = Plot.plot({
+  body.replaceChildren(Plot.plot({
     ...titledFrame(body, yAxis.label ?? null, margins, parameters.height),
     x: { type: "band", domain: names, padding: BOX_PADDING },
     y: axisScale(yAxis),
@@ -59,8 +59,7 @@ export async function drawBoxes(rows, body, seriesColours, parameters, hidden) {
       Plot.tickY(boxes, { x: SERIES_COLUMN, y: "median", stroke: "currentColor", strokeWidth: MEDIAN_WIDTH }),
       Plot.tip(boxes, Plot.pointerX({ x: SERIES_COLUMN, y: "median", title: (box) => boxTipText(box, parameters) })),
     ],
-  });
-  body.replaceChildren(chart);
+  }));
   nameChart(body, parameters.name);
 }
 

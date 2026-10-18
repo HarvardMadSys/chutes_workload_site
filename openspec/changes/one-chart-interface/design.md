@@ -244,7 +244,8 @@ names decide. The names most kinds share are defined once, in a
  * @property {string} [panel]  the panel drawn, of a multi-panel answer
  * @property {number} [height]  the chart's height in pixels, CHART_HEIGHT when not given
  * @property {object} [margins]  Plot margins in place of the frame's
- * @property {string} [name]  the chart's accessible name; its card's title and insight when not given
+ * @property {string} [name]  the chart's accessible name; its figure's title and insight, or its caption where it has
+ *   none, when not given (`chartName` of `shared/figure.js`)
  */
 ```
 

@@ -37,7 +37,7 @@ export async function drawBars(rows, body, seriesColours, parameters, hidden) {
   const { Plot } = await import("../shared/libraries.js");
   const bars = shownSeriesRows(rows, seriesColours, parameters.panel, hidden);
   const names = distinct(bars.map((bar) => bar[SERIES_COLUMN]));
-  const chart = Plot.plot({
+  body.replaceChildren(Plot.plot({
     ...titledFrame(body, yAxis.label ?? null, margins, parameters.height),
     x: { type: "band", domain: distinct(bars.map((bar) => bar.x)) },
     y: { domain: yAxis.domain },
@@ -51,8 +51,7 @@ export async function drawBars(rows, body, seriesColours, parameters, hidden) {
       ...referenceMarks(Plot, parameters.reference),
       Plot.tip(bars, Plot.pointerX({ x: "x", y: "value", title: (bar) => barTipText(bar, parameters) })),
     ],
-  });
-  body.replaceChildren(chart);
+  }));
   nameChart(body, parameters.name);
 }
 

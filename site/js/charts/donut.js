@@ -65,9 +65,9 @@ export async function drawDonut(rows, body, seriesColours, parameters, hidden) {
 }
 
 /**
- * The legend of a donut: `{ series, colours }`, its slices in the donut's order, largest first, each labelled with its
- * name, as `labels` writes it where it has a label there, and its share of every slice,
- * "deepseek-ai/DeepSeek-V3-0324 18.3%"; and `colours`, the donut's colours, `seriesColours`.
+ * The legend of a donut, `{ series, colours }`: its `series` are its slices in the donut's order, largest first, each
+ * labelled with its name (as `labels` writes it, where it has a label there) and its share of every slice,
+ * "deepseek-ai/DeepSeek-V3-0324 18.3%", and its `colours` are `seriesColours`.
  */
 export function donutLegend(rows, seriesColours, { nameColumn, countColumn, labels = {} }) {
   const slices = donutSlices(rows, nameColumn, countColumn, namedSeries(seriesColours));
