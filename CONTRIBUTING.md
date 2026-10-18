@@ -384,7 +384,9 @@ and the trace's and the table's row counts; `tests/test_tables.py` fails
 while the hash differs from the query's text, as `all/queries.json` does
 for the answers. **Rerun `make tables` after editing it**, then `make
 data`. The query is tested over the fixture's small trace
-(`fixture_artifact.TRACE_REQUESTS`) against histograms counted by hand.
+(`tests/fixture_trace.py`, `TRACE_REQUESTS`) against the trace table
+counted by hand there (`WEEKLY_HISTOGRAMS`), over which the tests' site
+database is opened, so a fault in the query fails only its own tests.
 
 **Adding a query.** Write `site/queries/explore/<name>.sql` as above; list
 its columns in `EXPECTED_COLUMNS` of `tests/test_queries.py` and test its

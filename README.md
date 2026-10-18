@@ -517,11 +517,11 @@ site/                exactly the files that are deployed
                      queries, explore/<query>/<family>.json, and queries.json; the figure answers,
                      figures/<figure>.json, and figures.json
 tests/               what make test runs
-  conftest.py, fixture_artifact.py, fixture_plotdata.py, repository_root.py
+  conftest.py, fixture_artifact.py, fixture_plotdata.py, fixture_trace.py, repository_root.py
                      the fixture artifact (a few rows of each cache, the model names, a figure list of ten figures,
-                     one per chart kind, with their plot-ready tables) and a small trace whose requests add up to
-                     its daily rollup,
-                     the database over it, the artifact's checkout as ARTIFACT, the tracked files, the root folder
+                     one per chart kind, with their plot-ready tables), a small trace whose requests add up to its
+                     daily rollup and its trace table counted by hand, the site's database over them, the
+                     artifact's checkout as ARTIFACT, the tracked files, the root folder
   test_loading.py, test_months.py, test_site_database.py, test_main.py
                      the data step on the fixture artifact, against values counted by hand
   test_queries.py    every .sql file run over the fixture: its columns, the tables it reads, its numbers

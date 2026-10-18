@@ -11,6 +11,7 @@ import pyarrow.parquet
 import pytest
 
 import fixture_artifact
+import fixture_trace
 from site_data import loading
 
 
@@ -42,7 +43,7 @@ def test_the_trace_table_loads_with_its_columns(fixture_tables: pathlib.Path,
     weekly_histograms = loading.load_trace_table(fixture_tables)
     assert weekly_histograms.column_names == ["week", "family", "chute_id", "endpoint_group", "metric", "bin",
                                               "requests"]
-    assert weekly_histograms.num_rows == 22
+    assert weekly_histograms.num_rows == len(fixture_trace.WEEKLY_HISTOGRAMS)
     # Each request is in one bin of each metric it recorded, as the rollup counts the requests that recorded each.
     counted = 0
     for column in ["input_counted", "output_counted", "ttft_counted"]:

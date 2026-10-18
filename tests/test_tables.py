@@ -1,7 +1,8 @@
 """The trace table: the fixture trace adds up to the fixture's daily rollup; the trace query over it gives the weekly
-histograms counted here by hand, which add up to the rollup's counted requests; the builder writes the table and its
-sidecar, the same bytes on a rebuild, and stops on a missing trace; and the tracked table is current with its query
-and, with the artifact's checkout (`ARTIFACT`; skipped, saying so, without one), agrees with the artifact's rollup."""
+histograms counted by hand in `fixture_trace.py`, which add up to the rollup's counted requests; the builder writes the
+table and its sidecar, the same bytes on a rebuild, and stops on a missing trace; and the tracked table is current with
+its query and, with the artifact's checkout (`ARTIFACT`; skipped, saying so, without one), agrees with the artifact's
+rollup."""
 
 import json
 import pathlib
@@ -14,38 +15,12 @@ import pyarrow.parquet
 import pytest
 
 import fixture_artifact
+import fixture_trace
 from repository_root import ROOT
 from site_data import loading, months, site_database, tables
 
 # Each metric of the trace table and the daily rollup's column counting the requests that recorded it.
 COUNTED_COLUMNS = {"input_tokens": "input_counted", "output_tokens": "output_counted", "ttft": "ttft_counted"}
-# The fixture's weekly histograms, counted by hand from `fixture_artifact.TRACE_REQUESTS`: (week, family, chute id,
-# endpoint group, metric, bin, requests). An input of 100 tokens is in bin 26, 50 in 22 and 40 in 21; an output of 20
-# in 17, 13 in 14, 23 in 18, 10 in 13, 12 in 14 and 0 in 0; a TTFT of 6 s in bin 10, 0.5 s in -4 and 0.25 s in -8.
-FIXTURE_HISTOGRAMS = [
-    (0, "DeepSeek", "chute-01", "chat", "input_tokens", 26, 40),
-    (0, "DeepSeek", "chute-01", "chat", "output_tokens", 17, 40),
-    (0, "DeepSeek", "chute-01", "chat", "ttft", -4, 29),
-    (0, "DeepSeek", "chute-01", "chat", "ttft", 10, 1),
-    (0, "DeepSeek", "chute-01", "chat_stream", "input_tokens", 22, 30),
-    (0, "DeepSeek", "chute-01", "chat_stream", "output_tokens", 14, 29),
-    (0, "DeepSeek", "chute-01", "chat_stream", "output_tokens", 18, 1),
-    (0, "DeepSeek", None, "chat_stream", "input_tokens", 22, 10),
-    (0, "DeepSeek", None, "chat_stream", "output_tokens", 13, 10),
-    (0, "Other", "chute-04", "chat", "input_tokens", 21, 5),
-    (0, "Other", "chute-04", "chat", "output_tokens", 14, 5),
-    (0, "Other", "chute-04", "chat", "ttft", -8, 1),
-    (0, "Other", "chute-04", "chat", "ttft", -4, 4),
-    (0, "Other", None, "chat", "input_tokens", 21, 20),
-    (0, "Other", None, "chat", "output_tokens", 14, 20),
-    (0, "Other", None, "chat", "ttft", -4, 20),
-    (0, "gpt-oss", "chute-03", "chat", "input_tokens", 26, 20),
-    (0, "gpt-oss", "chute-03", "chat", "output_tokens", 17, 20),
-    (0, "gpt-oss", "chute-03", "chat", "ttft", -4, 20),
-    (4, "DeepSeek", "chute-02", "completion", "output_tokens", 0, 15),
-    (4, "DeepSeek", "chute-02", "completion", "ttft", -8, 14),
-    (4, "DeepSeek", "chute-02", "completion", "ttft", -4, 1),
-]
 
 
 class WeekGroup(typing.NamedTuple):
@@ -94,7 +69,7 @@ def rollup_sum(value: float) -> float:
 
 def test_each_entry_of_the_fixture_trace_adds_up_to_its_rollup_row(artifact_tables: loading.ArtifactTables) -> None:
     rollup_rows = artifact_tables.daily_rollup.to_pylist()
-    for row, requests in zip(rollup_rows, fixture_artifact.TRACE_REQUESTS, strict=True):
+    for row, requests in zip(rollup_rows, fixture_trace.TRACE_REQUESTS, strict=True):
         recorded_inputs = [value for value in requests.input_tokens if value is not None]
         recorded_outputs = [value for value in requests.output_tokens if value is not None]
         positive_ttfts = [value for value in requests.ttfts if value is not None and value > 0]
@@ -108,12 +83,12 @@ def test_each_entry_of_the_fixture_trace_adds_up_to_its_rollup_row(artifact_tabl
 
 def test_the_trace_query_gives_the_fixture_s_weekly_histograms(trace_connection: duckdb.DuckDBPyConnection) -> None:
     result = site_database.run_query(trace_connection, tables.QUERY, tables.TRACE_QUERY_PARAMETERS)
-    assert [tuple(row) for row in result.rows] == FIXTURE_HISTOGRAMS
+    assert [tuple(row) for row in result.rows] == fixture_trace.WEEKLY_HISTOGRAMS
 
 
 def test_the_fixture_s_histograms_add_up_to_the_rollup_s_counted_requests(
-        trace_connection: duckdb.DuckDBPyConnection, artifact_tables: loading.ArtifactTables) -> None:
-    table = tables.histogram_table(trace_connection).to_pandas()
+        artifact_tables: loading.ArtifactTables) -> None:
+    table = pandas.DataFrame(fixture_trace.WEEKLY_HISTOGRAMS)
     assert table_requests_by_week(table) == rollup_counted_by_week(artifact_tables.daily_rollup.to_pandas())
 
 
@@ -122,25 +97,25 @@ def command(trace: pathlib.Path, artifact: pathlib.Path, output: pathlib.Path) -
     return ["--trace", str(trace), "--artifact", str(artifact), "--out", str(output / "tables")]
 
 
-def test_the_builder_writes_the_table_and_its_sidecar(artifact: pathlib.Path, fixture_trace: pathlib.Path,
+def test_the_builder_writes_the_table_and_its_sidecar(artifact: pathlib.Path, trace_file: pathlib.Path,
                                                       tmp_path: pathlib.Path, capsys: pytest.CaptureFixture) -> None:
-    tables.main(command(fixture_trace, artifact, tmp_path))
+    tables.main(command(trace_file, artifact, tmp_path))
     table = pyarrow.parquet.read_table(tmp_path / "tables" / loading.TRACE_TABLE_FILE)
     assert table.schema.names == ["week", "family", "chute_id", "endpoint_group", "metric", "bin", "requests"]
     assert [str(field.type) for field in table.schema] == ["int32", "string", "string", "string", "string", "int32",
                                                            "int64"]
-    assert [tuple(row.values()) for row in table.to_pylist()] == FIXTURE_HISTOGRAMS
+    assert [tuple(row.values()) for row in table.to_pylist()] == fixture_trace.WEEKLY_HISTOGRAMS
     sidecar = json.loads((tmp_path / "tables" / loading.TRACE_TABLE_SIDECAR_FILE).read_text())
     query_hash = site_database.query_text_hash(site_database.QUERIES_FOLDER, tables.QUERY)
-    assert sidecar == {"query": query_hash, "rows": len(FIXTURE_HISTOGRAMS),
+    assert sidecar == {"query": query_hash, "rows": len(fixture_trace.WEEKLY_HISTOGRAMS),
                        "trace_rows": fixture_artifact.TOTAL_REQUESTS}
     assert re.search(r"^22 rows from 140 trace rows in \d+ s$", capsys.readouterr().out, re.MULTILINE)
 
 
-def test_a_rebuild_writes_the_same_bytes(artifact: pathlib.Path, fixture_trace: pathlib.Path,
+def test_a_rebuild_writes_the_same_bytes(artifact: pathlib.Path, trace_file: pathlib.Path,
                                          tmp_path: pathlib.Path) -> None:
-    tables.main(command(fixture_trace, artifact, tmp_path / "first"))
-    tables.main(command(fixture_trace, artifact, tmp_path / "second"))
+    tables.main(command(trace_file, artifact, tmp_path / "first"))
+    tables.main(command(trace_file, artifact, tmp_path / "second"))
     for name in [loading.TRACE_TABLE_FILE, loading.TRACE_TABLE_SIDECAR_FILE]:
         first = (tmp_path / "first" / "tables" / name).read_bytes()
         assert first == (tmp_path / "second" / "tables" / name).read_bytes(), f"{name} differs on a rebuild"

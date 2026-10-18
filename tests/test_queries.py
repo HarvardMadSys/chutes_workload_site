@@ -170,7 +170,7 @@ def test_a_family_s_daily_rows_name_its_models_and_its_rest(connection: duckdb.D
 
 
 def test_the_histograms_by_family_sum_a_family_s_models_bin_by_bin(connection: duckdb.DuckDBPyConnection) -> None:
-    """Counted by hand from the trace table's rows (`test_tables.FIXTURE_HISTOGRAMS`): DeepSeek's chat_stream outputs
+    """Counted by hand from the trace table's rows (`fixture_trace.WEEKLY_HISTOGRAMS`): DeepSeek's chat_stream outputs
     in week 0 are chute-01's 29 in bin 14 and 1 in bin 18 and its other models' 10 in bin 13; its completion TTFTs in
     week 4, which starts on trace day 28 and ends on the rollup's last, trace day 32, are 14 in bin -8 and 1 in bin
     -4."""

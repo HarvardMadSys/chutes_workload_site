@@ -1,7 +1,8 @@
-"""Fixtures shared by the tests: the fixture artifact (`fixture_artifact.py`) and its tables; the fixture trace, the
-trace table's database over it and the artifact's tables, and the tables folder the builder writes from them; the
-site's database over the artifact's tables and that folder's trace table; the artifact's own checkout, which the
-environment variable `ARTIFACT` names, as `make test` passes it; and the files git tracks."""
+"""Fixtures shared by the tests: the fixture artifact (`fixture_artifact.py`) and its tables; the fixture trace's file
+(`fixture_trace.py`) and the trace table's database over it and the artifact's tables; the tables folder holding the
+fixture's trace table counted by hand; the site's database over the artifact's tables and that trace table; the
+artifact's own checkout, which the environment variable `ARTIFACT` names, as `make test` passes it; and the files git
+tracks."""
 
 import os
 import pathlib
@@ -12,6 +13,7 @@ import pyarrow
 import pytest
 
 import fixture_artifact
+import fixture_trace
 from repository_root import ROOT
 from site_data import figure_answers, loading, site_database, tables
 
@@ -30,7 +32,7 @@ def artifact_tables(artifact: pathlib.Path) -> loading.ArtifactTables:
 
 @pytest.fixture
 def weekly_histograms(fixture_tables: pathlib.Path) -> pyarrow.Table:
-    """The fixture's trace table."""
+    """The fixture's trace table counted by hand, loaded as the data step loads the tracked one."""
     return loading.load_trace_table(fixture_tables)
 
 
@@ -41,25 +43,23 @@ def connection(artifact_tables: loading.ArtifactTables, weekly_histograms: pyarr
 
 
 @pytest.fixture(scope="session")
-def fixture_trace(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
+def trace_file(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
     """The fixture trace's Parquet file, written once for the run."""
-    return fixture_artifact.write_fixture_trace(tmp_path_factory.mktemp("trace") / "trace.parquet")
+    return fixture_trace.write_fixture_trace(tmp_path_factory.mktemp("trace") / "trace.parquet")
 
 
 @pytest.fixture(scope="session")
-def fixture_tables(artifact: pathlib.Path, fixture_trace: pathlib.Path,
-                   tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
-    """The tables folder the trace table's builder writes from the fixture trace and artifact, once for the run."""
-    folder = tmp_path_factory.mktemp("tables")
-    tables.main(["--trace", str(fixture_trace), "--artifact", str(artifact), "--out", str(folder)])
-    return folder
+def fixture_tables(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
+    """The tables folder holding the fixture's trace table counted by hand (`fixture_trace.WEEKLY_HISTOGRAMS`),
+    written once for the run; the builder is not run, so a fault in the trace query fails only its own tests."""
+    return fixture_trace.write_trace_table(tmp_path_factory.mktemp("tables"))
 
 
 @pytest.fixture
 def trace_connection(artifact_tables: loading.ArtifactTables,
-                     fixture_trace: pathlib.Path) -> duckdb.DuckDBPyConnection:
+                     trace_file: pathlib.Path) -> duckdb.DuckDBPyConnection:
     """The trace table's database over the fixture artifact's tables and the fixture trace."""
-    return tables.open_trace_database(artifact_tables, fixture_trace)
+    return tables.open_trace_database(artifact_tables, trace_file)
 
 
 @pytest.fixture
