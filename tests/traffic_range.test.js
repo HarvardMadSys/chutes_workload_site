@@ -1,16 +1,14 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
   clippedFrom, clippedRange, clippedTo, mountRange, PERIODS, periodRange, pressedPeriod, pushedIndices,
   rangeOfIndices, sliderIndices,
 } from "../site/js/traffic/traffic_range.js";
-import { FakeElement, runFrames } from "./fake_page.js";
+import { FakeElement, runFrames, shippedAnswer, useFakePage } from "./fake_page.js";
 
-// The shipped daily answer by family, and the trace's days, its days in order.
-const FAMILY_ANSWER = new URL("../site/data/all/explore/daily_by_family.json", import.meta.url);
-const TRACE_DAYS = [...new Set(JSON.parse(readFileSync(FAMILY_ANSWER, "utf8")).map((row) => row.day))];
+// The trace's days, in order: the days of the shipped daily answer by family.
+const TRACE_DAYS = [...new Set(shippedAnswer("explore/daily_by_family").map((row) => row.day))];
 
 // Five days with gaps, as a trace with a day of no rows would have them.
 const GAPPED_DAYS = ["2025-07-01", "2025-07-03", "2025-07-05", "2025-07-07", "2025-07-09"];
@@ -94,13 +92,7 @@ test("a handle moved past the other pushes it along to its own index", () => {
  * `onChange`, and the animation frames asked for and not yet run.
  */
 function mountSlider(context, choice) {
-  const frames = [];
-  globalThis.document = { createElement: (tag) => new FakeElement(tag) };
-  globalThis.requestAnimationFrame = (callback) => frames.push(callback);
-  context.after(() => {
-    delete globalThis.document;
-    delete globalThis.requestAnimationFrame;
-  });
+  const { frames } = useFakePage(context);
   const page = { container: new FakeElement("div"), inputs: [], changes: [], frames };
   page.handle = mountRange(page.container, GAPPED_DAYS, choice, {
     onInput: (range) => page.inputs.push(range),

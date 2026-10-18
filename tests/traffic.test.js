@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { runTraffic } from "../site/js/traffic/traffic.js";
-import { deferred, FakeElement, PAGE_ADDRESS, runFrames, settled } from "./fake_page.js";
-import { controlsOf, fetchedAnswer } from "./traffic_fixtures.js";
+import { deferred, FakeElement, runFrames, settled, useFakePage } from "./fake_page.js";
+import { controlsOf } from "./traffic_fixtures.js";
 
 // The answer files the explorer reads: every family's rows, and the family Kin's by model.
 const FAMILY_FILE = "data/all/explore/daily_by_family.json";
@@ -21,47 +21,33 @@ function dayRow(fields) {
 const FAMILY_ROWS = [dayRow({ family: "Kin", family_slug: "kin" })];
 const KIN_ROWS = [dayRow({ chute_id: "id-a", model: "A" })];
 
-// A stand-in element of the tag `tag`. A `details` one, the figure's Definition control, finds a new element for any
-// selector: the control looks its text up in the markup it was written with, which the fake page does not read.
-function fakeElement(tag) {
-  const element = new FakeElement(tag);
-  if (tag === "details") {
-    element.querySelector = () => new FakeElement();
-  }
-  return element;
-}
-
 /**
- * Run the explorer into a new container for the test of `context`, opened at `query`, each file of `answers` (a map
- * from file to its promised rows) fetched as its rows, any other answering 404; errors are not logged. Returns `{
- * container, running, replaced, frames, reads, returns }`: the container, the explorer's promise, the queries written
- * to the URL, the animation frames not yet run, the files read, each `[file, bars]` with what the bars' body held then
- * (`barsState`), and the functions given to `onReturn`, which Back and Forward call; each list in order.
+ * Run the explorer into a new container on the fake page of the test of `context`, opened at `query`, each file of
+ * `answers` (a map from file to its promised rows) fetched as its rows, any other answering 404; errors are not logged.
+ * Returns `{ container, running, replaced, returns, history, frames, reads, barsAtRead }`: the container, the
+ * explorer's promise, the queries written to the URL, the functions given to `onReturn`, which Back and Forward call,
+ * the window's history, the animation frames not yet run, the files read, and each `[file, bars]` with what the bars'
+ * body held as the file was read (`barsState`); each list in order.
  */
 function runExplorer(context, query, answers) {
-  const page = { container: new FakeElement("div"), replaced: [], frames: [], reads: [], returns: [] };
-  globalThis.document = { createElement: fakeElement };
-  globalThis.window = { location: new URL(`${PAGE_ADDRESS}${query}`) };
-  globalThis.requestAnimationFrame = (callback) => page.frames.push(callback);
-  context.after(() => {
-    delete globalThis.document;
-    delete globalThis.window;
-    delete globalThis.requestAnimationFrame;
+  const container = new FakeElement("div");
+  const explorer = { container, replaced: [], returns: [], barsAtRead: [] };
+  const page = useFakePage(context, {
+    query,
+    answers,
+    onRead: (file) => explorer.barsAtRead.push([file, barsState(container)]),
   });
   context.mock.method(console, "error", () => undefined);
-  context.mock.method(globalThis, "fetch", async (file) => {
-    page.reads.push([file, barsState(page.container)]);
-    return fetchedAnswer(await answers[file]);
-  });
   const explorerContext = {
     mixes: {
       families: Promise.resolve([{ family: "Kin", family_slug: "kin", requests: 10 }]),
       endpoints: Promise.resolve([{ endpoint_group: "chat", requests: 10 }]),
     },
-    replaceQuery: (params) => page.replaced.push(params.toString()),
-    onReturn: (redraw) => page.returns.push(redraw),
+    replaceQuery: (params) => explorer.replaced.push(params.toString()),
+    onReturn: (redraw) => explorer.returns.push(redraw),
   };
-  return { ...page, running: runTraffic(page.container, explorerContext) };
+  const running = runTraffic(container, explorerContext);
+  return { ...explorer, running, history: page.history, frames: page.frames, reads: page.reads };
 }
 
 // What the bars' body in the explorer's `container` holds: the class of its paragraph, "note" once bars of no
@@ -199,7 +185,8 @@ test("Back to an entry of another range stands the handles on it and draws it", 
   const page = runExplorer(context, NO_COMPLETION_QUERY, { [FAMILY_FILE]: THREE_DAY_ROWS });
   await page.running;
   const { tiles, rangeDays } = explorerParts(page.container);
-  globalThis.window.location = new URL(`${PAGE_ADDRESS}?endpoint=completion&from=2025-07-01`);
+  // The entry returned to: the same choice, from another day.
+  page.history.pushState(null, "", "?endpoint=completion&from=2025-07-01");
   await page.returns[0]();
   await settled();
   assert.deepEqual(rangeDays.map((day) => day.textContent), ["2025-07-01", "2025-07-02"]);
@@ -232,7 +219,8 @@ test("the histogram answer is read once the bars are drawn, the charts and the n
     const answers = { [FAMILY_FILE]: THREE_DAY_ROWS, [HISTOGRAMS_FILE]: histograms.promise };
     const page = runExplorer(context, NO_COMPLETION_QUERY, answers);
     await settled();
-    assert.deepEqual(page.reads, [[FAMILY_FILE, "none"], [HISTOGRAMS_FILE, "note"]], "read once the bars are drawn");
+    const read = [[FAMILY_FILE, "none"], [HISTOGRAMS_FILE, "note"]];
+    assert.deepEqual(page.barsAtRead, read, "read once the bars are drawn");
     assert.deepEqual(chartStates(page.container), ["loading", "loading", "loading"]);
     const { tiles } = explorerParts(page.container);
     assert.deepEqual(tileNotes(tiles), ["…", "…", "— record it", "…"]);
@@ -275,7 +263,7 @@ test("a failed histogram read shows its error in the charts, logged once, the no
     handles[1].dispatch("input");
     runFrames(page.frames);
     await settled();
-    assert.deepEqual(page.reads.map(([file]) => file), [FAMILY_FILE, HISTOGRAMS_FILE, HISTOGRAMS_FILE]);
+    assert.deepEqual(page.reads, [FAMILY_FILE, HISTOGRAMS_FILE, HISTOGRAMS_FILE]);
     assert.deepEqual(chartStates(page.container), NO_VALUE_STATES);
   });
 

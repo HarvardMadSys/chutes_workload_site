@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import { trafficSummary } from "../site/js/traffic/traffic_filter.js";
 import { NO_PERCENTILES, renderTiles, tileTexts } from "../site/js/traffic/traffic_tiles.js";
-import { FakeElement, useFakeDocument } from "./fake_page.js";
+import { FakeElement, useFakePage } from "./fake_page.js";
 
 // The whole trace's numbers, as the tiles take them.
 const SUMMARY = Object.freeze({
@@ -62,7 +62,7 @@ function tileParts(list) {
 }
 
 test("each tile shows its value, its label and its notes, each on a line, and nothing else", (context) => {
-  useFakeDocument(context);
+  useFakePage(context);
   const list = new FakeElement("ul");
   renderTiles(list, SMALL_SUMMARY, PERCENTILES);
   assert.deepEqual(list.querySelectorAll("strong").map((value) => value.textContent), ["1.0k", "8", "3", "0.2 s"]);
@@ -79,7 +79,7 @@ test("each tile shows its value, its label and its notes, each on a line, and no
 });
 
 test("writing the tiles again replaces them, the latest notes once", (context) => {
-  useFakeDocument(context);
+  useFakePage(context);
   const list = new FakeElement("ul");
   renderTiles(list, SMALL_SUMMARY, null);
   renderTiles(list, SMALL_SUMMARY, PERCENTILES);

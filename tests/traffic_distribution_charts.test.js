@@ -5,7 +5,7 @@ import {
   DISTRIBUTION_CHARTS, drawDistributionCharts, drawDistributionCurves, formatTtftTick, placeDistributionCharts,
   showChartsError, showChartsLoading,
 } from "../site/js/traffic/traffic_distribution_charts.js";
-import { FakeElement, useFakeDocument } from "./fake_page.js";
+import { FakeElement, useFakePage } from "./fake_page.js";
 
 // The bars' legend of two families, and their breakdown.
 const LEGEND = {
@@ -42,7 +42,7 @@ test("a TTFT tick is written as a duration under a minute and in seconds from a 
 
 test("the three charts are placed once in their row, each titled over its place, loading, keyed by metric",
   (context) => {
-    useFakeDocument(context);
+    useFakePage(context);
     const row = new FakeElement("div");
     const places = placeDistributionCharts(row);
     assert.deepEqual(Object.keys(places), ["input_tokens", "output_tokens", "ttft"]);
@@ -81,7 +81,7 @@ test("each chart's log x axis is ticked at its listed ticks, from its domain's s
 });
 
 test("a chart's rows beyond its domain are kept, so its line leaves the chart at the edge", async (context) => {
-  useFakeDocument(context);
+  useFakePage(context);
   context.mock.method(console, "error", () => undefined); // node has no Plot: each chart shows an error instead
   // Bin 108 of a quarter-doubling holds 2^27 input tokens, about 1.3 × 10^8, beyond the input axis's 10^6.
   const rows = [histogramRow("Kin", "input_tokens", 0), histogramRow("Kin", "input_tokens", 108)];
@@ -93,7 +93,7 @@ test("a chart's rows beyond its domain are kept, so its line leaves the chart at
 });
 
 test("the charts' places show the loading state, then an error, each in its place, logged once", (context) => {
-  useFakeDocument(context);
+  useFakePage(context);
   context.mock.method(console, "error", () => undefined);
   const places = chartPlaces();
   showChartsLoading(places);
@@ -107,7 +107,7 @@ test("the charts' places show the loading state, then an error, each in its plac
 });
 
 test("a chart whose choice records no value says so in its place", async (context) => {
-  useFakeDocument(context);
+  useFakePage(context);
   const places = chartPlaces();
   const distributions = { rows: [], breakdown: FAMILIES, legend: LEGEND };
   const distributionCharts = await drawDistributionCharts(places, distributions, new Set());
@@ -118,7 +118,7 @@ test("a chart whose choice records no value says so in its place", async (contex
 });
 
 test("every series hidden in the bars' legend shows the legend's note in each chart", async (context) => {
-  useFakeDocument(context);
+  useFakePage(context);
   const places = chartPlaces();
   const distributions = { rows: [], breakdown: FAMILIES, legend: LEGEND };
   const distributionCharts = await drawDistributionCharts(places, distributions, new Set());
@@ -128,7 +128,7 @@ test("every series hidden in the bars' legend shows the legend's note in each ch
 
 test("a chart draws the lines of the series the bars' legend lists, none of a series it has no button for",
   async (context) => {
-    useFakeDocument(context);
+    useFakePage(context);
     context.mock.method(console, "error", () => undefined); // node has no Plot: each chart shows an error instead
     const rows = [histogramRow("Kin", "ttft", 0), histogramRow("Rho", "ttft", 4)];
     const colours = new Map([...LEGEND.colours, ["Rho", "var(--series-3)"]]);
@@ -140,7 +140,7 @@ test("a chart draws the lines of the series the bars' legend lists, none of a se
 
 test("a chart shows the no-value note where every series with a line is hidden and the others record no value",
   async (context) => {
-    useFakeDocument(context);
+    useFakePage(context);
     const places = chartPlaces();
     const rows = [histogramRow("Kin", "ttft", 0)];
     await drawDistributionCharts(places, { rows, breakdown: FAMILIES, legend: LEGEND }, new Set(["Kin"]));
