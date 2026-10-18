@@ -567,8 +567,12 @@ tests/               what make test runs
                      the word counts of every card's insight, caption and definition, of each topic's takeaway,
                      and of each group's heading and takeaway
   insights_figure_card.test.js
-                     every card's kind, and its shipped answer holding that kind's columns; every card's and
-                     panel's chart naming only parameters its kind lists, its axes only axis options
+                     a figure card: every card's and panel's chart naming only parameters its kind lists, its axes
+                     only axis options; a card's element, its words in order, its Definition control, the answers
+                     it reads, a frozen card, its chart's parameters and an answer's error
+  insights_cards_answers.test.js
+                     every card against its shipped answer: its kind's columns, its panels, its series, its
+                     palette, its legend answer, and the figure answers' index listing them
   insights_card_series.test.js
                      a card's series' order, the colours each palette gives them, the fixed and highlighted series,
                      and its legend

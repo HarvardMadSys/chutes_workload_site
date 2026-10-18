@@ -5,38 +5,40 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { chartName, nameChart, renderFigure } from "../site/js/shared/figure.js";
-import { FakeElement } from "./fake_page.js";
+import { FakeElement, useFakePage } from "./fake_page.js";
 
 // The site's stylesheet, and its rule that lays a card of a group's grid on its row's tracks, the rows it spans.
 const STYLE_FILE = new URL("../site/style.css", import.meta.url);
 const CARD_GRID_SPAN = /\.card-grid > \.card \{[^}]*grid-row: span (\d+);/;
 
-/** A figure's body as `renderFigure` lays it out, its card holding the elements `parts` names by class. */
-function bodyOfFigure(parts) {
-  const figure = { querySelector: (selector) => parts[selector] ?? null };
-  return { closest: () => figure };
-}
+// A figure's words: its title, its insight, and the caption it shows under the insight or in its place.
+const TITLE = "Tokens per request";
+const INSIGHT = "Each request adds little to a large context.";
+const CAPTION = "Input, uncached input and output tokens of each request.";
 
-test("a chart is named by its card's title and insight, or its caption where the card has no insight", () => {
-  const title = { textContent: "Tokens per request" };
-  const insight = { textContent: "Each request adds little to a large context." };
-  const caption = { textContent: "Input, uncached input and output tokens of each request." };
-  const withInsight = bodyOfFigure({ ".figure-title": title, ".figure-insight": insight, ".figure-caption": caption });
+test("a chart is named by its card's title and insight, or its caption where the card has no insight", (context) => {
+  useFakePage(context);
+  const withInsight = renderFigure(new FakeElement("div"), {
+    title: TITLE, insight: INSIGHT, caption: CAPTION, definition: "Rows.",
+  });
   assert.equal(chartName(withInsight), "Tokens per request: Each request adds little to a large context.");
-  const withCaption = bodyOfFigure({ ".figure-title": title, ".figure-caption": caption });
+  const withCaption = renderFigure(new FakeElement("div"), { title: TITLE, caption: CAPTION, definition: "Rows." });
   assert.equal(chartName(withCaption), "Tokens per request: Input, uncached input and output tokens of each request.");
 });
 
-test("a chart is named as one image by the name given, else by its card's", () => {
-  const caption = { textContent: "Each family's share of the requests." };
+test("a chart is named as one image by the name given, else by its card's", (context) => {
+  useFakePage(context);
+  const caption = "Each family's share of the requests.";
+  const body = renderFigure(new FakeElement("div"), { title: "Family mix", caption, definition: "Rows." });
   const chart = new FakeElement("svg");
-  const body = bodyOfFigure({ ".figure-title": { textContent: "Family mix" }, ".figure-caption": caption });
+  // nameChart finds a chart by 'svg:not(svg svg):not([class$="-ramp"])', which the fake does not read; the snapshot
+  // test checks every chart's name in Chromium.
   body.querySelectorAll = () => [chart];
   nameChart(body);
   assert.deepEqual([...chart.attributes], [
     ["role", "img"], ["aria-label", "Family mix: Each family's share of the requests."],
   ]);
-  nameChart({ querySelectorAll: () => [chart] }, "Input tokens distribution");
+  nameChart(body, "Input tokens distribution");
   assert.equal(chart.getAttribute("aria-label"), "Input tokens distribution");
 });
 
@@ -44,8 +46,7 @@ test("a card in a grid spans one row for each part renderFigure appends to a fig
   const rule = readFileSync(STYLE_FILE, "utf8").match(CARD_GRID_SPAN);
   assert.ok(rule, "style.css has no .card-grid > .card { grid-row: span N } rule");
   const span = Number(rule[1]);
-  globalThis.document = { createElement: (tag) => new FakeElement(tag) };
-  context.after(() => delete globalThis.document);
+  useFakePage(context);
   const card = new FakeElement("article");
   renderFigure(card, { title: "A title", insight: "An insight.", caption: "A caption.", definition: "Rows." });
   const parts = card.children[0].children.length;

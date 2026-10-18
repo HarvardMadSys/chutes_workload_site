@@ -525,7 +525,7 @@ The table is the artifact's: the figure's reproduce script writes it and
 draws the paper's PDF from it (the rasters and the density and P90 grids
 from the points it bins), so a number the site needs and the table
 lacks is added there, never computed in the browser.
-`tests/insights_figure_card.test.js` (`KIND_COLUMNS`) checks every shipped
+`tests/insights_cards_answers.test.js` (`KIND_COLUMNS`) checks every shipped
 answer against its card's kind.
 
 **Adding a figure.** A figure is the artifact's: it ends at its plot-ready
@@ -546,7 +546,7 @@ table and the card's words.
    `tests/page_topics.test.js`, or add the new group's count
    there in its place, which also checks that the
    cards draw every answer of the index once (the shared legend is named by
-   two cards); `tests/insights_figure_card.test.js` checks that its answer
+   two cards); `tests/insights_cards_answers.test.js` checks that its answer
    has its kind's columns; `tests/insights_cards_domains.test.js` that
    its answer's values fit each fixed domain of its axes, but a clip it
    lists in `INTENDED_CLIPS` with its reason;

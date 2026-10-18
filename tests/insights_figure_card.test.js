@@ -1,110 +1,19 @@
-// A figure card (`insights/figure_card.js`): every card's kind and its answer's columns, its panels, series, palette
-// and legend answer, its words placed in order, its chart's parameters, and an answer's error.
+// A figure card (`insights/figure_card.js`): the parameters every card's and panel's chart names, a card's element, its
+// words placed in order and its Definition control, the answers it reads, a frozen card, its chart's parameters, and
+// an answer's error. Every card against its shipped answer is `insights_cards_answers.test.js`'s.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
   CHART_KINDS, chartParameters, drawFigureChart, frozenCard, newCardElement, renderFigureCard,
 } from "../site/js/insights/figure_card.js";
-import { PALETTES } from "../site/js/insights/card_series.js";
 import { AXIS_OPTION_NAMES } from "../site/js/plot/axes.js";
 import { TOPICS, topicCards } from "../site/js/page/topics.js";
-
-// The columns a figure answer of each chart kind holds: the plot-ready tables' contract.
-const KIND_COLUMNS = Object.freeze({
-  lines: ["series", "x", "y"],
-  cdf: ["series", "x", "cdf"],
-  bands: ["x", "p10", "p25", "p50", "p75", "p90"],
-  cells: ["x_low", "x_high", "y_low", "y_high", "value"],
-  raster: ["x", "y", "value"],
-  scatter: ["x", "y", "value"],
-  boxes: ["series", "low", "q1", "median", "q3", "high", "count"],
-  bars: ["series", "x", "value"],
-  stacked_bars: ["series", "x", "value"],
-});
-
-// The columns of a legend answer, which gives the share cards their series' order.
-const LEGEND_COLUMNS = ["series", "rank"];
-
-// The shipped figure answers' index: each figure's row count, by name.
-const FIGURE_INDEX = readJson("../site/data/all/figures.json");
-
-// A shipped answer's rows, read from its file as the page reads it over HTTP.
-function readJson(path) {
-  return JSON.parse(readFileSync(new URL(path, import.meta.url), "utf8"));
-}
-
-function shippedAnswer(figure) {
-  return readJson(`../site/data/all/figures/${figure}.json`);
-}
+import { FakeElement, useFakePage } from "./fake_page.js";
 
 // Every card of every topic.
 function everyCard() {
   return TOPICS.flatMap(topicCards);
-}
-
-// The columns of `rows` missing from at least one row: none for an answer of the kind's columns.
-function missingColumns(rows, columns) {
-  return columns.filter((column) => !rows.every((row) => Object.hasOwn(row, column)));
-}
-
-// An element of static markup, as `innerHTML` writes it: its tag, its class and its text.
-const MARKUP_ELEMENT = /<(\w+)(?: class="([^"]*)")?>([^<]*)<\/\1>/g;
-
-/**
- * A stand-in for a page element: its children, attributes and the properties a card sets. Its markup is read into
- * children, and `querySelector` finds a descendant by one class.
- */
-class FakeElement {
-  constructor(tag) {
-    this.tag = tag;
-    this.children = [];
-    this.className = "";
-    this.textContent = "";
-    this.dataset = {};
-  }
-
-  append(...children) {
-    this.children.push(...children);
-  }
-
-  replaceChildren(...children) {
-    this.children = children;
-  }
-
-  set innerHTML(markup) {
-    this.children = [];
-    for (const [, tag, className, text] of markup.matchAll(MARKUP_ELEMENT)) {
-      const child = new FakeElement(tag);
-      child.className = className ?? "";
-      child.textContent = text;
-      this.children.push(child);
-    }
-  }
-
-  querySelector(selector) {
-    for (const child of this.children) {
-      if (typeof child === "string") {
-        continue;
-      }
-      if (child.className.split(" ").includes(selector.slice(1))) {
-        return child;
-      }
-      const found = child.querySelector(selector);
-      if (found !== null) {
-        return found;
-      }
-    }
-    return null;
-  }
-}
-
-/** Make a stand-in the global document for the test of `context`, and keep the errors a card logs out of its output. */
-function useFakeDocument(context) {
-  globalThis.document = { createElement: (tag) => new FakeElement(tag) };
-  context.after(() => delete globalThis.document);
-  context.mock.method(console, "error", () => undefined);
 }
 
 // The page's mixes as `page/start.js` promises them, the endpoint mix of one group.
@@ -119,13 +28,6 @@ const CARD = Object.freeze({
   definition: "Requests per day.",
   kind: "lines",
   chart: { valueLabel: "Requests" },
-});
-
-test("every card names one of the nine kinds, and every kind has its columns", () => {
-  assert.deepEqual(Object.keys(CHART_KINDS).sort(), Object.keys(KIND_COLUMNS).sort());
-  for (const card of everyCard()) {
-    assert.ok(Object.hasOwn(CHART_KINDS, card.kind), `${card.figure}: ${card.kind}`);
-  }
 });
 
 // The names among the keys of `object` that are not in `allowed`.
@@ -153,60 +55,8 @@ test("every card's and panel's chart names only parameters its kind reads, its a
   }
 });
 
-test("every card's shipped answer has its kind's columns", () => {
-  for (const card of everyCard()) {
-    const missing = missingColumns(shippedAnswer(card.figure), KIND_COLUMNS[card.kind]);
-    assert.deepEqual(missing, [], `${card.figure} is drawn as ${card.kind} but lacks ${missing}`);
-  }
-});
-
-test("a card of panels has an answer whose panel column holds every panel it lists", () => {
-  for (const card of everyCard().filter((one) => one.panels !== undefined)) {
-    const panels = new Set(shippedAnswer(card.figure).map((row) => row.panel));
-    for (const entry of card.panels) {
-      assert.ok(panels.has(entry.panel), `${card.figure} has no rows of the panel ${entry.panel}`);
-    }
-  }
-});
-
-test("a card listing its series names only series its answer holds, each once", () => {
-  const withSeries = everyCard().filter((card) => card.series !== undefined);
-  assert.ok(withSeries.length > 0);
-  for (const card of withSeries) {
-    const answerSeries = new Set(shippedAnswer(card.figure).map((row) => row.series));
-    assert.equal(new Set(card.series).size, card.series.length, card.figure);
-    for (const name of card.series) {
-      assert.ok(answerSeries.has(name), `${card.figure} lists ${name}, which its answer does not hold`);
-    }
-  }
-});
-
-test("a card naming a palette names one of the palettes", () => {
-  assert.deepEqual(Object.keys(PALETTES), ["series", "families", "endpoints", "policies"]);
-  for (const card of everyCard().filter((one) => one.palette !== undefined)) {
-    assert.ok(Object.hasOwn(PALETTES, card.palette), `${card.figure}: ${card.palette}`);
-  }
-});
-
-test("a card naming a legend has a legend answer of series and ranks", () => {
-  const withLegend = everyCard().filter((card) => card.legend !== undefined);
-  assert.ok(withLegend.length > 0);
-  for (const card of withLegend) {
-    assert.deepEqual(missingColumns(shippedAnswer(card.legend), LEGEND_COLUMNS), [], card.legend);
-  }
-});
-
-test("the figure answers' index lists every card's figure and legend", () => {
-  for (const card of everyCard()) {
-    assert.ok(Object.hasOwn(FIGURE_INDEX, card.figure), card.figure);
-    if (card.legend !== undefined) {
-      assert.ok(Object.hasOwn(FIGURE_INDEX, card.legend), card.legend);
-    }
-  }
-});
-
 test("a card is an article carrying its figure's name, and a wide card is marked wide", (context) => {
-  useFakeDocument(context);
+  useFakePage(context);
   const element = newCardElement(CARD);
   assert.equal(element.tag, "article");
   assert.equal(element.className, "card");
@@ -215,7 +65,7 @@ test("a card is an article carrying its figure's name, and a wide card is marked
 });
 
 test("a card shows its title, insight, legend place, chart place, caption and Definition control in order", (context) => {
-  useFakeDocument(context);
+  useFakePage(context);
   const container = new FakeElement("article");
   const body = renderFigureCard(container, CARD);
   const [figure] = container.children;
@@ -231,7 +81,7 @@ test("a card shows its title, insight, legend place, chart place, caption and De
 });
 
 test("the Definition control opens on the definition alone, with no link and no line of rows", (context) => {
-  useFakeDocument(context);
+  useFakePage(context);
   const container = new FakeElement("article");
   renderFigureCard(container, CARD);
   const details = container.children[0].children[5];
@@ -243,14 +93,10 @@ test("the Definition control opens on the definition alone, with no link and no 
 
 test("a card of the endpoints' palette takes their order from the page's mixes and reads its answer alone",
   async (context) => {
-    useFakeDocument(context);
-    const read = [];
-    context.mock.method(globalThis, "fetch", async (file) => {
-      read.push(file);
-      return { ok: false, status: 404, statusText: "Not Found" };
-    });
+    const page = useFakePage(context);
+    context.mock.method(console, "error", () => undefined); // the answer is missing, and its error is logged
     await drawFigureChart(new FakeElement("div"), { ...CARD, palette: "endpoints" }, MIXES);
-    assert.deepEqual(read, ["data/all/figures/fig_a.json"]);
+    assert.deepEqual(page.reads, ["data/all/figures/fig_a.json"]);
   });
 
 test("a frozen card holds only frozen objects and lists, and its functions as they were", () => {
@@ -278,8 +124,8 @@ test("a chart's parameters are its kind's, then the card's, then a panel's with 
 });
 
 test("an answer that cannot be read shows its error in the chart's place", async (context) => {
-  useFakeDocument(context);
-  context.mock.method(globalThis, "fetch", async () => ({ ok: false, status: 404, statusText: "Not Found" }));
+  useFakePage(context); // the fake page answers no file, so the card's answer is a 404
+  context.mock.method(console, "error", () => undefined); // the error is logged as well as shown; keep the run quiet
   const body = new FakeElement("div");
   await drawFigureChart(body, CARD, MIXES);
   const [note] = body.children;
