@@ -287,7 +287,9 @@ at the page's width less the gutters, `.page` keeping the gutters as its
 padding; the Traffic Explorer's `#traffic` alone is uncapped. A new
 topic of figures is a module of `js/insights/` instead, added to
 `TOPICS`, where it becomes a tab and a section, numbered by its place,
-with no edit to `index.html`, a test or the snapshot.
+with no edit to `index.html`, the tabs or the snapshot states;
+`GROUP_CARD_COUNTS` of `tests/page_topics.test.js`, which pins each
+topic's groups' card counts, gains its entry.
 
 ## Patterns to copy
 

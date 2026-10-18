@@ -112,8 +112,8 @@ export const EVOLUTION_TOPIC = Object.freeze({
           kind: "bands",
           chart: {
             x: TRACE_MONTH_AXIS,
-            // From 7, a little under the lowest 10th percentile, so the band clears the frame's foot, to 1,500, over the
-            // highest 90th.
+            // From 7, a little under the lowest 10th percentile, so the band clears the frame's foot, to 1,500, over
+            // the highest 90th.
             y: { label: "Output tokens", log: true, domain: [7, 1500], tickFormat: formatCountTick },
             colour: OUTPUT_COLOUR,
             valueLabel: "Output tokens",

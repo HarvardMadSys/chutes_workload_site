@@ -41,7 +41,9 @@ test("a chart is named as one image by the name given, else by its card's", () =
 });
 
 test("a card in a grid spans one row for each part renderFigure appends to a figure with an insight", (context) => {
-  const span = Number(readFileSync(STYLE_FILE, "utf8").match(CARD_GRID_SPAN)[1]);
+  const rule = readFileSync(STYLE_FILE, "utf8").match(CARD_GRID_SPAN);
+  assert.ok(rule, "style.css has no .card-grid > .card { grid-row: span N } rule");
+  const span = Number(rule[1]);
   globalThis.document = { createElement: (tag) => new FakeCardPart(tag) };
   context.after(() => delete globalThis.document);
   const card = new FakeElement("article");

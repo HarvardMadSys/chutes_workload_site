@@ -316,6 +316,9 @@ trace it takes about half a minute and 16 GB of memory on a 344-thread
 machine, and a rebuild writes the same bytes. `make test` fails while
 the query's text differs from the hash in the sidecar, and, given the
 artifact's checkout, while the table disagrees with the daily rollup.
+The hash covers the query's text alone, not the week's two parameters:
+after a change to the week, only the check against the daily rollup
+finds a table not rebuilt.
 Commit the two files, then build the answers.
 
 **The answers** are rebuilt when the artifact's caches or figures change,
@@ -353,9 +356,11 @@ The site is a Cloudflare Worker named `chutes-trace-site`, with static
 assets and no code of its own: `wrangler.jsonc` points it at `site/`. Every
 push to `main` runs the suite and then deploys it, through
 `.github/workflows/deploy.yml` (GitHub Actions). Its job `test` installs
-the Python and Node dependencies and Chromium and runs `make test
+the Python dependencies (`make setup`), Node (the version `.nvmrc`
+names) and Chromium with its system packages, and runs `make test
 ARTIFACT=`: the three tests that need the artifact's checkout skip, saying
-why, and every other test runs, the snapshot test among them. Its job
+why, and every other test runs, the snapshot test among them. It needs
+no `npm ci`, as the node tests import nothing from npm. Its job
 `deploy` waits for it (`needs: test`), so a red `main` is never deployed,
 and runs `wrangler deploy` with two repository secrets, added under the
 repository's Settings > Secrets and variables > Actions:

@@ -165,7 +165,8 @@ const REST_OF_OTHER_TEXT = "Rest of Other";
 /**
  * The text of the other models, past the eight named ones, of the family named `familyName`, whose rows of
  * `explore/daily_by_model` are `rows`: the `model` the answer writes on its rows whose `chute_id` is null, "Other
- * DeepSeek", and `REST_OF_OTHER_TEXT` for the family Other; undefined for a family whose rows hold no other models.
+ * DeepSeek", and `REST_OF_OTHER_TEXT` for the family Other; undefined for a family whose rows hold no other models,
+ * which then has no such drop-down entry and no such series in the bars, so the undefined text is never shown.
  */
 export function otherModelsText(rows, familyName) {
   if (familyName === OTHER_NAME) {

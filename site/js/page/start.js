@@ -74,8 +74,8 @@ function mountInsights(mixes) {
 }
 
 /**
- * Append to the Insights section, after its tab row, the section of `topic`, the topic at `index` of `TOPICS`: a tab panel
- * whose id is the topic's and which its tab labels; in it the topic's heading, its number (`topicNumber`) and its
+ * Append to the Insights section, after its tab row, the section of `topic`, the topic at `index` of `TOPICS`: a tab
+ * panel whose id is the topic's and which its tab labels; in it the topic's heading, its number (`topicNumber`) and its
  * title, then its takeaway, then, for each of its groups in order, the group's heading, its takeaway and a grid of its
  * cards, each card with its words and its chart's place loading. Return `{ section, cards }`, its section element and
  * every card of its groups, each `{ card, body }`.

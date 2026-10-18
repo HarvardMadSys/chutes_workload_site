@@ -40,6 +40,11 @@ function done() {
   delete globalThis.ResizeObserver;
 }
 
+/** One value per topic of the list, in its order: `atIndex` for the topic at `index`, `elsewhere` for every other. */
+function onlyAt(index, atIndex, elsewhere) {
+  return TOPIC_ANCHORS.map((anchor, place) => (place === index ? atIndex : elsewhere));
+}
+
 test("a tab is a button in the tab role, controlling its topic's section", () => {
   globalThis.document = { createElement: () => new FakeElement() };
   const tab = topicTab({ anchor: "insights-tokens", number: "02", title: "Request shape and latency" });
@@ -51,7 +56,7 @@ test("a tab is a button in the tab role, controlling its topic's section", () =>
   assert.equal(tab.getAttribute("aria-controls"), "insights-tokens");
 });
 
-test("the tabs write each topic's number and title from the topic list, in its order, each controlling its topic", () => {
+test("the tabs write each topic's number and title from the topic list, in order, each controlling its topic", () => {
   const { tabs } = mountedTabs("");
   done();
   assert.equal(tabs[0].textContent, "01 The workload at a glance");
@@ -101,11 +106,9 @@ test("showing a topic hides every other topic and selects its tab alone, the row
   });
   showTopic(sections, tabs, "insights-users");
   assert.deepEqual(shownIds(sections), ["insights-users"]);
-  assert.deepEqual(tabs.map((tab) => tab.getAttribute("aria-selected")), [
-    "false", "false", "true", "false", "false", "false",
-  ]);
-  assert.deepEqual(tabs.map((tab) => tab.tabIndex), [-1, -1, 0, -1, -1, -1]);
-  assert.deepEqual(tabs.map((tab) => tab.classes.has("is-active")), [false, false, true, false, false, false]);
+  assert.deepEqual(tabs.map((tab) => tab.getAttribute("aria-selected")), onlyAt(2, "true", "false"));
+  assert.deepEqual(tabs.map((tab) => tab.tabIndex), onlyAt(2, 0, -1));
+  assert.deepEqual(tabs.map((tab) => tab.classes.has("is-active")), onlyAt(2, true, false));
   showTopic(sections, tabs, "insights-overview");
   assert.deepEqual(shownIds(sections), ["insights-overview"]);
   assert.equal(tabs[2].getAttribute("aria-selected"), "false");
@@ -141,7 +144,7 @@ test("ArrowRight on the shown tab shows the next topic and focuses its tab; Back
   assert.equal(isDefaultPrevented, true);
   assert.deepEqual(shownIds(sections), ["insights-users"]);
   assert.equal(globalThis.document.activeElement, tabs[2]);
-  assert.deepEqual(tabs.map((tab) => tab.tabIndex), [-1, -1, 0, -1, -1, -1]);
+  assert.deepEqual(tabs.map((tab) => tab.tabIndex), onlyAt(2, 0, -1));
   history.back();
   done();
   assert.deepEqual(shownIds(sections), ["insights-tokens"]);

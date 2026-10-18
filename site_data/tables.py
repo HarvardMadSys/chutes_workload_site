@@ -12,7 +12,9 @@ the time taken. A missing trace or artifact file stops the run with its message 
 written.
 
 The table is built once from the trace, which is too large to read on every `make data`, and tracked; it is rebuilt
-when the family table, the daily rollup's kept models or the query change.
+when the family table, the daily rollup's kept models, the query, or the week of `months.py` (its epoch or its length)
+change. The sidecar hashes the query's text alone, not the two parameters, so after a change to the week only the
+check of the table against the artifact's rollup, with `ARTIFACT`, finds a table not rebuilt.
 """
 
 import argparse

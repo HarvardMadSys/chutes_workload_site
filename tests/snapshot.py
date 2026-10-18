@@ -4,8 +4,9 @@ A snapshot is one folder per page state, `tests/snapshots/<state>/`, holding one
 each chart's SVG, or an Insights card's chart's name and tick labels, each legend's entries, each card's texts, the
 stats strip. `snapshot_units.py` says what each file holds, `snapshot_traffic.py` the Traffic Explorer's. The states are
 the page opened at each of its Insights topics' anchors (`index.html#insights-tokens`), each in a fresh page, and each
-state's folder is named by its anchor; the anchors are read once from the tab row's `aria-controls`. A unit that is the same in every state is
-written once, with the first state: the page's hero, stats strip, Overview, Traffic Explorer, cite, team and footer.
+state's folder is named by its anchor; the anchors are read once from the tab row's `aria-controls`. A unit that is
+the same in every state is written once, with the first state: the page's hero, stats strip, Overview, Traffic
+Explorer, cite, team and footer.
 
     .venv/bin/python tests/snapshot.py           # compare: fails naming each unit that changed (make test)
     .venv/bin/python tests/snapshot.py --write   # rewrite every file (make snapshots)
@@ -65,7 +66,6 @@ CHARTS_DRAWN = """(counts) => Object.entries(counts).every(([section, count]) =>
 TILE_VALUE = "#traffic-explorer .traffic-tiles li strong"  # the value of each of the Traffic Explorer's tiles
 A_DIGIT = re.compile(r"\d")  # a tile showing a number, not its loading or missing text
 MONTH_COUNT = re.compile(r"\d+ months? of")  # the hero's lede and the footer's line, once the totals give the months
-FIGURE_ANSWER = re.compile(r"/data/all/figures/(?P<figure>[^/?#]+)\.json$")  # the address of a figure's answer
 # What the test prints to standard error, as the last thing `make test` prints, when Chromium cannot start: framed, so
 # that a skip is not read as a pass.
 SKIP_MESSAGE = """\
@@ -125,16 +125,9 @@ def record_failed_request(errors: list[str], request) -> None:
     errors.append(f"request failed: {request.url} ({request.failure})")
 
 
-def answered_figure(address: str) -> str | None:
-    """The figure whose answer `address` is, `fig_seasonality` for `.../data/all/figures/fig_seasonality.json`; None
-    for any other file."""
-    match = FIGURE_ANSWER.search(address)
-    return match["figure"] if match else None
-
-
 def record_figure_answer(requested: list[str], request) -> None:
     """Append to `requested` the figure whose answer `request` asks for, when it asks for one."""
-    figure = answered_figure(request.url)
+    figure = snapshot_units.answered_figure(request.url)
     if figure is not None:
         requested.append(figure)
 
@@ -177,13 +170,17 @@ def read_state(page, address: str, topic: str, with_page_units: bool) -> dict[st
 
 def page_states(browser, address: str) -> list[str]:
     """The page's states, the anchors of its Insights topics in the order of their tabs, read once from the tab row of
-    the site at `address`, which the page writes as it starts."""
+    the site at `address`, which the page writes as it starts. Raises a PageError when the page shows no tab."""
     page = browser.new_page(viewport=VIEWPORT, locale=LOCALE, timezone_id=TIME_ZONE, color_scheme=COLOUR_SCHEME)
-    page.goto(f"{address}/index.html")
-    playwright.sync_api.expect(page.locator(snapshot_units.TOPIC_TABS).first).to_be_attached(timeout=DRAW_TIMEOUT_MS)
-    anchors = snapshot_units.topic_anchors(page)
-    page.close()
-    return anchors
+    try:
+        page.goto(f"{address}/index.html")
+        first_tab = page.locator(snapshot_units.TOPIC_TABS).first
+        playwright.sync_api.expect(first_tab).to_be_attached(timeout=DRAW_TIMEOUT_MS)
+        return snapshot_units.topic_anchors(page)
+    except (playwright.sync_api.Error, AssertionError) as error:  # no tab row: no state can be named
+        raise PageError(f"the page shows no topic tab ({snapshot_units.TOPIC_TABS}): {error}") from error
+    finally:
+        page.close()
 
 
 def read_states(browser, address: str) -> dict[str, dict[str, str]]:

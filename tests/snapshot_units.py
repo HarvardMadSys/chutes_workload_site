@@ -1,6 +1,7 @@
 """The states of a snapshot, and the units read from each in the browser: each unit is one block a visitor sees (a
 chart, a legend, a block of text), returned as the text written to its file, `<state>/<unit>.txt`. The states are the
-Insights' topics, read from the tab row, and the figures of each topic's cards are read to check what a state requested.
+Insights' topics, read from the tab row, and the figures of each topic's cards and the figure an answer's address
+names are read to check what a state requested.
 
 Text units hold one line per entry, whitespace collapsed: a card's texts as `label: text`, a legend's entries as `text
 | pressed=… | mark`, a control's choice as `field: choice | selected=…`, an axis as `x-axis: label | label …`. An
@@ -23,6 +24,7 @@ class SharedTitleError(Exception):
 # The Insights' topic tabs, in their order; each tab's `aria-controls` is its topic's anchor, the id of its section.
 TOPIC_TABS = "#topic-tabs [role=tab]"
 CARD_FIGURE = "data-figure"  # the attribute of a card's article that names its figure
+FIGURE_ANSWER = re.compile(r"/data/all/figures/(?P<figure>[^/?#]+)\.json$")  # the address of a figure's answer
 
 # Plot numbers each clip path, marker and pattern in the order charts are drawn, which follows the order their answers
 # arrive, so the number is left out: `plot-clip-7` is written `plot-clip`.
@@ -90,9 +92,16 @@ def topic_figures(page, topic: str) -> set[str]:
     return figures
 
 
+def answered_figure(address: str) -> str | None:
+    """The figure whose answer `address` is, `fig_seasonality` for `.../data/all/figures/fig_seasonality.json`; None
+    for any other file."""
+    match = FIGURE_ANSWER.search(address)
+    return match["figure"] if match else None
+
+
 def other_topics_answers(page, topic: str, requested: list[str]) -> list[str]:
-    """The figures of `requested` that are the cards' of a topic other than `topic`, every topic the tab row names: none,
-    when a topic shown reads only its own answers."""
+    """The figures of `requested` that are the cards' of a topic other than `topic`, every topic the tab row names:
+    none, when a topic shown reads only its own answers."""
     others = set()
     for other in topic_anchors(page):
         if other != topic:

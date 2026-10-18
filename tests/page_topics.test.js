@@ -1,5 +1,5 @@
-// The topic list (`page/topics.js`): the six topics, their ids and numbers, their groups and cards, every field of a
-// card, the figure answers they draw, and their being frozen.
+// The topic list (`page/topics.js`): the topics' ids and numbers, their groups and cards, every field of a card, the
+// figure answers they draw, and their being frozen.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
@@ -11,7 +11,7 @@ import { CHART_HEIGHT } from "../site/js/plot/frame.js";
 const INDEX = JSON.parse(readFileSync(new URL("../site/data/all/figures.json", import.meta.url), "utf8"));
 
 // How many cards each group of each topic holds, in the order of the topics and of their groups: a card for each panel
-// of the paper's figures of the topic's section.
+// of the paper's figures of the topic's section. A pin of the paper's layout, updated with a topic or a group added.
 const GROUP_CARD_COUNTS = [[4, 1], [3, 2, 3], [4, 4, 2], [2, 2, 2], [4, 3, 2], [6, 2, 1]];
 
 // The fields of a topic, of a group, and of a card: its words, each a string, then its kind and its chart's
@@ -47,9 +47,8 @@ function figureUses() {
   return uses;
 }
 
-test("there are six topics, each with an id of its own, an anchor under the Insights' own", () => {
+test("each topic has an id of its own, an anchor under the Insights' own", () => {
   const ids = TOPICS.map((topic) => topic.id);
-  assert.equal(ids.length, 6);
   assert.equal(new Set(ids).size, ids.length);
   for (const id of ids) {
     assert.match(id, /^insights-[a-z]+$/);
@@ -60,7 +59,7 @@ test("a topic's number is its place in the list, in two digits", () => {
   assert.deepEqual([0, 5, 9].map(topicNumber), ["01", "06", "10"]);
 });
 
-test("a topic has its id, title, takeaway and groups, and a group its heading, takeaway and cards, and no other", () => {
+test("a topic has its id, title, takeaway and groups, a group its heading, takeaway and cards, and no other", () => {
   for (const topic of TOPICS) {
     assert.deepEqual(Object.keys(topic), TOPIC_FIELDS, topic.id);
     assert.ok(typeof topic.title === "string" && topic.title.length > 0, topic.id);

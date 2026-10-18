@@ -1,6 +1,6 @@
 """The snapshot test's normalising of what it reads: markup one element per line with Plot's numbered ids unnumbered,
-whitespace collapsed, and a card's title made a file name; its states, the topics the tab row controls; and its naming
-of an answer the page requested for a topic not shown."""
+whitespace collapsed, and a card's title made a file name; its states, the topics the tab row controls; its reading of
+a figure answer's address; and its naming of an answer the page requested for a topic not shown."""
 
 import snapshot_units
 
@@ -109,3 +109,10 @@ def test_another_topic_s_answer_requested_is_named_and_the_topic_s_own_are_not()
     assert snapshot_units.other_topics_answers(page, "insights-overview", requested) == []
     requested.append("fig_user_raster_explore")
     assert snapshot_units.other_topics_answers(page, "insights-overview", requested) == ["fig_user_raster_explore"]
+
+
+def test_a_figure_answer_s_address_names_its_figure() -> None:
+    address = "http://127.0.0.1:8000/data/all/figures/fig_seasonality.json"
+    assert snapshot_units.answered_figure(address) == "fig_seasonality"
+    assert snapshot_units.answered_figure("http://127.0.0.1:8000/data/all/figures.json") is None
+    assert snapshot_units.answered_figure("http://127.0.0.1:8000/data/all/explore/trace_totals.json") is None

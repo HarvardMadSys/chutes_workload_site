@@ -82,7 +82,9 @@ export function tabIndexForKey(key, index, count) {
   return null;
 }
 
-/** A tab for `topic`, as `tabbedTopics` gives it: a button, "01 The workload at a glance", that controls its section. */
+/**
+ * A tab for `topic`, as `tabbedTopics` gives it: a button, "01 The workload at a glance", that controls its section.
+ */
 export function topicTab(topic) {
   const tab = document.createElement("button");
   tab.type = "button";
