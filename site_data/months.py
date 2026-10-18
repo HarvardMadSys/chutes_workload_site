@@ -6,9 +6,10 @@ A trace month is a month-long stretch of days from the trace's first day, not a 
 gives each trace day its calendar day and each trace month the calendar month its first day falls in, which labels
 the whole trace month, as the paper's axes do. A trace week is `DAYS_PER_TRACE_WEEK` trace days, week 0 the trace's
 first seven; `trace_weeks` gives each week the calendar days of its first and last trace day within the trace. All
-the data step's date arithmetic is here; the queries join the calendar and the weeks. The browser holds copies of the
-first day (`TRACE_FIRST_DAY`, `site/js/shared/format.js`) and the months' names (`TRACE_MONTH_NAMES`,
-`site/js/insights/figure_card.js`), which the node tests tie to this calendar.
+the data step's date arithmetic is here; the queries join the calendar and the weeks, and the trace query, which gives
+a request its week, is bound `TRACE_EPOCH` and `DAYS_PER_TRACE_WEEK` (`tables.TRACE_QUERY_PARAMETERS`). The browser
+holds copies of the first day (`TRACE_FIRST_DAY`, `site/js/shared/format.js`) and the months' names
+(`TRACE_MONTH_NAMES`, `site/js/insights/figure_card.js`), which the node tests tie to this calendar.
 """
 
 import datetime

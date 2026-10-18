@@ -34,9 +34,10 @@ SITE_TABLES = {"trace_totals", "daily_rollup", "function_name_daily_requests", "
 SITE_TABLE_FOLDERS = ("explore/", "setup/")  # the folders of the queries over the site's tables alone
 # The only tables the trace query reads: the trace, and the models and families that place its requests.
 TRACE_QUERY_TABLES = {"trace", "chute_models", "model_families", "family_models"}
-# The parameters a query that takes one is run with here: a family of the fixture.
+# The parameters a query that takes some is run with here: a family of the fixture, and the trace query's week.
 QUERY_PARAMETERS = {"explore/daily_by_model": {"family": "DeepSeek"},
-                    "explore/histograms_by_model": {"family": "DeepSeek"}}
+                    "explore/histograms_by_model": {"family": "DeepSeek"},
+                    tables.QUERY: tables.TRACE_QUERY_PARAMETERS}
 # A named parameter in a query's text, `$family`.
 NAMED_PARAMETER = re.compile(r"\$\w+")
 
@@ -90,7 +91,8 @@ def test_every_query_is_over_the_site_s_tables_or_is_the_trace_query() -> None:
 
 
 def test_the_trace_query_reads_only_the_trace_and_the_models_and_families() -> None:
-    assert duckdb.get_table_names(site_database.statement_text(tables.QUERY)) == TRACE_QUERY_TABLES
+    text = NAMED_PARAMETER.sub("''", site_database.statement_text(tables.QUERY))  # as the site's queries are read
+    assert duckdb.get_table_names(text) == TRACE_QUERY_TABLES
 
 
 def test_the_table_check_sees_every_table_a_query_names() -> None:

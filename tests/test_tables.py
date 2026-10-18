@@ -107,7 +107,7 @@ def test_each_entry_of_the_fixture_trace_adds_up_to_its_rollup_row(artifact_tabl
 
 
 def test_the_trace_query_gives_the_fixture_s_weekly_histograms(trace_connection: duckdb.DuckDBPyConnection) -> None:
-    result = site_database.run_query(trace_connection, tables.QUERY)
+    result = site_database.run_query(trace_connection, tables.QUERY, tables.TRACE_QUERY_PARAMETERS)
     assert [tuple(row) for row in result.rows] == FIXTURE_HISTOGRAMS
 
 

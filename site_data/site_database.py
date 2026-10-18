@@ -71,7 +71,8 @@ def register_tables(connection: duckdb.DuckDBPyConnection, tables: loading.Artif
     connection.register("family_models", family_models)
 
 
-def run_query(connection: duckdb.DuckDBPyConnection, name: str, parameters: dict[str, str] | None = None) -> QueryRows:
+def run_query(connection: duckdb.DuckDBPyConnection, name: str,
+              parameters: dict[str, object] | None = None) -> QueryRows:
     """The rows of the query `name`, its columns and each row's values in their order; `parameters` gives the value
     of each parameter the query names (`{"family": "DeepSeek"}` for `$family`), bound by DuckDB, never written into
     the text."""

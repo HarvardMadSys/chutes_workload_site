@@ -3,7 +3,8 @@
 The trace table is the answer of the query `trace/weekly_histograms` over the released trace, held as the view
 `trace`, and the site's tables over the artifact, of which it reads `chute_models`, `model_families` and
 `family_models`: one row per trace week, family, kept model, endpoint group, metric and bin, with the requests in the
-bin (the query states each column's definition). The builder writes it into the out folder as
+bin (the query states each column's definition). The query is given the week as `months.py` defines it, its first
+day and length bound by name (`TRACE_QUERY_PARAMETERS`). The builder writes it into the out folder as
 `weekly_histograms.parquet`, its rows in the query's order, and beside it the sidecar `weekly_histograms.json`,
 `{"query": <the SHA-256 of the query's text, as hex>, "rows": <the table's rows>, "trace_rows": <the trace's rows>}`,
 by which `make test` tells a query edited since the table was built. It prints each file with its size, the rows and
@@ -23,10 +24,13 @@ import duckdb
 import pyarrow
 import pyarrow.parquet
 
-from site_data import loading, site_database
+from site_data import loading, months, site_database
 
 QUERY = "trace/weekly_histograms"  # the trace table's query, the one query over the trace
 TRACE_VIEW = "trace"  # the name the query reads the trace by
+# The values the query's parameters are bound to by name: the day its weeks count from, `$trace_epoch`, and the days
+# in a week, `$days_per_trace_week`.
+TRACE_QUERY_PARAMETERS = {"trace_epoch": months.TRACE_EPOCH, "days_per_trace_week": months.DAYS_PER_TRACE_WEEK}
 
 
 def main(arguments: list[str] | None = None) -> None:
@@ -67,8 +71,8 @@ def open_trace_database(artifact_tables: loading.ArtifactTables,
 
 
 def histogram_table(connection: duckdb.DuckDBPyConnection) -> pyarrow.Table:
-    """The rows of `QUERY` over the trace, in its columns and order."""
-    return connection.execute(site_database.statement_text(QUERY)).to_arrow_table()
+    """The rows of `QUERY` over the trace, given `TRACE_QUERY_PARAMETERS`, in its columns and order."""
+    return connection.execute(site_database.statement_text(QUERY), TRACE_QUERY_PARAMETERS).to_arrow_table()
 
 
 def write_table(table: pyarrow.Table, trace_rows: int, folder: pathlib.Path) -> list[pathlib.Path]:
