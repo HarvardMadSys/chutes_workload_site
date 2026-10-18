@@ -108,7 +108,6 @@ export function showTopic(topicSections, tabs, anchor) {
     const isShown = tab.getAttribute("aria-controls") === anchor;
     tab.setAttribute("aria-selected", String(isShown));
     tab.tabIndex = isShown ? 0 : -1;
-    tab.classList.toggle("is-active", isShown);
   }
 }
 

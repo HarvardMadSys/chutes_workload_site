@@ -93,11 +93,9 @@ test("showing a topic hides every other topic and selects its tab alone, the row
   assert.deepEqual(shownIds(sections), ["insights-users"]);
   assert.deepEqual(tabs.map((tab) => tab.getAttribute("aria-selected")), onlyAt(2, "true", "false"));
   assert.deepEqual(tabs.map((tab) => tab.tabIndex), onlyAt(2, 0, -1));
-  assert.deepEqual(tabs.map((tab) => tab.classes.has("is-active")), onlyAt(2, true, false));
   showTopic(sections, tabs, "insights-overview");
   assert.deepEqual(shownIds(sections), ["insights-overview"]);
   assert.equal(tabs[2].getAttribute("aria-selected"), "false");
-  assert.equal(tabs[2].classes.has("is-active"), false);
 });
 
 test("Back from the fourth topic shows the first again, and Forward the fourth", (context) => {

@@ -199,8 +199,7 @@ a:hover {
 }
 
 /* Monospace runs a little smaller than the text around it, but not under the smallest size. */
-code,
-.mono {
+code {
   font-family: var(--font-mono);
   font-size: max(0.875em, var(--font-size-smallest));
 }
@@ -327,9 +326,9 @@ section[id] {
   }
 }
 
-/* Two figures side by side, one under the other on a narrower screen (below). No gap between rows: a card spans five
-   rows of its grid (see below), and a row gap would open between its parts; a card's own margin parts it from the card
-   below. */
+/* Two figures side by side, one under the other on a narrower screen (below). No gap between rows: a card spans a
+   row of its grid for each of its parts (see below), and a row gap would open between them; a card's own margin
+   parts it from the card below. */
 .card-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -588,10 +587,6 @@ a[target="_blank"]::after {
   color: var(--color-text-muted);
 }
 
-.figure-legend:empty {
-  min-height: 0;
-}
-
 .legend {
   display: flex;
   flex-wrap: wrap;
@@ -655,7 +650,7 @@ a[target="_blank"]::after {
   padding: 0.125rem 0;
 }
 
-/* The Insights' topic tabs: one row of the six topics under the Insights heading, drawn as a tab bar: each tab in
+/* The Insights' topic tabs: one row of a tab per topic under the Insights heading, drawn as a tab bar: each tab in
    the body's sans at the body's size, the shown topic in the accent, bold, on an accent rule that sits on the row's
    rule. The row scrolls sideways where it does not fit, its right edge faded while more tabs lie beyond it. */
 .topic-tabs {
@@ -691,8 +686,8 @@ a[target="_blank"]::after {
   color: var(--color-text);
   background: var(--color-surface-raised);
 }
-.topic-tab.is-active,
-.topic-tab.is-active:hover {
+.topic-tab[aria-selected="true"],
+.topic-tab[aria-selected="true"]:hover {
   color: var(--color-accent);
   font-weight: 600;
   background: none;
@@ -704,12 +699,6 @@ a[target="_blank"]::after {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem 1rem;
-}
-
-.control-label {
-  font-size: var(--font-size-smallest);
-  font-weight: 500;
-  color: var(--color-text-muted);
 }
 
 /* A row of controls: each a field under its name in small monospace capitals, sharing the row equally; on a phone two
@@ -896,7 +885,7 @@ a[target="_blank"]::after {
   transition: color 160ms ease;
 }
 
-/* An underline in the accent grows from the left under the pointer, and stays under the current page's link. */
+/* An underline in the accent grows from the left under the pointer. */
 .nav-link::after {
   content: "";
   position: absolute;
@@ -913,12 +902,7 @@ a[target="_blank"]::after {
   color: var(--color-accent-strong);
 }
 
-.nav-link.is-active {
-  color: var(--color-accent);
-}
-
-.nav-link:hover::after,
-.nav-link.is-active::after {
+.nav-link:hover::after {
   transform: scaleX(1);
 }
 
@@ -1184,7 +1168,6 @@ a[target="_blank"]::after {
 }
 
 .donut-card .legend-button {
-  min-height: 0;
   padding-block: 0.0625rem;
   line-height: 1.35;
 }
@@ -1601,7 +1584,6 @@ a[target="_blank"]::after {
   color: var(--color-accent-strong);
 }
 
-/* A long line scrolls inside the block rather than widening the page. */
 /* The BibTeX's lines wrap, a long address anywhere, rather than scroll the block sideways. */
 .cite-block pre {
   white-space: pre-wrap;
@@ -1614,9 +1596,9 @@ a[target="_blank"]::after {
   color: var(--color-text);
 }
 
-/* The Team section: its heading with the lab beside it on the heading's baseline, the authors in a row between two
-   rules, then the About. The section lies on a band of the accent's wash, the page's one tinted rest before the
-   footer; the band reaches the window's edges while the content keeps the page's width. */
+/* The Team section: its heading with the lab beside it on the heading's baseline, then the authors in a row between
+   two rules. The section lies on a band of the accent's wash, the page's one tinted rest before the footer; the band
+   reaches the window's edges while the content keeps the page's width. */
 .team {
   --team-band: color-mix(in srgb, var(--color-accent) 6%, var(--color-background));
   background: var(--team-band);
