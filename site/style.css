@@ -1,5 +1,9 @@
 /*
- * The site's one stylesheet: design tokens, page layout, and the components every page uses.
+ * The site's one stylesheet, in cascade order: the design tokens; the base, the elements' defaults; the layout of
+ * the page, its sections and its card grid; the components every section uses; then each section's own rules, in the
+ * page's order: header, hero and stats strip, Overview, Traffic Explorer, Insights, Cite, Team and footer. A later
+ * rule wins over an earlier one of the same specificity, so a component's rules follow the base it changes, and each
+ * media rule follows directly the rule it changes.
  *
  * Colours are tokens on :root, redefined for dark mode. Chart series colours
  * are the eight series slots, and two more for the families; a chart assigns
@@ -141,6 +145,66 @@ body {
   background: var(--color-background);
 }
 
+p {
+  margin: 0 0 0.75rem;
+}
+
+select,
+input[type="text"],
+input[type="search"],
+input[type="number"] {
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  padding: 0.375rem 0.625rem;
+}
+
+button {
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  padding: 0.375rem 0.75rem;
+  cursor: pointer;
+}
+
+button:hover {
+  color: var(--color-text);
+  background: var(--color-surface-raised);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+button:disabled:hover {
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Monospace runs a little smaller than the text around it, but not under the smallest size. */
+code,
+.mono {
+  font-family: var(--font-mono);
+  font-size: max(0.875em, var(--font-size-smallest));
+}
+
 /* A button or a link focused from the keyboard shows a ring of two pixels in the accent. */
 a:focus-visible,
 button:focus-visible,
@@ -172,6 +236,12 @@ h1 {
   font-size: 2.25rem;
 }
 
+@media (max-width: 40rem) {
+  h1 {
+    font-size: 1.75rem;
+  }
+}
+
 h2 {
   font-size: 1.5rem;
 }
@@ -180,37 +250,145 @@ h3 {
   font-size: 1.125rem;
 }
 
-p {
-  margin: 0 0 0.75rem;
+/* ---------- Layout ---------- */
+
+/* The page spans the window, its gutters at both sides; its sections set its width (below), the Traffic Explorer's the
+   one section that takes the whole of it. */
+.page {
+  padding: 2rem var(--gutter) 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-a {
-  color: var(--color-accent);
-  text-decoration: none;
+@media (max-width: 40rem) {
+  .page {
+    padding-top: 1.25rem;
+  }
 }
 
-a:hover {
-  text-decoration: underline;
+/* A section is as wide as the page's content, the page's width less its two gutters, so the section rules, the hero's
+   band and every section's box end where the header's content does. Every box is border-box (Base, above), so the
+   header's page width holds its gutters, and a section's edges meet the header's brand. */
+.page > section {
+  width: 100%; /* auto margins stop a column's item from stretching, so it is given the column's width */
+  max-width: calc(var(--page-width) - 2 * var(--gutter));
+  margin-inline: auto; /* centred where the window is wider than the page */
 }
 
-/* Monospace runs a little smaller than the text around it, but not under the smallest size. */
-code,
-.mono {
-  font-family: var(--font-mono);
-  font-size: max(0.875em, var(--font-size-smallest));
+/* The Traffic Explorer spans the window less the gutters; every other section keeps the page's width. */
+#traffic {
+  max-width: none;
 }
 
-/* A short label above a heading: monospace, upper case and spaced out, in the faint ink. */
-.eyebrow {
-  margin: 0 0 0.5rem;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-smallest);
-  font-weight: 600;
-  letter-spacing: 0.13em;
-  line-height: 1.4;
-  text-transform: uppercase;
-  color: var(--color-text-faint);
+/* A band of the page: a rule above it and generous room around it. */
+.section {
+  border-top: 1px solid var(--color-border);
+  padding: clamp(3rem, 8vw, 5.75rem) 0;
 }
+
+/* A part of the page opens as Open Data's sections do: a large serif heading, with room above. */
+.section-heading {
+  margin-top: clamp(1.5rem, 4vw, 3rem);
+}
+
+.section-heading h2,
+.cite h2,
+.team h2 {
+  margin-top: 0;
+  font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.5rem);
+  letter-spacing: -0.02em;
+}
+
+/* The line under a section's heading that says what a click on it does, in the figure captions' size and ink. */
+.section-guide {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+/* Every anchored section lands below the sticky header, with a little room above it: the header's height as the page
+   measures it (`--header-measured-height`, from js/shared/layout.js), or its one row before it is measured. */
+section[id] {
+  scroll-margin-top: calc(var(--header-measured-height, var(--header-height)) + 1rem);
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 1.25rem;
+}
+
+@media (max-width: 40rem) {
+  .card {
+    padding: 1rem;
+  }
+}
+
+/* Two figures side by side, one under the other on a narrower screen (below). No gap between rows: a card spans five
+   rows of its grid (see below), and a row gap would open between its parts; a card's own margin parts it from the card
+   below. */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 1.5rem;
+}
+
+@media (max-width: 50rem) {
+  .card-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/*
+ * A figure card in a grid lays its parts on its row's tracks, so the charts of a row start at one height whatever the
+ * length of their insights, captions and legends. It spans a row for each of the six parts `renderFigure` appends to a
+ * card with an insight: title, insight, legend, chart, caption and Definition; tests/shared_figure.test.js counts them.
+ */
+.card-grid > .card {
+  display: grid;
+  grid-row: span 6;
+  grid-template-rows: subgrid;
+  grid-template-columns: minmax(0, 1fr); /* the card's one column never grows wider than the card */
+  row-gap: 0;
+  min-width: 0;
+  margin-bottom: 1.5rem;
+}
+
+.card-grid > .card > .figure {
+  display: contents;
+}
+
+/* A card without a legend draws its chart where the legend would be, so it keeps no empty band above the chart; the
+   chart sits at the foot of the two rows, so its x axis lines up with that of a card beside it that has a legend. */
+.card-grid > .card .figure-legend:empty {
+  display: none;
+}
+
+.card-grid > .card .figure-legend:empty + .figure-body {
+  grid-row: span 2;
+  align-self: end;
+}
+
+/* The parts are spaced by their own margins, not the rows' gap, so a legend place that is empty in every card of a
+   row takes no room at all. */
+.card-grid > .card .figure-title,
+.card-grid > .card .figure-insight,
+.card-grid > .card .figure-caption,
+.card-grid > .card .figure-legend:not(:empty),
+.card-grid > .card .figure-body {
+  margin-bottom: 0.5rem;
+}
+
+/* A figure that needs the room, a log axis of many decades or the routing figure's eight panels, takes the whole
+   width of its group's grid. */
+.card-grid > .card.is-wide {
+  grid-column: 1 / -1;
+}
+
+/* ---------- Components ---------- */
 
 /* A link drawn as a button: a white card with the rule, lifting a little under the pointer. */
 .button {
@@ -255,13 +433,374 @@ code,
   color: var(--color-on-accent);
 }
 
-/* A band of the page: a rule above it and generous room around it. */
-.section {
-  border-top: 1px solid var(--color-border);
-  padding: clamp(3rem, 8vw, 5.75rem) 0;
+/* A short label above a heading: monospace, upper case and spaced out, in the faint ink. */
+.eyebrow {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-smallest);
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
 }
 
-/* ---------- Header and footer ---------- */
+/* The eyebrow's crimson square, as the brand's mark. */
+.eyebrow-mark {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: 0.55rem;
+  border-radius: 2px;
+  background: var(--color-accent);
+}
+
+/* A link that leaves the site says so with an arrow after its text. */
+a[target="_blank"]::after {
+  content: "\2197";
+  margin-left: 0.3em; /* a margin, not a space: a flex item such as a button trims a leading space */
+  font-size: 0.85em;
+}
+
+/* A mark before a link's text: one em square on the baseline, in the link's colour; a margin parts it, as the arrow. */
+.link-mark {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  margin-right: 0.3em;
+}
+
+.figure {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.figure-title {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+/* A figure's point, under its title: one sentence in the body's size and ink, a rule in the accent on its left. It
+   keeps to its own lines when a neighbour's insight takes more. */
+.figure-insight {
+  align-self: start;
+  margin: 0;
+  padding-left: 0.75rem;
+  border-left: 3px solid var(--color-accent);
+  font-size: 1rem;
+  line-height: 1.45;
+  color: var(--color-text);
+}
+
+/* Evidence for an insight below its chart, or a description below the title of a figure without an insight. */
+.figure-caption {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* The Definition control of every figure, at the foot of a card: a muted line that opens on the definition, alone on an
+   Insights card, followed by the line of rows in the two Overview mixes and the Traffic Explorer's card. */
+.figure-definition {
+  font-size: var(--font-size-smallest);
+  color: var(--color-text-muted);
+}
+
+.figure-definition summary {
+  width: fit-content;
+  cursor: pointer;
+  color: var(--color-text-muted);
+}
+
+.figure-definition summary:hover {
+  color: var(--color-text);
+}
+
+.figure-definition p {
+  margin: 0.375rem 0 0;
+}
+
+.figure-rows {
+  font-variant-numeric: tabular-nums;
+}
+
+.figure-body {
+  min-height: 12rem;
+}
+
+/*
+ * Plot paints its tooltip and text halos in --plot-background; give it the card's surface in both modes.
+ * Plot sets its text at 10 px; the ticks, axis titles and tooltips take the smallest size instead.
+ */
+.figure-body svg {
+  max-width: 100%;
+  height: auto;
+  font-size: var(--font-size-smallest);
+  --plot-background: var(--color-surface);
+}
+
+/* A chart drawn with a colour legend is a figure holding the legend and the chart: it takes the body's width, without
+   the browser's margins around a figure, so the chart is drawn at the width it was measured for. */
+.figure-body figure {
+  margin: 0;
+}
+
+/* A colour legend Plot draws above a chart (its SVG's class ends in "-ramp"): its tick labels, set larger than Plot
+   lays them out for, reach below its box, so room is kept between them and the y axis's title under it. */
+.figure-body svg[class$="-ramp"] {
+  margin-bottom: 0.75rem;
+}
+
+/* A figure card of several panels: a chart per panel under its small title, side by side where the card is wide
+   enough for two of at least 16rem, one under the other on a phone. */
+.chart-panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+  gap: 0.75rem 1.5rem;
+}
+
+/* A wide card's panels, the routing figure's eight: four to a row, one row per model, as the paper's where they fit,
+   two by two where they do not, so that no panel stands alone in a row, and one above another on a phone. */
+.card.is-wide .chart-panels {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 68rem) {
+  .card.is-wide .chart-panels {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 40rem) {
+  .card.is-wide .chart-panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.chart-panel {
+  min-width: 0;
+}
+
+.chart-panel-title {
+  margin: 0 0 0.25rem;
+  font-size: var(--font-size-smallest);
+  color: var(--color-text-muted);
+}
+
+.figure-legend:empty {
+  min-height: 0;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  font-size: var(--font-size-smallest);
+  color: var(--chart-label);
+}
+
+/* A legend entry that hides or shows its series: a plain button in the legend's ink, struck through while hidden. */
+.legend-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: var(--font-size-smallest);
+  font-weight: 400;
+  color: var(--chart-label);
+  background: transparent;
+  border: none;
+  padding: 0.125rem 0;
+  text-align: left; /* a long name that wraps reads from its swatch, not centred under it */
+}
+
+.legend-button:hover {
+  color: var(--color-text);
+  background: transparent;
+}
+
+.legend-button[aria-pressed="false"] {
+  text-decoration: line-through;
+}
+
+.legend-button[aria-pressed="false"] .legend-swatch {
+  opacity: 0.3;
+}
+
+.legend-swatch {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 2px;
+}
+
+/* A line chart's series is a short line in its legend, as it is drawn. */
+.legend-swatch.is-line {
+  width: 1rem;
+  height: 2px;
+  border-radius: 0;
+}
+
+/* The key of a bands chart, in its legend's place: its entries laid out by the legend as its buttons are, but not
+   buttons. */
+.band-key {
+  display: contents;
+}
+
+.band-key-entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.125rem 0;
+}
+
+/* The Insights' topic tabs: one row of the six topics under the Insights heading, drawn as a tab bar: each tab in
+   the body's sans at the body's size, the shown topic in the accent, bold, on an accent rule that sits on the row's
+   rule. The row scrolls sideways where it does not fit, its right edge faded while more tabs lie beyond it. */
+.topic-tabs {
+  display: flex;
+  gap: 0.25rem;
+  min-width: 0;
+  /* The row's rule is drawn inside its box, where the tabs' rules lie on it; a border would lie outside the box, and
+     the row, which scrolls, clips a tab's rule pushed onto it. */
+  box-shadow: inset 0 -2px 0 var(--color-border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+/* A tab is a button with none of a button's box: a label on a rule, the rule in the accent when its topic is shown,
+   lying on the row's rule so the two draw as one line. */
+.topic-tab {
+  flex-shrink: 0;
+  padding: 0.55rem 0.85rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: var(--radius-small) var(--radius-small) 0 0;
+  background: none;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: color 160ms ease, background-color 160ms ease;
+}
+.topic-tab:hover {
+  color: var(--color-text);
+  background: var(--color-surface-raised);
+}
+.topic-tab.is-active,
+.topic-tab.is-active:hover {
+  color: var(--color-accent);
+  font-weight: 600;
+  background: none;
+  border-bottom-color: var(--color-accent);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+
+.control-label {
+  font-size: var(--font-size-smallest);
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+/* A row of controls: each a field under its name in small monospace capitals, sharing the row equally; on a phone two
+   fields a row. */
+.control-field {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+@media (max-width: 40rem) {
+  .control-field {
+    flex-basis: calc(50% - 0.5rem);
+  }
+
+  /* A drop-down's text a step smaller and closer to its edge, so "All models" fits half the row. */
+  .control-field select {
+    padding-inline: 0.375rem;
+    font-size: var(--font-size-smallest);
+  }
+}
+
+.control-field select {
+  width: 100%;
+}
+
+.control-field-name,
+.range-day {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-smallest);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+}
+
+/* A drop-down and a text box draw at different heights by default; one height lines the row up. */
+.control-field select,
+.control-field input {
+  box-sizing: border-box;
+  height: 2.375rem;
+}
+
+/* A text box starts narrow, so the fields share one row at desktop width, and fills its field once the row is shared
+   out. */
+.control-field input {
+  width: 8rem;
+  min-width: 100%;
+}
+
+.note {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-small);
+  background: var(--color-surface-raised);
+  /* A note may name a long id or address without a space, which would otherwise run past a phone's width. */
+  overflow-wrap: anywhere;
+}
+
+.note.is-error {
+  color: var(--color-accent-strong);
+  background: var(--color-accent-wash);
+}
+
+.loading {
+  color: var(--color-text-faint);
+  font-size: 0.875rem;
+}
+
+.loading::after {
+  content: "…";
+}
+
+/* A figure card not yet drawn is about as tall as a drawn one, so the cards below it start out of view. */
+.traffic .card-grid > .card:empty,
+.traffic .card-grid > .card:has(.loading),
+.topic .card-grid > .card:empty,
+.topic .card-grid > .card:has(.loading) {
+  min-height: var(--loading-card-height);
+}
+
+/* A row with more beyond its right edge, such as the Insights' row of tabs, fades that edge, to say it scrolls
+   sideways (`mountScrollingRow` in js/page/scrolling_row.js). */
+.has-more-beyond-edge {
+  mask-image: linear-gradient(90deg, #000 calc(100% - 2.5rem), transparent);
+}
+
+/* ---------- Header ---------- */
 
 /* The header stays at the top of the window, over the page as it scrolls: translucent paper, blurred behind. */
 .site-header {
@@ -338,19 +877,6 @@ code,
   margin-right: auto;
 }
 
-/* The lab's name, under the hero and in the footer. */
-.affiliation {
-  font-family: var(--font-serif);
-  font-size: 1rem;
-  color: var(--color-text-faint);
-  white-space: nowrap;
-}
-
-.affiliation:hover {
-  text-decoration: none;
-  color: var(--color-accent);
-}
-
 .site-nav {
   display: flex;
   align-items: center;
@@ -396,78 +922,6 @@ code,
   transform: scaleX(1);
 }
 
-/* A link that leaves the site says so with an arrow after its text. */
-a[target="_blank"]::after {
-  content: "\2197";
-  margin-left: 0.3em; /* a margin, not a space: a flex item such as a button trims a leading space */
-  font-size: 0.85em;
-}
-
-/* A mark before a link's text: one em square on the baseline, in the link's colour; a margin parts it, as the arrow. */
-.link-mark {
-  width: 1em;
-  height: 1em;
-  vertical-align: -0.125em;
-  margin-right: 0.3em;
-}
-
-.site-footer {
-  margin-top: 4rem;
-  border-top: 1px solid var(--color-border);
-  background: var(--color-surface);
-}
-
-/* The brand and its line, then two lists of links. */
-.footer-inner {
-  max-width: var(--page-width);
-  margin: 0 auto;
-  padding: clamp(2.25rem, 5vw, 3rem) var(--gutter);
-  display: grid;
-  grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(9rem, 0.6fr));
-  align-items: start;
-  gap: 2rem clamp(1.5rem, 4vw, 3.5rem);
-}
-
-.footer-brand p {
-  max-width: 24rem;
-  margin: 0.55rem 0 0;
-  font-size: 0.875rem;
-  color: var(--color-text-faint);
-}
-
-.footer-nav-title {
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-smallest);
-  font-weight: 700;
-  letter-spacing: 0.13em;
-  line-height: 1.4;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
-
-.footer-links {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-  margin-top: 0.9rem;
-}
-
-.footer-links .footer-link {
-  width: fit-content;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-smallest);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--color-text-faint);
-  transition: color 160ms ease;
-}
-
-.footer-links .footer-link:hover {
-  text-decoration: none;
-  color: var(--color-accent-strong);
-}
-
 /* Below this width the header's links take a second row of their own, under the brand: one row needs the brand's
    300 px, the four links' 338 px, the gap between them and the gutters, about 52rem in all. The second row wraps as
    its links need, and the page measures the header's height for the sections that land below it. */
@@ -487,8 +941,7 @@ a[target="_blank"]::after {
   }
 }
 
-/* On a phone the header keeps its two rows, closer: the brand, then the four links, wrapping as they need. The
-   footer's link lists sit side by side under the brand. */
+/* On a phone the header keeps its two rows, closer: the brand, then the four links, wrapping as they need. */
 @media (max-width: 46rem) {
   .header-inner {
     padding-top: 0.5rem;
@@ -499,30 +952,6 @@ a[target="_blank"]::after {
     row-gap: 0.3rem;
     margin-top: 0.4rem;
     padding-block: 0.45rem;
-  }
-
-  .footer-inner {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .footer-brand {
-    grid-column: 1 / -1;
-  }
-}
-
-/* Every anchored section lands below the sticky header, with a little room above it: the header's height as the page
-   measures it (`--header-measured-height`, from js/shared/layout.js), or its one row before it is measured. */
-section[id] {
-  scroll-margin-top: calc(var(--header-measured-height, var(--header-height)) + 1rem);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .brand-mark,
-  .nav-link,
-  .nav-link::after,
-  .topic-tab,
-  .footer-link {
-    transition: none;
   }
 }
 
@@ -554,16 +983,6 @@ section[id] {
   gap: clamp(2rem, 5vw, 3.5rem);
 }
 
-/* The eyebrow's crimson square, as the brand's mark. */
-.eyebrow-mark {
-  display: inline-block;
-  width: 0.5rem;
-  height: 0.5rem;
-  margin-right: 0.55rem;
-  border-radius: 2px;
-  background: var(--color-accent);
-}
-
 .hero h1 {
   margin-top: 0;
   font-size: clamp(2rem, 1.25rem + 2.7vw, 3.1rem);
@@ -589,6 +1008,19 @@ section[id] {
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 1.75rem;
+}
+
+/* The lab's name, under the hero and in the footer. */
+.affiliation {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  color: var(--color-text-faint);
+  white-space: nowrap;
+}
+
+.affiliation:hover {
+  text-decoration: none;
+  color: var(--color-accent);
 }
 
 .hero-affiliation {
@@ -709,6 +1141,12 @@ section[id] {
   gap: 1.5rem;
 }
 
+@media (max-width: 50rem) {
+  .donut-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* A donut card: the title and caption across the top, the donut with its legend beside it, the Definition below. */
 .donut-card .figure {
   display: grid;
@@ -818,6 +1256,19 @@ section[id] {
 }
 
 /* ---------- Traffic Explorer ---------- */
+
+.traffic,
+.topic {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* A figure's card may shrink below its content, so a wide chart scrolls inside the card, not the page. */
+.traffic .card,
+.topic .card {
+  min-width: 0;
+}
 
 /* The explorer: its row of controls above its one wide card. */
 .traffic-explorer {
@@ -1043,6 +1494,58 @@ section[id] {
   }
 }
 
+/* ---------- Insights ---------- */
+
+/* The Insights' heading, tabs and topics, one after the other, spaced as the page spaces its parts. */
+.insights {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* A topic's number before its heading, in the eyebrow's monospace and the accent: "01 The workload at a glance". */
+.topic-number {
+  margin-right: 0.25rem; /* with the space after it, the gap the title keeps from the number */
+  font-family: var(--font-mono);
+  font-size: var(--font-size-smallest);
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  vertical-align: 0.3em;
+  color: var(--color-accent);
+}
+
+/* A takeaway, a topic's under its heading and a group's under its own: in the muted ink at the lede's size. */
+.topic-takeaway,
+.figure-group-takeaway {
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+/* A topic's takeaway sits close to the heading it belongs to. */
+.topic-takeaway {
+  margin: -0.75rem 0 0;
+}
+
+/* A group of a topic's cards: its heading in the display serif, between the topic's heading and a card's title in
+   size, with room above it that parts it from the group before; its takeaway close under it. */
+.figure-group-title {
+  margin: 1rem 0 0;
+  font-size: 1.375rem;
+}
+
+.figure-group-takeaway {
+  margin: -0.5rem 0 0;
+}
+
+/* On a phone the takeaways step down to the body's size, so a takeaway takes fewer lines. */
+@media (max-width: 40rem) {
+  .topic-takeaway,
+  .figure-group-takeaway {
+    font-size: 1rem;
+  }
+}
+
 /* ---------- Cite and Team ---------- */
 
 /* The Cite section: its heading on the left, the sentence and the BibTeX on the right, wide enough for the BibTeX's
@@ -1051,24 +1554,6 @@ section[id] {
   display: grid;
   grid-template-columns: minmax(0, 0.6fr) minmax(20rem, 1.4fr);
   gap: clamp(1.5rem, 6vw, 5rem);
-}
-
-/* A part of the page opens as Open Data's sections do: a large serif heading, with room above. */
-.section-heading {
-  margin-top: clamp(1.5rem, 4vw, 3rem);
-}
-
-.section-heading h2,
-.cite h2,
-.team h2 {
-  margin-top: 0;
-  font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.5rem);
-  letter-spacing: -0.02em;
-}
-
-/* The Team's heading sits under its eyebrow. */
-.team h2 {
-  margin-top: 0.5rem;
 }
 
 .cite-copy-column p {
@@ -1137,6 +1622,11 @@ section[id] {
   background: var(--team-band);
   box-shadow: 0 0 0 100vmax var(--team-band);
   clip-path: inset(0 -100vmax);
+}
+
+/* The Team's heading sits under its eyebrow. */
+.team h2 {
+  margin-top: 0.5rem;
 }
 
 .team-heading {
@@ -1209,561 +1699,82 @@ section[id] {
   }
 }
 
-/* ---------- Page layout ---------- */
+/* ---------- Footer ---------- */
 
-/* The page spans the window, its gutters at both sides; its sections set its width (below), the Traffic Explorer's the
-   one section that takes the whole of it. */
-.page {
-  padding: 2rem var(--gutter) 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-/* A section is as wide as the page's content, the page's width less its two gutters, so the section rules, the hero's
-   band and every section's box end where the header's content does. Every box is border-box (Base, above), so the
-   header's page width holds its gutters, and a section's edges meet the header's brand. */
-.page > section {
-  width: 100%; /* auto margins stop a column's item from stretching, so it is given the column's width */
-  max-width: calc(var(--page-width) - 2 * var(--gutter));
-  margin-inline: auto; /* centred where the window is wider than the page */
-}
-
-/* The Traffic Explorer spans the window less the gutters; every other section keeps the page's width. */
-#traffic {
-  max-width: none;
-}
-
-.card {
+.site-footer {
+  margin-top: 4rem;
+  border-top: 1px solid var(--color-border);
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-card);
-  padding: 1.25rem;
 }
 
-/* Two figures side by side, one under the other on a narrower screen (below). No gap between rows: a card spans five
-   rows of its grid (see below), and a row gap would open between its parts; a card's own margin parts it from the card
-   below. */
-.card-grid {
+/* The brand and its line, then two lists of links. */
+.footer-inner {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: clamp(2.25rem, 5vw, 3rem) var(--gutter);
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 1.5rem;
+  grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(9rem, 0.6fr));
+  align-items: start;
+  gap: 2rem clamp(1.5rem, 4vw, 3.5rem);
 }
 
-/*
- * A figure card in a grid lays its parts on its row's tracks, so the charts of a row start at one height whatever the
- * length of their insights, captions and legends. It spans a row for each of the six parts `renderFigure` appends to a
- * card with an insight: title, insight, legend, chart, caption and Definition; tests/shared_figure.test.js counts them.
- */
-.card-grid > .card {
-  display: grid;
-  grid-row: span 6;
-  grid-template-rows: subgrid;
-  grid-template-columns: minmax(0, 1fr); /* the card's one column never grows wider than the card */
-  row-gap: 0;
-  min-width: 0;
-  margin-bottom: 1.5rem;
-}
-
-.card-grid > .card > .figure {
-  display: contents;
-}
-
-/* A card without a legend draws its chart where the legend would be, so it keeps no empty band above the chart; the
-   chart sits at the foot of the two rows, so its x axis lines up with that of a card beside it that has a legend. */
-.card-grid > .card .figure-legend:empty {
-  display: none;
-}
-
-.card-grid > .card .figure-legend:empty + .figure-body {
-  grid-row: span 2;
-  align-self: end;
-}
-
-/* The parts are spaced by their own margins, not the rows' gap, so a legend place that is empty in every card of a
-   row takes no room at all. */
-.card-grid > .card .figure-title,
-.card-grid > .card .figure-insight,
-.card-grid > .card .figure-caption,
-.card-grid > .card .figure-legend:not(:empty),
-.card-grid > .card .figure-body {
-  margin-bottom: 0.5rem;
-}
-
-/* A figure that needs the room, a log axis of many decades or the routing figure's eight panels, takes the whole
-   width of its group's grid. */
-.card-grid > .card.is-wide {
-  grid-column: 1 / -1;
-}
-
-.traffic,
-.topic {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-/* The Insights' heading, tabs and topics, one after the other, spaced as the page spaces its parts. */
-.insights {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-/* The Insights' topic tabs: one row of the six topics under the Insights heading, drawn as a tab bar: each tab in
-   the body's sans at the body's size, the shown topic in the accent, bold, on an accent rule that sits on the row's
-   rule. The row scrolls sideways where it does not fit, its right edge faded while more tabs lie beyond it. */
-.topic-tabs {
-  display: flex;
-  gap: 0.25rem;
-  min-width: 0;
-  /* The row's rule is drawn inside its box, where the tabs' rules lie on it; a border would lie outside the box, and
-     the row, which scrolls, clips a tab's rule pushed onto it. */
-  box-shadow: inset 0 -2px 0 var(--color-border);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-/* A tab is a button with none of a button's box: a label on a rule, the rule in the accent when its topic is shown,
-   lying on the row's rule so the two draw as one line. */
-.topic-tab {
-  flex-shrink: 0;
-  padding: 0.55rem 0.85rem;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  border-radius: var(--radius-small) var(--radius-small) 0 0;
-  background: none;
-  font-family: var(--font-sans);
-  font-size: 0.9375rem;
-  font-weight: 500;
-  line-height: 1.3;
-  white-space: nowrap;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition: color 160ms ease, background-color 160ms ease;
-}
-.topic-tab:hover {
-  color: var(--color-text);
-  background: var(--color-surface-raised);
-}
-.topic-tab.is-active,
-.topic-tab.is-active:hover {
-  color: var(--color-accent);
-  font-weight: 600;
-  background: none;
-  border-bottom-color: var(--color-accent);
-}
-
-/* A topic's number before its heading, in the eyebrow's monospace and the accent: "01 The workload at a glance". */
-.topic-number {
-  margin-right: 0.25rem; /* with the space after it, the gap the title keeps from the number */
-  font-family: var(--font-mono);
-  font-size: var(--font-size-smallest);
-  font-weight: 600;
-  letter-spacing: 0.13em;
-  vertical-align: 0.3em;
-  color: var(--color-accent);
-}
-
-/* A takeaway, a topic's under its heading and a group's under its own: in the muted ink at the lede's size. */
-.topic-takeaway,
-.figure-group-takeaway {
-  font-size: 1.0625rem;
-  line-height: 1.5;
-  color: var(--color-text-muted);
-}
-
-/* A topic's takeaway sits close to the heading it belongs to. */
-.topic-takeaway {
-  margin: -0.75rem 0 0;
-}
-
-/* A group of a topic's cards: its heading in the display serif, between the topic's heading and a card's title in
-   size, with room above it that parts it from the group before; its takeaway close under it. */
-.figure-group-title {
-  margin: 1rem 0 0;
-  font-size: 1.375rem;
-}
-
-.figure-group-takeaway {
-  margin: -0.5rem 0 0;
-}
-
-/* On a phone the takeaways step down to the body's size, so a takeaway takes fewer lines. */
-@media (max-width: 40rem) {
-  .topic-takeaway,
-  .figure-group-takeaway {
-    font-size: 1rem;
-  }
-}
-
-/* A figure's card may shrink below its content, so a wide chart scrolls inside the card, not the page. */
-.traffic .card,
-.topic .card {
-  min-width: 0;
-}
-
-/* A figure card not yet drawn is about as tall as a drawn one, so the cards below it start out of view. */
-.traffic .card-grid > .card:empty,
-.traffic .card-grid > .card:has(.loading),
-.topic .card-grid > .card:empty,
-.topic .card-grid > .card:has(.loading) {
-  min-height: var(--loading-card-height);
-}
-
-/* ---------- Figures and cards ---------- */
-
-.figure {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.figure-title {
-  font-size: 1.25rem;
-  margin: 0;
-}
-
-/* A figure's point, under its title: one sentence in the body's size and ink, a rule in the accent on its left. It
-   keeps to its own lines when a neighbour's insight takes more. */
-.figure-insight {
-  align-self: start;
-  margin: 0;
-  padding-left: 0.75rem;
-  border-left: 3px solid var(--color-accent);
-  font-size: 1rem;
-  line-height: 1.45;
-  color: var(--color-text);
-}
-
-/* The line under a section's heading that says what a click on it does, in the figure captions' size and ink. */
-.section-guide {
-  margin: 0;
+.footer-brand p {
+  max-width: 24rem;
+  margin: 0.55rem 0 0;
   font-size: 0.875rem;
-  color: var(--color-text-muted);
-}
-
-/* Evidence for an insight below its chart, or a description below the title of a figure without an insight. */
-.figure-caption {
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-  margin: 0;
-}
-
-.figure-legend:empty {
-  min-height: 0;
-}
-
-.figure-body {
-  min-height: 12rem;
-}
-
-/* The Definition control of every figure, at the foot of a card: a muted line that opens on the definition, alone on an
-   Insights card, followed by the line of rows in the two Overview mixes and the Traffic Explorer's card. */
-.figure-definition {
-  font-size: var(--font-size-smallest);
-  color: var(--color-text-muted);
-}
-
-.figure-definition summary {
-  width: fit-content;
-  cursor: pointer;
-  color: var(--color-text-muted);
-}
-
-.figure-definition summary:hover {
-  color: var(--color-text);
-}
-
-.figure-definition p {
-  margin: 0.375rem 0 0;
-}
-
-.figure-rows {
-  font-variant-numeric: tabular-nums;
-}
-
-/*
- * Plot paints its tooltip and text halos in --plot-background; give it the card's surface in both modes.
- * Plot sets its text at 10 px; the ticks, axis titles and tooltips take the smallest size instead.
- */
-.figure-body svg {
-  max-width: 100%;
-  height: auto;
-  font-size: var(--font-size-smallest);
-  --plot-background: var(--color-surface);
-}
-
-/* A chart drawn with a colour legend is a figure holding the legend and the chart: it takes the body's width, without
-   the browser's margins around a figure, so the chart is drawn at the width it was measured for. */
-.figure-body figure {
-  margin: 0;
-}
-
-/* A colour legend Plot draws above a chart (its SVG's class ends in "-ramp"): its tick labels, set larger than Plot
-   lays them out for, reach below its box, so room is kept between them and the y axis's title under it. */
-.figure-body svg[class$="-ramp"] {
-  margin-bottom: 0.75rem;
-}
-
-/* A figure card of several panels: a chart per panel under its small title, side by side where the card is wide
-   enough for two of at least 16rem, one under the other on a phone. */
-.chart-panels {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
-  gap: 0.75rem 1.5rem;
-}
-
-/* A wide card's panels, the routing figure's eight: four to a row, one row per model, as the paper's where they fit,
-   two by two where they do not, so that no panel stands alone in a row, and one above another on a phone. */
-.card.is-wide .chart-panels {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-@media (max-width: 68rem) {
-  .card.is-wide .chart-panels {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 40rem) {
-  .card.is-wide .chart-panels {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-.chart-panel {
-  min-width: 0;
-}
-
-.chart-panel-title {
-  margin: 0 0 0.25rem;
-  font-size: var(--font-size-smallest);
-  color: var(--color-text-muted);
-}
-
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  gap: 0.25rem 1rem;
-  margin: 0;
-  font-size: var(--font-size-smallest);
-  color: var(--chart-label);
-}
-
-/* A legend entry that hides or shows its series: a plain button in the legend's ink, struck through while hidden. */
-.legend-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-size: var(--font-size-smallest);
-  font-weight: 400;
-  color: var(--chart-label);
-  background: transparent;
-  border: none;
-  padding: 0.125rem 0;
-  text-align: left; /* a long name that wraps reads from its swatch, not centred under it */
-}
-
-.legend-button:hover {
-  color: var(--color-text);
-  background: transparent;
-}
-
-.legend-button[aria-pressed="false"] {
-  text-decoration: line-through;
-}
-
-.legend-button[aria-pressed="false"] .legend-swatch {
-  opacity: 0.3;
-}
-
-.legend-swatch {
-  width: 0.75rem;
-  height: 0.75rem;
-  border-radius: 2px;
-}
-
-/* A line chart's series is a short line in its legend, as it is drawn. */
-.legend-swatch.is-line {
-  width: 1rem;
-  height: 2px;
-  border-radius: 0;
-}
-
-/* The key of a bands chart, in its legend's place: its entries laid out by the legend as its buttons are, but not
-   buttons. */
-.band-key {
-  display: contents;
-}
-
-.band-key-entry {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.125rem 0;
-}
-
-.note {
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius-small);
-  background: var(--color-surface-raised);
-  /* A note may name a long id or address without a space, which would otherwise run past a phone's width. */
-  overflow-wrap: anywhere;
-}
-
-.note.is-error {
-  color: var(--color-accent-strong);
-  background: var(--color-accent-wash);
-}
-
-.loading {
   color: var(--color-text-faint);
-  font-size: 0.875rem;
 }
 
-.loading::after {
-  content: "…";
-}
-
-/* ---------- Controls ---------- */
-
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 1rem;
-}
-
-.control-label {
+.footer-nav-title {
+  margin: 0;
+  font-family: var(--font-mono);
   font-size: var(--font-size-smallest);
-  font-weight: 500;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  line-height: 1.4;
+  text-transform: uppercase;
   color: var(--color-text-muted);
 }
 
-/* A row of controls: each a field under its name in small monospace capitals, sharing the row equally; on a phone two
-   fields a row. */
-.control-field {
+.footer-links {
   display: flex;
-  flex: 1 1 0;
   flex-direction: column;
-  gap: 0.25rem;
-  min-width: 0;
+  gap: 0.55rem;
+  margin-top: 0.9rem;
 }
 
-@media (max-width: 40rem) {
-  .control-field {
-    flex-basis: calc(50% - 0.5rem);
-  }
-
-  /* A drop-down's text a step smaller and closer to its edge, so "All models" fits half the row. */
-  .control-field select {
-    padding-inline: 0.375rem;
-    font-size: var(--font-size-smallest);
-  }
-}
-
-.control-field select {
-  width: 100%;
-}
-
-.control-field-name,
-.range-day {
+.footer-links .footer-link {
+  width: fit-content;
   font-family: var(--font-mono);
   font-size: var(--font-size-smallest);
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--color-text-faint);
+  transition: color 160ms ease;
 }
 
-/* A drop-down and a text box draw at different heights by default; one height lines the row up. */
-.control-field select,
-.control-field input {
-  box-sizing: border-box;
-  height: 2.375rem;
+.footer-links .footer-link:hover {
+  text-decoration: none;
+  color: var(--color-accent-strong);
 }
 
-/* A text box starts narrow, so the fields share one row at desktop width, and fills its field once the row is shared
-   out. */
-.control-field input {
-  width: 8rem;
-  min-width: 100%;
-}
+/* On a phone the footer's link lists sit side by side under the brand. */
+@media (max-width: 46rem) {
+  .footer-inner {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 
-select,
-input[type="text"],
-input[type="search"],
-input[type="number"] {
-  font: inherit;
-  font-size: 0.875rem;
-  color: var(--color-text);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-small);
-  padding: 0.375rem 0.625rem;
-}
-
-button {
-  font: inherit;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--color-text-muted);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-small);
-  padding: 0.375rem 0.75rem;
-  cursor: pointer;
-}
-
-button:hover {
-  color: var(--color-text);
-  background: var(--color-surface-raised);
-}
-
-button:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-button:disabled:hover {
-  color: var(--color-text-muted);
-  background: var(--color-surface);
-}
-
-/* ---------- Rows that scroll sideways ---------- */
-
-/* A row with more beyond its right edge, such as the Insights' row of tabs, fades that edge, to say it scrolls
-   sideways (`mountScrollingRow` in js/page/scrolling_row.js). */
-.has-more-beyond-edge {
-  mask-image: linear-gradient(90deg, #000 calc(100% - 2.5rem), transparent);
-}
-
-/* ---------- Narrower screens ---------- */
-
-@media (max-width: 50rem) {
-  .card-grid,
-  .donut-grid {
-    grid-template-columns: minmax(0, 1fr);
+  .footer-brand {
+    grid-column: 1 / -1;
   }
 }
 
-/* ---------- Small screens ---------- */
-
-@media (max-width: 40rem) {
-  h1 {
-    font-size: 1.75rem;
-  }
-
-  .page {
-    padding-top: 1.25rem;
-  }
-
-  .card {
-    padding: 1rem;
+@media (prefers-reduced-motion: reduce) {
+  .brand-mark,
+  .nav-link,
+  .nav-link::after,
+  .topic-tab,
+  .footer-link {
+    transition: none;
   }
 }
