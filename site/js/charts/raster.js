@@ -19,8 +19,8 @@ const ROW_HALF = 0.5; // a row spans half a row on either side of its index, so 
 
 /**
  * Draw `rows` into `body` as a raster of `columnCount` columns by `rowCount` rows (`rasterGrid`), pooled to the
- * plot's pixels (`pooledGrid`), and return the chart. It has no series: `colours` and `hidden` are not read. Its
- * named parameters:
+ * plot's pixels (`pooledGrid`), and return the chart, by the draw contract of `plot/frame.js`. It has no series:
+ * `seriesColours` and `hidden` are not read. Its named parameters:
  * - `x`, `y`: the card's axis options `{ label, ticks, tickFormat }`; the x axis's `tickFormat` writes a column, an
  *   hour of the window, as a day, and `y.label` names what a row is, "User"; a y tick sits on its row's centre.
  * - `scheme`: the colour scheme, "Blues" when not given; `schemeStart`: the point of it, from 0 to 1, the lowest
@@ -30,7 +30,7 @@ const ROW_HALF = 0.5; // a row spans half a row on either side of its index, so 
  * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `plot/frame.js`).
  * Required: `valueLabel`.
  */
-export async function drawRaster(rows, body, colours, parameters) {
+export async function drawRaster(rows, body, seriesColours, parameters, hidden) {
   const { x: xAxis = {}, y: yAxis = {}, margins } = parameters;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");

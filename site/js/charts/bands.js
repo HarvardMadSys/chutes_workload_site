@@ -37,8 +37,8 @@ const KEY_ENTRIES = Object.freeze([
 
 /**
  * Draw `rows` into `body` as the two bands and the median line, in the colour `parameters.colour` (a colour token,
- * the first series colour when not given), and return the chart. It has no series: `colours` and `hidden` are not
- * read. Its named parameters:
+ * the first series colour when not given), and return the chart, by the draw contract of `plot/frame.js`. It has no
+ * series: `seriesColours` and `hidden` are not read. Its named parameters:
  * - `x`, `y`: the card's axis options (`plot/axes.js`); on a log y axis, an x whose percentiles are not all above
  *   zero is not drawn; where either gives a domain, the bands and the median are clipped to the frame.
  * - `valueLabel`: what a value is, the tooltip's heading under the x; `valueFormat`: how a percentile is written there.
@@ -46,7 +46,7 @@ const KEY_ENTRIES = Object.freeze([
  * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `plot/frame.js`).
  * Required: `valueLabel` and `valueFormat`.
  */
-export async function drawBands(rows, body, colours, parameters) {
+export async function drawBands(rows, body, seriesColours, parameters, hidden) {
   const { x: xAxis = {}, y: yAxis = {}, margins } = parameters;
   const colour = bandsColour(parameters);
   // Plot is loaded here, not at the top, so node can test this module's pure functions.

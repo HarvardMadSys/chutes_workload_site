@@ -27,17 +27,17 @@ const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 const WHOLE_RING_TOLERANCE = 1e-9;
 
 /**
- * Draw `rows` into `body` as a donut of the slices not in `hidden`, each in its colour of `colours.series` (a Map from
- * name to colour, "Other" last, as `barColours` and `familyColours` give them), with a tooltip of its name, share and
- * count, and the slices' total in the centre. Its named parameters:
+ * Draw `rows` into `body` as a donut of the slices not in `hidden`, each in its colour of `seriesColours` ("Other"
+ * last, as `barColours` and `familyColours` give them), with a tooltip of its name, share and count, and the slices'
+ * total in the centre, by the draw contract of `plot/frame.js`. Its named parameters:
  * - `nameColumn` and `countColumn`: the columns holding a row's name and its count.
  * - `unit`: what the count counts, in the plural, "requests", written under the total.
  * - `totalFormat`: how the total in the centre is written.
  * - `labels`: each name's label where it is written otherwise, in the tooltip and the legend.
  */
-export function drawDonut(rows, body, colours, parameters, hidden) {
+export function drawDonut(rows, body, seriesColours, parameters, hidden) {
   const { nameColumn, countColumn, unit, totalFormat, labels = {} } = parameters;
-  const slices = donutSlices(rows, nameColumn, countColumn, namedSeries(colours.series));
+  const slices = donutSlices(rows, nameColumn, countColumn, namedSeries(seriesColours));
   const shown = slices.filter((slice) => !hidden.has(slice.name));
   const centre = centreUnit(unit, hidden.size);
   const svg = document.createElementNS(SVG_NAMESPACE, "svg");
@@ -46,7 +46,7 @@ export function drawDonut(rows, body, colours, parameters, hidden) {
   svg.setAttribute("role", "img");
   let total = 0;
   for (const arc of donutArcs(shown, OUTER_RADIUS, INNER_RADIUS)) {
-    svg.append(slicePath(arc, colours.series, seriesLabel(labels, arc.name), centre));
+    svg.append(slicePath(arc, seriesColours, seriesLabel(labels, arc.name), centre));
     total += arc.count;
   }
   // Named by its card's title and caption, as every chart is; the total in the centre is read as its text.
@@ -62,11 +62,11 @@ export function drawDonut(rows, body, colours, parameters, hidden) {
 /**
  * The legend of a donut: `{ series, colours }`, its slices in the donut's order, largest first, each labelled with its
  * name, as `labels` writes it where it has a label there, and its share of every slice,
- * "deepseek-ai/DeepSeek-V3-0324 18.3%"; and `colours`, the donut's colours.
+ * "deepseek-ai/DeepSeek-V3-0324 18.3%"; and `colours`, the donut's colours, `seriesColours`.
  */
-export function donutLegend(rows, colours, { nameColumn, countColumn, labels = {} }) {
-  const slices = donutSlices(rows, nameColumn, countColumn, namedSeries(colours));
-  return { series: legendSeries(slices, labels), colours };
+export function donutLegend(rows, seriesColours, { nameColumn, countColumn, labels = {} }) {
+  const slices = donutSlices(rows, nameColumn, countColumn, namedSeries(seriesColours));
+  return { series: legendSeries(slices, labels), colours: seriesColours };
 }
 
 /**
@@ -112,16 +112,16 @@ export function centreUnit(plural, hiddenCount) {
 }
 
 /**
- * The names that keep a slice of their own in a donut coloured by `colours` (a Map from name to colour), in its
- * order: every one but "Other".
+ * The names that keep a slice of their own in a donut coloured by `seriesColours`, in its order: every one but
+ * "Other".
  */
-export function namedSeries(colours) {
-  return [...colours.keys()].filter((name) => name !== OTHER_NAME);
+export function namedSeries(seriesColours) {
+  return [...seriesColours.keys()].filter((name) => name !== OTHER_NAME);
 }
 
 // A slice's ring segment, with its tooltip: its name, its share of the slices shown, and its count.
-function slicePath(arc, colours, name, unit) {
-  const path = svgElement("path", { d: arc.path, fill: colours.get(arc.name), class: "donut-slice" });
+function slicePath(arc, seriesColours, name, unit) {
+  const path = svgElement("path", { d: arc.path, fill: seriesColours.get(arc.name), class: "donut-slice" });
   const tooltip = svgElement("title", {});
   tooltip.textContent = `${name}: ${formatShare(arc.share)} of ${unit} (${formatCount(arc.count)})`;
   path.append(tooltip);

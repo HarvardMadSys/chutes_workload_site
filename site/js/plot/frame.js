@@ -1,9 +1,10 @@
 /**
  * The Plot options every chart kind starts from: a chart's frame (its margins, its height and the width of its body)
  * and ink, the styles of its grid and axes, the dash of a dashed line, its reference rules, and its colour scales,
- * ordinal, sequential and diverging. The kinds of `js/charts/` draw with them and `plot/axes.js` takes its styles
- * from here; the legend takes the dash for its swatches, and the Traffic Explorer's bars their width for their month
- * ticks. The colours themselves come from `theme/colours.js`. Plain functions, tested with `node --test`.
+ * ordinal, sequential and diverging; and the draw contract every kind keeps. The kinds of `js/charts/` draw with them
+ * and `plot/axes.js` takes its styles from here; the legend takes the dash for its swatches, and the Traffic
+ * Explorer's bars their width for their month ticks. The colours themselves come from `theme/colours.js`. Plain
+ * functions, tested with `node --test`.
  */
 
 /** A chart's height in pixels where its card gives none, so a grid of figures lines up. */
@@ -82,6 +83,12 @@ export function haloedReferenceRule(Plot, value) {
 export function chartWidth(body) {
   return body.clientWidth || FALLBACK_WIDTH;
 }
+
+// The draw contract. Every chart kind of `js/charts/` is drawn by one function of five arguments,
+// `draw<Kind>(rows, body, seriesColours, parameters, hidden)`: `rows`, the answer's rows the chart is drawn from;
+// `body`, the element whose content the chart replaces; `seriesColours`, a Map from series name to colour, in legend
+// order; `parameters`, the kind's named parameters, which its JSDoc lists; and `hidden`, the Set of the series names
+// the legend hides. A kind without series declares `seriesColours` and `hidden` too, and does not read them.
 
 /**
  * Plot's colour scale for the `shown` names, each in its colour from the map `colours`. It draws no legend: a chart of

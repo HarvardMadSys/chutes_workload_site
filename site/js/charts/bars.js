@@ -15,8 +15,8 @@ const REFERENCE_LABEL_RISE = -4; // pixels a reference's label sits above its ru
 const LABEL_HALO_WIDTH = 3; // pixels of the card's colour around a reference's label, so a bar under it does not cross it
 
 /**
- * Draw `rows` into `body`, one bar per row of the series of `colours.series` (a Map from series name to colour, in
- * legend order) not in `hidden`, and return the chart. Its named parameters:
+ * Draw `rows` into `body`, one bar per row of the series of `seriesColours` not in `hidden`, and return the chart, by
+ * the draw contract of `plot/frame.js`. Its named parameters:
  * - `x`: the bar axis's options `{ label, ticks, tickFormat, tickRotate }`, `tickRotate` slanting its labels.
  * - `y`: the value axis's options `{ label, domain, ticks, tickFormat }`, never a log one, since a bar starts at zero.
  * - `panel`: the panel drawn, of a multi-panel answer.
@@ -27,17 +27,17 @@ const LABEL_HALO_WIDTH = 3; // pixels of the card's colour around a reference's 
  * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `plot/frame.js`).
  * Required: `valueLabel` and `valueFormat`.
  */
-export async function drawBars(rows, body, colours, parameters, hidden) {
+export async function drawBars(rows, body, seriesColours, parameters, hidden) {
   const { x: xAxis = {}, y: yAxis = {}, margins } = parameters;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
-  const bars = drawnBars(rows, colours.series, parameters, hidden);
+  const bars = drawnBars(rows, seriesColours, parameters, hidden);
   const names = distinct(bars.map((bar) => bar[SERIES_COLUMN]));
   const chart = Plot.plot({
     ...titledFrame(body, yAxis.label ?? null, margins, parameters.height),
     x: { type: "band", domain: distinct(bars.map((bar) => bar.x)) },
     y: { domain: yAxis.domain },
-    color: colourScale(colours.series, names),
+    color: colourScale(seriesColours, names),
     marks: [
       gridMark(Plot, "y", yAxis.ticks),
       bandAxisMark(Plot, xAxis),
@@ -53,11 +53,11 @@ export async function drawBars(rows, body, colours, parameters, hidden) {
 }
 
 /**
- * The bars drawn, in their order: the rows of `parameters.panel` (all when not given), of the series `colours` names
- * (a Map from series name to colour) that are not in `hidden`.
+ * The bars drawn, in their order: the rows of `parameters.panel` (all when not given), of the series `seriesColours`
+ * names that are not in `hidden`.
  */
-export function drawnBars(rows, colours, { panel }, hidden) {
-  return shownSeriesRows(rows, colours, panel, hidden);
+export function drawnBars(rows, seriesColours, { panel }, hidden) {
+  return shownSeriesRows(rows, seriesColours, panel, hidden);
 }
 
 /**

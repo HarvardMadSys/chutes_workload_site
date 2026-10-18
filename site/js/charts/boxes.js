@@ -25,8 +25,8 @@ const BOX_PADDING = 0.4; // the share of each band left empty around its box
 const MEDIAN_WIDTH = 2; // pixels; the median's tick, thicker than the whiskers
 
 /**
- * Draw `rows` into `body`, one box per series of `colours.series` (a Map from series name to colour, in legend order)
- * the rows hold, leaving out the series in `hidden`, and return the chart. Its named parameters:
+ * Draw `rows` into `body`, one box per series of `seriesColours` the rows hold, in its order, leaving out the series
+ * in `hidden`, and return the chart, by the draw contract of `plot/frame.js`. Its named parameters:
  * - `x`: the box axis's options `{ label, tickRotate }`, `tickRotate` slanting the series' names.
  * - `y`: the card's axis options (`plot/axes.js`); on a log y axis, a box with a statistic at or below zero is not
  *   drawn.
@@ -36,18 +36,18 @@ const MEDIAN_WIDTH = 2; // pixels; the median's tick, thicker than the whiskers
  * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `plot/frame.js`).
  * Required: `valueLabel` and `valueFormat`.
  */
-export async function drawBoxes(rows, body, colours, parameters, hidden) {
+export async function drawBoxes(rows, body, seriesColours, parameters, hidden) {
   const { x: xAxis = {}, y: yAxis = {}, labels = {}, margins } = parameters;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
-  const boxes = drawnBoxes(rows, colours.series, parameters, hidden);
+  const boxes = drawnBoxes(rows, seriesColours, parameters, hidden);
   const names = boxes.map((box) => box[SERIES_COLUMN]);
   const yTicks = axisTicks(yAxis, [...boxes.map((box) => box.low), ...boxes.map((box) => box.high)]);
   const chart = Plot.plot({
     ...titledFrame(body, yAxis.label ?? null, margins, parameters.height),
     x: { type: "band", domain: names, padding: BOX_PADDING },
     y: axisScale(yAxis),
-    color: colourScale(colours.series, names),
+    color: colourScale(seriesColours, names),
     marks: [
       gridMark(Plot, "y", yTicks),
       bandAxisMark(Plot, xAxis, (name) => seriesLabel(labels, name)),
@@ -63,14 +63,14 @@ export async function drawBoxes(rows, body, colours, parameters, hidden) {
 }
 
 /**
- * The boxes drawn, in the order of `colours` (a Map from series name to colour): the rows of the series it names that
- * are not in `hidden`, less, on a log y axis (`parameters.y.log`), those with a statistic at or below zero.
+ * The boxes drawn, in the order of `seriesColours`: the rows of the series it names that are not in `hidden`, less, on
+ * a log y axis (`parameters.y.log`), those with a statistic at or below zero.
  */
-export function drawnBoxes(rows, colours, { y: yAxis = {} }, hidden) {
+export function drawnBoxes(rows, seriesColours, { y: yAxis = {} }, hidden) {
   const shown = shownRows(rows, SERIES_COLUMN, hidden);
   const placed = positiveRows(shown, logColumns({ y: yAxis }, [], STATISTICS.map((statistic) => statistic.column)));
   const boxes = [];
-  for (const name of colours.keys()) {
+  for (const name of seriesColours.keys()) {
     boxes.push(...placed.filter((row) => row[SERIES_COLUMN] === name));
   }
   return boxes;

@@ -37,9 +37,9 @@ test("a name not among the names folds into Other, and the rows are not changed 
 
 test("ten named families keep their ten series; a family the colours do not name folds into Other", () => {
   const families = ["f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11", "Other"];
-  const colours = familyColours(families.map((family) => ({ family })));
+  const seriesColours = familyColours(families.map((family) => ({ family })));
   const rows = families.map((family) => ({ day: "2025-07-01", family, requests: 1 }));
-  const folded = foldedRows(rows, colours, { xColumn: "day", seriesColumn: "family", valueColumn: "requests" });
+  const folded = foldedRows(rows, seriesColours, { xColumn: "day", seriesColumn: "family", valueColumn: "requests" });
   assert.deepEqual(folded.map((row) => [row.family, row.requests]), [
     ["f1", 1], ["f2", 1], ["f3", 1], ["f4", 1], ["f5", 1], ["f6", 1], ["f7", 1], ["f8", 1], ["f9", 1], ["f10", 1],
     ["Other", 2],
@@ -79,10 +79,10 @@ test("a figure of fewer series than colours folds none", () => {
 });
 
 test("the legend lists the folded series in the colours' order, Other among them, each by its label", () => {
-  const colours = barColours(ORDER);
-  const legend = stackedBarsLegend(ROWS, colours, { seriesColumn: "endpoint", labels: { e1: "One" } });
+  const seriesColours = barColours(ORDER);
+  const legend = stackedBarsLegend(ROWS, seriesColours, { seriesColumn: "endpoint", labels: { e1: "One" } });
   assert.deepEqual(legend.series, [{ name: "e1", label: "One" }, { name: "Other", label: "Other" }]);
-  assert.equal(legend.colours, colours);
+  assert.equal(legend.colours, seriesColours);
 });
 
 test("a segment's tooltip names its series by its label where it has one, its bar and its value", () => {

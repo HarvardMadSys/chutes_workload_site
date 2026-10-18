@@ -70,7 +70,7 @@ async function drawMix(place, mix, context) {
     rows: formatQuantity(columnTotal(rows, "requests"), "request", "requests"),
   });
   const legend = mixLegend(mix, rows);
-  await drawWithLegend(body, legend, (hidden) => drawDonut(rows, body, { series: legend.colours }, {
+  await drawWithLegend(body, legend, (hidden) => drawDonut(rows, body, legend.colours, {
     nameColumn: mix.breakdown.column,
     countColumn: "requests",
     unit: "requests",

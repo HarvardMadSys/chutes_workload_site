@@ -104,11 +104,11 @@ export async function drawFigureChart(body, card, mixes) {
     if (card.kind === BANDS_KIND) {
       // A bands chart has one series, so no buttons; its key names what its two bands and its line are.
       legendPlace(body).replaceChildren(bandKey(bandsColour(chartParameters(card))));
-      await drawFigure(rows, body, card, { series: colours }, new Set());
+      await drawFigure(rows, body, card, colours, new Set());
       return;
     }
     const legend = figureLegend(card, rows, colours);
-    const drawChart = (hidden) => drawFigure(rows, body, card, { series: colours }, hidden);
+    const drawChart = (hidden) => drawFigure(rows, body, card, colours, hidden);
     await drawWithLegend(body, legend, drawChart, CHART_KINDS[card.kind].swatch);
   } catch (error) {
     showError(body, error);

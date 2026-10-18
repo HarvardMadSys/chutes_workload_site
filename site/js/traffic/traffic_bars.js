@@ -134,7 +134,7 @@ export async function drawTrafficBars(place, { choice, family, chosen, requests,
 // Draw the bars of the series not in `hidden`, one per day of `drawing.days`, the months written as `monthTicks`
 // says, each segment's value named in its tooltip by `drawing.words`, and name the chart.
 async function drawDayBars(daily, body, drawing, hidden) {
-  await drawStackedBars(daily, body, { series: drawing.colours }, {
+  await drawStackedBars(daily, body, drawing.colours, {
     xColumn: "day",
     seriesColumn: drawing.breakdown.column,
     valueColumn: "value",

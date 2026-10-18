@@ -15,8 +15,8 @@ const DOT_OUTLINE_WIDTH = 0.5; // pixels of axis ink around a dot, so a near-whi
 const DOT_OPACITY = 0.7; // a dot's fill opacity, so that dots lying on one another show through
 
 /**
- * Draw `rows` into `body` as one dot per row, and return the chart. It has no series: `colours` and `hidden` are not
- * read. Its named parameters:
+ * Draw `rows` into `body` as one dot per row, and return the chart, by the draw contract of `plot/frame.js`. It has no
+ * series: `seriesColours` and `hidden` are not read. Its named parameters:
  * - `x`, `y`: the card's axis options (`plot/axes.js`); on a log axis, a point at or below zero is not drawn.
  * - `scheme`: the diverging colour scheme, "RdBu" when not given; `colourDomain`: the values at its two ends, as
  *   `[-1, 1]`, else the values' own, centred on zero.
@@ -27,7 +27,7 @@ const DOT_OPACITY = 0.7; // a dot's fill opacity, so that dots lying on one anot
  * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `plot/frame.js`).
  * Required: `valueLabel` and `valueFormat`.
  */
-export async function drawScatter(rows, body, colours, parameters) {
+export async function drawScatter(rows, body, seriesColours, parameters, hidden) {
   const { x: xAxis = {}, y: yAxis = {}, margins } = parameters;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");

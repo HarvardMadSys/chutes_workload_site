@@ -14,8 +14,8 @@ const DEFAULT_SCHEME = "YlOrRd"; // the paper's heatmaps' colour scheme, low val
 const CATEGORY_CENTRE = 0.5; // a category's tick sits halfway between its cell's integer edges
 
 /**
- * Draw `rows` into `body` as one rectangle per row, filled by its value, and return the chart. It has no series:
- * `colours` and `hidden` are not read. Its named parameters:
+ * Draw `rows` into `body` as one rectangle per row, filled by its value, and return the chart, by the draw contract of
+ * `plot/frame.js`. It has no series: `seriesColours` and `hidden` are not read. Its named parameters:
  * - `x`, `y`: the card's axis options (`AxisOptions` of `plot/axes.js`); on a log axis, a cell with an edge at or
  *   below zero is not drawn. An axis's `categories` are its category names, in place of its ticks and their format,
  *   the cell from i to i + 1 named by the i-th, "Mon"; every category is labelled, or, where the axis gives `ticks`,
@@ -34,7 +34,7 @@ const CATEGORY_CENTRE = 0.5; // a category's tick sits halfway between its cell'
  * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `plot/frame.js`).
  * Required: `valueLabel` and `valueFormat`.
  */
-export async function drawCells(rows, body, colours, parameters) {
+export async function drawCells(rows, body, seriesColours, parameters, hidden) {
   const { margins } = parameters;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");

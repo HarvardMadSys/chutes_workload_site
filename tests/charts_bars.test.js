@@ -5,7 +5,7 @@ import { barTipText, drawnBars, referenceMarks } from "../site/js/charts/bars.js
 import { REFERENCE_STYLE } from "../site/js/plot/frame.js";
 import { assignColours } from "../site/js/theme/colours.js";
 
-const COLOURS = assignColours(["Request share", "Token hit"]);
+const SERIES_COLOURS = assignColours(["Request share", "Token hit"]);
 // A two-panel answer, one series per panel.
 const ROWS = [
   { series: "Request share", x: 1, value: 0.3, panel: "request_share" },
@@ -15,13 +15,13 @@ const ROWS = [
 ];
 
 test("a panel's bars are drawn alone, in their order, a series without a colour left out", () => {
-  assert.deepEqual(drawnBars(ROWS, COLOURS, { panel: "request_share" }, new Set()), [ROWS[0], ROWS[1]]);
-  assert.deepEqual(drawnBars(ROWS, COLOURS, { panel: "token_hit" }, new Set()), [ROWS[2]]);
+  assert.deepEqual(drawnBars(ROWS, SERIES_COLOURS, { panel: "request_share" }, new Set()), [ROWS[0], ROWS[1]]);
+  assert.deepEqual(drawnBars(ROWS, SERIES_COLOURS, { panel: "token_hit" }, new Set()), [ROWS[2]]);
 });
 
 test("without a panel every coloured bar is drawn, a hidden series left out", () => {
-  assert.deepEqual(drawnBars(ROWS, COLOURS, {}, new Set(["Request share"])), [ROWS[2]]);
-  assert.equal(drawnBars(ROWS, COLOURS, {}, new Set()).length, 3);
+  assert.deepEqual(drawnBars(ROWS, SERIES_COLOURS, {}, new Set(["Request share"])), [ROWS[2]]);
+  assert.equal(drawnBars(ROWS, SERIES_COLOURS, {}, new Set()).length, 3);
 });
 
 test("a bar's tooltip gives its x as the axis writes it and its value", () => {

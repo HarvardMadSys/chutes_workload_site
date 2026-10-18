@@ -4,7 +4,7 @@ import { test } from "node:test";
 import { boxTipText, drawnBoxes, STATISTICS } from "../site/js/charts/boxes.js";
 import { assignColours } from "../site/js/theme/colours.js";
 
-const COLOURS = assignColours(["DeepSeek V3.2", "DeepSeek R1", "MiniMax M2.5"]);
+const SERIES_COLOURS = assignColours(["DeepSeek V3.2", "DeepSeek R1", "MiniMax M2.5"]);
 // One row per series, not in the colours' order; R1's low whisker is at zero.
 const ROWS = [
   { series: "MiniMax M2.5", low: 3, q1: 20, median: 70, q3: 300, high: 2000, count: 980 },
@@ -18,13 +18,13 @@ test("a box's statistics run from its high whisker down to its low one", () => {
 });
 
 test("one box per coloured series, in the colours' order, a hidden series left out", () => {
-  const boxes = drawnBoxes(ROWS, COLOURS, {}, new Set(["MiniMax M2.5"]));
+  const boxes = drawnBoxes(ROWS, SERIES_COLOURS, {}, new Set(["MiniMax M2.5"]));
   assert.deepEqual(boxes.map((box) => box.series), ["DeepSeek V3.2", "DeepSeek R1"]);
   assert.equal(boxes[0].median, 40);
 });
 
 test("on a log y axis a box with a statistic at zero is not drawn", () => {
-  const boxes = drawnBoxes(ROWS, COLOURS, { y: { log: true } }, new Set());
+  const boxes = drawnBoxes(ROWS, SERIES_COLOURS, { y: { log: true } }, new Set());
   assert.deepEqual(boxes.map((box) => box.series), ["DeepSeek V3.2", "MiniMax M2.5"]);
 });
 

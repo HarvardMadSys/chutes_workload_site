@@ -16,10 +16,10 @@ import { seriesLabel, seriesLegend, shownRows } from "../shared/series.js";
 const KEY_SEPARATOR = "\u0000";
 
 /**
- * Draw `rows` into `body` as one stacked bar per x value of the series not in `hidden`, bottom up in the order of their
- * legend's colours, `colours.series` (a Map from series name to colour). A series `colours.series` does not name is
- * not dropped but folded into "Other" (`foldedRows`), so a figure card's `series` cannot leave one out of its bars; a
- * figure whose legend names every series, as the monthly shares' does, folds none. Its named parameters:
+ * Draw `rows` into `body` as one stacked bar per x value of the series not in `hidden`, bottom up in the order of
+ * `seriesColours`, by the draw contract of `plot/frame.js`. A series `seriesColours` does not name is not dropped but
+ * folded into "Other" (`foldedRows`), so a figure card's `series` cannot leave one out of its bars; a figure whose
+ * legend names every series, as the monthly shares' does, folds none. Its named parameters:
  * - `xColumn`, `seriesColumn` and `valueColumn`: the columns holding a row's bar, its series and its value, a
  *   segment's height.
  * - `x`, `y`: the card's axis options (`AxisOptions` of `plot/axes.js`). The x axis is a band axis: its `domain` is
@@ -38,19 +38,19 @@ const KEY_SEPARATOR = "\u0000";
  * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `plot/frame.js`).
  * - `labels`: each series' label in the tooltip where it is written otherwise than its name, as the legend's `labels`.
  * Required: the three columns, `valueLabel` and `valueFormat`.
- * Needs the figure's legend: its colours are `colours.series`.
+ * Needs the figure's legend: its colours are `seriesColours`.
  */
-export async function drawStackedBars(rows, body, colours, parameters, hidden) {
+export async function drawStackedBars(rows, body, seriesColours, parameters, hidden) {
   const { xColumn, seriesColumn, valueColumn, x = {}, y = {}, margins } = parameters;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
-  const folded = foldedRows(rows, colours.series, { xColumn, seriesColumn, valueColumn });
+  const folded = foldedRows(rows, seriesColours, { xColumn, seriesColumn, valueColumn });
   const shown = shownRows(folded, seriesColumn, hidden);
-  const stacked = [...colours.series.keys()].filter((name) => shown.some((row) => row[seriesColumn] === name));
+  const stacked = [...seriesColours.keys()].filter((name) => shown.some((row) => row[seriesColumn] === name));
   const chart = Plot.plot({
     ...titledFrame(body, y.label ?? null, margins, parameters.height),
     x: { type: "band", domain: x.domain ?? distinct(shown.map((row) => row[xColumn])), inset: x.inset ?? 0 },
-    color: colourScale(colours.series, stacked),
+    color: colourScale(seriesColours, stacked),
     marks: [
       gridMark(Plot, "y"),
       bandAxisMark(Plot, x),
@@ -71,21 +71,20 @@ export async function drawStackedBars(rows, body, colours, parameters, hidden) {
 }
 
 /**
- * The legend of stacked bars: `{ series, colours }`, the series of `colours` (a Map from series name to colour, in the
- * order the legend lists them) that the rows hold once folded, "Other" among them, each labelled by `labels` where it
- * has a label there, else by its name.
+ * The legend of stacked bars: `{ series, colours }`, the series of `seriesColours`, in its order, that the rows hold
+ * once folded, "Other" among them, each labelled by `labels` where it has a label there, else by its name.
  */
-export function stackedBarsLegend(rows, colours, { seriesColumn, labels = {} }) {
-  const folded = foldToOther(rows, seriesColumn, [...colours.keys()]);
-  return seriesLegend(folded, seriesColumn, colours, labels);
+export function stackedBarsLegend(rows, seriesColours, { seriesColumn, labels = {} }) {
+  const folded = foldToOther(rows, seriesColumn, [...seriesColours.keys()]);
+  return seriesLegend(folded, seriesColumn, seriesColours, labels);
 }
 
 /**
- * The rows with each series `colours` does not name renamed "Other", and the rows sharing a bar and a
+ * The rows with each series `seriesColours` does not name renamed "Other", and the rows sharing a bar and a
  * series summed into one on `valueColumn`, in order of first appearance.
  */
-export function foldedRows(rows, colours, { xColumn, seriesColumn, valueColumn }) {
-  const folded = foldToOther(rows, seriesColumn, [...colours.keys()]);
+export function foldedRows(rows, seriesColours, { xColumn, seriesColumn, valueColumn }) {
+  const folded = foldToOther(rows, seriesColumn, [...seriesColours.keys()]);
   return sumFolded(folded, { xColumn, seriesColumn, valueColumn });
 }
 

@@ -189,7 +189,7 @@ async function drawCurves(chart, distributionCharts, hidden) {
     return;
   }
   const { distributionChart } = chart;
-  await drawLines(chart.rows, chart.body, { series: distributionCharts.legend.colours }, {
+  await drawLines(chart.rows, chart.body, distributionCharts.legend.colours, {
     x: distributionChart.x,
     y: SHARE_OF_REQUESTS,
     cdf: true,

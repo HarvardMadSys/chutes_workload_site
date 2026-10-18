@@ -104,20 +104,21 @@ test("a donut with no labels writes each slice's name as given", () => {
 });
 
 test("a donut's legend lists its slices largest first, Other last, the eight series colours named and the rest folded", () => {
-  const colours = barColours(MODEL_ORDER);
+  const seriesColours = barColours(MODEL_ORDER);
   const rows = [
     { month: "2025-04", model: "m2", requests: 20 },
     { month: "2025-05", model: "m2", requests: 20 },
     { month: "2025-04", model: "m1", requests: 30 },
     { month: "2025-04", model: "m10", requests: 5 },
   ];
-  const legend = donutLegend(rows, colours, { nameColumn: "model", countColumn: "requests", labels: { m1: "Model 1" } });
+  const parameters = { nameColumn: "model", countColumn: "requests", labels: { m1: "Model 1" } };
+  const legend = donutLegend(rows, seriesColours, parameters);
   assert.deepEqual(legend.series, [
     { name: "m2", label: "m2 53.3%" },
     { name: "m1", label: "Model 1 40.0%" },
     { name: "Other", label: "Other 6.7%" },
   ]);
-  assert.equal(legend.colours, colours);
+  assert.equal(legend.colours, seriesColours);
 });
 
 test("a donut coloured by the families names all ten named families, the eleventh folded into Other", () => {

@@ -17,14 +17,14 @@ import { SERIES_COLUMN, seriesLabel, shownSeriesRows } from "../shared/series.js
 const CDF_COLUMN = "cdf"; // the column of a CDF answer holding the share at or below each value
 
 /**
- * Draw `rows` into `body`, one line per series of `colours.series` (a Map from series name to colour, in legend order)
- * the rows hold, leaving out the series in `hidden`, and return the chart. Its named parameters:
+ * Draw `rows` into `body`, one line per series of `seriesColours` the rows hold, leaving out the series in `hidden`,
+ * and return the chart, by the draw contract of `plot/frame.js`. Its named parameters:
  * - `x`, `y`: the card's axis options (`plot/axes.js`); a row with a value at or below zero on a log axis is not
  *   drawn, and a line is cut at a given domain's ends.
  * - `cdf`: true for a CDF answer, its `cdf` column drawn as y from 0 to 1, the axis in percent; its tooltip names the
  *   point nearest the pointer in x and y (`Plot.pointer`), another chart's the point nearest in x (`Plot.pointerX`).
  * - `series`: the names of the series drawn, a list, such as a panel's own (`chartParameters` of
- *   `insights/figure_card.js`); every series of `colours.series` when not given. `hidden` still applies.
+ *   `insights/figure_card.js`); every series of `seriesColours` when not given. `hidden` still applies.
  * - `tipAllSeries`: true for a tooltip at the hovered x that lists every drawn series' value there, highest first
  *   (`allSeriesTipText`), for a lines answer (not a CDF) of few x values whose lines lie on one another.
  * - `markers`: true to mark each point with a dot.
@@ -38,13 +38,13 @@ const CDF_COLUMN = "cdf"; // the column of a CDF answer holding the share at or 
  * - `height`: the chart's height in pixels, as every kind takes it (`titledFrame` of `plot/frame.js`).
  * Required: `valueLabel` and `valueFormat`.
  */
-export async function drawLines(rows, body, colours, parameters, hidden) {
+export async function drawLines(rows, body, seriesColours, parameters, hidden) {
   const { x: xAxis = {}, cdf = false, gap, margins } = parameters;
   const yAxis = lineYAxis(parameters);
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
-  const drawn = drawnPoints(rows, colours.series, { ...parameters, x: xAxis, y: yAxis }, hidden);
-  const names = drawnSeries(drawn, colours.series);
+  const drawn = drawnPoints(rows, seriesColours, { ...parameters, x: xAxis, y: yAxis }, hidden);
+  const names = drawnSeries(drawn, seriesColours);
   const xValues = drawn.map((row) => row.x);
   const xTicks = axisTicks(xAxis, xValues);
   const yTicks = axisTicks(yAxis, drawn.map((row) => row[yColumn(cdf)]));
@@ -53,7 +53,7 @@ export async function drawLines(rows, body, colours, parameters, hidden) {
     ...titledFrame(body, yAxis.label ?? null, margins, parameters.height),
     x: axisScale(xAxis, xValues),
     y: axisScale(yAxis),
-    color: colourScale(colours.series, names),
+    color: colourScale(seriesColours, names),
     marks: [
       gridMark(Plot, "x", xTicks),
       gridMark(Plot, "y", yTicks),
@@ -122,12 +122,12 @@ export function yColumn(cdf) {
 }
 
 /**
- * The points drawn: the rows of `parameters.panel` (all when not given), of the series `colours` names (a Map from
- * series name to colour) that are in `parameters.series` where it is given and not in `hidden`, with a value above zero
- * in every column drawn on a log axis (`x` where `parameters.x.log`, the y column where `parameters.y.log`).
+ * The points drawn: the rows of `parameters.panel` (all when not given), of the series `seriesColours` names that are
+ * in `parameters.series` where it is given and not in `hidden`, with a value above zero in every column drawn on a log
+ * axis (`x` where `parameters.x.log`, the y column where `parameters.y.log`).
  */
-export function drawnPoints(rows, colours, { panel, series, x: xAxis = {}, y: yAxis = {}, cdf = false }, hidden) {
-  const shown = shownSeriesRows(rows, colours, panel, hidden);
+export function drawnPoints(rows, seriesColours, { panel, series, x: xAxis = {}, y: yAxis = {}, cdf = false }, hidden) {
+  const shown = shownSeriesRows(rows, seriesColours, panel, hidden);
   const named = series === undefined ? shown : shown.filter((row) => series.includes(row[SERIES_COLUMN]));
   return positiveRows(named, logColumns({ x: xAxis, y: yAxis }, ["x"], [yColumn(cdf)]));
 }
@@ -196,10 +196,10 @@ export function brokenAtGaps(points, gap, yName) {
   return broken;
 }
 
-/** The series of `colours` (a Map from series name to colour, in legend order) that `points` hold, in that order. */
-export function drawnSeries(points, colours) {
+/** The series of `seriesColours` that `points` hold, in its order. */
+export function drawnSeries(points, seriesColours) {
   const present = new Set(points.map((point) => point[SERIES_COLUMN]));
-  return [...colours.keys()].filter((name) => present.has(name));
+  return [...seriesColours.keys()].filter((name) => present.has(name));
 }
 
 /**
