@@ -37,12 +37,11 @@ def test_the_step_writes_every_answer_and_prints_its_size(artifact: pathlib.Path
     assert (tmp_path / "data" / answer_files.ANSWERS_FOLDER / answer_files.FIGURE_INDEX_FILE).is_file()
 
 
-def test_a_missing_artifact_folder_stops_before_writing(fixture_tables: pathlib.Path, tmp_path: pathlib.Path,
-                                                         capsys: pytest.CaptureFixture) -> None:
-    with pytest.raises(SystemExit) as stop:
+def test_a_missing_artifact_folder_stops_before_writing(fixture_tables: pathlib.Path, tmp_path: pathlib.Path) -> None:
+    """The step stops naming the first file it misses, the first cache, and how to supply it."""
+    first_cache = tmp_path / "no_artifact" / loading.CACHE_FOLDER / f"{loading.CACHE_NAMES[0]}.parquet"
+    with pytest.raises(SystemExit, match=re.escape(f"missing {first_cache}: {loading.ARTIFACT_FILE_HINT}")):
         __main__.main(command(tmp_path / "no_artifact", fixture_tables, tmp_path))
-    assert stop.value.code == 1
-    assert "no_artifact does not exist" in capsys.readouterr().err
     assert not (tmp_path / "data").exists()
 
 

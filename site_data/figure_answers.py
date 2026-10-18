@@ -40,7 +40,7 @@ class FigureTable:
 def listed_figures(artifact: pathlib.Path) -> list[str]:
     """The name of every figure the artifact's figure list names, without `.pdf`: each section's, in the file's order,
     then the external ones; stops if they are not as many as the list's `count`."""
-    figure_list_path = loading.required_file(artifact / FIGURE_LIST_FILE)
+    figure_list_path = loading.required_file(artifact / FIGURE_LIST_FILE, loading.ARTIFACT_FILE_HINT)
     figure_list = json.loads(figure_list_path.read_text())
     file_names = []
     for section_names in figure_list["sections"].values():
@@ -59,7 +59,7 @@ def read_figure_tables(artifact: pathlib.Path) -> list[FigureTable]:
     missing, before any is read."""
     table_paths = {}
     for name in listed_figures(artifact):
-        table_paths[name] = loading.required_file(artifact / PLOTDATA_FOLDER / f"{name}.parquet")
+        table_paths[name] = loading.required_file(artifact / PLOTDATA_FOLDER / f"{name}.parquet", loading.ARTIFACT_FILE_HINT)
     tables = []
     for name, path in table_paths.items():
         tables.append(FigureTable(name=name, rows=table_rows(path)))

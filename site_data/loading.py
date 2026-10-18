@@ -30,9 +30,11 @@ CACHE_NAMES = ["trace_totals", "daily_rollup", "function_name_daily_requests"]
 TABLES_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "tables"
 TRACE_TABLE_FILE = "weekly_histograms.parquet"  # in the tables folder: the trace table, built once from the trace
 TRACE_TABLE_SIDECAR_FILE = "weekly_histograms.json"  # in the tables folder: the trace table's query hash and row counts
-# What the message of a missing file tells the reader to do: for a file of the artifact, and for the trace table.
+# What the message of a missing file tells the reader to do: for a file of the artifact, for the trace table, and for
+# the released trace.
 ARTIFACT_FILE_HINT = "pass a checkout of the paper's artifact repository as --artifact"
 TRACE_TABLE_HINT = "run make tables to build it from the released trace"
+TRACE_HINT = "pass the released trace's Parquet file as --trace"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -59,9 +61,9 @@ def load_artifact(artifact: pathlib.Path) -> ArtifactFrames:
     """The frames of the artifact checkout `artifact`; stops naming the first of its files that is missing."""
     cache_paths = {}
     for name in CACHE_NAMES:
-        cache_paths[name] = required_file(artifact / CACHE_FOLDER / f"{name}.parquet")
-    model_names_path = required_file(artifact / MODEL_NAMES_FILE)
-    model_families_path = required_file(artifact / MODEL_FAMILIES_FILE)
+        cache_paths[name] = required_file(artifact / CACHE_FOLDER / f"{name}.parquet", ARTIFACT_FILE_HINT)
+    model_names_path = required_file(artifact / MODEL_NAMES_FILE, ARTIFACT_FILE_HINT)
+    model_families_path = required_file(artifact / MODEL_FAMILIES_FILE, ARTIFACT_FILE_HINT)
     return ArtifactFrames(
         trace_totals=read_cache(cache_paths["trace_totals"]),
         daily_rollup=read_cache(cache_paths["daily_rollup"]),
@@ -82,9 +84,9 @@ def load_trace_table(tables_folder: pathlib.Path) -> pandas.DataFrame:
     return read_cache(required_file(tables_folder / TRACE_TABLE_FILE, TRACE_TABLE_HINT))
 
 
-def required_file(path: pathlib.Path, hint: str = ARTIFACT_FILE_HINT) -> pathlib.Path:
+def required_file(path: pathlib.Path, hint: str) -> pathlib.Path:
     """The path, if a file is there; otherwise stops the step with exit status 1, naming it and saying, by `hint`, how
-    to supply it."""
+    to supply it: the one way the data step and the trace table's builder stop on a missing file."""
     if not path.is_file():
         raise SystemExit(f"missing {path}: {hint}")
     return path

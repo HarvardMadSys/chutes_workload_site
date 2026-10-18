@@ -32,7 +32,7 @@ TRACE_VIEW = "trace"  # the name the query reads the trace by
 def main(arguments: list[str] | None = None) -> None:
     """Read the trace and the artifact named on the command line and write the trace table and its sidecar."""
     options = parsed_arguments(arguments)
-    trace_path = required_trace(options.trace)
+    trace_path = loading.required_file(options.trace, loading.TRACE_HINT)
     frames = loading.load_artifact(options.artifact)
     started = time.monotonic()
     connection = open_trace_database(frames, trace_path)
@@ -52,13 +52,6 @@ def parsed_arguments(arguments: list[str] | None) -> argparse.Namespace:
                         help="a checkout of the paper's artifact repository")
     parser.add_argument("--out", type=pathlib.Path, required=True, help="the tables folder to write")
     return parser.parse_args(arguments)
-
-
-def required_trace(path: pathlib.Path) -> pathlib.Path:
-    """The path, if a file is there; otherwise stops the run with exit status 1, naming it."""
-    if not path.is_file():
-        raise SystemExit(f"missing {path}: pass the released trace's Parquet file as --trace")
-    return path
 
 
 def open_trace_database(frames: loading.ArtifactFrames, trace_path: pathlib.Path) -> duckdb.DuckDBPyConnection:

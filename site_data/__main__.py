@@ -10,7 +10,6 @@ its message and exit status 1, before anything is written.
 
 import argparse
 import pathlib
-import sys
 
 from site_data import answers, figure_answers, loading, site_database
 
@@ -18,10 +17,6 @@ from site_data import answers, figure_answers, loading, site_database
 def main(arguments: list[str] | None = None) -> None:
     """Read the artifact named on the command line and write the site's answers and figure answers from it."""
     options = parsed_arguments(arguments)
-    if not options.artifact.is_dir():
-        print(f"the artifact folder {options.artifact} does not exist; pass a checkout of the paper's artifact "
-              "repository as --artifact", file=sys.stderr)
-        raise SystemExit(1)
     frames = loading.load_artifact(options.artifact)
     weekly_histograms = loading.load_trace_table(options.tables)
     figure_tables = figure_answers.read_figure_tables(options.artifact)

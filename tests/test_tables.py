@@ -150,7 +150,7 @@ def test_a_rebuild_writes_the_same_bytes(artifact: pathlib.Path, fixture_trace: 
 
 def test_a_missing_trace_stops_naming_it_before_writing(artifact: pathlib.Path, tmp_path: pathlib.Path) -> None:
     missing = tmp_path / "no_trace.parquet"
-    with pytest.raises(SystemExit, match=re.escape(f"missing {missing}")):
+    with pytest.raises(SystemExit, match=re.escape(f"missing {missing}: {loading.TRACE_HINT}")):
         tables.main(command(missing, artifact, tmp_path))
     assert not (tmp_path / "tables").exists()
 
