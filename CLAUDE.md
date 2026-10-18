@@ -6,7 +6,9 @@ production trace, drawn from the paper's artifact repository. Start with
 build and deploy it, and the map of the folders) and `CONTRIBUTING.md` (the
 rules, the patterns to copy, how to verify a change). The specification is
 in `openspec/`: a change being built is a folder of `openspec/changes/`,
-and an archived change's specs move to `openspec/specs/`.
+and an archived change's specs move to `openspec/specs/`. The site's own
+words (the page, a section, a topic, a card, a breakdown and the rest)
+are defined in the Words section of `CONTRIBUTING.md`.
 
 The rules in `CONTRIBUTING.md` are binding. The ones that matter most:
 

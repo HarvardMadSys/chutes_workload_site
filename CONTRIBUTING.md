@@ -4,6 +4,47 @@ This site will be read, run and maintained by people who did not write it. A
 reader must be able to follow any module on a first read. The rules below are
 binding, and `make test` checks the countable ones.
 
+## Words
+
+Each word below has one meaning in the code, the tests and these documents.
+
+- **the page**: `site/index.html`, the site's one page, started by `js/page/main.js`.
+- **section**: a part of the page under its own heading: hero, Overview, Traffic Explorer,
+  Insights, Cite, Team. A section that reads answers is *run*: `run(container, context)`.
+- **Overview**: the section of the two mixes, `#overview`. Nothing else is called so.
+- **mix**: one of the Overview's donuts: the requests' shares by family or by endpoint group.
+  `context.mixes` holds the two answers' rows.
+- **Traffic Explorer**, or **the explorer**: the section of bars, tiles and distributions, `js/traffic/`.
+- **choice**: what the explorer shows, kept in six URL keys: family, model, endpoint, metric, from, to.
+- **tile**: one of the explorer's four numbers.
+- **topic**: one of the Insights' six tabs, listed in `js/page/topics.js`. The first is the
+  workload (`insights/workload.js`); its anchor stays `#insights-overview` for shared links.
+- **group**: a topic's heading, takeaway and grid of cards.
+- **figure**: a titled chart with its caption and Definition, as `renderFigure` lays it out.
+  **card**: one of the paper's figures (`fig_…`) in a topic, with its words.
+- **panel**: one of several charts in one card, drawn from the rows whose `panel` column names it.
+- **answer**: a JSON file under `site/data/all/` that the page reads by name. A *query answer*
+  comes from a `.sql` file; a *figure answer* is the artifact's plot-ready table and runs no query.
+  In a data path, `explore/` means the query answers, not the explorer.
+- **trace day**, **trace week**, **trace month**: one day, seven days, a month-long stretch,
+  counted from the trace's first day, 2025-04-11; not calendar weeks or months.
+- **chart**: what one draw function draws into one body. **kind**: one of the nine ways to
+  draw one, a module of `js/charts/`.
+- **Plot**: Observable Plot, the charting library. `js/plot/` holds what every kind gives it:
+  the frame, the axes, the trace's axes.
+- **series**: the names a chart draws, each a line, a slice or a stack of segments.
+- **breakdown**: how rows split into series: `BY_FAMILY`, `BY_MODEL` or `BY_ENDPOINT`.
+- **legend**: the buttons above a chart that hide and show its series; one button is an *entry*.
+- **slot**: one of the theme's series colours. **palette**: which slots a card's series take.
+- **container**, **place**, **body**: the elements the code fills: a section's `container`
+  from `index.html`, a figure's `place` that `renderFigure` lays out, a chart's `body` that
+  a kind draws into. `showLoading`, `showNote` and `showError` take any of the three.
+- Verbs: **run** a section; **render** markup once from data; **mount** render and listen;
+  **place** lay out empty elements to fill later; **draw** a chart; **show** a state.
+- **state** and **unit**: the snapshot test opens the page in six states, one per topic, and
+  reads each unit (a chart, a legend, a block of text) as text.
+- **placeholder**: `// placeholder:` marks words that are not the paper's own, for the authors.
+
 ## The rules
 
 - **Simple before fast.** Write the plainest correct code. Cache, precompute,

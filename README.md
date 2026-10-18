@@ -12,7 +12,9 @@ The site is one HTML page, ES modules, a stylesheet, the JSON answers of
 seven queries (the two that take a family are answered once per family,
 one file per family) and of the paper's 48 plot-ready tables, with
 Observable Plot drawing every chart in the browser. There is no
-server code, no bundler and no database in the browser.
+server code, no bundler and no database in the browser. The site's own
+words (the page, a section, a topic, a card, a breakdown and the rest)
+are defined in the Words section of `CONTRIBUTING.md`.
 
 ## What the site shows
 
@@ -354,7 +356,7 @@ the rules, how the pieces fit together and the patterns to copy.
 
 ```
 README.md            this file
-CONTRIBUTING.md      the rules, how the pieces fit, the patterns to copy, and how to verify a change
+CONTRIBUTING.md      the site's words, the rules, how the pieces fit, the patterns to copy, and how to verify a change
 CLAUDE.md            a pointer to the two files above and the git rules
 Makefile             setup · setup-browser · tables · data · serve · test · snapshots · deploy
 pyproject.toml       Python 3.12; pyarrow, pandas and duckdb; pytest and Playwright (pinned) for the tests
@@ -390,7 +392,7 @@ site/                exactly the files that are deployed
                      preloads the explorer's daily answer
   style.css          tokens, layout and components
   favicon.svg        the brand mark, for the browser tab
-  js/page/           the page's module and its start, the Insights' topics and their tabs
+  js/page/           the page's module and its start, the Insights' topics, their tabs and the tabs' scrolling row
     main.js          the page's module: it names the page's sections, starts the charting library's load and starts
                      the page
     start.js         asks for the answers the sections share, places the Insights' groups and cards and draws their
@@ -447,7 +449,7 @@ site/                exactly the files that are deployed
     traffic_distributions.js, traffic_distribution_charts.js
                      the histogram rows' bin maps, CDF rows and percentiles; the row of three distribution charts,
                      each titled in its own place, keyed by metric, on fixed axes
-  js/insights/       the figure cards and the topics
+  js/insights/       the figure cards and their series' colours, one module per topic, and the routing card's panels
     figure_card.js   a card, its chart drawn from its answer by its kind
     card_series.js   a card's series: their order, each palette's colours, the fixed and highlighted series, the
                      count colour, the card's legend
@@ -491,6 +493,8 @@ tests/               what make test runs
                      with ARTIFACT, every figure the artifact lists is one card's, or the share cards' legend
   test_repository.py
                      the countable rules of CONTRIBUTING.md and the files git tracks
+  test_naming.py     the name rules: a name is exported by one module of site/js/, and a node test file's name
+                     starts with the folder of the module it tests
   test_deployment.py
                      the Worker's settings, and the paths the deploy workflow checks are files of site/
   test_readme.py     every path this layout names exists

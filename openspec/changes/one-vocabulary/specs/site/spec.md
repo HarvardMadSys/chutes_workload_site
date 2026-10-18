@@ -20,7 +20,7 @@ SHALL export one name. The tests SHALL enforce the countable rules.
 
 #### Scenario: One name exported twice
 - **WHEN** a module of `site/js/` exports `drawBars` and another module exports a `drawBars` too
-- **THEN** the repository test SHALL fail naming the name and both modules
+- **THEN** the naming test (`tests/test_naming.py`) SHALL fail naming the name and both modules
 
 #### Scenario: A word of the site
 - **WHEN** a reader meets `breakdown`, `topic`, `mix` or `place` in the code
@@ -52,11 +52,11 @@ site/             exactly the files that are deployed
   js/plot/        what every chart kind gives the charting library: the frame and ink, the axes, the trace's day and month axes
   js/charts/      the nine chart kinds: donut, stacked_bars, lines, bands, cells, raster, scatter, boxes, bars
   js/theme/       the site's colours as the style tokens give them
-  js/traffic/     the Traffic Explorer: its section, its filter, its controls, its day range, its tiles, its bars, its distributions and their three charts
+  js/traffic/     the Traffic Explorer: its section, its filter, its controls, its bars, its day range, its tiles, and its distributions and their three charts
   js/insights/    the figure cards and their colours, and the topics: one module per Insights topic with its takeaway and its groups of cards, and the routing card's panels and policies
   queries/        one .sql file per query answer, under explore/; under setup/ the queries of the derived tables; under trace/ the query of the trace table
   data/           built by make data and tracked: the query answers, the queries' hashes, the figure answers and their index
-tests/            Python tests, node --test files named by the folder of the module each tests, the fake page they share, and snapshots/: the six page states as text, each named by the topic's anchor it opens on
+tests/            Python tests, node --test files named by the folder of the module each tests, the fake page they share (its elements found by selector), and snapshots/: the six page states as text, each named by the topic's anchor it opens on
 openspec/         the specs and the open changes; archived changes live in git history
 ```
 
@@ -88,7 +88,7 @@ after the module it tests and start with that module's folder under
 `traffic_bars.test.js` for `traffic/traffic_bars.js`), a check over
 every Insights card starting `insights_cards_`, except the checks of the
 stylesheet and of the module headers and the test of a test helper,
-named after the helper (`fake_page.test.js`); the repository test SHALL
+named after the helper (`fake_page.test.js`); the naming test SHALL
 check the first word of each name. A snapshot test SHALL hold, under
 `tests/snapshots/`, the normalised text of every chart (its series,
 legend, titles and tick labels), table, legend and text block of six
@@ -116,7 +116,7 @@ fail, naming the host, where the libraries or fonts cannot load.
 
 #### Scenario: A test file named after no folder
 - **WHEN** a node test file `legend.test.js` is added for `shared/legend.js`
-- **THEN** the repository test SHALL fail naming the file, which is to be `shared_legend.test.js`
+- **THEN** the naming test (`tests/test_naming.py`) SHALL fail naming the file, which is to be `shared_legend.test.js`
 
 #### Scenario: A rename that moves nothing
 - **WHEN** a module is renamed and the page shows what it showed
