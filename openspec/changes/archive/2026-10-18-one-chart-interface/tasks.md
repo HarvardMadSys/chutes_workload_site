@@ -10,7 +10,7 @@ no unit moved. That is the check of every task.
 
 ## 1. One shape for an axis
 
-- [ ] 1.1 `plot/axes.js` opens with the `AxisOptions` typedef of design
+- [x] 1.1 `plot/axes.js` opens with the `AxisOptions` typedef of design
       D1, its header no longer describing the options mid-sentence.
       The cells take their category names in the axis: `categoryAxis`
       reads `axis.categories` and adds no `names`; `cellTipText` reads
@@ -23,7 +23,7 @@ no unit moved. That is the check of every task.
       hours and weekdays, its ticks and a cell's tooltip ("Mon") read
       as before in Chromium.
 
-- [ ] 1.2 The stacked bars take `x` and `y` axis options (design D2):
+- [x] 1.2 The stacked bars take `x` and `y` axis options (design D2):
       the scale from `x.domain` and `x.inset`, the marks by `gridMark`,
       `bandAxisMark` and `axisMark` in today's order, the frame titled
       by `y.label`, the tooltip's x by `axisValueText(parameters.x, …)`,
@@ -41,7 +41,7 @@ no unit moved. That is the check of every task.
 
 ## 2. The colour Map and the draw contract
 
-- [ ] 2.1 Every draw function takes the colour Map itself as its third
+- [x] 2.1 Every draw function takes the colour Map itself as its third
       argument, `seriesColours`, and every kind declares all five
       parameters (design D3, D4): the nine kinds, their helpers'
       parameters renamed to `seriesColours` where they hold the Map,
@@ -53,7 +53,7 @@ no unit moved. That is the check of every task.
       *Verify:* the snapshots do not change; `grep -rn "{ series:"
       site/js` finds no colour wrapper.
 
-- [ ] 2.2 One draw contract (design D4): every draw function is `async`,
+- [x] 2.2 One draw contract (design D4): every draw function is `async`,
       returns nothing and ends with `nameChart(body, parameters.name)`;
       the donut drops its own `role` and `aria-label` code and its
       `chartName` import; `drawFigure`, `drawDayBars` and the
@@ -66,7 +66,7 @@ no unit moved. That is the check of every task.
 
 ## 3. The lines and the cells resolve their axes once
 
-- [ ] 3.1 `drawLines` builds `chart` once (design D5) and reads a CDF's
+- [x] 3.1 `drawLines` builds `chart` once (design D5) and reads a CDF's
       `cdf` as `y` by `linePoints`; `drawnPoints`, `brokenAtGaps`,
       `framedPoints`, `seriesLine` and `lineTip` take the resolved
       parameters and lose their y-column argument; `yColumn` goes.
@@ -81,7 +81,7 @@ no unit moved. That is the check of every task.
 
 ## 4. The parameter lists
 
-- [ ] 4.1 The `colourScale` option goes from `sequentialColour` and its
+- [x] 4.1 The `colourScale` option goes from `sequentialColour` and its
       test in `tests/plot_frame.test.js` (design D6). `plot/frame.js` opens with the
       `ChartParameters` typedef; each kind exports its frozen
       `<KIND>_PARAMETERS` of design D6's table, and its draw function's
@@ -91,7 +91,7 @@ no unit moved. That is the check of every task.
       parameter its kind's draw function and helpers read, checked by
       reading each kind against its list.
 
-- [ ] 4.2 `plot/axes.js` exports `AXIS_OPTION_NAMES`; `CHART_KINDS`
+- [x] 4.2 `plot/axes.js` exports `AXIS_OPTION_NAMES`; `CHART_KINDS`
       gains `parameterNames` and renames `parameters` to `defaults`,
       `chartParameters` reading it; the walk of design D7 is added to
       `tests/insights_figure_card.test.js`.
@@ -102,7 +102,7 @@ no unit moved. That is the check of every task.
 
 ## 5. The legend
 
-- [ ] 5.1 `shared/legend.js` takes the legend object with its `swatch`
+- [x] 5.1 `shared/legend.js` takes the legend object with its `swatch`
       and one `legendState`, `{ hidden, onToggle }`, as the last
       argument of `mountLegend(container, legend, legendState)` and
       `drawWithLegend(body, legend, drawChart, legendState)` (design
@@ -126,7 +126,7 @@ no unit moved. That is the check of every task.
 
 ## 6. Small hops
 
-- [ ] 6.1 `drawnBars` is inlined into `drawBars` as a call of
+- [x] 6.1 `drawnBars` is inlined into `drawBars` as a call of
       `shownSeriesRows`, and its two tests go; `sliceShares` sums with
       `columnTotal`; the tests that restate `PERCENTILES` and
       `STATISTICS` go (design D9).
@@ -136,7 +136,7 @@ no unit moved. That is the check of every task.
 
 ## 7. The documents
 
-- [ ] 7.1 CONTRIBUTING's paragraph on the chart kinds says the one
+- [x] 7.1 CONTRIBUTING's paragraph on the chart kinds says the one
       signature, the colour Map, the kind naming its chart, the lists
       of parameters with their test, and the two typedefs, in place of
       the flat keys it names (`xTickRotate`, `xInset`, `xTipFormat`);

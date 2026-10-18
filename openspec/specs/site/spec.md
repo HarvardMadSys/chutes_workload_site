@@ -133,9 +133,11 @@ the fixture equals the query run live; for every figure, that its answer
 equals its plotdata rows; for the trace query, that its rows over the
 fixture trace equal the fixture's weekly histograms. A node test SHALL
 check that every card's kind is one of the nine and that the card's
-shipped answer has the kind's columns. A node test file SHALL be named
-after the module it tests and start with that module's folder under
-`site/js/` (`charts_lines.test.js` for `charts/lines.js`,
+shipped answer has the kind's columns. A node test SHALL check that
+every card's `chart`, and every panel's, names only parameters its
+kind lists, and every axis in it only the axis options. A node test
+file SHALL be named after the module it tests and start with that
+module's folder under `site/js/` (`charts_lines.test.js` for `charts/lines.js`,
 `traffic_bars.test.js` for `traffic/traffic_bars.js`), a check over
 every Insights card starting `insights_cards_`, except the checks of the
 stylesheet and of the module headers and the test of a test helper,
@@ -160,6 +162,10 @@ fail, naming the host, where the libraries or fonts cannot load.
 #### Scenario: A figure answer without its kind's columns
 - **WHEN** a card says `kind: "bands"` and its answer has no `p50` column
 - **THEN** the node test SHALL fail naming the card
+
+#### Scenario: A parameter its kind does not read
+- **WHEN** a cells card's `chart` names `yRefrence`, or a panel's x axis names `tickformat`
+- **THEN** the node test SHALL fail naming the card and the key
 
 #### Scenario: A card that changed
 - **WHEN** a card's insight, a chart's series or a trend's series changes without `make snapshots`
@@ -443,3 +449,24 @@ MiB.
 #### Scenario: The query edited without rebuilding
 - **WHEN** the text of `weekly_histograms.sql` changes and `make tables` has not been rerun
 - **THEN** `make test` SHALL fail naming the query
+
+### Requirement: The chart kinds share one interface
+Every chart kind SHALL be drawn by one function of one shape,
+`draw<Kind>(rows, body, seriesColours, parameters, hidden)`: the rows of
+its answer, the place to draw into, the Map from series name to colour
+in the legend's order (not read by a kind without series), its
+parameters and the Set of the series its legend hides. It SHALL settle
+once its chart is in the place and named for a screen reader, by the
+name its parameters give, or else by its figure's title and insight
+(its caption where it has no insight), and SHALL return nothing; no
+caller SHALL name a chart. Every kind that draws axes SHALL take them
+as `x` and `y` in one shape, the axis options, whose names are listed
+once. Each kind SHALL export the list of the parameter names it reads.
+
+#### Scenario: One axis on two kinds
+- **WHEN** a stacked-bars card and a bands card are drawn on the trace's month axis
+- **THEN** both SHALL give it as `x: TRACE_MONTH_AXIS`, and both SHALL tick and write a month alike
+
+#### Scenario: A chart is named by its kind
+- **WHEN** any kind's draw function has settled, after the first drawing or a legend's press
+- **THEN** the chart's SVG SHALL carry `role="img"` and its accessible name, with no call by its caller
