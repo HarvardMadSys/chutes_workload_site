@@ -6,7 +6,7 @@
 
 import { formatCount, formatWholeCountTick } from "../shared/format.js";
 import { COUNT_COLOUR } from "./card_series.js";
-import { frozenCard } from "./figure_card.js";
+import { frozenTopic } from "./figure_card.js";
 
 // The token-shape figures' axes, as the paper's: the users' medians up to 10⁶ input and 10⁵ output tokens, the
 // models' up to 10⁵ on both axes, so that the line of equal input and output is the diagonal.
@@ -54,19 +54,19 @@ function formatDayTick(hour) {
 }
 
 /** The Users and models topic. */
-export const USERS_TOPIC = Object.freeze({
+export const USERS_TOPIC = frozenTopic({
   id: "insights-users",
   // placeholder: the title is the site's name for the topic, for the authors.
   title: "Users and models",
   // placeholder: the takeaway is the paper's finding for the section in plain words, for the authors.
   takeaway: "Users and models each have their own rhythm of access and bursts, and busy or quiet spells tend to last, which serving decisions can use.",
-  groups: Object.freeze([
-    Object.freeze({
+  groups: [
+    {
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
       heading: "Same volume, different breadth",
       takeaway: "Models and users with similar request counts differ by orders of magnitude in how many users or models they touch, and in their token shape.",
-      cards: Object.freeze([
-        frozenCard({
+      cards: [
+        {
           figure: "fig_model_requests_vs_users_density",
           title: "Models: requests and users",
           insight: "Models and users span wide ranges of request volume.",
@@ -82,8 +82,8 @@ export const USERS_TOPIC = Object.freeze({
             valueLabel: "Models",
             valueFormat: formatCount,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_user_requests_distinct_models_heatmap",
           title: "Users: requests and models",
           // placeholder: the paragraph's lead-in is on the models' card; this is its sentence on this panel.
@@ -100,8 +100,8 @@ export const USERS_TOPIC = Object.freeze({
             valueLabel: "Users",
             valueFormat: formatCount,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_model_median_input_output_heatmap",
           title: "Models: input and output",
           insight: "Token shape varies substantially across models and users.",
@@ -118,8 +118,8 @@ export const USERS_TOPIC = Object.freeze({
             valueLabel: "Models",
             valueFormat: formatCount,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_user_median_input_output_heatmap",
           title: "Users: input and output",
           // placeholder: the paragraph's lead-in is on the models' card; this is its sentence on this panel.
@@ -140,15 +140,15 @@ export const USERS_TOPIC = Object.freeze({
             valueLabel: "Users",
             valueFormat: formatCount,
           },
-        }),
-      ]),
-    }),
-    Object.freeze({
+        },
+      ],
+    },
+    {
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
       heading: "Access patterns",
       takeaway: "Some users stick to a few models or return on a schedule, others spread out or burst, and two popular models show one steady and one synchronised user pattern.",
-      cards: Object.freeze([
-        frozenCard({
+      cards: [
+        {
           figure: "fig_model_raster_qwen3_next_80b",
           title: "Periodic user access",
           insight: "Popular models can exhibit very different user-level access patterns.",
@@ -163,8 +163,8 @@ export const USERS_TOPIC = Object.freeze({
             ...COUNT_COLOUR,
             valueLabel: "Requests per hour",
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_model_raster_gpt_oss_20b",
           title: "Correlated access",
           // placeholder: the paragraph's lead-in is on the periodic access card; this is its sentence on this panel.
@@ -180,8 +180,8 @@ export const USERS_TOPIC = Object.freeze({
             ...COUNT_COLOUR,
             valueLabel: "Requests per hour",
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_user_raster_periodic",
           title: "Periodic user usage",
           insight: "Heavy users differ in how broadly they access models.",
@@ -194,8 +194,8 @@ export const USERS_TOPIC = Object.freeze({
             ...COUNT_COLOUR,
             valueLabel: "Requests per hour",
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_user_raster_explore",
           title: "Model exploration",
           // placeholder: the paragraph's lead-in is on the periodic usage card; this is its sentence on this panel.
@@ -209,15 +209,15 @@ export const USERS_TOPIC = Object.freeze({
             ...COUNT_COLOUR,
             valueLabel: "Requests per hour",
           },
-        }),
-      ]),
-    }),
-    Object.freeze({
+        },
+      ],
+    },
+    {
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
       heading: "Burstiness is persistent",
       takeaway: "Requests to most models come in bursts, and busy or quiet spells tend to last, so colocation and autoscaling can plan on it.",
-      cards: Object.freeze([
-        frozenCard({
+      cards: [
+        {
           figure: "fig_model_heatmap_fixedxy_density",
           title: "Popularity and burstiness",
           insight: "Most models are bursty and persistently so.",
@@ -234,8 +234,8 @@ export const USERS_TOPIC = Object.freeze({
             valueLabel: "Models",
             valueFormat: formatCount,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_model_heatmap_fixedxy_scatter_colored_metrics",
           title: "Lag-1 IAT autocorrelation",
           // placeholder: the paragraph's lead-in is on the burstiness card; this is its sentence on this panel.
@@ -254,8 +254,8 @@ export const USERS_TOPIC = Object.freeze({
             valueLabel: "Lag-1 autocorrelation",
             valueFormat: formatCount,
           },
-        }),
-      ]),
-    }),
-  ]),
+        },
+      ],
+    },
+  ],
 });

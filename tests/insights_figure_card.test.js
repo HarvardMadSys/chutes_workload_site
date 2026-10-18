@@ -1,11 +1,11 @@
 // A figure card (`insights/figure_card.js`): the parameters every card's and panel's chart names, a card's element, its
-// words placed in order and its Definition control, the answers it reads, a frozen card, its chart's parameters, and
+// words placed in order and its Definition control, the answers it reads, a frozen topic, its chart's parameters, and
 // an answer's error. Every card against its shipped answer is `insights_cards_answers.test.js`'s.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  CHART_KINDS, chartParameters, drawFigureChart, frozenCard, newCardElement, renderFigureCard,
+  CHART_KINDS, chartParameters, drawFigureChart, frozenTopic, newCardElement, renderFigureCard,
 } from "../site/js/insights/figure_card.js";
 import { AXIS_OPTION_NAMES } from "../site/js/plot/axes.js";
 import { FakeElement, useFakePage } from "./fake_page.js";
@@ -94,15 +94,27 @@ test("a card of the endpoints' palette takes their order from the page's mixes a
     assert.deepEqual(page.reads, ["data/all/figures/fig_a.json"]);
   });
 
-test("a frozen card holds only frozen objects and lists, and its functions as they were", () => {
+test("a frozen topic holds only frozen objects and lists, its cards' too, and its functions as they were", () => {
   const tickFormat = (value) => `${value}`;
-  const card = frozenCard({
-    ...CARD,
-    series: ["Global"],
-    chart: { x: { label: "Day", domain: [0, 1], tickFormat }, dashed: ["Global"] },
-    panels: [{ panel: "a", title: "(a)", chart: { y: { log: true } } }],
+  const topic = frozenTopic({
+    id: "insights-a",
+    title: "A",
+    takeaway: "A takeaway.",
+    groups: [{
+      heading: "A group",
+      takeaway: "Its takeaway.",
+      cards: [{
+        ...CARD,
+        series: ["Global"],
+        chart: { x: { label: "Day", domain: [0, 1], tickFormat }, dashed: ["Global"] },
+        panels: [{ panel: "a", title: "(a)", chart: { y: { log: true } } }],
+      }],
+    }],
   });
-  const parts = [card, card.series, card.chart, card.chart.x, card.chart.x.domain, card.chart.dashed, card.panels];
+  const [group] = topic.groups;
+  const [card] = group.cards;
+  const parts = [topic, topic.groups, group, group.cards];
+  parts.push(card, card.series, card.chart, card.chart.x, card.chart.x.domain, card.chart.dashed, card.panels);
   parts.push(card.panels[0], card.panels[0].chart, card.panels[0].chart.y);
   assert.ok(parts.every((part) => Object.isFrozen(part)));
   assert.equal(card.chart.x.tickFormat, tickFormat);

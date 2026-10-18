@@ -441,7 +441,8 @@ most thirty words, written under its heading. A group's `heading` is at
 most six words, with no full stop; its `takeaway`, what its figures show
 and, where the paper draws one, what that means for a serving system, is
 at most two sentences and forty words; its `cards` are in the paper's
-order. A topic module freezes the topic, each group and each `cards` list, and
+order. A topic module writes its topic as one `frozenTopic({ … })` of
+`insights/figure_card.js`, which freezes it whole, and
 `topicCards(topic)` of `page/topics.js` lists a topic's
 cards group by group, the one way the tests list them.
 `tests/insights_cards_words.test.js` counts these limits and a card's below;
@@ -495,11 +496,11 @@ the free slots of its palette in the order of its `series`, else the
 answer's), places a legend of buttons where there
 is more than one series (none where each panel holds one series, which
 its title names), and draws the chart by its kind at the card's width. A
-topic makes each card with `frozenCard` of the same module, which freezes
+topic writes each card as a plain object literal; `frozenTopic` freezes
 the card and every object it holds, its chart and panels included.
 
 ```js
-frozenCard({
+{
   figure: "fig_request_rate_day",
   title: "Daily request rate",
   insight: "Aggregate demand is non-stationary.",
@@ -513,7 +514,7 @@ frozenCard({
     valueLabel: "Requests",
     valueFormat: formatCompactCount,
   },
-}),
+},
 ```
 
 **The column contract.** A figure's plot-ready table holds the columns of

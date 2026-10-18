@@ -8,7 +8,7 @@ import { formatCompactCount, formatCount, formatCountTick } from "../shared/form
 import { ENDPOINT_LABELS } from "../shared/series.js";
 import { TRACE_DAY_AXIS } from "../plot/trace_axes.js";
 import { ENDPOINT_PALETTE } from "./card_series.js";
-import { frozenCard } from "./figure_card.js";
+import { frozenTopic } from "./figure_card.js";
 
 // The API functions' labels where the answer writes a function's name otherwise than the site's endpoint groups.
 const FUNCTION_LABELS = Object.freeze({
@@ -25,19 +25,19 @@ const LABELLED_HOURS = Object.freeze([0, 4, 8, 12, 16, 20]);
 const WEEKDAY_LABELS = Object.freeze(["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]);
 
 /** The topic "The workload at a glance". */
-export const WORKLOAD_TOPIC = Object.freeze({
+export const WORKLOAD_TOPIC = frozenTopic({
   id: "insights-overview",
   // placeholder: the title is the site's name for the topic, for the authors.
   title: "The workload at a glance",
   // placeholder: the takeaway is the section's closing conclusion in plain words, for the authors.
   takeaway: "Demand changes all year, in volume, in which models are active and in how the API is called; one request rate would not describe it.",
-  groups: Object.freeze([
-    Object.freeze({
+  groups: [
+    {
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
       heading: "Demand over the year",
       takeaway: "Requests and tokens rise to a peak in late 2025 and fall into 2026, the set of active models swings, and chat calls grow while completion calls fall back.",
-      cards: Object.freeze([
-        frozenCard({
+      cards: [
+        {
           figure: "fig_request_rate_day",
           title: "Daily request rate",
           insight: "Aggregate demand is non-stationary.",
@@ -51,8 +51,8 @@ export const WORKLOAD_TOPIC = Object.freeze({
             valueLabel: "Requests",
             valueFormat: formatCompactCount,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_token_rate_day",
           title: "Daily token rate",
           // placeholder: the paragraph's lead-in is on the request rate's card; this is its sentence on this panel.
@@ -67,8 +67,8 @@ export const WORKLOAD_TOPIC = Object.freeze({
             valueLabel: "Tokens",
             valueFormat: formatCompactCount,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_daily_unique_models",
           title: "Daily active models",
           insight: "Active models and API mix shift over the year.",
@@ -82,8 +82,8 @@ export const WORKLOAD_TOPIC = Object.freeze({
             valueLabel: "Models",
             valueFormat: formatCount,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_function_name_daily_requests",
           title: "Daily API calls",
           // placeholder: the paragraph's lead-in is on the active models' card; this is its sentence on this panel.
@@ -100,15 +100,15 @@ export const WORKLOAD_TOPIC = Object.freeze({
             valueLabel: "Requests",
             valueFormat: formatCompactCount,
           },
-        }),
-      ]),
-    }),
-    Object.freeze({
+        },
+      ],
+    },
+    {
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
       heading: "The weekly rhythm",
       takeaway: "Through all of it traffic keeps a weekly and daily cycle, busiest in UTC afternoons.",
-      cards: Object.freeze([
-        frozenCard({
+      cards: [
+        {
           figure: "fig_seasonality",
           title: "Requests by hour of the week",
           insight: "Weekly and diurnal patterns persist throughout.",
@@ -126,8 +126,8 @@ export const WORKLOAD_TOPIC = Object.freeze({
             valueLabel: "Average requests in the hour",
             valueFormat: formatCountTick,
           },
-        }),
-      ]),
-    }),
-  ]),
+        },
+      ],
+    },
+  ],
 });

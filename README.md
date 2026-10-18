@@ -574,7 +574,7 @@ tests/               what make test runs
   insights_figure_card.test.js
                      a figure card: every card's and panel's chart naming only parameters its kind lists, its axes
                      only axis options; a card's element, its words in order, its Definition control, the answers
-                     it reads, a frozen card, its chart's parameters and an answer's error
+                     it reads, a frozen topic, its chart's parameters and an answer's error
   insights_cards_answers.test.js
                      every card against its shipped answer: its kind's columns, its panels, its series, its
                      palette, its legend answer, and the figure answers' index listing them

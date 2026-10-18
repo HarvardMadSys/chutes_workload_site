@@ -168,12 +168,20 @@ export async function drawFigureChart(body, card, mixes) {
 }
 
 /**
- * A card as a topic lists it: `card`, frozen with every object and list it holds (its `chart` and their axes, its
- * `panels` and theirs), so no reader can change a card another reads. Functions, such as a tick format, are left as
- * they are.
+ * `topic`, a `Topic` as its module writes it, frozen with every object and list it holds, its groups, its cards and
+ * their charts, axes and panels, so no reader can change a card another reads. A function, such as a tick format, is
+ * left as it is.
  */
-export function frozenCard(card) {
-  return deepFrozen(card);
+export function frozenTopic(topic) {
+  const unfrozen = [topic];
+  while (unfrozen.length > 0) {
+    const value = unfrozen.pop();
+    if (typeof value === "object" && value !== null) {
+      Object.freeze(value);
+      unfrozen.push(...Object.values(value));
+    }
+  }
+  return topic;
 }
 
 /**
@@ -187,17 +195,6 @@ export function chartParameters(card, entry = null) {
     return parameters;
   }
   return { ...parameters, ...entry.chart, panel: entry.panel };
-}
-
-// `value` frozen, and every object or list it holds, all the way down; a function or a plain value as it is.
-function deepFrozen(value) {
-  if (typeof value !== "object" || value === null) {
-    return value;
-  }
-  for (const part of Object.values(value)) {
-    deepFrozen(part);
-  }
-  return Object.freeze(value);
 }
 
 // The rows of the legend answer `card` names, or null where it names none.

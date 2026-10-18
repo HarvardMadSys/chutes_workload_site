@@ -7,7 +7,7 @@
 import { formatCountTick, formatPercent, formatShare, formatWholeCount } from "../shared/format.js";
 import { TRACE_MONTH_AXIS } from "../plot/trace_axes.js";
 import { SERIES_SLOTS } from "../theme/colours.js";
-import { frozenCard } from "./figure_card.js";
+import { frozenTopic } from "./figure_card.js";
 
 // The legend of the two monthly share cards, which the paper draws once above both: the ten most requested models
 // and Others.
@@ -22,19 +22,19 @@ const OUTPUT_COLOUR = SERIES_SLOTS[1];
 const COHORT_AXIS = Object.freeze({ ...TRACE_MONTH_AXIS, label: "Release cohort (month first seen)" });
 
 /** The topic "A year of change". */
-export const EVOLUTION_TOPIC = Object.freeze({
+export const EVOLUTION_TOPIC = frozenTopic({
   id: "insights-evolution",
   // placeholder: the title is the site's name for the topic, for the authors.
   title: "A year of change",
   // placeholder: the takeaway is the paper's finding for the section in plain words, for the authors.
   takeaway: "Over the year the leading models change, outputs get shorter and newer users send longer inputs.",
-  groups: Object.freeze([
-    Object.freeze({
+  groups: [
+    {
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
       heading: "Dominant models turn over",
       takeaway: "DeepSeek V3-0324 and R1 lead early, Qwen3-32B and DeepSeek V3.2 later, and the long tail of other models grows.",
-      cards: Object.freeze([
-        frozenCard({
+      cards: [
+        {
           figure: "fig_top10_model_monthly_request_share",
           title: "Request share",
           insight: "Dominant models turn over.",
@@ -53,8 +53,8 @@ export const EVOLUTION_TOPIC = Object.freeze({
           legend: SHARE_LEGEND,
           // Ten models and Others: more series than the eight slots.
           palette: "families",
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_top10_model_monthly_token_share",
           title: "Token share",
           insight: "Traffic spreads across more models over time.",
@@ -74,15 +74,15 @@ export const EVOLUTION_TOPIC = Object.freeze({
           legend: SHARE_LEGEND,
           // Ten models and Others: more series than the eight slots.
           palette: "families",
-        }),
-      ]),
-    }),
-    Object.freeze({
+        },
+      ],
+    },
+    {
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
       heading: "Inputs stay, outputs shrink",
       takeaway: "Monthly input lengths hold in the thousands of tokens while the median output falls below a hundred.",
-      cards: Object.freeze([
-        frozenCard({
+      cards: [
+        {
           figure: "fig_monthly_input_token_intervals",
           title: "Monthly input intervals",
           insight: "Inputs stay stable while outputs shrink.",
@@ -99,8 +99,8 @@ export const EVOLUTION_TOPIC = Object.freeze({
             valueLabel: "Input tokens",
             valueFormat: formatWholeCount,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_monthly_output_token_intervals",
           title: "Monthly output intervals",
           // placeholder: the paragraph's lead-in is on the input intervals' card; this is its sentence on this panel.
@@ -118,15 +118,15 @@ export const EVOLUTION_TOPIC = Object.freeze({
             valueLabel: "Output tokens",
             valueFormat: formatWholeCount,
           },
-        }),
-      ]),
-    }),
-    Object.freeze({
+        },
+      ],
+    },
+    {
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
       heading: "Newer users send more input",
       takeaway: "Users who arrived later in the year have longer inputs and more varied token profiles.",
-      cards: Object.freeze([
-        frozenCard({
+      cards: [
+        {
           figure: "fig_user_release_cohort_input_band",
           title: "Median input by cohort",
           insight: "Newer user cohorts are more input-heavy.",
@@ -142,8 +142,8 @@ export const EVOLUTION_TOPIC = Object.freeze({
             valueLabel: "Median input tokens",
             valueFormat: formatWholeCount,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_user_release_cohort_output_band",
           title: "Median output by cohort",
           // placeholder: the paragraph's lead-in is on the input cohorts' card; this is its sentence on this panel.
@@ -160,8 +160,8 @@ export const EVOLUTION_TOPIC = Object.freeze({
             valueLabel: "Median output tokens",
             valueFormat: formatWholeCount,
           },
-        }),
-      ]),
-    }),
-  ]),
+        },
+      ],
+    },
+  ],
 });

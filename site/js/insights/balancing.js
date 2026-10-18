@@ -9,7 +9,7 @@ import {
   formatWholeCountTick,
 } from "../shared/format.js";
 import { TRACE_DAY_AXIS } from "../plot/trace_axes.js";
-import { frozenCard } from "./figure_card.js";
+import { frozenTopic } from "./figure_card.js";
 // The routing simulation's series and panels.
 import { routingFigurePanels, routingFigureSeries } from "./routing_panels.js";
 
@@ -56,19 +56,19 @@ const HIGH_LOAD_INSTANCES = 12;
 const LOW_LOAD_INSTANCES = 11;
 
 /** The Load balancing topic. */
-export const BALANCING_TOPIC = Object.freeze({
+export const BALANCING_TOPIC = frozenTopic({
   id: "insights-balancing",
   // placeholder: the title is the site's name for the topic, for the authors.
   title: "Load balancing",
   // placeholder: the takeaway is the paper's finding for the section in plain words, for the authors.
   takeaway: "Routing for cache locality fights load balancing: spreading a user over instances duplicates cache state, keeping them together costs a little imbalance.",
-  groups: Object.freeze([
-    Object.freeze({
+  groups: [
+    {
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
       heading: "Balanced on average, not every hour",
       takeaway: "The fleet shrinks with token load, imbalance grows as it does, and the busiest instances pay in time to first token.",
-      cards: Object.freeze([
-        frozenCard({
+      cards: [
+        {
           figure: "fig_lb_request_rate",
           title: "Requests per hour",
           // placeholder: the overview paragraph has no lead-in; this is the figure caption's line on this panel.
@@ -83,8 +83,8 @@ export const BALANCING_TOPIC = Object.freeze({
             valueLabel: "Requests",
             valueFormat: formatCompactCount,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_lb_active_instances",
           title: "Active instances per hour",
           // placeholder: the overview paragraph has no lead-in; this is its sentence on this panel.
@@ -101,8 +101,8 @@ export const BALANCING_TOPIC = Object.freeze({
             valueLabel: "Active instances",
             valueFormat: formatCount,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_lb_maxmean_tokens",
           title: "Token max/mean ratio",
           // placeholder: the overview paragraph has no lead-in; this is its sentence on this panel.
@@ -118,8 +118,8 @@ export const BALANCING_TOPIC = Object.freeze({
             valueLabel: "Max/mean token load",
             valueFormat: formatCount,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_lb_concurrency",
           title: "Per-instance occupancy",
           // placeholder: the overview paragraph has no lead-in; this is its sentence on this panel.
@@ -138,8 +138,8 @@ export const BALANCING_TOPIC = Object.freeze({
             valueLabel: "Requests per minute",
             valueFormat: formatCount,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_lb_ttft_p90_vs_load",
           title: "Load and TTFT",
           // placeholder: the overview paragraph has no lead-in; this is its sentence on this panel.
@@ -160,8 +160,8 @@ export const BALANCING_TOPIC = Object.freeze({
             valueLabel: "P90 TTFT",
             valueFormat: formatSecondsTick,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_lb_decode_p90_vs_load",
           title: "Load and decode time",
           // placeholder: the overview paragraph has no lead-in; this is its sentence on this panel.
@@ -181,15 +181,15 @@ export const BALANCING_TOPIC = Object.freeze({
             valueLabel: "P90 decode time",
             valueFormat: formatSecondsTick,
           },
-        }),
-      ]),
-    }),
-    Object.freeze({
+        },
+      ],
+    },
+    {
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
       heading: "Locality against balance",
       takeaway: "Under high load the router spreads a user over many instances and duplicates their cache; under low load it keeps most of their requests on one.",
-      cards: Object.freeze([
-        frozenCard({
+      cards: [
+        {
           figure: "fig_lb_user_zoom_top",
           title: "High load",
           // placeholder: the paragraph has no lead-in; this is its sentence on this panel.
@@ -200,8 +200,8 @@ export const BALANCING_TOPIC = Object.freeze({
           kind: "bars",
           chart: { x: { label: "Instance index" }, valueFormat: formatPercentage },
           panels: userZoomPanels(HIGH_LOAD_SHARE_TOP, HIGH_LOAD_INSTANCES),
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_lb_user_zoom_min",
           title: "Low load",
           // placeholder: the paragraph has no lead-in; this is its sentence on this panel.
@@ -212,15 +212,15 @@ export const BALANCING_TOPIC = Object.freeze({
           kind: "bars",
           chart: { x: { label: "Instance index" }, valueFormat: formatPercentage },
           panels: userZoomPanels(LOW_LOAD_SHARE_TOP, LOW_LOAD_INSTANCES),
-        }),
-      ]),
-    }),
-    Object.freeze({
+        },
+      ],
+    },
+    {
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
       heading: "Cache-aware routing",
       takeaway: "Larger caches raise hit ratios only when routing keeps a session together; the price is a few percent of imbalance.",
-      cards: Object.freeze([
-        frozenCard({
+      cards: [
+        {
           figure: "fig_routing_tradeoff",
           title: "Load balance simulation",
           insight: "Cache-aware routing unlocks fleet-wide KV capacity.",
@@ -232,8 +232,8 @@ export const BALANCING_TOPIC = Object.freeze({
           chart: { markers: true, valueFormat: formatCount },
           panels: routingFigurePanels(),
           isWide: true,
-        }),
-      ]),
-    }),
-  ]),
+        },
+      ],
+    },
+  ],
 });

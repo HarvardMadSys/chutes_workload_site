@@ -10,7 +10,7 @@ import {
 } from "../shared/format.js";
 import { SHARE_OF_REQUESTS_AXIS } from "../plot/axes.js";
 import { HIGHLIGHTED_LABELS, HIGHLIGHTED_SERIES } from "./card_series.js";
-import { frozenCard } from "./figure_card.js";
+import { frozenTopic } from "./figure_card.js";
 
 // The latency grids' extent, as the paper draws them: input buckets up to 34K tokens, output buckets up to 8,200.
 const INPUT_DOMAIN = Object.freeze([0, 34]);
@@ -37,19 +37,19 @@ function formatHitRatio(ratio) {
 }
 
 /** The topic "Request shape and latency". */
-export const TOKENS_TOPIC = Object.freeze({
+export const TOKENS_TOPIC = frozenTopic({
   id: "insights-tokens",
   // placeholder: the title is the site's name for the topic, for the authors.
   title: "Request shape and latency",
   // placeholder: the takeaway is the section's closing conclusion in plain words, for the authors.
   takeaway: "Requests are often prompt-heavy and most latency is decode; the three highlighted models spend it differently, on long outputs or on long prompts.",
-  groups: Object.freeze([
-    Object.freeze({
+  groups: [
+    {
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
       heading: "Three model profiles",
       takeaway: "DeepSeek R1 (reasoning) writes long outputs, MiniMax M2.5 (coding and agents) reads long inputs and answers briefly, DeepSeek V3.2 (general chat) sits near the global curve.",
-      cards: Object.freeze([
-        frozenCard({
+      cards: [
+        {
           figure: "fig_token_length_input_cdf_by_model",
           title: "Input tokens",
           insight: "Requests are often prompt-heavy.",
@@ -70,8 +70,8 @@ export const TOKENS_TOPIC = Object.freeze({
             valueLabel: "Input tokens",
             valueFormat: formatWholeCount,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_token_length_output_cdf_by_model",
           title: "Output tokens",
           insight: "Highlighted models show distinct usage profiles.",
@@ -87,8 +87,8 @@ export const TOKENS_TOPIC = Object.freeze({
             valueLabel: "Output tokens",
             valueFormat: formatWholeCount,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_output_input_ratio_cdf_by_model",
           title: "Output-to-input ratio",
           // placeholder: the paragraph's lead-in is on the input tokens' card; this is its sentence on this panel.
@@ -113,15 +113,15 @@ export const TOKENS_TOPIC = Object.freeze({
           },
           // Wide, as the spec's table sets it, so its log axis of five decades and more, 0.0005 to 100, has the room.
           isWide: true,
-        }),
-      ]),
-    }),
-    Object.freeze({
+        },
+      ],
+    },
+    {
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
       heading: "Latency is mostly decode",
       takeaway: "End-to-end latency spans orders of magnitude, and the time to the first token is usually a small share of it.",
-      cards: Object.freeze([
-        frozenCard({
+      cards: [
+        {
           figure: "fig_latency_e2e_cdf_by_model",
           title: "End-to-end latency",
           insight: "Models can be latency-bound for different reasons.",
@@ -137,8 +137,8 @@ export const TOKENS_TOPIC = Object.freeze({
             valueLabel: "Latency",
             valueFormat: formatSeconds,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_prefill_fraction_cdf_by_model",
           title: "Fraction of TTFT",
           insight: "End-to-end latency is dominated by decode.",
@@ -155,15 +155,15 @@ export const TOKENS_TOPIC = Object.freeze({
             valueLabel: "Fraction of the duration",
             valueFormat: formatShare,
           },
-        }),
-      ]),
-    }),
-    Object.freeze({
+        },
+      ],
+    },
+    {
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
       heading: "What drives latency",
       takeaway: "Duration grows with output length, time to first token with input length, and caching cuts it most for long inputs.",
-      cards: Object.freeze([
-        frozenCard({
+      cards: [
+        {
           figure: "fig_duration_p50_heatmap",
           title: "Output tokens and duration",
           insight: "Output length drives duration; input length drives TTFT.",
@@ -178,8 +178,8 @@ export const TOKENS_TOPIC = Object.freeze({
             valueLabel: "Median duration",
             valueFormat: GRID_SECONDS,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_ttft_p50_heatmap_input_output",
           title: "Input tokens and TTFT",
           // placeholder: the paragraph's lead-in is on the duration's card; this is its sentence on this panel.
@@ -195,8 +195,8 @@ export const TOKENS_TOPIC = Object.freeze({
             valueLabel: "Median TTFT",
             valueFormat: GRID_SECONDS,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_ttft_heatmap_input_cached",
           title: "TTFT and token hit ratio",
           // placeholder: the paragraph's lead-in is on the duration's card; this is the figure caption's claim.
@@ -212,8 +212,8 @@ export const TOKENS_TOPIC = Object.freeze({
             valueLabel: "Median TTFT",
             valueFormat: GRID_SECONDS,
           },
-        }),
-      ]),
-    }),
-  ]),
+        },
+      ],
+    },
+  ],
 });

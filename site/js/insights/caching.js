@@ -11,7 +11,7 @@ import {
 import { SHARE_OF_REQUESTS_AXIS } from "../plot/axes.js";
 import { TRACE_MONTH_AXIS } from "../plot/trace_axes.js";
 import { COUNT_COLOUR, HIGHLIGHTED_LABELS, HIGHLIGHTED_SERIES } from "./card_series.js";
-import { frozenCard } from "./figure_card.js";
+import { frozenTopic } from "./figure_card.js";
 
 // An axis of the token hit ratio, 0 to 1, labelled every fifth as the paper's.
 const HIT_RATIO_AXIS = Object.freeze({
@@ -33,19 +33,19 @@ const HIGHLIGHTED_MODELS = Object.freeze(HIGHLIGHTED_SERIES.filter((name) => nam
 const IAT_CAP_SECONDS = 400;
 
 /** The Prefix caching topic. */
-export const CACHING_TOPIC = Object.freeze({
+export const CACHING_TOPIC = frozenTopic({
   id: "insights-caching",
   // placeholder: the title is the site's name for the topic, for the authors.
   title: "Prefix caching",
   // placeholder: the takeaway is the paper's finding for the section in plain words, for the authors.
   takeaway: "Cache reuse is common but uneven: most requests reuse nearly all of their prefix or none, and most reuse returns within minutes, so simple eviction works.",
-  groups: Object.freeze([
-    Object.freeze({
+  groups: [
+    {
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
       heading: "Reuse is all or nothing",
       takeaway: "Most requests reuse nearly all of their prefix or none; the two DeepSeek models mostly see none, MiniMax M2.5 a broad range, so cacheability follows the use case and the user base.",
-      cards: Object.freeze([
-        frozenCard({
+      cards: [
+        {
           figure: "fig_request_cached_fraction_cdf_by_input",
           title: "Prompt length and hit ratio",
           insight: "Request-level cached fractions are bimodal.",
@@ -60,8 +60,8 @@ export const CACHING_TOPIC = Object.freeze({
             valueLabel: "Token hit ratio",
             valueFormat: formatCount,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_request_token_hit_rate_cdf_by_model",
           title: "Model token hit ratio",
           insight: "Cache behavior differs sharply across models.",
@@ -78,8 +78,8 @@ export const CACHING_TOPIC = Object.freeze({
             valueLabel: "Token hit ratio",
             valueFormat: formatCount,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_model_nreq_vs_avg_hitratio_hexbin",
           title: "Per-model cache profile",
           // placeholder: the paragraph's lead-in, "Model and user cacheability.", names a topic, not a claim.
@@ -100,8 +100,8 @@ export const CACHING_TOPIC = Object.freeze({
             valueLabel: "Models",
             valueFormat: formatCount,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_user_nreq_vs_avg_hitratio_hexbin",
           title: "Per-user cache profile",
           // placeholder: the paragraph's lead-in, "Model and user cacheability.", names a topic, not a claim.
@@ -122,15 +122,15 @@ export const CACHING_TOPIC = Object.freeze({
             valueLabel: "Users",
             valueFormat: formatCount,
           },
-        }),
-      ]),
-    }),
-    Object.freeze({
+        },
+      ],
+    },
+    {
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
       heading: "Reuse comes back fast",
       takeaway: "Per-user inter-arrival times stay at minutes and drop toward early 2026, and 99% of a user's repeat requests to the same model come within 15 minutes, so a short TTL keeps most reuse.",
-      cards: Object.freeze([
-        frozenCard({
+      cards: [
+        {
           figure: "fig_iat_monthly_per_user_band",
           title: "Per-user IAT over time",
           insight: "User IAT trends downwards over time.",
@@ -144,8 +144,8 @@ export const CACHING_TOPIC = Object.freeze({
             valueLabel: "Per-user IAT",
             valueFormat: formatSeconds,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_per_user_iat_p50_by_model",
           title: "Per-user IAT across models",
           // placeholder: the paragraph's lead-in is on the IAT over time card; this is its sentence on this panel.
@@ -168,8 +168,8 @@ export const CACHING_TOPIC = Object.freeze({
             valueLabel: "Median IAT per user",
             valueFormat: formatSeconds,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_iat_pair_ttl_coverage",
           title: "Per-user-model IAT",
           insight: "A short TTL covers most repeat arrivals.",
@@ -190,15 +190,15 @@ export const CACHING_TOPIC = Object.freeze({
           // Wide, as the spec's table sets it, so its log axis of over seven decades, 0.3 ms to nearly three hours,
           // has the room.
           isWide: true,
-        }),
-      ]),
-    }),
-    Object.freeze({
+        },
+      ],
+    },
+    {
       // placeholder: the group's heading and takeaway are the site's plain words for the paper's, for the authors.
       heading: "Simple eviction holds up",
       takeaway: "FIFO and LRU often match or beat newer policies; the gap to Belady is what session-aware caching could still win, more so on DeepSeek V3.2.",
-      cards: Object.freeze([
-        frozenCard({
+      cards: [
+        {
           figure: "fig_hit_ratio_minimax_m25",
           title: "Eviction algorithms on MiniMax-M2.5",
           // placeholder: the results paragraph has no lead-in; this is its first finding.
@@ -218,8 +218,8 @@ export const CACHING_TOPIC = Object.freeze({
             valueLabel: "Token hit ratio",
             valueFormat: formatCount,
           },
-        }),
-        frozenCard({
+        },
+        {
           figure: "fig_hit_ratio_deepseek_v32",
           title: "Eviction algorithms on DeepSeek V3.2",
           // placeholder: the results paragraph has no lead-in; this is its second finding.
@@ -239,8 +239,8 @@ export const CACHING_TOPIC = Object.freeze({
             valueLabel: "Token hit ratio",
             valueFormat: formatCount,
           },
-        }),
-      ]),
-    }),
-  ]),
+        },
+      ],
+    },
+  ],
 });
