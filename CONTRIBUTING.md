@@ -755,7 +755,7 @@ Insights' figures are drawn from their plot-ready tables.
   where it has none), or by the name it is given (`nameChart` in
   `shared/figure.js`).
 - **The distribution charts.** The Traffic Explorer's row of three
-  charts under the day range (README's "What the site shows") is
+  charts under the day range (the landing-page spec's "Traffic Explorer") is
   `traffic/traffic_distribution_charts.js`. A chart is keyed everywhere
   by the histogram rows' metric it draws, `input_tokens`,
   `output_tokens` or `ttft`: in `DISTRIBUTION_CHARTS`, in its places and
@@ -770,7 +770,7 @@ Insights' figures are drawn from their plot-ready tables.
   `cdf: true` at the kinds' default height and margins, its y axis the
   share of requests at the kind's ticks, and named by its value and
   "distribution", "Input tokens distribution". Each x axis is log over
-  the domain README gives, the same for every choice, its ticks listed
+  the domain that spec gives, the same for every choice, its ticks listed
   beside it in `DISTRIBUTION_CHARTS` from the domain's start to its end:
   input tokens at 1, 100, 10k and 1M; output tokens at 1, 1k and 100k;
   TTFT at 10 ms, 1 s and 100 s (`formatTtftTick`). The rows past a
