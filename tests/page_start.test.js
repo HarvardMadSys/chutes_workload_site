@@ -8,7 +8,7 @@ import { followHistory, placeTopic, startPage } from "../site/js/page/start.js";
 import { mountTopicTabs } from "../site/js/page/topic_tabs.js";
 import { runTraffic } from "../site/js/traffic/traffic.js";
 import { mountTrafficControls } from "../site/js/traffic/traffic_controls.js";
-import { familyChoices, modelChoices } from "../site/js/traffic/traffic_filter.js";
+import { familyChoices, modelChoices } from "../site/js/traffic/traffic_choice.js";
 import {
   deferred, FakeElement, FakeHistory, PAGE_ADDRESS, settled, shownIds, TOPIC_ANCHORS, topicSections,
 } from "./fake_page.js";

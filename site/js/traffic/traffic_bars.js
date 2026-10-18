@@ -1,8 +1,9 @@
 /**
  * The Traffic Explorer's bars: the chosen metric per day as stacked bars, by family while no family is chosen, by model
- * once one is and by endpoint group once a model is, a figure of the card pattern with its words for each metric, its
- * months written under the bars, and a legend that hides and shows a series (`shared/legend.js`). Its rows are those
- * `rowsInChoice` of `traffic/traffic_filter.js` keeps; a bar takes no click.
+ * once one is and by endpoint group once a model is, a figure of the card pattern with its words for each metric (its
+ * entry of `METRICS`, `traffic/traffic_choice.js`), its months written under the bars, and a legend that hides and
+ * shows a series (`shared/legend.js`). Its rows are those `rowsInChoice` of `traffic/traffic_filter.js` keeps; a bar
+ * takes no click.
  */
 
 import { chartWidth } from "../plot/frame.js";
@@ -10,6 +11,7 @@ import { renderFigure, showNote } from "../shared/figure.js";
 import { formatCount, formatCountTick, formatQuantity } from "../shared/format.js";
 import { drawStackedBars, stackedBarsLegend } from "../charts/stacked_bars.js";
 import { drawWithLegend } from "../shared/legend.js";
+import { metricOf } from "./traffic_choice.js";
 import { choiceBreakdown, dailyValues, periodDays } from "./traffic_filter.js";
 
 // The bars' margins, in pixels: room on the left for a count tick ("600M"), below for a slanted month ("2025-04"),
@@ -38,21 +40,6 @@ const MONTH_LENGTH = "YYYY-MM".length;
 
 // The note in place of the bars when the choice keeps no request.
 const NO_REQUESTS_NOTE = "No requests in this choice.";
-
-// placeholder: what a token metric's bars sum, closing its caption, for the authors.
-const TOKENS_NOTE = " Tokens are summed over the requests that record them.";
-
-/**
- * The bars' words for each metric of `METRICS` (`traffic/traffic_filter.js`), by its value in a choice: the chart's
- * title; what a bar counts, named in its tooltip ("Input tokens: 1,234") and opening the caption; and the caption's
- * closing note.
- */
-export const METRIC_WORDS = Object.freeze({
-  "": Object.freeze({ title: "Requests per day", valueLabel: "Requests", note: "" }),
-  // placeholder: the token metrics' titles and value labels, for the authors.
-  input_tokens: Object.freeze({ title: "Input tokens per day", valueLabel: "Input tokens", note: TOKENS_NOTE }),
-  output_tokens: Object.freeze({ title: "Output tokens per day", valueLabel: "Output tokens", note: TOKENS_NOTE }),
-});
 
 // The caption after what the bars count, by the breakdown's `order`: what the bars are stacked by.
 const CHART_CAPTIONS = Object.freeze({
@@ -112,10 +99,10 @@ export function dayMonth(day) {
  */
 export async function drawTrafficBars(place, { choice, family, chosen, requests, days, colourOrders }, legendState) {
   const breakdown = choiceBreakdown(choice, family?.name);
-  const words = METRIC_WORDS[choice.metric];
+  const metric = metricOf(choice.metric);
   const body = renderFigure(place, {
-    title: words.title,
-    caption: `${words.valueLabel} ${CHART_CAPTIONS[breakdown.order]}${words.note}`,
+    title: metric.title,
+    caption: `${metric.valueLabel} ${CHART_CAPTIONS[breakdown.order]}${metric.note}`,
     definition: CHART_DEFINITION,
     rows: formatQuantity(requests, "request", "requests"),
   });
@@ -126,13 +113,13 @@ export async function drawTrafficBars(place, { choice, family, chosen, requests,
     showNote(body, NO_REQUESTS_NOTE);
     return { breakdown, legend };
   }
-  const drawing = { days: periodDays(days, choice), breakdown, colours: legend.colours, words };
+  const drawing = { days: periodDays(days, choice), breakdown, colours: legend.colours, metric };
   await drawWithLegend(body, legend, (hidden) => drawDayBars(daily, body, drawing, hidden), legendState);
   return { breakdown, legend };
 }
 
 // Draw the bars of the series not in `hidden`, one per day of `drawing.days`, the months written as `monthTicks`
-// says, each segment's value named in its tooltip by `drawing.words`.
+// says, each segment's value named in its tooltip by `drawing.metric`'s value label.
 async function drawDayBars(daily, body, drawing, hidden) {
   await drawStackedBars(daily, body, drawing.colours, {
     xColumn: "day",
@@ -146,7 +133,7 @@ async function drawDayBars(daily, body, drawing, hidden) {
       tickRotate: MONTH_LABEL_ANGLE,
     },
     y: { tickFormat: formatCountTick },
-    valueLabel: drawing.words.valueLabel,
+    valueLabel: drawing.metric.valueLabel,
     valueFormat: formatCount,
     margins: DAILY_MARGINS,
     barInset: DAY_BAR_INSET,

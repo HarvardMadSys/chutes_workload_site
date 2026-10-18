@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { mountTrafficControls, renderControls } from "../site/js/traffic/traffic_controls.js";
-import { familyChoices, NO_FAMILY_MODEL_CHOICES } from "../site/js/traffic/traffic_filter.js";
+import { familyChoices, NO_FAMILY_MODEL_CHOICES } from "../site/js/traffic/traffic_choice.js";
 import { controlsOf, EVERYTHING, FakeElement, PAGE_ADDRESS, useFakeDocument } from "./fake_page.js";
 
 // The trace's days, as far as the period buttons read them: its first and last, and each quarter's first and last.

@@ -1,13 +1,11 @@
 /**
- * The Traffic Explorer's bars (`traffic/traffic_bars.js`): the months written under them, and their words for each
- * metric.
+ * The Traffic Explorer's bars (`traffic/traffic_bars.js`): the months written under them.
  */
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { dayMonth, METRIC_WORDS, monthTicks } from "../site/js/traffic/traffic_bars.js";
-import { METRICS } from "../site/js/traffic/traffic_filter.js";
+import { dayMonth, monthTicks } from "../site/js/traffic/traffic_bars.js";
 
 // Plot widths, in pixels: a desktop card's, and a phone's at 360 px.
 const WIDE_PLOT = 1200;
@@ -58,8 +56,4 @@ test("a long range that is not the whole trace is thinned on a phone's plot too"
 test("a quarter's bars write every month on a phone's plot, Q2 '25 naming April from the trace's first day", () => {
   const days = ["2025-04-11", "2025-05-01", "2025-06-01", "2025-06-30"];
   assert.deepEqual(monthTicks(days, PHONE_PLOT), ["2025-04-11", "2025-05-01", "2025-06-01"]);
-});
-
-test("the bars have their words for every metric, and for no other", () => {
-  assert.deepEqual(Object.keys(METRIC_WORDS).sort(), METRICS.map((metric) => metric.value).sort());
 });

@@ -439,11 +439,13 @@ site/                exactly the files that are deployed
     mixes.js         the Overview's family and endpoint mixes, each drawn as a donut
     cite.js, team.js
                      the citation's sentence and copy buttons; the lab and the authors
-  js/traffic/        the Traffic Explorer: its section, its filter, its controls, its bars, its day range, its tiles,
-                     and its distributions and their three charts
-    traffic.js, traffic_controls.js, traffic_filter.js
-                     the Traffic Explorer: its section; its controls, kept in step with the URL; its choice, its
-                     URL keys and its sums
+  js/traffic/        the Traffic Explorer: its section, its choice, its filter, its controls, its bars, its day range,
+                     its tiles, and its distributions and their three charts
+    traffic.js, traffic_controls.js
+                     the Traffic Explorer: its section; its controls, kept in step with the URL
+    traffic_choice.js, traffic_filter.js
+                     the choice, its URL keys, its metrics with the bars' words and the drop-downs' entries; the
+                     rows a choice keeps and their sums
     traffic_bars.js, traffic_range.js, traffic_tiles.js
                      the bars and their legend; the day range's slider of two handles and the period buttons' days;
                      the four tiles' texts

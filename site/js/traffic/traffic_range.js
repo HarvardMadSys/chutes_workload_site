@@ -1,7 +1,7 @@
 /**
  * The Traffic Explorer's day range: its days within the trace's, the period buttons' ranges, and the slider under the
  * bars, one track with two handles, From and To, that sets it. A range is `{ from, to }`, as a choice holds it
- * (`traffic/traffic_filter.js`): the first and last chosen day, "YYYY-MM-DD", each "" for the trace's end on its side.
+ * (`traffic/traffic_choice.js`): the first and last chosen day, "YYYY-MM-DD", each "" for the trace's end on its side.
  * `days` are the trace's days in order, the distinct days of the daily answer by family; a handle stands on a day's
  * index in them. Each handle is a native range input, the two laid over one track, so the browser gives each its
  * dragging, its Tab stop and its arrow keys. A handle moved past the other pushes it along, so From is never after To.

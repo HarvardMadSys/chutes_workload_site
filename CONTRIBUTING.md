@@ -236,7 +236,7 @@ checks that each path it names exists.
   models), `endpoint` (an endpoint group: `chat`, `chat_stream`,
   `completion`, `completion_stream`, `other`), `metric` (`input_tokens`
   or `output_tokens`; requests when absent) and `from` and `to` (the first
-  and last chosen day, `YYYY-MM-DD`). `traffic/traffic_filter.js` is their
+  and last chosen day, `YYYY-MM-DD`). `traffic/traffic_choice.js` is their
   one home: `readTrafficChoice` reads them when the page starts, a value it
   does not know falling back to everything (a `model` with no `family`, or
   not among the family's, too); the days follow the day range's rules of

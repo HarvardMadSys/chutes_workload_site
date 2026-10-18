@@ -1,6 +1,6 @@
 /**
  * The Traffic Explorer's controls, a family drop-down, a model drop-down, an endpoint drop-down, a metric drop-down and
- * the period buttons, kept in step with the URL, which holds the explorer's choice (`traffic/traffic_filter.js` defines
+ * the period buttons, kept in step with the URL, which holds the explorer's choice (`traffic/traffic_choice.js` defines
  * the choice and its keys). The model drop-down is disabled until a family is chosen, and then offers the family's
  * models, which come from the family's answer. A period button sets the day range to its days and shows pressed while
  * the range is its days (`traffic/traffic_range.js`). A change writes the new choice to the URL; Back or Forward to a
@@ -17,7 +17,7 @@
 import { textElement } from "../shared/figure.js";
 import {
   endpointChoices, isSameChoice, metricChoices, NO_FAMILY_MODEL_CHOICES, readTrafficChoice, writeTrafficChoice,
-} from "./traffic_filter.js";
+} from "./traffic_choice.js";
 import { PERIODS, periodRange, pressedPeriod } from "./traffic_range.js";
 
 // The period field's name, which also names its group of buttons for a screen reader, and the id that ties the two.

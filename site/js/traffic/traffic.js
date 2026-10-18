@@ -8,10 +8,10 @@
  * Its rows come from the `explore/daily_by_family` answer, read once, and from a family's
  * `explore/daily_by_model/<family_slug>` answer, read the first time the family is chosen and kept for the visit. The
  * families take their colours in the order of their requests, a family's models in the order of theirs, and the
- * endpoint groups from the Overview's order (`context.mixes`). A change filters the rows once
- * (`traffic/traffic_filter.js`, which defines the choice), writes the tiles and draws the bars again; so does the
- * slider as a handle moves. Once the bars are drawn, the tiles' percentiles are written and the three charts drawn from
- * the histogram answer, read and kept as the daily ones are. The controls keep the choice in the URL
+ * endpoint groups from the Overview's order (`context.mixes`). A change of the choice (`traffic/traffic_choice.js`)
+ * filters the rows once (`traffic/traffic_filter.js`), writes the tiles and draws the bars again; so does the slider as
+ * a handle moves. Once the bars are drawn, the tiles' percentiles are written and the three charts drawn from the
+ * histogram answer, read and kept as the daily ones are. The controls keep the choice in the URL
  * (`traffic/traffic_controls.js`). A family's answer that cannot be read, at the opening or on a choice, shows its
  * error in the bars' place and the three charts' places, the tiles keeping their numbers without percentiles; a
  * histogram answer's, in the charts' places, the tiles without percentiles.
@@ -26,9 +26,8 @@ import {
   drawDistributionCharts, drawDistributionCurves, placeDistributionCharts, showChartsError, showChartsLoading,
 } from "./traffic_distribution_charts.js";
 import { choicePercentiles, histogramRowsInChoice } from "./traffic_distributions.js";
-import {
-  familyChoices, familyOrder, isSameChoice, modelChoices, modelOrder, rowsInChoice, trafficSummary,
-} from "./traffic_filter.js";
+import { familyChoices, familyOrder, isSameChoice, modelChoices, modelOrder } from "./traffic_choice.js";
+import { rowsInChoice, trafficSummary } from "./traffic_filter.js";
 import { mountRange } from "./traffic_range.js";
 import { NO_PERCENTILES, renderTiles } from "./traffic_tiles.js";
 
