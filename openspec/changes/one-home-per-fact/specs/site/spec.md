@@ -134,15 +134,19 @@ state definitions and comments that say why, and SQL as literals in one
 at the edge. No two modules of `site/js/` SHALL export one name. Every
 rule and every constant SHALL be written once: the trace's dates and
 weeks, the families' order and slugs, the wording of a model's name,
-the metric list and an Insights topic each have one home, and a copy
-the browser or the stylesheet must hold SHALL be tied to its home by a
-test. A shape that crosses a module's boundary SHALL be written once,
-as a JSDoc `@typedef` with one `@property` line per field or, in
-Python, a dataclass, and other places SHALL point to it. A comment
-SHALL state one fact per sentence and SHALL hold no value of the
-shipped data that a rebuild can change, no measurement, and no paper
-figure or table number. A topic module SHALL be frozen once, whole, by
-`frozenTopic`. The tests SHALL enforce the countable rules.
+the metric list and an Insights topic each have one home; a copy the
+browser or the stylesheet must hold SHALL be tied to its home by a
+test, and a copy a query must repeat (the family slug's expression) by
+a query test. A family's other models' name, "Other <family>", is the
+data's, written by the queries that name a family's models, and the
+browser shows it as written. A shape that crosses a module's
+boundary SHALL be written once, as a JSDoc `@typedef` with one
+`@property` line per field or, in Python, a frozen dataclass, and other
+places SHALL point to it. A comment SHALL state one fact per sentence
+and SHALL hold no value of the shipped data that a rebuild can change,
+no measurement, and no paper figure or table number. A topic module
+SHALL be frozen once, whole, by `frozenTopic`. The tests SHALL enforce
+the countable rules.
 
 #### Scenario: A function that grew
 - **WHEN** a Python or JavaScript function exceeds 50 lines
@@ -154,7 +158,7 @@ figure or table number. A topic module SHALL be frozen once, whole, by
 
 #### Scenario: One name exported twice
 - **WHEN** a module of `site/js/` exports `drawBars` and another module exports a `drawBars` too
-- **THEN** the repository test SHALL fail naming the name and both modules
+- **THEN** the naming test (`tests/test_naming.py`) SHALL fail naming the name and both modules
 
 #### Scenario: A word of the site
 - **WHEN** a reader meets `breakdown`, `topic`, `mix` or `place` in the code
@@ -162,7 +166,7 @@ figure or table number. A topic module SHALL be frozen once, whole, by
 
 #### Scenario: Adding a topic
 - **WHEN** a topic module is written and added to the topic list
-- **THEN** the page SHALL show its tab and its section, numbered by its place in the list, and the tests and the snapshot states SHALL include it, with no edit to `index.html`, a test's list or the snapshot module
+- **THEN** the page SHALL show its tab and its section, numbered by its place in the list, and the snapshot states SHALL include it, with no edit to `index.html`, the tabs or the snapshot module; the test that pins each topic's groups' card counts SHALL be updated with it
 
 #### Scenario: A figure part added
 - **WHEN** `renderFigure` appends a seventh part to a card and the card grid's rule still spans six rows
@@ -192,7 +196,7 @@ that it does not name.
 
 #### Scenario: A module in the wrong folder
 - **WHEN** a module is added outside the folders README's Layout names
-- **THEN** `make test` SHALL fail naming it
+- **THEN** the repository test SHALL fail naming it
 
 #### Scenario: The page's module
 - **WHEN** `index.html` loads a module other than `js/page/main.js`

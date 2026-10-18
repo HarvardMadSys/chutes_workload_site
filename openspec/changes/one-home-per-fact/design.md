@@ -51,7 +51,7 @@ first-time reader needs is moved, not cut.
 |---|---|
 | README "What the site shows", 84 lines | a tour of one line per part in README; the details in the landing-page spec, which gains the card exceptions it lacks (D6) |
 | README "Where the numbers come from": the trace table's rows and bins, the histogram answers | the site spec's "The trace table" and "Answers", which already state them |
-| README: the explorer's CDF point and percentile rule | the header of `traffic/traffic_distributions.js`, which states it (moved there where it does not) |
+| README: the explorer's CDF point and percentile rule | the JSDocs of `binUpperEdge`, `cdfRows` and `percentile` in `traffic/traffic_distributions.js`, which state it; the module's header does not repeat it |
 | README and CONTRIBUTING: the order of the reads | the landing-page spec's "The page appears before the data"; CONTRIBUTING keeps one sentence naming its test |
 | README Layout: what each test checks | CONTRIBUTING's test table (D5) |
 | README, CONTRIBUTING, Makefile: "half a minute, 16 GB" | README "Building the data" |
@@ -62,6 +62,12 @@ first-time reader needs is moved, not cut.
 | CONTRIBUTING "Charts", 116 lines | the site spec's "Chart colours", "Chart marks" and "Axis ticks and number formats" (D6); constant names in their modules |
 | CONTRIBUTING "The chart kinds": the shared parameters | `ChartParameters` in `plot/frame.js`, written by one-chart-interface |
 | CLAUDE.md's summary of the rules | CONTRIBUTING "The rules" (D11) |
+| CLAUDE.md: the SQL rule and the tables a query reads, the derived tables `trace_calendar`, `trace_weeks` and `family_models` among them | CONTRIBUTING's SQL rule; README's Layout (`site_database.py`) and CONTRIBUTING's arrow block name the derived tables |
+| CLAUDE.md: the trace read once by `make tables`, and when to rerun it (the family table, the daily rollup, the trace query, the week of `months.py`), then `make data` | README "Building the data"; CONTRIBUTING "Every definition comes from the artifact" and "The trace query" |
+| CLAUDE.md: the figures' route from the plot-ready tables to `site/data/all/figures/`, a card naming its kind and the paper's axes | README "The figure answers" and the column contract; CONTRIBUTING "Adding a figure" |
+| CLAUDE.md: the page reads what `make data` wrote; after a query or the artifact changes, `make data`, `make snapshots`, and both committed | README "Where the numbers come from" (the browser runs no query) and "Building the data"; CONTRIBUTING "Adding a query" and the snapshot test |
+| CLAUDE.md: "every module has tests" | CONTRIBUTING "The rules", which lacked it; moved there |
+| CLAUDE.md: the pointer to the Words | README's opening |
 | The site spec's layout block | README's Layout |
 | The site spec's column list | README's column contract (`figure_answers.py`'s copy is gone with one-home-per-rule) |
 | The headers of `figure_card.js` and `page/topics.js`: the card's and the topic's fields | `FigureCard`, `Topic`, `TopicGroup` |
@@ -78,19 +84,20 @@ column contract, because each then has one home and
 
 The target, for the owner to judge before any text moves. A length is
 a target, not a limit: a sentence a reader needs is not cut to reach
-it.
+it. The third figure is the length as built, counted from a section's
+heading to the next.
 
-| Section | Lines now → target | The fact it owns |
+| Section | Lines before → target → as built | The fact it owns |
 |---|---|---|
-| Opening | 16 → 12 | what the site is and what it is made of: one page, ES modules, JSON answers, Plot; a pointer to CONTRIBUTING's Words |
-| What the site shows | 84 → 15 | the tour: one line per part of the page in order, with its anchor; the landing-page spec holds what each part does |
-| Where the numbers come from | 147 → 65 | the provenance: which artifact file feeds which answer and which part of the page (the cache table); what the trace table is and why the site builds it; the family rule's home; the trace's start date and its JavaScript copy; why the strip says "User ids"; the figure answers; the column contract table |
-| Running it | 20 → 20 | the make targets and what each needs |
-| Building the data | 44 → 35 | when each step is rerun, what it costs (the one home of "half a minute, 16 GB"), what is committed |
-| Deploying | 31 → 30 | the Worker, its secrets and variable, the hostnames, the 25 MiB limit |
-| Layout | 184 → 130 | the one map: every folder and module of the repository, the tests named by file and by their naming rule |
-| Links | 5 → 5 | the dataset, the paper, the code |
-| **Total** | **531 → about 300** | |
+| Opening | 16 → 12 → 14 | what the site is and what it is made of: one page, ES modules, JSON answers, Plot; a pointer to CONTRIBUTING's Words |
+| What the site shows | 84 → 15 → 21 | the tour: one line per part of the page in order, with its anchor; the landing-page spec holds what each part does |
+| Where the numbers come from | 147 → 65 → 94 | the provenance: which artifact file feeds which answer and which part of the page (the cache table); what the trace table is and why the site builds it; the family rule's home; the trace's start date and its JavaScript copy; why the strip says "User ids"; the figure answers; the column contract table |
+| Running it | 20 → 20 → 27 | the make targets and what each needs |
+| Building the data | 44 → 35 → 52 | when each step is rerun, what it costs (the one home of "half a minute, 16 GB"), what is committed |
+| Deploying | 31 → 30 → 38 | the Worker, its secrets and variable, the hostnames, the 25 MiB limit |
+| Layout | 184 → 130 → 160 | the one map: every folder and module of the repository, the tests named by file and by their naming rule |
+| Links | 5 → 5 → 5 | the dataset, the paper, the code |
+| **Total** | **531 → about 300 → 411** | |
 
 The Layout shrinks because the tests are named by file and by rule (a
 node test file starts with the folder of the module it tests, as
@@ -100,22 +107,38 @@ contributor looks for it. `tests/test_readme.py` keeps the block true:
 every path it names exists and every module of `site/js/` and
 `site_data/` is named.
 
+README stands at 411 lines against about 300. The "before" column was
+counted before the Layout's list of tests grew; README held 639 lines
+when task 3.1 began. What keeps it there: the Layout names every module
+of `site/js/` and `site_data/` with what it holds, as `test_readme.py`
+requires; "Where the numbers come from" keeps its two tables; and each
+sentence of "Building the data" and "Deploying" is a step or a
+condition a maintainer needs.
+
 ### D3. CONTRIBUTING's sections
 
-| Section | Lines now → target | The fact it owns |
+| Section | Lines before → target → as built | The fact it owns |
 |---|---|---|
-| Opening | 6 → 5 | who reads it; the rules are binding and tested where countable |
-| Words | 0 → 40 | written by one-vocabulary; the one home of every word the site uses in its own sense, and of the six verbs (`run`, `render`, `mount`, `place`, `draw`, `show`); a definition found elsewhere in README or CONTRIBUTING moves here or points here |
-| The rules | 76 → 55 | the binding rules, "a fact has one home" (D1) among them; the SQL rule names `test_site_database.py`, which states the nine tables, and points to the site spec for them |
-| How the site is put together | 106 → 70 | the arrow block, one step per line; the two worked traces (D4); the page's parts: the shell, `page/main.js` and its sections, the header, reading an answer, the topic tabs and the history, the order of the reads (one sentence and its test), the URL keys (a pointer to `TrafficChoice`), adding a section |
-| Patterns to copy | 317 → 145 | a query; a query that takes the family; one answer per query; a list-valued answer; the trace query; adding a query; a JavaScript and a Python module; a link off the site; a topic (a pointer to `Topic`); a figure card (a pointer to `FigureCard`, and the example card); the column contract (a pointer to README); adding a figure; the patterns a card copies; the chart kinds (the draw contract and a pointer to `ChartParameters`, as one-chart-interface wrote them) |
-| JavaScript style | 26 → 25 | imports, loading the charting library, markup, `mount`, the loading and error states, the formats' module |
-| Charts | 116 → 0 | moved (D6) |
-| Verifying a change | 54 → 60 | the commands; the test table (D5); the snapshot test and how its diff is read; the check by hand at 360 px and desktop, light and dark; one task per commit |
-| **Total** | **701 → about 400** | |
+| Opening | 6 → 5 → 6 | who reads it; the rules are binding and tested where countable |
+| Words | 0 → 40 → 85 | written by one-vocabulary; the one home of every word the site uses in its own sense, and of the six verbs (`run`, `render`, `mount`, `place`, `draw`, `show`); a definition found elsewhere in README or CONTRIBUTING moves here or points here |
+| The rules | 76 → 55 → 92 | the binding rules, "a fact has one home" (D1) among them; the SQL rule names `test_site_database.py`, which states the nine tables, and points to the site spec for them |
+| How the site is put together | 106 → 70 → 123 | the arrow block, one step per line; the two worked traces (D4); the page's parts: the shell, `page/main.js` and its sections, the header, reading an answer, the topic tabs and the history, the order of the reads (one sentence and its test), the URL keys (a pointer to `TrafficChoice`), adding a section |
+| Patterns to copy | 317 → 145 → 224 | a query; a query that takes the family; one answer per query; a list-valued answer; the trace query; adding a query; a JavaScript and a Python module; a link off the site; a topic (a pointer to `Topic`); a figure card (a pointer to `FigureCard`, and the example card); the column contract (a pointer to README); adding a figure; the patterns a card copies; the chart kinds (the draw contract and a pointer to `ChartParameters`, as one-chart-interface wrote them) |
+| JavaScript style | 26 → 25 → 28 | imports, loading the charting library, markup, `mount`, the loading and error states, the formats' module |
+| Charts | 116 → 0 → 0 | moved (D6) |
+| Verifying a change | 54 → 60 → 85 | the commands; the test table (D5); the snapshot test and how its diff is read; the check by hand at 360 px and desktop, light and dark; one task per commit |
+| **Total** | **701 → about 400 → 643** | |
 
 Each section follows the prose rule of D8: one fact per sentence, a list
 as a list, "except" for an exception.
+
+CONTRIBUTING stands at 643 lines against about 400. The "before"
+column was counted before about 200 lines of growth; CONTRIBUTING held
+903 lines when task 4.1 began. What keeps it there: Words held 74 lines
+already and gained the house words; the arrow block and the two worked
+traces take 68 lines, as D4 asks; the example card and the three SQL
+blocks are D3's; and the test table holds 33 rows against D5's 19, since
+each description that left README's Layout needed a row.
 
 ### D4. Two worked traces
 
