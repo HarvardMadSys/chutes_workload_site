@@ -9,7 +9,7 @@ import { mountTopicTabs } from "../site/js/page/topic_tabs.js";
 import { runTraffic } from "../site/js/traffic/traffic.js";
 import { mountTrafficControls } from "../site/js/traffic/traffic_controls.js";
 import { familyChoices, modelChoices } from "../site/js/traffic/traffic_choice.js";
-import { deferred, FakeElement, FakeHistory, PAGE_ADDRESS, settled } from "./fake_page.js";
+import { deferred, FakeElement, settled, useFakePage } from "./fake_page.js";
 import { shownIds, topicSections } from "./page_fixtures.js";
 import { EVERYTHING } from "./traffic_fixtures.js";
 
@@ -29,24 +29,15 @@ const QWEN_ROWS = [
 ];
 
 /**
- * The page opened at `PAGE_ADDRESS`, as `startPage` starts it, with the globals its fakes until the test of `context`
- * ends: the topic tabs, the history followed, and the Traffic Explorer's controls, each choice they draw added to
- * `drawn`. Resolves to `{ tabs, sections, header, field, drawn, history }`, `field(index)` reading a drop-down of the
- * controls as drawn now: 0 the families', 1 the models', 2 the endpoints'.
+ * The page opened at `PAGE_ADDRESS` on the fake page of the test of `context`, as `startPage` starts it: the topic
+ * tabs, the history followed, and the Traffic Explorer's controls, each choice they draw added to `drawn`. Resolves to
+ * `{ tabs, sections, header, field, drawn, history }`, `field(index)` reading a drop-down of the controls as drawn now:
+ * 0 the families', 1 the models', 2 the endpoints'.
  */
 async function startedPage(context) {
-  const sections = topicSections();
+  const insights = topicSections();
   const header = new FakeElement("header", "site-header");
-  const window = new FakeElement();
-  window.history = new FakeHistory(window, PAGE_ADDRESS);
-  globalThis.window = window;
-  globalThis.ResizeObserver = class { observe() {} };
-  globalThis.document = {
-    querySelector: (selector) => [header, ...sections].find((element) => `#${element.id}` === selector),
-    getElementById: (id) => sections.find((section) => section.id === id),
-    createElement: (tag) => new FakeElement(tag),
-  };
-  context.after(forgetThePage);
+  const page = useFakePage(context, { elements: [header, insights] });
   const tabsRow = new FakeElement("div", "topic-tabs");
   const showEntryTopic = mountTopicTabs(tabsRow, TOPICS, () => 0);
   const pageHistory = followHistory(showEntryTopic);
@@ -58,13 +49,7 @@ async function startedPage(context) {
     onError: (error) => assert.fail(error),
   });
   const field = (index) => controls.children[index].children[1];
-  return { tabs: tabsRow.children, sections, header, field, drawn, history: window.history };
-}
-
-function forgetThePage() {
-  delete globalThis.window;
-  delete globalThis.document;
-  delete globalThis.ResizeObserver;
+  return { tabs: tabsRow.children, sections: insights.children, header, field, drawn, history: page.history };
 }
 
 // The query and anchor of the address bar.
@@ -143,8 +128,7 @@ test("a topic is placed after the tab row, a tab panel of its heading, takeaway,
   const insights = new FakeElement("section", "insights");
   const tabsRow = new FakeElement("div", "topic-tabs");
   insights.append(tabsRow);
-  globalThis.document = { getElementById: () => insights, createElement: (tag) => new FakeElement(tag) };
-  context.after(forgetThePage);
+  useFakePage(context, { elements: [insights] });
   const { section, cards } = placeTopic(TOPIC, 4);
   assert.deepEqual(insights.children, [tabsRow, section]);
   assert.deepEqual([section.tag, section.id, section.className], ["section", "insights-overview", "topic"]);
@@ -194,44 +178,27 @@ const FAMILY_MIX_ROWS = [{ family: "Kin", family_slug: "kin", requests: 10 }];
 const ENDPOINT_ROWS = [{ endpoint_group: "chat", requests: 10 }];
 
 /**
- * The page started as `startPage` starts it, with the Traffic Explorer as its one section, for the test of `context`:
- * the families, the endpoint groups' order and each file of `answers` (a map from file to its promised rows) fetched
- * as their rows, any other answering 404, and the page opened on the endpoint group completion. Returns `{ reads, tabs,
- * started }`: the files read, in order, the topic tabs and the page's promise.
+ * The page started as `startPage` starts it on the fake page of the test of `context`, with the Traffic Explorer as
+ * its one section: the families, the endpoint groups' order and each file of `answers` (a map from file to its promised
+ * rows) fetched as their rows, any other answering 404, and the page opened on the endpoint group completion. Returns
+ * `{ reads, tabs, started }`: the files read, in order, the topic tabs and the page's promise.
  */
 function startedPageWithExplorer(context, answers) {
-  const header = new FakeElement("header", "site-header");
-  const footer = new FakeElement("footer", "site-footer");
   const tabsRow = new FakeElement("div", "topic-tabs");
   // The Insights section, to which the page appends each topic's section, and which it scrolls to on a topic's anchor.
   const insights = new FakeElement("section", "insights");
-  insights.scrollIntoView = () => undefined;
-  const places = [header, footer, tabsRow, insights, new FakeElement("div", "traffic-explorer")];
-  const window = new FakeElement();
-  window.history = new FakeHistory(window, `${PAGE_ADDRESS}?endpoint=completion`);
-  globalThis.window = window;
-  globalThis.ResizeObserver = class { observe() {} };
-  globalThis.requestAnimationFrame = () => 0;
-  globalThis.document = {
-    querySelector: (selector) => places.find((element) => `#${element.id}` === selector),
-    getElementById: (id) => [insights, ...insights.children].find((element) => element.id === id),
-    createElement: (tag) => new FakeElement(tag),
-  };
-  context.after(() => {
-    forgetThePage();
-    delete globalThis.requestAnimationFrame;
+  const page = useFakePage(context, {
+    query: "?endpoint=completion",
+    elements: [
+      new FakeElement("header", "site-header"), new FakeElement("footer", "site-footer"), tabsRow, insights,
+      new FakeElement("div", "traffic-explorer"),
+    ],
+    answers: { [FAMILIES_FILE]: FAMILY_MIX_ROWS, [ENDPOINTS_FILE]: ENDPOINT_ROWS, ...answers },
   });
   context.mock.method(console, "error", () => undefined);
-  const reads = [];
-  const files = { [FAMILIES_FILE]: FAMILY_MIX_ROWS, [ENDPOINTS_FILE]: ENDPOINT_ROWS, ...answers };
-  context.mock.method(globalThis, "fetch", async (file) => {
-    reads.push(file);
-    const rows = await files[file];
-    return rows === undefined ? { ok: false, status: 404, statusText: "Not Found" } : { ok: true, json: () => rows };
-  });
   const explorer = { id: "traffic-explorer", run: runTraffic };
   const started = startPage({ sections: [explorer], showMonthCount: () => undefined });
-  return { reads, tabs: tabsRow.children, started };
+  return { reads: page.reads, tabs: tabsRow.children, started };
 }
 
 /** The answer files of the figures of `topic`'s cards, in the order of its groups and cards. */

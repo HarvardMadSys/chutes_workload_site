@@ -606,7 +606,7 @@ tests/               what make test runs
   traffic_fixtures.js
                      the Traffic Explorer's tests' choice of everything, the response to fetching an answer, and a
                      controls row's controls (controlsOf)
-  page_fixtures.js   the page's tests' topic anchors, titles and sections, and which of them are shown
+  page_fixtures.js   the page's tests' Insights section holding a section per topic, and which of them are shown
   palette_contrast.test.js, palette.js
                      the colours' contrast in both schemes, read from style.css
   module_headers.test.js

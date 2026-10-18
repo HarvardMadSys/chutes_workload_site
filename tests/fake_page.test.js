@@ -68,6 +68,7 @@ test("the document finds the elements given and their descendants, and makes new
   explorer.append(row);
   useFakePage(context, { elements: [new FakeElement("header"), explorer] });
   assert.equal(document.getElementById("traffic-explorer"), explorer);
+  assert.equal(document.getElementById(""), null, "an empty id, an address without an anchor's, finds none");
   assert.equal(document.querySelector("#traffic-explorer .controls-row"), row);
   assert.deepEqual(document.querySelectorAll("section"), [explorer]);
   assert.equal(explorer.parentElement, null, "an element given keeps its own parent");

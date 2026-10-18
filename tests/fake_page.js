@@ -136,7 +136,8 @@ export function useFakePage(context, { query = "", elements = [], answers = {}, 
 }
 
 // The page's document: an element made by `createElement`, and those of `elements` and under them that a selector or
-// an id finds, in the order given; `activeElement` the element focused last.
+// an id finds, in the order given; `activeElement` the element focused last. An empty id, which the page asks for when
+// its address has no anchor, finds none, as in the browser.
 function fakeDocument(elements) {
   const root = new FakeElement();
   root.children = elements; // held, not appended, so that each keeps its own parent
@@ -145,7 +146,7 @@ function fakeDocument(elements) {
     createElement: (tag) => new FakeElement(tag),
     querySelector: (selector) => root.querySelector(selector),
     querySelectorAll: (selector) => root.querySelectorAll(selector),
-    getElementById: (id) => root.querySelector(`#${id}`),
+    getElementById: (id) => (id === "" ? null : root.querySelector(`#${id}`)),
   };
 }
 

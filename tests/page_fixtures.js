@@ -1,20 +1,22 @@
 /**
- * The page's tests' fixtures: the topics' anchors and titles in the order of their tabs, the topic sections the tabs
- * show, and which of them are shown.
+ * The page's tests' fixtures: the Insights section holding a section per topic, for a test that mounts the topic tabs
+ * without the page's start, and which of the topic sections are shown.
  */
 
 import { TOPICS } from "../site/js/page/topics.js";
 import { FakeElement } from "./fake_page.js";
 
-/** The topics' anchors on the page, their ids, in the order of their tabs. */
-export const TOPIC_ANCHORS = Object.freeze(TOPICS.map((topic) => topic.id));
-
-/** The topics' titles, as their headings and tabs write them after the number, in the order of their tabs. */
-export const TOPIC_TITLES = Object.freeze(TOPICS.map((topic) => topic.title));
-
-/** The six topic sections as the page writes them, as far as the tabs read them: each an element of its topic's id. */
+/**
+ * The Insights section as far as the topic tabs read it, `section#insights` holding one `section#<id>` per topic of
+ * `TOPICS`, in their order: what the page's start writes before it mounts the tabs. A test that runs the start gives
+ * `section#insights` alone, and the page writes the topics into it.
+ */
 export function topicSections() {
-  return TOPIC_ANCHORS.map((anchor) => new FakeElement("section", anchor));
+  const insights = new FakeElement("section", "insights");
+  for (const topic of TOPICS) {
+    insights.append(new FakeElement("section", topic.id));
+  }
+  return insights;
 }
 
 /** The ids of the sections of `sections` that are shown. */
