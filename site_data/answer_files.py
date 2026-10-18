@@ -53,7 +53,7 @@ def answer_text(rows: list[dict]) -> str:
 
 
 def write_answer(path: pathlib.Path, rows: list[dict]) -> pathlib.Path:
-    """Write `rows` as the answer file `path`, making its folder; the path."""
+    """Write `rows` as the answer file `path`, making its folder. Returns the path."""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(answer_text(rows))
     return path

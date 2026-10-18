@@ -13,7 +13,7 @@ import datetime
 
 import pyarrow
 
-TRACE_START = datetime.date(2025, 4, 11)  # the trace's first day: the paper's Table 2 span, 2025-04-11 to 2026-04-12
+TRACE_START = datetime.date(2025, 4, 11)  # the trace's first day, 2025-04-11, as the artifact's `trace_totals` gives it
 TRACE_EPOCH = datetime.date(1970, 1, 1)  # the trace's first day as the caches write it
 # The calendar's columns and their types: days as dates, the trace month as a 64-bit integer.
 TRACE_CALENDAR_SCHEMA = pyarrow.schema([

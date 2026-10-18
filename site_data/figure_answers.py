@@ -4,12 +4,9 @@ plot-ready table, `data/paper/plotdata/<figure>.parquet` in the artifact, writte
 
 The list names each figure by its PDF's file name: under `sections`, a list of names per paper section, and under
 `external`, one key per name; `count` says how many names it holds. A figure is named by its file name without
-`.pdf`. A plot-ready table's columns are those of one chart
-kind (`lines`: `series`, `x`, `y` and an optional `panel`; `cdf`: `series`, `x`, `cdf`; `bands`, `cells`, `raster`,
-`scatter`, `boxes`, `bars`, `stacked_bars`, `legend`); the step copies them as they are, with no query, rounding or
-renaming, and does not check the kind. An answer is written as a query's answer is (`answer_files.answer_text`): a JSON
-list with one object per row, its keys the table's columns in the table's order, its values through
-`answer_files.json_value`.
+`.pdf`. A plot-ready table holds the columns of one chart kind, as the column contract in README's "Where the numbers
+come from" lists them; the step copies them as they are, with no query, rounding or renaming, and does not check the
+kind. An answer is written in the JSON form of `answer_files.py`, its keys the table's columns in the table's order.
 
 `read_figure_tables` reads every table in memory, stopping on the first that is missing before anything is written;
 `write_figure_answers` then writes them.
@@ -80,8 +77,8 @@ def table_rows(path: pathlib.Path) -> list[dict]:
 
 
 def write_figure_answers(tables: list[FigureTable], data_directory: pathlib.Path) -> list[pathlib.Path]:
-    """Replace the data folder's figure answers with one answer per table and write their index; the answer files
-    written, in the tables' order."""
+    """Replace the data folder's figure answers with one answer per table and write their index. Returns the answer
+    files written, in the tables' order."""
     answers_directory = data_directory / answer_files.ANSWERS_FOLDER
     figures_directory = answers_directory / answer_files.FIGURE_ANSWERS_FOLDER
     if figures_directory.exists():

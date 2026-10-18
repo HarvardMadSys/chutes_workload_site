@@ -41,9 +41,8 @@ SECTION_FIGURES = {
 EXTERNAL_FIGURE = "fig_routing_tradeoff.pdf"  # the one figure the list names under `external`
 TOTAL_REQUESTS = 140  # every request of the totals, the daily rollup and the daily endpoint counts
 # Each named chute but `chute-idle` and its model name. `chute-02`'s holds both of DeepSeek's patterns; `chute-04` and
-# the others contain no pattern. `chute-05`, the trace's chute for DeepSeek's rest, is named into DeepSeek, yet the
-# daily rollup does not name it: `family_models` ranks the rollup's chutes alone, so it is no kept model here, though
-# the artifact, ranking the trace's chutes, would keep it as one of DeepSeek's eight.
+# the others contain no pattern. `chute-05` is DeepSeek's rest: named into DeepSeek, not among the rollup's kept
+# chutes.
 MODEL_NAMES = {
     "chute-01": "DeepSeek-model-01", "chute-02": "deepseek-r1t-model-02", "chute-03": "gpt-oss-model-03",
     "chute-04": "model-04", "chute-05": "DeepSeek-model-05", "chute-06": "model-06", "chute-07": "model-07",
@@ -197,7 +196,8 @@ def write_plotdata(folder: pathlib.Path) -> None:
 
 
 def write_fixture_trace(path: pathlib.Path) -> pathlib.Path:
-    """Write the fixture trace as the Parquet file `path`, in the released trace's columns and types; the path."""
+    """Write the fixture trace as the Parquet file `path`, in the released trace's columns and types. Returns the
+    path."""
     pyarrow.parquet.write_table(pyarrow.Table.from_pylist(fixture_trace_records(), schema=TRACE_SCHEMA), path)
     return path
 

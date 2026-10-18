@@ -6,8 +6,7 @@ It is opened by registering (`register_tables`) each Arrow table of `loading.Art
 of `months.trace_calendar` as `trace_calendar`, to the daily rollup's last day. Then the setup query
 `setup/family_models` ranks the daily rollup's named models within their family, and its rows are registered as
 `family_models`, the one definition of a family's models. Last, the trace table (`loading.load_trace_table`) is
-registered as `weekly_histograms`: eight tables in all. The trace table's builder (`tables.py`) registers the first
-seven in a connection of its own, as it builds the eighth. A query's name is its path under `site/queries/` without
+registered as `weekly_histograms`: eight tables in all. A query's name is its path under `site/queries/` without
 `.sql`; `run_query` gives its result as `QueryRows`, a query that takes a parameter (`$family`) being given its value
 by name.
 """

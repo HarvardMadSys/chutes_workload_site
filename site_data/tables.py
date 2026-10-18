@@ -72,7 +72,7 @@ def histogram_table(connection: duckdb.DuckDBPyConnection) -> pyarrow.Table:
 
 
 def write_table(table: pyarrow.Table, trace_rows: int, folder: pathlib.Path) -> list[pathlib.Path]:
-    """Write `table` as the trace table into `folder`, making it, and its sidecar beside it; the two files."""
+    """Write `table` as the trace table into `folder`, making it, and its sidecar beside it. Returns the two files."""
     folder.mkdir(parents=True, exist_ok=True)
     table_path = folder / loading.TRACE_TABLE_FILE
     pyarrow.parquet.write_table(table, table_path)
