@@ -97,8 +97,8 @@ export const BALANCING_TOPIC = Object.freeze({
           chart: {
             x: TRACE_DAY_AXIS,
             gap: HOURLY_GAP,
-            // From zero, so the last days' single instance does not lie on the axis, to past the most, 17; labelled
-            // every five, the zero among them.
+            // From zero, so that a day of a single instance does not lie on the axis, to a little past the most active
+            // instances; labelled every five, the zero among them.
             y: { label: "Active instances", domain: [0, 18], ticks: [0, 5, 10, 15] },
             valueLabel: "Active instances",
             valueFormat: formatCount,
@@ -115,7 +115,7 @@ export const BALANCING_TOPIC = Object.freeze({
           chart: {
             x: TRACE_DAY_AXIS,
             gap: HOURLY_GAP,
-            // From 1, where every instance carries the mean load, to past the highest hour's 2.07.
+            // From 1, where every instance carries the mean load, to a little past the highest hour.
             y: { label: "Max/mean token load", domain: [1, 2.1] },
             valueLabel: "Max/mean token load",
             valueFormat: formatCount,

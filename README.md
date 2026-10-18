@@ -532,6 +532,9 @@ tests/               what make test runs
   insights_cards_caching_balancing.test.js
                      the caching and balancing cards' axes, the eviction cards' tooltips listing every algorithm,
                      the occupancy's tooltip in hours and the user zooms' even split
+  insights_cards_domains.test.js
+                     every card's and panel's fixed axis domain holding its shipped answer's values, but the clips
+                     the paper's axes intend, each listed with its reason
   plot_trace_axes.test.js
                      the trace's month axis: its names, derived from the first day, the star of the partial last
                      month explained in every definition on it, and its inset from the plot's edges

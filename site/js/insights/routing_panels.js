@@ -35,19 +35,20 @@ const CACHE_SIZE_AXIS = Object.freeze({
 });
 const INSTANCES_AXIS = Object.freeze({ label: "Instances", ticks: [5, 10, 15, 20], tickFormat: String });
 
-// DeepSeek V3.2's y domains in the routing panels: hit ratio (a) from zero, as the paper's; the others a little past
-// their lines' ends, so that no line lies on the axis line.
+// DeepSeek V3.2's y domains in the routing panels, each a little past its lines' ends, so that no line lies on the
+// axis line: the hit ratio (a) and the load imbalance (d) from zero, the hit ratio's as the paper's, and the
+// replication (b, c) from a little under 1, the least a replication can be.
 const DEEPSEEK_ROUTING_DOMAINS = Object.freeze({
-  hitRatio: [0, 0.55], // its highest hit ratio is 0.50
-  replication: [0.9, 2.0], // its replication runs from 1 to 1.94
-  imbalance: [0, 2.5], // its highest load imbalance is 2.4%
+  hitRatio: [0, 0.55],
+  replication: [0.9, 2.0],
+  imbalance: [0, 2.5],
 });
 
 // MiniMax M2.5's y domains in the routing panels, as DeepSeek V3.2's.
 const MINIMAX_ROUTING_DOMAINS = Object.freeze({
-  hitRatio: [0, 0.7], // its highest hit ratio is 0.64
-  replication: [0.9, 2.7], // its replication runs from 1 to 2.62
-  imbalance: [0, 4.5], // its highest load imbalance is 4.3%
+  hitRatio: [0, 0.7],
+  replication: [0.9, 2.7],
+  imbalance: [0, 4.5],
 });
 
 /**

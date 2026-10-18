@@ -47,7 +47,7 @@ export const WORKLOAD_TOPIC = Object.freeze({
           kind: "lines",
           chart: {
             x: TRACE_DAY_AXIS,
-            // From zero, so the caption's growth reads at its true ratio; the busiest day, 34.9M, sits under the top.
+            // From zero, so the caption's growth reads at its true ratio, to a little past the busiest day.
             y: { label: "Requests per day", domain: [0, 36e6], tickFormat: formatCountTick },
             valueLabel: "Requests",
             valueFormat: formatCompactCount,
@@ -63,7 +63,7 @@ export const WORKLOAD_TOPIC = Object.freeze({
           kind: "lines",
           chart: {
             x: TRACE_DAY_AXIS,
-            // From zero, as the request rate's beside it; the busiest day, 218B tokens, sits under the top.
+            // From zero, as the request rate's beside it, to a little past the busiest day.
             y: { label: "Tokens per day", domain: [0, 225e9], tickFormat: formatCountTick },
             valueLabel: "Tokens",
             valueFormat: formatCompactCount,
@@ -78,8 +78,7 @@ export const WORKLOAD_TOPIC = Object.freeze({
           kind: "lines",
           chart: {
             x: TRACE_DAY_AXIS,
-            // From zero, so the caption's rise from under 100 to over 400 reads as the fourfold it is; the most, 422,
-            // fits.
+            // From zero, so the caption's rise reads at its true ratio, to a little past the most models of a day.
             y: { label: "Active models", domain: [0, 450] },
             valueLabel: "Models",
             valueFormat: formatCount,
@@ -96,7 +95,7 @@ export const WORKLOAD_TOPIC = Object.freeze({
           palette: ENDPOINT_PALETTE,
           chart: {
             x: TRACE_DAY_AXIS,
-            // The paper's limits: the busiest function's busiest day, 21.1M requests, sits under its top.
+            // The paper's limits, to a little past the busiest function's busiest day.
             y: { label: "Requests per day", domain: [0, 23e6], tickFormat: formatCountTick },
             labels: FUNCTION_LABELS,
             valueLabel: "Requests",

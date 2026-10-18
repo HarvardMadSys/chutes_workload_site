@@ -30,8 +30,8 @@ const ORACLE = Object.freeze(["Belady (size-aware)"]);
 // The three highlighted models, without the global series: the boxes of the per-user IAT.
 const HIGHLIGHTED_MODELS = Object.freeze(HIGHLIGHTED_SERIES.filter((name) => name !== "Global"));
 
-// The top of the per-user IAT band card's linear y axis, in seconds: the 90th percentile passes it from August on
-// and is cut off there, so that a linear axis shows the median's move, which a log axis hid.
+// The top of the per-user IAT band card's linear y axis, in seconds: low enough that a linear axis shows the median's
+// move, which a log axis hid, so the 90th percentile is cut off where it passes it.
 const IAT_CAP_SECONDS = 400;
 
 /** The Prefix caching topic. */
@@ -91,8 +91,8 @@ export const CACHING_TOPIC = Object.freeze({
           definition: "Each model placed by its request count and its average token hit ratio, binned into cells of a log grid shaded by how many models fall in each.",
           kind: "cells",
           chart: {
-            // From 100, the least requests of a model drawn (101), to past the most, 141M; every second decade
-            // labelled, the left edge among them, so that six labels do not run together on a phone.
+            // From 100, under the least requests of a model drawn, to past the most; every second decade labelled, the
+            // left edge among them, so that six labels do not run together on a phone.
             x: {
               label: "Requests", log: true, domain: [100, 2e8], ticks: [100, 1e4, 1e6, 1e8],
               tickFormat: formatWholeCountTick,
@@ -113,8 +113,8 @@ export const CACHING_TOPIC = Object.freeze({
           definition: "Each user placed by their request count and their average token hit ratio, binned into cells of a log grid shaded by how many users fall in each.",
           kind: "cells",
           chart: {
-            // From 10, the least requests of a user drawn (11), to past the most, 158M; labelled at every second decade
-            // from the left edge, 1k among them, where most users fall.
+            // From 10, under the least requests of a user drawn, to past the most; labelled at every second decade from
+            // the left edge, 1k among them, where most users fall.
             x: {
               label: "Requests", log: true, domain: [10, 2e8], ticks: [10, 1e3, 1e5, 1e7],
               tickFormat: formatWholeCountTick,
@@ -161,7 +161,7 @@ export const CACHING_TOPIC = Object.freeze({
             // Slanted as the paper's, so the three names keep clear of one another on a phone, with room below for
             // them.
             x: { tickRotate: -25 },
-            // From zero, as the paper's, to past the highest whisker, 538.8 s.
+            // From zero, as the paper's, to a little past the highest whisker.
             y: { label: "Per-user median IAT", domain: [0, 560], tickFormat: formatSecondsTick },
             // Room for the slanted names, which reach 67 px below the plot at any width: at 52 "DeepSeek V3.2" is cut
             // off.

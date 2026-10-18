@@ -93,8 +93,8 @@ export const EVOLUTION_TOPIC = Object.freeze({
           kind: "bands",
           chart: {
             x: TRACE_MONTH_AXIS,
-            // The paper's: from 10, under the first month's 10th percentile, 13, to 30k, over the highest 90th, 26k;
-            // ticked at every decade from 10 to 10k.
+            // The paper's: from 10, under the lowest 10th percentile, to 30k, over the highest 90th; ticked at every
+            // decade from 10 to 10k.
             y: { label: "Input tokens", log: true, domain: [10, 30e3], tickFormat: formatCountTick },
             colour: INPUT_COLOUR,
             valueLabel: "Input tokens",
@@ -112,8 +112,8 @@ export const EVOLUTION_TOPIC = Object.freeze({
           kind: "bands",
           chart: {
             x: TRACE_MONTH_AXIS,
-            // From 7, so the 10th percentiles of 10 tokens clear the frame's foot, to 1,500, over the highest 90th,
-            // 1.2k.
+            // From 7, a little under the lowest 10th percentile, so the band clears the frame's foot, to 1,500, over the
+            // highest 90th.
             y: { label: "Output tokens", log: true, domain: [7, 1500], tickFormat: formatCountTick },
             colour: OUTPUT_COLOUR,
             valueLabel: "Output tokens",
@@ -137,7 +137,7 @@ export const EVOLUTION_TOPIC = Object.freeze({
           kind: "bands",
           chart: {
             x: COHORT_AXIS,
-            // From zero, as the paper's, to its top past the latest cohort's 90th percentile, 57k.
+            // From zero, as the paper's, to its top past the latest cohort's 90th percentile.
             y: { label: "Per-user median input tokens", domain: [0, 60e3], tickFormat: formatCountTick },
             colour: INPUT_COLOUR,
             valueLabel: "Median input tokens",
@@ -155,7 +155,7 @@ export const EVOLUTION_TOPIC = Object.freeze({
           kind: "bands",
           chart: {
             x: COHORT_AXIS,
-            // From zero, as the paper's, to its top past the latest cohort's 90th percentile, 3,040.
+            // From zero, as the paper's, to its top past the latest cohort's 90th percentile.
             y: { label: "Per-user median output tokens", domain: [0, 3200], tickFormat: formatCountTick },
             colour: OUTPUT_COLOUR,
             valueLabel: "Median output tokens",
