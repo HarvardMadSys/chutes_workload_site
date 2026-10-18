@@ -35,7 +35,6 @@ function monthCards() {
 test("the trace's month axis labels the first, the middle and the last month by name, the partial last starred", () => {
   assert.deepEqual(TRACE_MONTH_AXIS.ticks, TRACE_MONTH_TICKS);
   assert.deepEqual(TRACE_MONTH_TICKS.map(TRACE_MONTH_AXIS.tickFormat), ["Apr '25", "Oct '25", "Apr '26*"]);
-  assert.equal(TRACE_MONTH_AXIS.label, "Month");
   assert.equal(TRACE_MONTH_TICKS.at(-1), TRACE_MONTHS);
   assert.equal(TRACE_MONTH_NAMES.length, TRACE_MONTHS);
   assert.equal(PARTIAL_TRACE_MONTH, TRACE_MONTHS);

@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  BY_ENDPOINT, BY_FAMILY, BY_MODEL, ENDPOINT_LABELS, SERIES_COLUMN, seriesLabel, seriesLegend, shownRows,
+  BY_ENDPOINT, BY_FAMILY, BY_MODEL, ENDPOINT_LABELS, seriesLabel, seriesLegend, shownRows,
   shownSeriesRows,
 } from "../site/js/shared/series.js";
 import { assignColours, endpointColours, familyColours, modelColours } from "../site/js/theme/colours.js";
@@ -41,16 +41,6 @@ test("each breakdown colours its series by its order's rows and names them by it
   assert.equal(BY_ENDPOINT.labels, ENDPOINT_LABELS);
 });
 
-test("each endpoint group is labelled in words", () => {
-  assert.deepEqual(ENDPOINT_LABELS, {
-    chat: "Chat",
-    chat_stream: "Chat stream",
-    completion: "Completion",
-    completion_stream: "Completion stream",
-    other: "Other",
-  });
-});
-
 test("a series is labelled by its label where it has one, else by its name", () => {
   assert.equal(seriesLabel({ "deepseek-r1": "DeepSeek R1" }, "deepseek-r1"), "DeepSeek R1");
   assert.equal(seriesLabel({}, "Global"), "Global");
@@ -64,7 +54,6 @@ test("a figure's shown rows are its panel's, of the coloured series not hidden, 
     { series: "Unlisted", x: 1, panel: "a" },
     { series: "Global", x: 1, panel: "b" },
   ];
-  assert.equal(SERIES_COLUMN, "series");
   assert.deepEqual(shownSeriesRows(rows, colours, "a", new Set(["DeepSeek R1"])), [rows[0]]);
   assert.deepEqual(shownSeriesRows(rows, colours, undefined, new Set()), [rows[0], rows[1], rows[3]]);
 });

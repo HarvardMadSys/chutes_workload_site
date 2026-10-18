@@ -12,11 +12,7 @@ import {
 } from "../site/js/traffic/traffic_choice.js";
 import { familyColours } from "../site/js/theme/colours.js";
 import { shippedAnswer } from "./fake_page.js";
-import { EVERYTHING, KIN_ROWS } from "./traffic_fixtures.js";
-
-// The rows of the shipped daily answer by family, and the trace's days, theirs.
-const SHIPPED_ROWS = shippedAnswer("explore/daily_by_family");
-const TRACE_DAYS = [...new Set(SHIPPED_ROWS.map((row) => row.day))];
+import { EVERYTHING, KIN_ROWS, TRACE_DAYS } from "./traffic_fixtures.js";
 
 // The family drop-down's values, and the model drop-down's for the family `kin`.
 const FAMILY_VALUES = ["", "kin", "other"];

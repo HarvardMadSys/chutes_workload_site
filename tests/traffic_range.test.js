@@ -5,10 +5,8 @@ import {
   clippedFrom, clippedRange, clippedTo, mountRange, PERIODS, periodRange, pressedPeriod, pushedIndices,
   rangeOfIndices, sliderIndices,
 } from "../site/js/traffic/traffic_range.js";
-import { FakeElement, runFrames, shippedAnswer, useFakePage } from "./fake_page.js";
-
-// The trace's days, in order: the days of the shipped daily answer by family.
-const TRACE_DAYS = [...new Set(shippedAnswer("explore/daily_by_family").map((row) => row.day))];
+import { FakeElement, runFrames, useFakePage } from "./fake_page.js";
+import { TRACE_DAYS } from "./traffic_fixtures.js";
 
 // Five days with gaps, as a trace with a day of no rows would have them.
 const GAPPED_DAYS = ["2025-07-01", "2025-07-03", "2025-07-05", "2025-07-07", "2025-07-09"];

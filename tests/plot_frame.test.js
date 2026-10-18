@@ -63,12 +63,11 @@ test("a sequential colour legend is ticked where given, else at Plot's own ticks
   assert.equal(Object.hasOwn(sequentialColour({ colourLog: true, valueLabel: "Users" }, "Blues"), "ticks"), false);
 });
 
-test("a reference rule is a dashed horizontal rule at its value in the label ink, haloed over cells, or nothing", () => {
+test("a reference rule is a dashed horizontal rule at its value, haloed over cells, or nothing", () => {
   const fakePlot = { ruleY: (...args) => ["ruleY", ...args] };
   assert.deepEqual(referenceRule(fakePlot, 1), ["ruleY", [1], REFERENCE_STYLE]);
   assert.deepEqual(referenceRule(fakePlot, undefined), ["ruleY", [], REFERENCE_STYLE]);
   assert.equal(REFERENCE_STYLE.strokeDasharray, DASH.join(","));
-  assert.equal(REFERENCE_STYLE.stroke, "currentColor");
   // Over cells, the same rule on a solid halo in the card's colour, drawn under it.
   const haloed = haloedReferenceRule(fakePlot, 1);
   assert.deepEqual(haloed, [["ruleY", [1], REFERENCE_HALO], ["ruleY", [1], REFERENCE_STYLE]]);

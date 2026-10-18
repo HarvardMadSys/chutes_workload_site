@@ -58,7 +58,8 @@ MACHINE_PATH = re.compile(r"/(home|madsys|scratch)/")
 # A line of SQL: a statement keyword followed by the clause that names its table.
 SQL_STATEMENT = re.compile(r"\b(SELECT|INSERT|CREATE|UPDATE|DELETE)\b.*\b(FROM|INTO|TABLE|VIEW)\b", re.IGNORECASE)
 
-# The one module of tests/ that sets or mocks a property of `globalThis`: the fake page, which removes each after its test.
+# The one module of tests/ that sets or mocks a property of `globalThis`: the fake page, which removes each after its
+# test.
 GLOBALS_SETTER = "fake_page.js"
 
 # A property of `globalThis` set, `globalThis.document =` or `globalThis["fetch"] =`, or one of its methods mocked,
@@ -144,7 +145,8 @@ def test_sql_lives_in_query_files() -> None:
 def test_only_the_fake_page_sets_a_global() -> None:
     found = globals_set_outside_the_fake(ROOT / "tests")
     listed = "\n".join(found)
-    assert found == [], f"node tests set or mock a property of globalThis; use useFakePage of {GLOBALS_SETTER}:\n{listed}"
+    message = f"node tests set or mock a property of globalThis; use useFakePage of {GLOBALS_SETTER}"
+    assert found == [], f"{message}:\n{listed}"
 
 
 def test_a_global_set_outside_the_fake_is_named(tmp_path: pathlib.Path) -> None:

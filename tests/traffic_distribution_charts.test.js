@@ -12,7 +12,7 @@ const LEGEND = {
   series: [{ name: "Kin", label: "Kin" }, { name: "Pi", label: "Pi" }],
   colours: new Map([["Kin", "var(--series-1)"], ["Pi", "var(--series-2)"]]),
 };
-const FAMILIES = { column: "family" };
+const BY_FAMILY_BREAKDOWN = { column: "family" };
 
 // The three charts' places by metric, as `placeDistributionCharts` gives them.
 function chartPlaces() {
@@ -85,7 +85,7 @@ test("a chart's rows beyond its domain are kept, so its line leaves the chart at
   context.mock.method(console, "error", () => undefined); // node has no Plot: each chart shows an error instead
   // Bin 108 of a quarter-doubling holds 2^27 input tokens, about 1.3 × 10^8, beyond the input axis's 10^6.
   const rows = [histogramRow("Kin", "input_tokens", 0), histogramRow("Kin", "input_tokens", 108)];
-  const distributions = { rows, breakdown: FAMILIES, legend: LEGEND };
+  const distributions = { rows, breakdown: BY_FAMILY_BREAKDOWN, legend: LEGEND };
   const distributionCharts = await drawDistributionCharts(chartPlaces(), distributions, new Set());
   const values = distributionCharts.charts[0].rows.map((row) => row.x);
   assert.equal(values.length, 2);
@@ -109,7 +109,7 @@ test("the charts' places show the loading state, then an error, each in its plac
 test("a chart whose choice records no value says so in its place", async (context) => {
   useFakePage(context);
   const places = chartPlaces();
-  const distributions = { rows: [], breakdown: FAMILIES, legend: LEGEND };
+  const distributions = { rows: [], breakdown: BY_FAMILY_BREAKDOWN, legend: LEGEND };
   const distributionCharts = await drawDistributionCharts(places, distributions, new Set());
   assert.deepEqual(placeTexts(places), Array(3).fill("None of the chosen requests records this value."));
   assert.deepEqual(distributionCharts.charts.map((chart) => chart.rows), [[], [], []]);
@@ -120,7 +120,7 @@ test("a chart whose choice records no value says so in its place", async (contex
 test("every series hidden in the bars' legend shows the legend's note in each chart", async (context) => {
   useFakePage(context);
   const places = chartPlaces();
-  const distributions = { rows: [], breakdown: FAMILIES, legend: LEGEND };
+  const distributions = { rows: [], breakdown: BY_FAMILY_BREAKDOWN, legend: LEGEND };
   const distributionCharts = await drawDistributionCharts(places, distributions, new Set());
   await drawDistributionCurves(distributionCharts, new Set(["Kin", "Pi"]));
   assert.deepEqual(placeTexts(places), Array(3).fill("Every series is hidden: click one in the legend to show it."));
@@ -133,7 +133,7 @@ test("a chart draws the lines of the series the bars' legend lists, none of a se
     const rows = [histogramRow("Kin", "ttft", 0), histogramRow("Rho", "ttft", 4)];
     const colours = new Map([...LEGEND.colours, ["Rho", "var(--series-3)"]]);
     const legend = { series: LEGEND.series, colours };
-    const distributions = { rows, breakdown: FAMILIES, legend };
+    const distributions = { rows, breakdown: BY_FAMILY_BREAKDOWN, legend };
     const distributionCharts = await drawDistributionCharts(chartPlaces(), distributions, new Set());
     assert.deepEqual(distributionCharts.charts[2].rows.map((row) => row.series), ["Kin"]);
   });
@@ -143,6 +143,6 @@ test("a chart shows the no-value note where every series with a line is hidden a
     useFakePage(context);
     const places = chartPlaces();
     const rows = [histogramRow("Kin", "ttft", 0)];
-    await drawDistributionCharts(places, { rows, breakdown: FAMILIES, legend: LEGEND }, new Set(["Kin"]));
+    await drawDistributionCharts(places, { rows, breakdown: BY_FAMILY_BREAKDOWN, legend: LEGEND }, new Set(["Kin"]));
     assert.deepEqual(placeTexts(places), Array(3).fill("None of the chosen requests records this value."));
   });

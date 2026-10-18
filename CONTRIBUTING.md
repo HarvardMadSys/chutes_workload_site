@@ -841,10 +841,11 @@ them after it; and `shippedAnswer`, an answer the page ships. No other
 file of `tests/` sets or mocks a property of `globalThis`, and
 `tests/test_repository.py` fails on one that does. What two test files
 of one section share lives in `tests/<section>_fixtures.js`:
-`traffic_fixtures.js` (the explorer's choices, the trace's days and
-families, daily rows, and the page's part the controls are given),
-`insights_fixtures.js` (every card and group, `cardOf` and
-`tickLabels`) and `page_fixtures.js` (the topics' sections).
+`traffic_fixtures.js` (the explorer's choices, the shipped daily
+answer and its days, the trace's days and families, daily rows, and the
+page's part the controls are given), `insights_fixtures.js` (every card
+and group, `cardOf` and `tickLabels`), `page_fixtures.js` (the topics'
+sections) and `shared_fixtures.js` (a legend and a figure's words).
 The explorer's tests reach an element by the fake
 page's `querySelector` and `querySelectorAll` (a tag, a `.class`, an
 `#id`, a `[data-x]` or `[data-x="v"]`, a tag with one of those

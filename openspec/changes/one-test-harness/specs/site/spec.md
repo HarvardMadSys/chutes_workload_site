@@ -12,7 +12,8 @@ and one `shippedAnswer` that reads a shipped answer as the page names
 it. The fake SHALL throw on a selector it does not read. No file of
 `tests/` but `fake_page.js` SHALL assign or mock a property of
 `globalThis`, and none but the two modules of the fake SHALL define an
-element, document, window or fetch of its own. Values and helpers
+element, document, window or fetch of its own; a plain object holding
+the one field a pure function reads is an argument, not a fake. Values and helpers
 that several test files of one section share SHALL live in
 `tests/<section>_fixtures.js`. No test module SHALL import another
 test module, in Python or JavaScript. A test SHALL NOT assert a

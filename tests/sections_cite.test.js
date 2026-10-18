@@ -63,13 +63,16 @@ test("with a clipboard the button shows, and a click puts the block's text on it
 test("a clipboard that refuses says so on the button", async (context) => {
   context.mock.timers.enable({ apis: ["setTimeout"] });
   context.mock.method(console, "error", () => undefined);
-  const button = { textContent: "Copy" };
-  await copySource(button, { textContent: "x" }, { writeText: async () => { throw new Error("denied"); } });
+  const button = new FakeElement("button");
+  button.textContent = "Copy";
+  const source = new FakeElement("pre", "bibtex");
+  source.textContent = "x";
+  await copySource(button, source, { writeText: async () => { throw new Error("denied"); } });
   assert.equal(button.textContent, "Select and copy");
 });
 
 test("the citation's sentence links the paper's address", () => {
-  const container = { innerHTML: "" };
+  const container = new FakeElement("div");
   renderCiteLine(container);
   assert.ok(container.innerHTML.includes(`<a href="${URLS.paper}"`), container.innerHTML);
 });

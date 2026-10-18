@@ -55,7 +55,7 @@ first-time reader needs is moved, not cut.
 | README and CONTRIBUTING: the order of the reads | the landing-page spec's "The page appears before the data"; CONTRIBUTING keeps one sentence naming its test |
 | README Layout: what each test checks | CONTRIBUTING's test table (D5) |
 | README, CONTRIBUTING, Makefile: "half a minute, 16 GB" | README "Building the data" |
-| CONTRIBUTING rules: the list of the eight tables | the site spec's "The cache tables"; the rule keeps `SITE_TABLES` |
+| CONTRIBUTING rules: the list of the nine tables | the site spec's "The cache tables"; the tests read the tables from the database, and `test_site_database.py` states the nine |
 | CONTRIBUTING, README: the URL keys | `TrafficChoice` in `traffic/traffic_choice.js` (D7); the landing-page spec keeps the requirement |
 | CONTRIBUTING "A figure card": the field list | `FigureCard` (D7); CONTRIBUTING keeps the example card |
 | CONTRIBUTING "A topic and its groups": the fields | `Topic` and `TopicGroup` (D7); the word limits stay in the landing-page spec |
@@ -106,7 +106,7 @@ every path it names exists and every module of `site/js/` and
 |---|---|---|
 | Opening | 6 → 5 | who reads it; the rules are binding and tested where countable |
 | Words | 0 → 40 | written by one-vocabulary; the one home of every word the site uses in its own sense, and of the six verbs (`run`, `render`, `mount`, `place`, `draw`, `show`); a definition found elsewhere in README or CONTRIBUTING moves here or points here |
-| The rules | 76 → 55 | the binding rules, "a fact has one home" (D1) among them; the SQL rule names `SITE_TABLES` and points to the site spec for the eight tables |
+| The rules | 76 → 55 | the binding rules, "a fact has one home" (D1) among them; the SQL rule names `test_site_database.py`, which states the nine tables, and points to the site spec for them |
 | How the site is put together | 106 → 70 | the arrow block, one step per line; the two worked traces (D4); the page's parts: the shell, `page/main.js` and its sections, the header, reading an answer, the topic tabs and the history, the order of the reads (one sentence and its test), the URL keys (a pointer to `TrafficChoice`), adding a section |
 | Patterns to copy | 317 → 145 | a query; a query that takes the family; one answer per query; a list-valued answer; the trace query; adding a query; a JavaScript and a Python module; a link off the site; a topic (a pointer to `Topic`); a figure card (a pointer to `FigureCard`, and the example card); the column contract (a pointer to README); adding a figure; the patterns a card copies; the chart kinds (the draw contract and a pointer to `ChartParameters`, as one-chart-interface wrote them) |
 | JavaScript style | 26 → 25 | imports, loading the charting library, markup, `mount`, the loading and error states, the formats' module |

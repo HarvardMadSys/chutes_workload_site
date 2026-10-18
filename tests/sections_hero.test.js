@@ -4,6 +4,7 @@ import { test } from "node:test";
 
 import { ledeText, renderHero } from "../site/js/sections/hero.js";
 import { monthCountText } from "../site/js/shared/layout.js";
+import { FakeElement } from "./fake_page.js";
 
 test("the lede's first words count the months in digits, one month in the singular, and say One year unknown", () => {
   assert.equal(monthCountText(13), "13 months");
@@ -13,7 +14,7 @@ test("the lede's first words count the months in digits, one month in the singul
 
 test("the lede counts the trace totals' months in digits", () => {
   const totalsRow = { months: 13 };
-  const container = { innerHTML: "" };
+  const container = new FakeElement("div");
   renderHero(container, totalsRow.months);
   assert.match(container.innerHTML, /<p class="hero-lede">One year of production LLM serving on Chutes: 13 months of every request's timing, tokens, model, user and instance\.<\/p>/);
 });
@@ -24,7 +25,7 @@ test("until the count is known the lede leaves it out, and one month is in the s
 });
 
 test("the title is the page's h1, the hero section's label, and the five buttons and the lab's name lead to their addresses", () => {
-  const container = { innerHTML: "" };
+  const container = new FakeElement("div");
   renderHero(container, 13);
   assert.match(container.innerHTML, /<h1 id="hero-title">Chutes <em>Production Trace<\/em><\/h1>/);
   // A button off the site opens with its mark, which shared_link_marks.test.js checks.
@@ -40,7 +41,7 @@ test("the title is the page's h1, the hero section's label, and the five buttons
 });
 
 test("the two site buttons come first, the Traffic Explorer's the primary one, and open on this tab", () => {
-  const container = { innerHTML: "" };
+  const container = new FakeElement("div");
   renderHero(container, 13);
   const buttons = [...container.innerHTML.matchAll(/<a class="([^"]*)" href="[^"]*"([^>]*)>([^<]*)<\/a>/g)];
   assert.deepEqual(buttons.slice(0, 2).map((match) => [match[3], match[1], match[2]]), [

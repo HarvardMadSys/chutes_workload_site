@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { renderTeam } from "../site/js/sections/team.js";
+import { FakeElement } from "./fake_page.js";
 
 // The list items of the Team section's markup `html`, each as its markup between `<li>` and `</li>`.
 function listItems(html) {
@@ -10,7 +11,7 @@ function listItems(html) {
 }
 
 test("the Team section writes each author as one list item holding a name and an affiliation, neither empty", () => {
-  const container = { innerHTML: "" };
+  const container = new FakeElement("div");
   renderTeam(container);
   const items = listItems(container.innerHTML);
   assert.ok(items.length > 0);

@@ -1,17 +1,28 @@
 /**
- * The Traffic Explorer's tests' fixtures: the choice of everything, the trace's days and families as the controls are
- * mounted with them, the family Kin's daily answer by model and a daily row of an answer, the controls of a controls row and
- * which period buttons show pressed, and the page's part the controls are given, recording what they ask of it.
+ * The Traffic Explorer's tests' fixtures: the choice of everything, the shipped daily answer by family and its days,
+ * the trace's days and families as the controls are mounted with them, the family Kin's daily answer by model and a
+ * daily row of an answer, the controls of a controls row and which period buttons show pressed, and the page's part
+ * the controls are given, recording what they ask of it.
  */
 
 import assert from "node:assert/strict";
 
 import { familyChoices, modelChoices, NO_FAMILY_MODEL_CHOICES } from "../site/js/traffic/traffic_choice.js";
+import { shippedAnswer } from "./fake_page.js";
 
-/** The Traffic Explorer's choice of everything: every family, every model, every endpoint group, requests, every day. */
+/** The Traffic Explorer's choice of everything: every family, model and endpoint group, requests, every day. */
 export const EVERYTHING = Object.freeze({ family: "", model: "", endpoint: "", metric: "", from: "", to: "" });
 
-/** The trace's days, as far as the controls read them: its first and last, and each quarter's first and last. */
+/** The rows of the shipped daily answer by family, as the page reads them. */
+export const SHIPPED_ROWS = shippedAnswer("explore/daily_by_family");
+
+/** The trace's days, in order: every day of the shipped daily answer by family. */
+export const TRACE_DAYS = Object.freeze([...new Set(SHIPPED_ROWS.map((row) => row.day))]);
+
+/**
+ * The trace's days as far as the controls read them, written by hand: its first and last, and each quarter's first
+ * and last.
+ */
 export const DAYS = Object.freeze([
   "2025-04-11", "2025-06-30", "2025-07-01", "2025-09-30", "2025-10-01", "2025-12-31", "2026-01-01", "2026-03-31",
   "2026-04-12",
@@ -40,7 +51,10 @@ export function dayRow(fields) {
   };
 }
 
-/** The family Kin's daily answer by model: its two named models and its Other over three days and two endpoint groups. */
+/**
+ * The family Kin's daily answer by model: its two named models and its Other over three days and two endpoint
+ * groups.
+ */
 export const KIN_ROWS = Object.freeze([
   dayRow({ day: "2025-06-30", chute_id: "id-a", model: "A", requests: 10 }),
   dayRow({ chute_id: "id-a", model: "A", endpoint_group: "chat_stream", requests: 30 }),

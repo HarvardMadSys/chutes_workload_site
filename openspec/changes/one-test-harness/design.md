@@ -55,7 +55,7 @@ export const PAGE_ADDRESS = "http://localhost/index.html";
 export { FakeElement } from "./fake_element.js";   // class FakeElement { constructor(tag = "", id = "") }
 
 /** The browser's history as the page uses it: entries, pushState, replaceState, back, forward (unchanged). */
-export class FakeHistory { constructor(window, address) }
+class FakeHistory { constructor(window, address) }   // not exported: a test reads it as `useFakePage(…).history`
 
 /**
  * Make `document`, `window`, `fetch`, `requestAnimationFrame` and `ResizeObserver` stand-ins for the test of
@@ -94,7 +94,9 @@ file that imports `fake_element.js` directly.
 
 One class, in `tests/fake_element.js` and imported through
 `fake_page.js`, serves every element the tests make or the page's
-modules create through `document.createElement`, and the window. It has, as
+modules create through `document.createElement`, and the window. A
+plain object holding the one field a pure function reads is an
+argument, not a fake: `chartWidth({ clientWidth: 286 })`. It has, as
 plain fields, what the modules set and read: `tag`, `id`, `className`,
 `textContent`, `value`, `hidden`, `dataset` (an object), `style` (an
 object), `attributes` (a `Map`), `classes` (the set `classList.toggle`
@@ -233,9 +235,12 @@ test writes `shippedAnswer(`figures/${card.figure}`)`.
 A value or helper that two test files of one section share lives in
 `tests/<section>_fixtures.js`, a helper named for what it holds as
 `one-vocabulary` D9 names helpers. One used by one file stays in it.
-Each fixture module imports only `fake_page.js` and the site's modules.
+Each fixture module imports only `fake_page.js`, the site's modules and
+`node:assert`.
 
-- `tests/traffic_fixtures.js`: `EVERYTHING` (the choice of everything,
+- `tests/traffic_fixtures.js`: `SHIPPED_ROWS` and `TRACE_DAYS` (the
+  shipped daily answer by family and its days, read by the choice's,
+  the filter's and the range's tests); `EVERYTHING` (the choice of everything,
   today in `fake_page.js` and redefined in `traffic_filter.test.js` and
   `page_start.test.js`); `DAYS` (the trace's first and last days and
   each quarter's ends); `FAMILIES` (Kin and Other as the family
@@ -262,6 +267,10 @@ Each fixture module imports only `fake_page.js` and the site's modules.
   its own: `TOPIC_ANCHORS` and `TOPIC_TITLES`, which
   `one-home-per-rule` derives from `TOPICS`, go.
 
+- `tests/shared_fixtures.js`: `LEGEND` and `FIGURE` (a legend of two
+  series and a figure's words), which the legend's two test files,
+  `shared_legend.test.js` and `shared_legend_state.test.js`, share.
+
 Not taken: one `fixtures.js` for every section. It would hold the
 traffic choices beside the cards and grow with every section; a test
 file imports the fixtures of the section it tests.
@@ -276,7 +285,7 @@ tests between files in four places, each by that rule:
 | `insights_figure_card.test.js` | the module's own tests stay: the card's element, its parts, its Definition control, its parameters, a frozen card, a failed read. The checks of every card against its shipped answer (its kind's columns, its panels, its series, its palette, its legend, the index) move to `insights_cards_answers.test.js` |
 | `insights_cards_charts.test.js`, `insights_cards_caching_balancing.test.js` | the tests of one card move to the test of the topic module that declares it: `insights_workload.test.js`, `insights_tokens.test.js`, `insights_users.test.js`, `insights_evolution.test.js`, `insights_caching.test.js`, `insights_balancing.test.js`; a test of cards of two topics (the trace's day axis that the daily and the hourly lines share, and the colour of a count that the users' and the caching topics' cards take) stays in `insights_cards_charts.test.js`; `insights_cards_caching_balancing.test.js` goes |
 | `shared_layout.test.js` | its two tests of `index.html`'s sections and module move to `page_index.test.js`, the page's file beside its module's |
-| `plot_frame.test.js`, `shared_layout.test.js`, `page_index.test.js`, `page_topics.test.js`, `sections_hero.test.js`, `sections_team.test.js`, `insights_cards_answers.test.js` | lose or rewrite the tests of D7 |
+| `plot_frame.test.js`, `plot_trace_axes.test.js`, `shared_layout.test.js`, `shared_series.test.js`, `theme_colours.test.js`, `page_index.test.js`, `page_topics.test.js`, `sections_hero.test.js`, `sections_team.test.js`, `insights_cards_answers.test.js`, `insights_cards_charts.test.js` | lose or rewrite the tests of D7 |
 
 The Insights' card checks were split in two by size: the caching and
 balancing cards in one file and the other four topics' in another, 367
@@ -312,9 +321,14 @@ removed guards what nothing brings back. These go:
 | `doesNotMatch(page, /class="eyebrow"/)`, `page_index.test.js` | a removed feature; every section's text is a snapshot unit |
 | "the hero has no eyebrow above its title", `sections_hero.test.js` | a removed feature; the hero is a snapshot unit, and "the title is the page's h1" stays |
 | "the six topics are in the order of their tabs" (`SELECTORS`), `page_topics.test.js` (already gone, with `one-home-per-rule`) | after `one-home-per-rule` both sides are read from `TOPICS`, so it compares the list with itself |
-| "every topic holds its cards in groups of the paper's runs" (`GROUP_CARD_COUNTS`), `page_topics.test.js` | copies the topic modules' groups; a card missing or added fails "every figure answer of the index is drawn once" and, with `ARTIFACT`, `test_figures_registry.py` |
+| "every topic holds its cards in groups of the paper's runs" (`GROUP_CARD_COUNTS`), `page_topics.test.js` | copies the topic modules' groups; a card missing or added fails "every figure answer of the index is one card's figure, or the legend of the cards that name it" and, with `ARTIFACT`, `test_figures_registry.py` |
 | "only the two share cards name the legend, and only the ratio, the TTL coverage and the routing are wide" (`SHARE_PANELS`, `WIDE_CARDS`), `page_topics.test.js` | copies three cards' `isWide` and two cards' `legend`; the spec's table names them, and moving a flag is the change itself |
 | `assert.deepEqual(Object.keys(PALETTES), [...])` in "a card naming a palette names one of the palettes", `insights_cards_answers.test.js` | copies the object's keys; the test's loop, that every card's palette is one of them, stays |
+| "each endpoint group is labelled in words" (`ENDPOINT_LABELS`), `shared_series.test.js` | copies the object; the breakdown's test that `BY_ENDPOINT` labels by `ENDPOINT_LABELS` stays, and the labels are snapshot units in the endpoint legends |
+| `SERIES_SLOTS.length === 8`, `[0]` and `[7]` in "the series slots cannot be changed" (once "the eight series slots are the series tokens in order, and cannot be changed"), `theme_colours.test.js` | the constant's literal; the colours names take from the slots are checked by the same file's tests, and `isFrozen` stays |
+| `assert.equal(SERIES_COLUMN, "series")` in "a figure's shown rows are its panel's…", `shared_series.test.js` | the constant's literal; the answers' `series` column is `KIND_COLUMNS`' contract, checked against every card |
+| `TRACE_DAY_AXIS.label === "Day of the trace"`, `insights_cards_charts.test.js`, and `TRACE_MONTH_AXIS.label === "Month"`, `plot_trace_axes.test.js` | each axis's title literal; the titles are snapshot units of every chart on the axis |
+| `REFERENCE_STYLE.stroke === "currentColor"` in "a reference rule is a dashed horizontal rule at its value, haloed over cells, or nothing" (once "… at its value in the label ink, …"), `plot_frame.test.js` | the constant's literal; the rule's style is checked as passed to Plot by the test's other asserts |
 
 Rewritten, not dropped:
 
@@ -422,7 +436,7 @@ the existing rule tests do:
 The Makefile's node step becomes `node --test --test-reporter=spec
 "tests/*.test.js"`. Out of a terminal, node's default reporter is TAP:
 2,518 lines for 410 tests, no file names, the warnings at line 1,686.
-The spec reporter prints one line per test, about 440 lines, and lists
+The spec reporter prints one line per test, about 460 lines for 435 tests, and lists
 every failing test again at the end as `test at <file>:<line>` with its
 error, so a failure is read from the last lines of the run. The step
 order is kept: pytest, node, then the snapshot test, so that the

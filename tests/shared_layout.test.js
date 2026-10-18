@@ -4,20 +4,21 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { renderFooter, renderHeader, queryString } from "../site/js/shared/layout.js";
+import { FakeElement } from "./fake_page.js";
 
 // URL keys, as the page gives them to the header.
 const PAGE_KEYS = "family=qwen&endpoint=chat";
 
-// The header's markup in a stand-in container, given the URL keys `query`.
+// The header's markup in a container, given the URL keys `query`.
 function renderedHeader(query) {
-  const container = { innerHTML: "" };
+  const container = new FakeElement("div");
   renderHeader(container, new URLSearchParams(query));
   return container.innerHTML;
 }
 
-// The footer's markup in a stand-in container, counting `monthCount` months.
+// The footer's markup in a container, counting `monthCount` months.
 function renderedFooter(monthCount = 13) {
-  const container = { innerHTML: "" };
+  const container = new FakeElement("div");
   renderFooter(container, monthCount);
   return container.innerHTML;
 }

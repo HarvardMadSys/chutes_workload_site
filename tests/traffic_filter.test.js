@@ -14,11 +14,7 @@ import { PERIODS, periodRange } from "../site/js/traffic/traffic_range.js";
 import { BY_ENDPOINT, BY_FAMILY, BY_MODEL } from "../site/js/shared/series.js";
 import { modelColours } from "../site/js/theme/colours.js";
 import { shippedAnswer } from "./fake_page.js";
-import { dayRow, EVERYTHING, KIN_ROWS } from "./traffic_fixtures.js";
-
-// The rows of the shipped daily answer by family, and the trace's days, theirs.
-const SHIPPED_ROWS = shippedAnswer("explore/daily_by_family");
-const TRACE_DAYS = [...new Set(SHIPPED_ROWS.map((row) => row.day))];
+import { dayRow, EVERYTHING, KIN_ROWS, SHIPPED_ROWS, TRACE_DAYS } from "./traffic_fixtures.js";
 
 // The family Kin's answer, as the explorer reads it: its name and its rows.
 const KIN = Object.freeze({ name: "Kin", rows: KIN_ROWS });

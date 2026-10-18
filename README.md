@@ -607,18 +607,21 @@ tests/               what make test runs
                      a legend that other charts follow: its first hidden set, each click's set told, and the note
                      of every series hidden in another chart
   fake_page.js       the stand-in for the browser that the node tests drive the page's modules with, the one
-                     import of it: the page's document, window, fetch and animation frames for one test
-                     (useFakePage), the browser's history and an answer the page ships (shippedAnswer); it
+                     import of it: the page's document, window, fetch, animation frames and ResizeObserver for one
+                     test (useFakePage), the browser's history and an answer the page ships (shippedAnswer); it
                      re-exports the element of fake_element.js
   fake_element.js    the one stand-in for an element or the window: found by selector (querySelector,
                      querySelectorAll, closest), a selector of another form throwing, its parent, and the
                      elements of markup written into it
   traffic_fixtures.js
-                     the Traffic Explorer's tests' choice of everything, the trace's days and families the controls
-                     are mounted with, Kin's daily answer by model and a daily row (dayRow), a controls row's
-                     controls (controlsOf), the period buttons pressed, and the page's part the controls are given,
-                     recording what they ask of it (recordingExplorer)
+                     the Traffic Explorer's tests' choice of everything, the shipped daily answer by family and its
+                     days (SHIPPED_ROWS, TRACE_DAYS), the trace's days and families the controls are mounted with,
+                     Kin's daily answer by model and a daily row (dayRow), a controls row's controls (controlsOf),
+                     the period buttons pressed, and the page's part the controls are given, recording what they
+                     ask of it (recordingExplorer)
   page_fixtures.js   the page's tests' Insights section holding a section per topic, and which of them are shown
+  shared_fixtures.js
+                     the shared/ modules' tests' legend of two series and a figure's words
   insights_fixtures.js
                      the Insights' tests' every card, every group, the card that draws a figure (cardOf) and the
                      tick labels of its chart's axis (tickLabels)

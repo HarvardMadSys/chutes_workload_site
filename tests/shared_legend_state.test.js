@@ -6,15 +6,7 @@ import { test } from "node:test";
 import { legendPlace, renderFigure } from "../site/js/shared/figure.js";
 import { drawShownSeries, drawWithLegend } from "../site/js/shared/legend.js";
 import { FakeElement, settled, useFakePage } from "./fake_page.js";
-
-// A legend of two series, as the Traffic Explorer's bars give one.
-const LEGEND = {
-  series: [{ name: "hermes", label: "hermes" }, { name: "pi", label: "Pi" }],
-  colours: new Map([["hermes", "var(--series-1)"], ["pi", "var(--series-2)"]]),
-};
-
-// A figure's words, for a body that `renderFigure` lays out, whose legend's place is above it.
-const FIGURE = Object.freeze({ title: "Requests per family", caption: "Each family's requests.", definition: "Rows." });
+import { FIGURE, LEGEND } from "./shared_fixtures.js";
 
 // Whether each of the legend's buttons above `body` is pressed, in their order.
 function pressedStates(body) {

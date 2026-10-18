@@ -27,7 +27,6 @@ test("the workload topic's four daily lines and the three hourly lines share the
   for (const figure of figures) {
     assert.equal(cardOf(figure).chart.x, TRACE_DAY_AXIS, figure);
   }
-  assert.equal(TRACE_DAY_AXIS.label, "Day of the trace");
   const hourly = shippedAnswer("figures/fig_lb_request_rate")[0];
   assert.match(TRACE_DAY_AXIS.tipFormat(hourly.x), /^Day 305 · Feb 10, 2026, \d\d:\d\d UTC$/);
 });

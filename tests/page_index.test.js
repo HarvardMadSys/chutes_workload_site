@@ -1,6 +1,7 @@
 // The page, `index.html`: its title, the module that runs it, and its sections, in order, each that the header and
 // footer link (`shared/layout.js`) headed by its title. The topics' sections are not in the markup: the page writes
 // them (`page/start.js`).
+
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
@@ -15,13 +16,15 @@ test("the page is the site's one page of sections, titled with the dataset's nam
   assert.match(page, /<title>Chutes Production Trace<\/title>/);
   assert.match(page, /<script type="module" src="js\/page\/main\.js"><\/script>/);
   for (const section of LINKED_SECTIONS) {
-    assert.match(page, new RegExp(`<section id="${section.anchor.slice(1)}"`), `index.html has no section ${section.anchor}`);
+    const opening = new RegExp(`<section id="${section.anchor.slice(1)}"`);
+    assert.match(page, opening, `index.html has no section ${section.anchor}`);
   }
 });
 
 test("the page runs Overview, Traffic Explorer, Insights, Cite and Team, each of the four a heading alone", () => {
   const page = readFileSync(PAGE_FILE, "utf8");
-  const order = [...page.matchAll(/<section (?:id="([a-z-]+)" )?class="([a-z -]+)"/g)].map((match) => match[1] ?? match[2]);
+  const sections = [...page.matchAll(/<section (?:id="([a-z-]+)" )?class="([a-z -]+)"/g)];
+  const order = sections.map((match) => match[1] ?? match[2]);
   // The topics' sections are not in the markup: the page writes them from the topic list (`page/start.js`).
   assert.deepEqual(order, ["hero", "overview", "traffic", "insights", "cite", "team"]);
   for (const section of LINKED_SECTIONS) {

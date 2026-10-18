@@ -7,6 +7,7 @@ import { test } from "node:test";
 import { renderHero } from "../site/js/sections/hero.js";
 import { renderFooter, renderHeader } from "../site/js/shared/layout.js";
 import { LINK_MARKS, linkMark } from "../site/js/shared/link_marks.js";
+import { FakeElement } from "./fake_page.js";
 
 // The stylesheet, which sizes the marks and ends every link off the site in an arrow.
 const STYLESHEET = new URL("../site/style.css", import.meta.url);
@@ -24,9 +25,9 @@ function links(markup) {
   return found;
 }
 
-// The markup `render` writes into a stand-in container, given `argument`.
+// The markup `render` writes into a container, given `argument`.
 function rendered(render, argument) {
-  const container = { innerHTML: "" };
+  const container = new FakeElement("div");
   render(container, argument);
   return container.innerHTML;
 }

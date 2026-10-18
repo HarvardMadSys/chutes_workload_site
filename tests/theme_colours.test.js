@@ -10,10 +10,7 @@ import {
 
 const NINE_MODELS = ["m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9"];
 
-test("the eight series slots are the series tokens in order, and cannot be changed", () => {
-  assert.equal(SERIES_SLOTS.length, 8);
-  assert.equal(SERIES_SLOTS[0], "var(--series-1)");
-  assert.equal(SERIES_SLOTS[7], "var(--series-8)");
+test("the series slots cannot be changed", () => {
   assert.ok(Object.isFrozen(SERIES_SLOTS));
 });
 

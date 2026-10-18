@@ -1,8 +1,9 @@
 /**
  * The stand-in for the browser through which the node tests reach the page's modules, as node has no page of its own:
  * an element or the window (`FakeElement`, of `fake_element.js`, exported here); the browser's history; the page's
- * document, window, fetch and animation frames for one test (`useFakePage`); and an answer the page ships. It imports
- * nothing from `site/`, so that a fault in a page module never breaks the fake every test stands on.
+ * document, window, fetch, animation frames and `ResizeObserver` for one test (`useFakePage`); and an answer the page
+ * ships. It imports nothing from `site/`, so that a fault in a page module never breaks the fake every test stands
+ * on.
  */
 
 import { readFileSync } from "node:fs";
@@ -39,7 +40,7 @@ export function runFrames(frames) {
  * an address read against the current one, as the browser reads it; and `back()` and `forward()`, which move to the
  * entry before or after and tell the window's listeners of `popstate`.
  */
-export class FakeHistory {
+class FakeHistory {
   constructor(window, address) {
     this.window = window;
     this.entries = [{ state: null, url: new URL(address) }];

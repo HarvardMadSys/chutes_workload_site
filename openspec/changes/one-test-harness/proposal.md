@@ -44,14 +44,15 @@ the topics declared once of `one-home-per-rule`.
   `fakeElement()`, `FakeFigureBody`, `useFakeDocument` and every other
   hand-set browser global go.
 - **Fixtures per section.** What two test files of one section share
-  moves into `tests/traffic_fixtures.js`, `tests/insights_fixtures.js`
-  or `tests/page_fixtures.js`, and the local copies go.
+  moves into `tests/traffic_fixtures.js`, `tests/insights_fixtures.js`,
+  `tests/page_fixtures.js` or `tests/shared_fixtures.js`, and the local
+  copies go.
 - **Tests where their module is.** The Insights' card checks move into
   the test file of the topic module that declares each card; the checks
   of every card against its answer leave the figure card's own test for
   `insights_cards_answers.test.js`; the index page's tests leave the
   layout's. Every name follows `one-vocabulary`'s rule.
-- **Restating tests dropped.** Six tests and four asserts that copy a
+- **Restating tests dropped.** Seven tests and eleven asserts that copy a
   constant or a list, or guard a removed feature, go (two more of the
   kind were gone already); the Team's test checks its markup instead of
   copying its five authors.
@@ -76,7 +77,7 @@ the topics declared once of `one-home-per-rule`.
   changes. The snapshots must not change; that is the check that no
   site code moved.
 - New in `tests/`: `fake_element.js` and `fake_element.test.js`, the
-  three fixture modules, `insights_cards_answers.test.js`,
+  four fixture modules, `insights_cards_answers.test.js`,
   `page_index.test.js`, the six topic modules' tests, `fixture_trace.py`
   and `counted_requests.py`;
   `insights_cards_caching_balancing.test.js` goes. README's layout block
@@ -84,8 +85,8 @@ the topics declared once of `one-home-per-rule`.
   exist, so its `tests/` entries follow in the same commit, as do
   CONTRIBUTING's mentions of a test file. `one-home-per-fact` rewrites
   both documents afterwards.
-- The node suite loses six tests and four asserts (design D7) and
-  gains the fake's own tests, 427 tests before and 436 after; pytest
+- The node suite loses seven tests and eleven asserts (design D7) and
+  gains the fake's own tests, 427 tests before and 435 after; pytest
   gains the two rules' tests, each with its planted case, 176 before
   and 180 after.
 - The pytest fixture `fixture_trace` becomes `trace_file`, since the new

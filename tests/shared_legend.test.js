@@ -9,15 +9,7 @@ import {
 } from "../site/js/shared/legend.js";
 import { legendPlace, renderFigure } from "../site/js/shared/figure.js";
 import { FakeElement, settled, useFakePage } from "./fake_page.js";
-
-// A figure's words, for a body that `renderFigure` lays out, whose legend's place is above it.
-const FIGURE = Object.freeze({ title: "Requests per family", caption: "Each family's requests.", definition: "Rows." });
-
-// A legend of two series, as a figure's `legend` function returns one.
-const LEGEND = {
-  series: [{ name: "hermes", label: "hermes" }, { name: "pi", label: "Pi" }],
-  colours: new Map([["hermes", "var(--series-1)"], ["pi", "var(--series-2)"]]),
-};
+import { FIGURE, LEGEND } from "./shared_fixtures.js";
 
 // A legend whose entries each toggle two series together, one routing policy's series of two models.
 const POLICY_LEGEND = {
