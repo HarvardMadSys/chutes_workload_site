@@ -27,7 +27,7 @@ test("a tag finds the elements of that tag, in document order", () => {
 });
 
 test("a class finds a word of the element's className or a class set through classList", () => {
-  const written = element("div", "tile-chart figure-body");
+  const written = element("div", "place figure-body");
   const toggled = element("div", "");
   toggled.classList.toggle("is-hidden", true);
   const root = element("div", "", written, toggled);
@@ -46,14 +46,14 @@ test("an id finds the element of that id", () => {
 });
 
 test("a data attribute finds the elements that have it, or that have it with the value given", () => {
-  const input = element("li", "");
-  input.setAttribute("data-tile", "input");
-  const ttft = element("li", "");
-  ttft.setAttribute("data-tile", "ttft");
-  const root = element("ul", "", element("li", ""), input, ttft);
-  assert.deepEqual(root.querySelectorAll("[data-tile]"), [input, ttft]);
-  assert.equal(root.querySelector('[data-tile="ttft"]'), ttft);
-  assert.equal(root.querySelector('[data-tile="output"]'), null, "a wrong value misses");
+  const first = element("li", "");
+  first.setAttribute("data-key", "first");
+  const second = element("li", "");
+  second.setAttribute("data-key", "second");
+  const root = element("ul", "", element("li", ""), first, second);
+  assert.deepEqual(root.querySelectorAll("[data-key]"), [first, second]);
+  assert.equal(root.querySelector('[data-key="second"]'), second);
+  assert.equal(root.querySelector('[data-key="third"]'), null, "a wrong value misses");
 });
 
 test("a chain finds each next selector under a match of the one before", () => {

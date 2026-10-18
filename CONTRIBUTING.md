@@ -182,8 +182,11 @@ checks that each path it names exists.
 id, under a heading if it is a part of its own; write its module with
 `async run<Thing>(container, context)`, which shows the loading state in the
 container at once and then draws its answer into it; and add `{ id, run }`
-to the page module's `SECTIONS`. A new topic of figures is a module of
-`js/insights/` instead, added to `FIGURE_SECTIONS` and to `index.html`'s
+to the page module's `SECTIONS`. A section of `main.page` is laid out
+at the page's width by the stylesheet's `.page > section`, which caps it
+at the page's width less the gutters, `.page` keeping the gutters as its
+padding; the Traffic Explorer's `#traffic` alone is uncapped. A new
+topic of figures is a module of `js/insights/` instead, added to `FIGURE_SECTIONS` and to `index.html`'s
 Insights, where it becomes a tab.
 
 ## Patterns to copy
@@ -469,7 +472,7 @@ table and the card's words.
 Overview's `donut` and the Traffic Explorer's `stacked_bars`, and the
 figures' `lines` (a CDF among them), `bands`, `cells`, `raster`,
 `scatter`, `boxes` and `bars`, the stacked bars drawing the two monthly
-shares too and the lines the Traffic Explorer's tile charts. These nine
+shares too and the lines the Traffic Explorer's distribution charts. These nine
 chart modules are not quite a card's nine kinds: `CHART_KINDS` of
 `insights/figure_card.js` names `cdf`, drawn by `lines`, and no `donut`,
 which only the Overview draws, for its two mixes, by family and by
@@ -599,24 +602,31 @@ Insights' figures are drawn from their plot-ready tables.
   A legend names only what is drawn. After each drawing the chart is named
   for a screen reader by its title and caption, `nameChart` in
   `shared/charts.js`, or by the name it is given.
-- **The tiles' charts.** The Traffic Explorer's input tokens, output
-  tokens and TTFT tiles each hold a chart and no card: no title,
-  caption, definition or legend of its own, the bars' legend hiding its
-  series. `traffic/traffic_tile_charts.js` draws each by the lines kind
-  with `cdf: true`, `TILE_CHART_HEIGHT` (140 px) tall with narrower side
-  margins (`TILE_CHART_MARGINS`), its y axis the share of requests ticked
-  at 0%, 50% and 100% only, and names it by its value and
-  "distribution", "Input tokens distribution". Each x axis is log over a
-  domain fixed for every choice, its ticks listed beside it in
-  `TILE_CHARTS` from the domain's start to its end: input tokens 1 to 1M
-  at 1, 100, 10k and 1M; output tokens 1 to 100k at 1, 1k and 100k; TTFT
-  10 ms to 100 s at 10 ms, 1 s and 100 s (`formatTtftTick`). The rows
-  past a domain's end are kept, so a line is cut at the chart's edge
-  rather than ended before it. A tile is a flex column with its chart at
-  its foot, so the charts' x axes line up across a row, and the chart's
-  place keeps 140 px while it loads or shows a note (`.traffic-tiles
-  .tile-chart`), so the bars under the tiles do not move; the two 140s
-  change together.
+- **The distribution charts.** The Traffic Explorer's row of three
+  charts under the day range (README's "What the site shows") is
+  `traffic/traffic_distribution_charts.js`. A chart is keyed everywhere
+  by the histogram rows' metric it draws, `input_tokens`,
+  `output_tokens` or `ttft`: in `DISTRIBUTION_CHARTS`, in its places and
+  in the tiles' percentiles (`choicePercentiles`). It has no card: no
+  caption, definition, rows line or legend of its own, the bars' legend
+  hiding a series in the bars and the three charts alike.
+  `placeDistributionCharts(row)` makes the module's own places, each a
+  `div.distribution-chart` of an `h3.figure-title` (level with the bars'
+  title, not under it) over a `div.figure-body`, and returns them by
+  metric; where the row stands is `explorerCard`'s choice, in
+  `traffic/traffic.js`. Each chart is drawn by the lines kind with
+  `cdf: true` at the kinds' default height and margins, its y axis the
+  share of requests at the kind's ticks, and named by its value and
+  "distribution", "Input tokens distribution". Each x axis is log over
+  the domain README gives, the same for every choice, its ticks listed
+  beside it in `DISTRIBUTION_CHARTS` from the domain's start to its end:
+  input tokens at 1, 100, 10k and 1M; output tokens at 1, 1k and 100k;
+  TTFT at 10 ms, 1 s and 100 s (`formatTtftTick`). The rows past a
+  domain's end are kept, so a line is cut at the chart's edge rather
+  than ended before it. A choice none of whose requests records a value
+  shows a note in that chart's place. The tiles are numbers only:
+  `renderTiles` of `traffic/traffic_tiles.js` replaces the list's
+  children with the four `li`, each its value, label and notes.
 - **Axis text.** A linear axis asks Plot for `TICK_COUNT` ticks
   (`axes/ticks.js`), which gives at most six or seven. The exception is an
   axis of months: the Traffic Explorer's is ticked at the first day of
@@ -625,8 +635,8 @@ Insights' figures are drawn from their plot-ready tables.
   first of a month; on a plot narrower than
   `NARROW_PLOT_WIDTH`, more than `MAX_NARROW_TICKS` ticks are thinned to
   every other one. Its labels are slanted so that thirteen fit a
-  card. The explorer's tile charts are ticked as "The tiles' charts"
-  says. A figure's axes are the paper's: its titles, its log scales,
+  card. The explorer's distribution charts are ticked as "The
+  distribution charts" says. A figure's axes are the paper's: its titles, its log scales,
   ticked at the powers of ten (every second or more past
   `MAX_LOG_TICKS`), its limits, and its ticks where the card gives them,
   so that a phone's axis does not run its labels together. The one
@@ -659,6 +669,15 @@ trace's Parquet file> ARTIFACT=<the artifact's checkout>` first, then
 `make data`: it reads the 91 GB trace once, in about half a minute and
 16 GB of memory on a 344-thread machine, and `make test` with `ARTIFACT`
 then checks the table against the daily rollup.
+
+The node tests drive the page's modules on the fake page of
+`tests/fake_page.js`. The explorer's tests reach an element by the fake
+page's `querySelector` and `querySelectorAll` (a tag, a `.class`, an
+`#id`, a `[data-x]` or `[data-x="v"]`, or a chain of them parted by
+spaces, each matched among the descendants of the one before), never by
+its place among an element's children, and by the selectors the
+stylesheet and `tests/snapshot_traffic.py` use; `controlsOf`, a row's
+controls, lives in `fake_page.js` too.
 
 `make test` ends with the snapshot test (`tests/snapshot.py`): it opens
 six states of the page in headless Chromium (the page opened at each

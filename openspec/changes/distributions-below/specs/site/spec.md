@@ -27,11 +27,11 @@ site/             exactly the files that are deployed
   js/pages/       the page's module
   js/landing/     the hero, the stats strip, the two mixes (by family and by endpoint), the cite and team sections
   js/explore/     the page's start, the legend of buttons, the topic tabs, the list of the Insights' topics
-  js/traffic/     the Traffic Explorer: its section, its filter, its controls, its day range, its tiles, its bars, its distributions and their three charts
+  js/traffic/     the Traffic Explorer: its section, its filter, its controls, its bars, its day range, its tiles, and its distributions and their three charts
   js/insights/    the figure cards and the topics: one module per Insights topic with its takeaway and its groups of cards, and the routing card's panels
   queries/        one .sql file per query answer, under explore/; under setup/ the queries of the derived tables; under trace/ the query of the trace table
   data/           built by make data and tracked: the query answers, the queries' hashes, the figure answers and their index
-tests/            Python tests, node --test files, the fake page they share, and snapshots/: the six page states as text
+tests/            Python tests, node --test files, the fake page they share (its elements found by selector), and snapshots/: the six page states as text
 openspec/         the specs and the open changes; archived changes live in git history
 ```
 
@@ -56,9 +56,11 @@ be the same hues in both schemes, at least 30° apart in OKLCH, each at
 least 3:1 in contrast against its scheme's card, and a test SHALL check
 every colour token's contrast in both schemes. Every section SHALL be
 laid out at the page's width, centred, except the Traffic Explorer's,
-which SHALL span the window less the gutters; the width SHALL be set
-one way, on the page's sections, as the header and the footer set
-theirs.
+which SHALL span the window less the gutters. The gutters SHALL be the
+page's padding, and the width a cap on each section, the page's width
+less the gutters, which the Traffic Explorer's section alone does not
+take; the header and the footer SHALL cap themselves at the page's
+width, gutters included, so a section's edges meet their content's.
 
 #### Scenario: A heading
 - **WHEN** any heading renders
@@ -70,4 +72,4 @@ theirs.
 
 #### Scenario: A section's width
 - **WHEN** the window is wider than the page's width
-- **THEN** every section except the Traffic Explorer's SHALL be centred at the page's width, and the explorer's SHALL reach the gutters at both sides, with no horizontal scroll
+- **THEN** every section except the Traffic Explorer's SHALL be centred at the page's width less the gutters, its edges under the header's content's, and the explorer's SHALL reach the gutters at both sides, with no horizontal scroll

@@ -98,7 +98,7 @@ function logAxis(label, domain, ticks, tickFormat) {
 
 /**
  * Fill `row`, the row of the three charts (the caller gives it its class, `traffic-distributions`), with one
- * `div.distribution-chart` per entry of `DISTRIBUTION_CHARTS`, each its title, an `h4.figure-title`, over its place, a
+ * `div.distribution-chart` per entry of `DISTRIBUTION_CHARTS`, each its title, an `h3.figure-title`, over its place, a
  * `div.figure-body` showing the loading state; return the places by metric, `{ input_tokens, output_tokens, ttft }`.
  * Called once. The place is a figure's body, so the chart is drawn, counted and styled as every other chart is.
  */
@@ -109,7 +109,8 @@ export function placeDistributionCharts(row) {
     const place = textElement("div", "figure-body", "");
     showLoading(place);
     const chart = textElement("div", "distribution-chart", "");
-    chart.append(textElement("h4", "figure-title", title), place);
+    // An h3, as the bars' title is: the three charts stand beside the bars' figure, not under its heading.
+    chart.append(textElement("h3", "figure-title", title), place);
     charts.push(chart);
     places[metric] = place;
   }

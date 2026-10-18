@@ -38,25 +38,31 @@ The one page, `index.html`, holds, in order:
   tokens or output tokens) and period buttons (All and the calendar
   quarters Q2 '25 to Q1 '26), each a preset of the day range. Under them
   one card holds, from the top:
-  - four tiles that follow the choice: requests, average input tokens,
-    average output tokens, and average time to first token with the share
-    of requests that record it; once the distributions have arrived, each
-    average has its p50 and p90 under it, read from the distributions'
-    bins and so written after "≈" (within about 9%), and at the tile's
-    foot a chart of the chosen requests' distribution of its value: a CDF
-    per series of the bars whose requests record the value, over the
-    trace weeks that hold a chosen day, on a log axis fixed for every
-    choice (1 to 1M input tokens, 1 to 100k output tokens, 10 ms to
-    100 s), a line whose values run past the axis's right end cut at the
-    chart's edge;
+  - four tiles that follow the choice, numbers only: requests, average
+    input tokens, average output tokens, and average time to first token
+    with the share of requests that record it; once the distributions
+    have arrived, each average has its p50 and p90 under it, read from the
+    distributions' bins and so written after "≈" (within about 9%);
   - the chosen metric per day as stacked bars, by family, by model once a
     family is chosen and by endpoint group once a model is, under one
-    legend whose buttons hide a series in the bars and the three tiles'
-    charts alike;
+    legend whose buttons hide a series in the bars and the three
+    distribution charts alike;
   - one slider over the trace's days with two handles, From and To, which
     set the day range (one pushed past the other moves it along), the
     chosen first and last day written under the track's left and right
-    ends; the tiles, their charts and the bars follow as a handle moves.
+    ends; the tiles, the bars and the distribution charts follow as a
+    handle moves;
+  - a row of three charts, Input tokens, Output tokens and Time to first
+    token, three abreast at desktop width and one under the other on a
+    narrow screen: each the chosen requests' distribution of its value, a
+    CDF per series of the bars whose requests record the value, over the
+    trace weeks that hold a chosen day, on a log axis fixed for every
+    choice (1 to 1M input tokens, 1 to 100k output tokens, 10 ms to
+    100 s), a line whose values run past the axis's right end cut at the
+    chart's edge.
+
+  The section spans the window less the page's gutters; every other
+  section is laid out at the page's width, centred.
 
   The choice is kept in the URL as `family`, `model`, `endpoint`,
   `metric`, `from` and `to`
@@ -127,7 +133,7 @@ of time; the browser runs no query, it fetches the answers and draws them.
   | `trace_totals` | one row: the first and last request, requests, input and output tokens, user ids, models, instances | `trace_totals`: the stats strip, and the months the hero and the footer count |
   | `daily_rollup` | one row per trace day, family, model (each of the family's eight most requested named models, the family's rest together) and endpoint group: requests, token sums, the TTFT sum, and how many requests recorded each | `daily_by_family` and `daily_by_model`: the Traffic Explorer; `family_mix`: the Overview's family mix |
   | `function_name_daily_requests` | one row per trace day and endpoint group: requests | `endpoint_mix`: the Overview's endpoint mix |
-  | `weekly_histograms`, the site's trace table | one row per trace week, family, model (as the daily rollup keeps them), endpoint group, metric and bin: the requests in the bin | `histograms_by_family` and `histograms_by_model`: the Traffic Explorer's tiles' charts and percentiles |
+  | `weekly_histograms`, the site's trace table | one row per trace week, family, model (as the daily rollup keeps them), endpoint group, metric and bin: the requests in the bin | `histograms_by_family` and `histograms_by_model`: the Traffic Explorer's distribution charts and its tiles' percentiles |
 
   The two derived tables are `trace_calendar`, each trace day's
   calendar day and each trace month's label (`site_data/months.py`); and
@@ -426,17 +432,17 @@ site/                exactly the files that are deployed
     topic_tabs.js    the Insights' tabs, one topic shown at a time, the shown one in the URL's hash
     figure_sections.js
                      the Insights' six topics in the order of their tabs, and a topic's cards group by group
-  js/traffic/        the Traffic Explorer: its section, its filter, its controls, its bars, its day range, its tiles
-                     and their charts, and its distributions
+  js/traffic/        the Traffic Explorer: its section, its filter, its controls, its bars, its day range, its tiles,
+                     and its distributions and their three charts
     traffic.js, traffic_controls.js, traffic_filter.js
                      the Traffic Explorer: its section; its controls, kept in step with the URL; its choice, its
                      URL keys and its sums
     traffic_bars.js, traffic_range.js, traffic_tiles.js
                      the bars and their legend; the day range's slider of two handles and the period buttons' days;
-                     the four tiles' texts and their charts' places
+                     the four tiles' texts
     traffic_distributions.js, traffic_distribution_charts.js
-                     the histogram rows' bin maps, CDF rows and percentiles; the charts in the three averages'
-                     tiles, on fixed axes
+                     the histogram rows' bin maps, CDF rows and percentiles; the row of three distribution charts,
+                     each titled in its own place, keyed by metric, on fixed axes
   js/insights/       the figure cards and the topics
     figure_card.js   a card, its chart drawn from its answer by its kind
     card_series.js   a card's series: their order, each palette's colours, the card's legend
@@ -516,7 +522,8 @@ tests/               what make test runs
                      a legend that other charts follow: its first hidden set, each click's set told, and the note
                      of every series hidden in another chart
   fake_page.js       the stand-ins for an element, a figure's body, the topic sections and the browser's
-                     history that the node tests drive the page's modules with
+                     history that the node tests drive the page's modules with; an element found by selector
+                     (querySelector and querySelectorAll), and controlsOf, a row's controls by their selectors
   palette_contrast.test.js, palette.js
                      the colours' contrast in both schemes, read from style.css
   module_headers.test.js

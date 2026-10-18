@@ -18,8 +18,11 @@ changes a query, an answer, a table or the artifact repository.
 
 The explorer's wide card, from the top: the four tiles, the bars with
 their legend, the day range's slider, then a row `div.traffic-
-distributions` of three `div.distribution-chart`, each an `h4.figure-
+distributions` of three `div.distribution-chart`, each an `h3.figure-
 title` and a `div.figure-body`, the place the chart is drawn into. The
+title is an `h3`, level with the bars' title, which `renderFigure`
+writes as an `h3`: the three charts stand beside the bars' figure, not
+under its heading in a screen reader's outline. The
 titles, placeholder copy for the authors: "Input tokens", "Output
 tokens", "Time to first token". A chart has no caption, no definition
 and no rows line, so it is not a `renderFigure` card (whose Definition
@@ -95,18 +98,29 @@ module that does both is the module this change takes apart.
 
 ### D4. The explorer as wide as the window
 
-The page's width cap moves from `.page` to its sections: `.page` keeps
-its vertical padding and its column of sections; `.page > section`
-takes `max-width: var(--page-width)`, `width: 100%`, `margin-inline:
-auto` and `padding-inline: var(--gutter)`; and the Traffic Explorer's
-section, `#traffic`, takes `max-width: none`, so it spans the window
-less the gutters. The header and the footer already lay out this way
-(`.header-inner`, `.footer-inner`), so the page has one way of being
-wide. The hero's background band (`.hero::before`), the section
-rules' borders and the Insights' grid are checked at 360, 1280 and
-1920 px in both schemes. The bars and the three charts are drawn at
-their body's width, as every chart is; the window's width at the time
-of the draw is the width they take, as now.
+The page's width cap moves from `.page` to its sections. `.page` loses
+its `max-width` and its auto margins and keeps its padding, the
+gutters among it (`padding: 2rem var(--gutter) 0`), and its column of
+sections. `.page > section` takes `width: 100%` (auto margins stop a
+column's item from stretching), `max-width: calc(var(--page-width) - 2
+* var(--gutter))`, the page's content width, and `margin-inline:
+auto`. The Traffic Explorer's section, `#traffic`, takes `max-width:
+none`, so it spans the window less the gutters. Every box is
+border-box, so the header's `--page-width` holds its gutters and a
+section's edges meet the header's brand; the header and the footer
+cap themselves as before (`.header-inner`, `.footer-inner`). At 1280
+and 360 px the page is pixel for pixel what it was. The bars and the
+three charts are drawn at their body's width, as every chart is; the
+window's width at the time of the draw is the width they take, as
+now.
+
+Not taken: the gutter on each section (`.page > section` with
+`max-width: var(--page-width)` and `padding-inline: var(--gutter)`,
+`.page` with no side padding), which would set the width one way, as
+the header and the footer set theirs. A section's padding lies inside
+its box, so the section rules, the hero's background band
+(`.hero::before`) and every section's box ran out into the gutters at
+1280 and 360 px.
 
 Not taken: a breakout margin (`margin-inline: calc(50% - 50vw)`) on
 the one section. It is the one trick the stylesheet would hold, `100vw`

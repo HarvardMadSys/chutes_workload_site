@@ -47,9 +47,9 @@ test("the three charts are placed once in their row, each titled over its place,
     const places = placeDistributionCharts(row);
     assert.deepEqual(Object.keys(places), ["input_tokens", "output_tokens", "ttft"]);
     const charts = row.querySelectorAll(".distribution-chart");
-    const titles = charts.map((chart) => chart.querySelector("h4").textContent);
+    const titles = charts.map((chart) => chart.querySelector("h3").textContent);
     assert.deepEqual(titles, ["Input tokens", "Output tokens", "Time to first token"]);
-    const titleClasses = charts.map((chart) => chart.querySelector("h4").className);
+    const titleClasses = charts.map((chart) => chart.querySelector("h3").className);
     assert.deepEqual(titleClasses, Array(3).fill("figure-title"));
     const bodies = charts.map((chart) => chart.querySelector(".figure-body"));
     const metrics = bodies.map((body) => metricOf(places, body));

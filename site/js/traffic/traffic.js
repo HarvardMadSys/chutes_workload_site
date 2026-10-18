@@ -14,7 +14,7 @@
  * answer, read and kept as the daily ones are. The controls keep the choice in the URL (`traffic/traffic_controls.js`).
  * A family's answer that cannot be read, at the opening or on a choice, shows its error in the bars' place and the
  * three charts' places, the tiles keeping their numbers without percentiles; a histogram answer's, in the charts'
- * places alone.
+ * places, the tiles without percentiles.
  */
 
 import { readAnswer } from "../shared/answers.js";
