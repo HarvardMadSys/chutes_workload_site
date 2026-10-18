@@ -594,9 +594,15 @@ tests/               what make test runs
   shared_legend_state.test.js
                      a legend that other charts follow: its first hidden set, each click's set told, and the note
                      of every series hidden in another chart
-  fake_page.js       the stand-ins for an element, a figure's body, the topic sections and the browser's
-                     history that the node tests drive the page's modules with; an element found by selector
-                     (querySelector and querySelectorAll), and controlsOf, a row's controls by their selectors
+  fake_page.js       the stand-in for the browser that the node tests drive the page's modules with: the
+                     page's document, window, fetch and animation frames for one test (useFakePage), the
+                     browser's history and an answer the page ships; it exports the element of fake_element.js
+  fake_element.js    the one stand-in for an element or the window: found by selector (querySelector,
+                     querySelectorAll, closest), its parent, and the elements of markup written into it
+  traffic_fixtures.js
+                     the Traffic Explorer's tests' choice of everything, the response to fetching an answer, and a
+                     controls row's controls (controlsOf)
+  page_fixtures.js   the page's tests' topic anchors, titles and sections, and which of them are shown
   palette_contrast.test.js, palette.js
                      the colours' contrast in both schemes, read from style.css
   module_headers.test.js

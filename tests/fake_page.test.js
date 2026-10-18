@@ -1,87 +1,109 @@
 /**
- * The fake page's selectors (`fake_page.js`): an element found under another by a tag, a class, an id or a data
- * attribute, or by a chain of them; null or an empty list where none matches; an unread form failing.
+ * The fake page (`fake_page.js`): the document, window, fetch and animation frames `useFakePage` sets for one test and
+ * removes after it, the files its fetch answers and the order it read them in, and an answer the page ships.
  */
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { FakeElement } from "./fake_page.js";
+import { deferred, FakeElement, PAGE_ADDRESS, runFrames, shippedAnswer, useFakePage } from "./fake_page.js";
 
-// A new element of the tag `tag` holding `children`, its class `className`.
-function element(tag, className, ...children) {
-  const made = new FakeElement(tag);
-  made.className = className;
-  made.append(...children);
-  return made;
-}
-
-test("a tag finds the elements of that tag, in document order", () => {
-  const first = element("input", "");
-  const second = element("input", "");
-  const root = element("div", "", element("span", "", first), element("select", ""), second);
-  assert.deepEqual(root.querySelectorAll("input"), [first, second]);
-  assert.equal(root.querySelector("input"), first);
-  assert.ok(first.matches("input"));
-  assert.ok(!first.matches("span"));
+test("a file of the answers is fetched with its rows, any other a 404, and one added later is", async (context) => {
+  const answers = { "data/all/a.json": [{ requests: 1 }] };
+  useFakePage(context, { answers });
+  const found = await fetch("data/all/a.json");
+  assert.equal(found.ok, true);
+  assert.deepEqual(await found.json(), [{ requests: 1 }]);
+  const missing = await fetch("data/all/b.json");
+  assert.deepEqual([missing.ok, missing.status, missing.statusText], [false, 404, "Not Found"]);
+  answers["data/all/b.json"] = [];
+  assert.equal((await fetch("data/all/b.json")).ok, true, "the answers are read at each fetch");
 });
 
-test("a class finds a word of the element's className or a class set through classList", () => {
-  const written = element("div", "place figure-body");
-  const toggled = element("div", "");
-  toggled.classList.toggle("is-hidden", true);
-  const root = element("div", "", written, toggled);
-  assert.equal(root.querySelector(".figure-body"), written);
-  assert.equal(root.querySelector(".is-hidden"), toggled);
-  assert.equal(root.querySelector(".figure"), null, "a part of a word is not the word");
-  toggled.classList.toggle("is-hidden", false);
-  assert.equal(root.querySelector(".is-hidden"), null);
+test("an answer given as a promise arrives as it resolves; one that rejects rejects the fetch", async (context) => {
+  const arriving = deferred();
+  const failing = deferred();
+  useFakePage(context, { answers: { "a.json": arriving.promise, "b.json": failing.promise } });
+  const reading = fetch("a.json");
+  arriving.resolve([{ requests: 2 }]);
+  assert.deepEqual(await (await reading).json(), [{ requests: 2 }]);
+  const failed = fetch("b.json");
+  failing.reject(new Error("the network failed"));
+  await assert.rejects(failed, /the network failed/);
 });
 
-test("an id finds the element of that id", () => {
+test("reads lists the files fetched, in order, and onRead is told of each before its answer", async (context) => {
+  const arriving = deferred();
+  const toldWhileWaiting = [];
+  const page = useFakePage(context, {
+    answers: { "a.json": arriving.promise, "b.json": [] },
+    onRead: (file) => toldWhileWaiting.push(file),
+  });
+  const reading = fetch("a.json");
+  assert.deepEqual(toldWhileWaiting, ["a.json"], "told before the answer has arrived");
+  arriving.resolve([]);
+  await reading;
+  await fetch("b.json");
+  await fetch("c.json");
+  assert.deepEqual(page.reads, ["a.json", "b.json", "c.json"]);
+  assert.deepEqual(toldWhileWaiting, page.reads);
+});
+
+test("the animation frames asked for wait in frames until runFrames runs them", (context) => {
+  const page = useFakePage(context);
+  const ran = [];
+  requestAnimationFrame(() => ran.push("first"));
+  requestAnimationFrame(() => ran.push("second"));
+  assert.deepEqual(ran, []);
+  assert.equal(page.frames.length, 2);
+  runFrames(page.frames);
+  assert.deepEqual(ran, ["first", "second"]);
+  assert.deepEqual(page.frames, []);
+});
+
+test("the document finds the elements given and their descendants, and makes new elements", (context) => {
   const explorer = new FakeElement("section", "traffic-explorer");
-  const root = element("main", "", new FakeElement("section", "insights"), explorer);
-  assert.equal(root.querySelector("#traffic-explorer"), explorer);
-  assert.ok(!explorer.matches("#insights"));
+  const row = new FakeElement("div");
+  row.className = "controls-row";
+  explorer.append(row);
+  useFakePage(context, { elements: [new FakeElement("header"), explorer] });
+  assert.equal(document.getElementById("traffic-explorer"), explorer);
+  assert.equal(document.querySelector("#traffic-explorer .controls-row"), row);
+  assert.deepEqual(document.querySelectorAll("section"), [explorer]);
+  assert.equal(explorer.parentElement, null, "an element given keeps its own parent");
+  assert.equal(document.createElement("p").tag, "p");
+  assert.equal(document.activeElement, null);
+  row.focus();
+  assert.equal(document.activeElement, row);
 });
 
-test("a data attribute finds the elements that have it, or that have it with the value given", () => {
-  const first = element("li", "");
-  first.setAttribute("data-key", "first");
-  const second = element("li", "");
-  second.setAttribute("data-key", "second");
-  const root = element("ul", "", element("li", ""), first, second);
-  assert.deepEqual(root.querySelectorAll("[data-key]"), [first, second]);
-  assert.equal(root.querySelector('[data-key="second"]'), second);
-  assert.equal(root.querySelector('[data-key="third"]'), null, "a wrong value misses");
+test("the window is opened at the page's address and query, and its history moves its location", (context) => {
+  const page = useFakePage(context, { query: "?family=kin#caching" });
+  assert.equal(window.location.href, `${PAGE_ADDRESS}?family=kin#caching`);
+  assert.equal(window.history, page.history);
+  const popped = [];
+  window.addEventListener("popstate", (event) => popped.push(event.state));
+  page.history.pushState({ topic: "users" }, "", "#users");
+  page.history.back();
+  assert.equal(window.location.hash, "#caching");
+  assert.deepEqual(popped, [null]);
 });
 
-test("a chain finds each next selector under a match of the one before", () => {
-  const inTrack = element("input", "");
-  const track = element("div", "range-track", element("div", "range-span"), inTrack);
-  const elsewhere = element("input", "");
-  const root = element("div", "", element("div", "range-days", elsewhere), track);
-  assert.deepEqual(root.querySelectorAll(".range-track input"), [inTrack]);
-  assert.equal(root.querySelector(".range-days .range-track"), null);
+test("the page's globals are removed after its test, and fetch is node's own again", async (context) => {
+  const nodeFetch = globalThis.fetch;
+  await context.test("a test on the fake page", (inner) => {
+    useFakePage(inner);
+    assert.notEqual(globalThis.fetch, nodeFetch);
+    assert.equal(typeof new ResizeObserver(() => undefined).observe, "function");
+  });
+  for (const name of ["document", "window", "requestAnimationFrame", "ResizeObserver"]) {
+    assert.equal(Object.hasOwn(globalThis, name), false, name);
+  }
+  assert.equal(globalThis.fetch, nodeFetch);
 });
 
-test("a chain whose matches nest finds each element once, in document order", () => {
-  const inner = element("span", "b");
-  const outer = element("div", "b", inner);
-  const root = element("div", "", element("div", "a", element("div", "a", outer)), element("p", "b"));
-  assert.deepEqual(root.querySelectorAll(".a .b"), [outer, inner], "found under both .a, listed once");
-});
-
-test("a selector that finds nothing gives null or an empty list", () => {
-  const root = element("div", "", element("p", "loading"));
-  assert.equal(root.querySelector(".note"), null);
-  assert.deepEqual(root.querySelectorAll("button"), []);
-  assert.equal(root.querySelector("p p"), null, "an element is not under itself");
-});
-
-test("a selector of a form the fake does not read throws, naming it", () => {
-  const root = element("div", "", element("p", "loading"));
-  assert.throws(() => root.querySelector("p.loading"), /"p\.loading"/);
-  assert.throws(() => root.querySelector(".a > .b"), /">"/);
-  assert.throws(() => root.querySelectorAll("[aria-label]"), /"\[aria-label\]"/);
+test("a shipped answer is the rows of its file under site/data/all, named as readAnswer names it", () => {
+  const families = shippedAnswer("explore/daily_by_family");
+  assert.ok(Array.isArray(families) && families.length > 0);
+  assert.equal(typeof shippedAnswer("figures"), "object", "the figure answers' index");
 });

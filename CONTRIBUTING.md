@@ -842,7 +842,7 @@ page's `querySelector` and `querySelectorAll` (a tag, a `.class`, an
 spaces, each matched among the descendants of the one before), never by
 its place among an element's children, and by the selectors the
 stylesheet and `tests/snapshot_traffic.py` use; `controlsOf`, a row's
-controls, lives in `fake_page.js` too.
+controls, lives in `tests/traffic_fixtures.js`.
 
 `make test` ends with the snapshot test (`tests/snapshot.py`): it opens
 six states of the page in headless Chromium (the page opened at the

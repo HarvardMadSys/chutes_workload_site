@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { chartName, nameChart, renderFigure } from "../site/js/shared/figure.js";
-import { FakeCardPart, FakeElement } from "./fake_page.js";
+import { FakeElement } from "./fake_page.js";
 
 // The site's stylesheet, and its rule that lays a card of a group's grid on its row's tracks, the rows it spans.
 const STYLE_FILE = new URL("../site/style.css", import.meta.url);
@@ -44,7 +44,7 @@ test("a card in a grid spans one row for each part renderFigure appends to a fig
   const rule = readFileSync(STYLE_FILE, "utf8").match(CARD_GRID_SPAN);
   assert.ok(rule, "style.css has no .card-grid > .card { grid-row: span N } rule");
   const span = Number(rule[1]);
-  globalThis.document = { createElement: (tag) => new FakeCardPart(tag) };
+  globalThis.document = { createElement: (tag) => new FakeElement(tag) };
   context.after(() => delete globalThis.document);
   const card = new FakeElement("article");
   renderFigure(card, { title: "A title", insight: "An insight.", caption: "A caption.", definition: "Rows." });

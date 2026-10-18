@@ -8,9 +8,8 @@ import {
 } from "../site/js/page/topic_tabs.js";
 
 import { TOPICS, topicNumber } from "../site/js/page/topics.js";
-import {
-  FakeElement, FakeHistory, PAGE_ADDRESS, shownIds, TOPIC_ANCHORS, TOPIC_TITLES, topicSections,
-} from "./fake_page.js";
+import { FakeElement, FakeHistory, PAGE_ADDRESS } from "./fake_page.js";
+import { shownIds, TOPIC_ANCHORS, TOPIC_TITLES, topicSections } from "./page_fixtures.js";
 
 /**
  * Mount the tabs on a page opened at `hash`, `onShow` called as a topic is shown: `{ tabs, sections, history }`; the

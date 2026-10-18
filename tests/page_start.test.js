@@ -9,9 +9,9 @@ import { mountTopicTabs } from "../site/js/page/topic_tabs.js";
 import { runTraffic } from "../site/js/traffic/traffic.js";
 import { mountTrafficControls } from "../site/js/traffic/traffic_controls.js";
 import { familyChoices, modelChoices } from "../site/js/traffic/traffic_choice.js";
-import {
-  deferred, EVERYTHING, FakeCardPart, FakeElement, FakeHistory, PAGE_ADDRESS, settled, shownIds, topicSections,
-} from "./fake_page.js";
+import { deferred, FakeElement, FakeHistory, PAGE_ADDRESS, settled } from "./fake_page.js";
+import { shownIds, topicSections } from "./page_fixtures.js";
+import { EVERYTHING } from "./traffic_fixtures.js";
 
 // Two families, Qwen and Other, as the family drop-down offers them.
 const FAMILIES = familyChoices([
@@ -143,7 +143,7 @@ test("a topic is placed after the tab row, a tab panel of its heading, takeaway,
   const insights = new FakeElement("section", "insights");
   const tabsRow = new FakeElement("div", "topic-tabs");
   insights.append(tabsRow);
-  globalThis.document = { getElementById: () => insights, createElement: (tag) => new FakeCardPart(tag) };
+  globalThis.document = { getElementById: () => insights, createElement: (tag) => new FakeElement(tag) };
   context.after(forgetThePage);
   const { section, cards } = placeTopic(TOPIC, 4);
   assert.deepEqual(insights.children, [tabsRow, section]);
@@ -215,7 +215,7 @@ function startedPageWithExplorer(context, answers) {
   globalThis.document = {
     querySelector: (selector) => places.find((element) => `#${element.id}` === selector),
     getElementById: (id) => [insights, ...insights.children].find((element) => element.id === id),
-    createElement: (tag) => new FakeCardPart(tag),
+    createElement: (tag) => new FakeElement(tag),
   };
   context.after(() => {
     forgetThePage();

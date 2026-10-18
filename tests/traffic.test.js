@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { runTraffic } from "../site/js/traffic/traffic.js";
-import { controlsOf, deferred, FakeElement, fetchedAnswer, PAGE_ADDRESS, runFrames, settled } from "./fake_page.js";
+import { deferred, FakeElement, PAGE_ADDRESS, runFrames, settled } from "./fake_page.js";
+import { controlsOf, fetchedAnswer } from "./traffic_fixtures.js";
 
 // The answer files the explorer reads: every family's rows, and the family Kin's by model.
 const FAMILY_FILE = "data/all/explore/daily_by_family.json";

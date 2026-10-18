@@ -1,23 +1,26 @@
 /**
- * Stand-ins for the parts of the page the node tests drive, as node has no page of its own: an element, found under
- * another by a tag, a class, an id or a data attribute, or a chain of them; the Traffic Explorer's controls in its
- * controls row; a part of a figure card, and a figure's body with its legend's place; the topic sections the tabs
- * show, the browser's history, and the response to fetching an answer.
+ * The stand-in for the browser through which the node tests reach the page's modules, as node has no page of its own:
+ * an element or the window (`FakeElement`, of `fake_element.js`, exported here); the browser's history; the page's
+ * document, window, fetch and animation frames for one test (`useFakePage`); and an answer the page ships. Until their
+ * last tests move, it also holds a document of `createElement` alone and a figure's body with its legend's place. It
+ * imports nothing from `site/`, so that a fault in a page module never breaks the fake every test stands on.
  */
 
-import { TOPICS } from "../site/js/page/topics.js";
+import { readFileSync } from "node:fs";
 
-/** The topics' anchors on the page, their ids, in the order of their tabs. */
-export const TOPIC_ANCHORS = Object.freeze(TOPICS.map((topic) => topic.id));
+import { FakeElement } from "./fake_element.js";
 
-/** The topics' titles, as their headings and tabs write them after the number, in the order of their tabs. */
-export const TOPIC_TITLES = Object.freeze(TOPICS.map((topic) => topic.title));
+export { FakeElement };
 
 /** The address the fake page is opened at, before its query and anchor. */
 export const PAGE_ADDRESS = "http://localhost/index.html";
 
-/** The Traffic Explorer's choice of everything: every family, every model, every endpoint group, requests, every day. */
-export const EVERYTHING = Object.freeze({ family: "", model: "", endpoint: "", metric: "", from: "", to: "" });
+// The folder of the answers the page ships, which it reads as `data/all/<name>.json`.
+const ANSWERS_FOLDER = new URL("../site/data/all/", import.meta.url);
+
+// The globals `useFakePage` sets and deletes after its test: node has none of its own, so there is none to restore.
+// `fetch`, which node has, is mocked through the test's context, and node restores it.
+const PAGE_GLOBALS = ["document", "window", "requestAnimationFrame", "ResizeObserver"];
 
 /** Make a stand-in the global document for the test of `context`; node has none of its own. */
 export function useFakeDocument(context) {
@@ -30,181 +33,10 @@ export function settled() {
   return new Promise((resolve) => setImmediate(resolve));
 }
 
-/** The response to fetching an answer whose promised rows are `rows`, or a 404 where there are none. */
-export function fetchedAnswer(rows) {
-  if (rows === undefined) {
-    return { ok: false, status: 404, statusText: "Not Found" };
-  }
-  return { ok: true, json: () => rows };
-}
-
 /** Run the animation frames asked for, as the browser does before it paints. */
 export function runFrames(frames) {
   for (const frame of frames.splice(0)) {
     frame();
-  }
-}
-
-// The four forms of a simple selector the fake element reads, each matched whole: a tag, a class, an id, and a data
-// attribute without or with a value in double quotes.
-const TAG_SELECTOR = /^[a-z][a-z0-9]*$/;
-const CLASS_SELECTOR = /^\.([\w-]+)$/;
-const ID_SELECTOR = /^#([\w-]+)$/;
-const ATTRIBUTE_SELECTOR = /^\[(data-[\w-]+)(?:="([^"]*)")?\]$/;
-
-// Throw where `simple` is of none of the four forms, naming it, so that a test with a mistyped selector fails.
-function checkSimpleSelector(simple) {
-  const forms = [TAG_SELECTOR, CLASS_SELECTOR, ID_SELECTOR, ATTRIBUTE_SELECTOR];
-  if (!forms.some((form) => form.test(simple))) {
-    throw new Error(`The fake page reads no selector of the form "${simple}"`);
-  }
-}
-
-/**
- * A stand-in for an element of the page, or for the window: its tag, id, attributes, classes, inline style, listeners,
- * children, text and value, and what the page's modules set on it.
- */
-export class FakeElement {
-  constructor(tag = "", id = "") {
-    this.tag = tag;
-    this.id = id;
-    this.hidden = false;
-    this.className = "";
-    this.textContent = "";
-    this.innerHTML = "";
-    this.value = "";
-    this.attributes = new Map();
-    this.classes = new Set();
-    this.style = {};
-    this.listeners = new Map();
-    this.children = [];
-    this.classList = { toggle: (name, isOn) => (isOn ? this.classes.add(name) : this.classes.delete(name)) };
-    this.scrollLeft = 0;
-    this.clientWidth = 0;
-    this.scrollWidth = 0;
-  }
-
-  setAttribute(name, value) {
-    this.attributes.set(name, value);
-  }
-
-  getAttribute(name) {
-    return this.attributes.get(name);
-  }
-
-  addEventListener(type, listener) {
-    this.listeners.set(type, [...(this.listeners.get(type) ?? []), listener]);
-  }
-
-  /** Call each listener of `type` with `event`, in the order they were added. */
-  dispatch(type, event = {}) {
-    for (const listener of this.listeners.get(type) ?? []) {
-      listener(event);
-    }
-  }
-
-  append(...children) {
-    this.children.push(...children);
-  }
-
-  replaceChildren(...children) {
-    this.children = children;
-  }
-
-  getBoundingClientRect() {
-    return { left: 0, right: 0 };
-  }
-
-  focus() {
-    globalThis.document.activeElement = this;
-  }
-
-  /**
-   * Whether this element matches `simple`, one simple selector: a tag (`input`), a class (`.range-track`, a word of
-   * `className` or a member of `classes`), an id (`#traffic-explorer`), or a data attribute without or with a value
-   * (`[data-copy]`, `[data-copy="bibtex"]`). Any other form throws, so that a test with a mistyped selector fails.
-   */
-  matches(simple) {
-    checkSimpleSelector(simple);
-    const classSelector = simple.match(CLASS_SELECTOR);
-    if (classSelector !== null) {
-      const [, name] = classSelector;
-      return this.className.split(" ").includes(name) || this.classes.has(name);
-    }
-    const idSelector = simple.match(ID_SELECTOR);
-    if (idSelector !== null) {
-      const [, id] = idSelector;
-      return this.id === id;
-    }
-    const attributeSelector = simple.match(ATTRIBUTE_SELECTOR);
-    if (attributeSelector !== null) {
-      const [, name, value] = attributeSelector;
-      return this.attributes.has(name) && (value === undefined || String(this.attributes.get(name)) === value);
-    }
-    return this.tag === simple;
-  }
-
-  /**
-   * Every element under this one that `selector` finds, in document order, each once: `selector` is one simple selector
-   * of `matches`, or several parted by spaces, the first matched among all the elements under this one and each next
-   * among the elements under each match of the one before.
-   */
-  querySelectorAll(selector) {
-    const simples = selector.trim().split(/\s+/);
-    for (const simple of simples) {
-      checkSimpleSelector(simple);
-    }
-    let matched = [this];
-    for (const simple of simples) {
-      const found = new Set();
-      for (const ancestor of matched) {
-        for (const element of descendantsOf(ancestor)) {
-          if (element.matches(simple)) {
-            found.add(element);
-          }
-        }
-      }
-      matched = [...found];
-    }
-    return matched;
-  }
-
-  /** The first element under this one that `selector` finds (`querySelectorAll`), or null where it finds none. */
-  querySelector(selector) {
-    return this.querySelectorAll(selector)[0] ?? null;
-  }
-}
-
-// Every element under `element`, depth first, in document order.
-function descendantsOf(element) {
-  const descendants = [];
-  for (const child of element.children) {
-    descendants.push(child, ...descendantsOf(child));
-  }
-  return descendants;
-}
-
-/**
- * The Traffic Explorer's controls in its controls row `row`: `{ family, model, endpoint, metric, periods }`, the
- * family, model, endpoint and metric drop-downs, in the row's order, and the group of period buttons.
- */
-export function controlsOf(row) {
-  const [family, model, endpoint, metric] = row.querySelectorAll(".control-field select");
-  return { family, model, endpoint, metric, periods: row.querySelector(".period-buttons") };
-}
-
-/**
- * An element of a figure card as the fake page builds it: a fake element with a place for the figure's name, whose
- * `querySelector` finds a stand-in for any part, as a card's Definition control looks up its text.
- */
-export class FakeCardPart extends FakeElement {
-  constructor(tag) {
-    super(tag);
-    this.dataset = {};
-  }
-
-  querySelector() {
-    return new FakeElement();
   }
 }
 
@@ -221,16 +53,6 @@ export class FakeFigureBody extends FakeElement {
   closest() {
     return { querySelector: () => this.legendPlace };
   }
-}
-
-/** The six topic sections as the page writes them, as far as the tabs read them: each an element of its topic's id. */
-export function topicSections() {
-  return TOPIC_ANCHORS.map((anchor) => new FakeElement("section", anchor));
-}
-
-/** The ids of the sections of `sections` that are shown. */
-export function shownIds(sections) {
-  return sections.filter((section) => !section.hidden).map((section) => section.id);
 }
 
 /**
@@ -283,4 +105,61 @@ export function deferred() {
   const parts = {};
   parts.promise = new Promise((resolve, reject) => Object.assign(parts, { resolve, reject }));
   return parts;
+}
+
+/**
+ * Make `document`, `window`, `fetch`, `requestAnimationFrame` and `ResizeObserver` stand-ins for the test of
+ * `context`, and remove them when it ends. The page's address is `PAGE_ADDRESS` and then `query`; `document` finds
+ * `elements` and their descendants; a fetched file of `answers` gives its rows, or the rows its promise gives, and any
+ * other file a 404; `onRead(file)` is called as each file is fetched. Returns `{ reads, frames, history }`: the files
+ * fetched, in order; the animation frames asked for and not yet run (`runFrames`); the window's `FakeHistory`.
+ */
+export function useFakePage(context, { query = "", elements = [], answers = {}, onRead = () => undefined } = {}) {
+  const window = new FakeElement();
+  window.history = new FakeHistory(window, `${PAGE_ADDRESS}${query}`);
+  const page = { reads: [], frames: [], history: window.history };
+  globalThis.document = fakeDocument(elements);
+  globalThis.window = window;
+  globalThis.requestAnimationFrame = (frame) => page.frames.push(frame);
+  globalThis.ResizeObserver = class { observe() {} }; // the scrolling row asks for one; the fake page never resizes
+  context.mock.method(globalThis, "fetch", async (file) => {
+    page.reads.push(file);
+    onRead(file);
+    return fetchedFile(answers, file);
+  });
+  context.after(() => {
+    for (const name of PAGE_GLOBALS) {
+      delete globalThis[name];
+    }
+  });
+  return page;
+}
+
+// The page's document: an element made by `createElement`, and those of `elements` and under them that a selector or
+// an id finds, in the order given; `activeElement` the element focused last.
+function fakeDocument(elements) {
+  const root = new FakeElement();
+  root.children = elements; // held, not appended, so that each keeps its own parent
+  return {
+    activeElement: null,
+    createElement: (tag) => new FakeElement(tag),
+    querySelector: (selector) => root.querySelector(selector),
+    querySelectorAll: (selector) => root.querySelectorAll(selector),
+    getElementById: (id) => root.querySelector(`#${id}`),
+  };
+}
+
+// The response to fetching `file`, read from `answers` at each fetch: its rows, awaited where they are a promise, so
+// that one that rejects makes the fetch reject as a network failure does; a 404 for a file `answers` does not hold.
+async function fetchedFile(answers, file) {
+  if (!Object.hasOwn(answers, file)) {
+    return { ok: false, status: 404, statusText: "Not Found" };
+  }
+  const rows = await answers[file];
+  return { ok: true, json: () => rows };
+}
+
+/** What the page reads for `readAnswer(name)`, parsed: `site/data/all/<name>.json`. */
+export function shippedAnswer(name) {
+  return JSON.parse(readFileSync(new URL(`${name}.json`, ANSWERS_FOLDER), "utf8"));
 }

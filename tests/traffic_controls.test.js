@@ -9,7 +9,8 @@ import { test } from "node:test";
 
 import { mountTrafficControls, renderControls } from "../site/js/traffic/traffic_controls.js";
 import { familyChoices, modelChoices, NO_FAMILY_MODEL_CHOICES } from "../site/js/traffic/traffic_choice.js";
-import { controlsOf, EVERYTHING, FakeElement, PAGE_ADDRESS, useFakeDocument } from "./fake_page.js";
+import { FakeElement, PAGE_ADDRESS, useFakeDocument } from "./fake_page.js";
+import { controlsOf, EVERYTHING } from "./traffic_fixtures.js";
 
 // The trace's days, as far as the period buttons read them: its first and last, and each quarter's first and last.
 const DAYS = [
