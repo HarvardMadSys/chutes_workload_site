@@ -1,5 +1,5 @@
 /**
- * The Explore page's hero: the dataset's name as its title, a lede saying what the trace holds and counting its months
+ * The page's hero: the dataset's name as its title, a lede saying what the trace holds and counting its months
  * (the `months` of the `explore/trace_totals` answer, which the page gives once it is read), the buttons to the page's
  * Traffic Explorer and Insights, the dataset, the paper and the code, and the lab's name under them.
  */

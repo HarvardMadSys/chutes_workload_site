@@ -1,6 +1,6 @@
 /**
  * The Insights' second topic, Request shape and latency: the paper's token-length and latency distributions of all
- * requests and three highlighted models, and median latency by request shape, as `explore/figure_sections.js` defines
+ * requests and three highlighted models, and median latency by request shape, as `page/topics.js` defines
  * a topic. The words are the paper's and the definitions the artifact README's; a line marked "placeholder" is not
  * the paper's own, for the authors to review.
  * A card's kind and chart say how its figure is drawn from its answer, as `insights/figure_card.js` defines them.

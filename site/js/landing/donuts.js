@@ -7,15 +7,15 @@
  * A donut names each series its colours name, in those colours: the families as the Traffic Explorer colours them
  * (`familyColours`), the endpoint groups as `endpointColours` does, every other name folded into "Other". The donut
  * kind (`charts/donut.js`) draws it, the slices' total in its centre. Its legend hides and shows a slice
- * (`explore/legend.js`).
+ * (`shared/legend.js`).
  *
- * A section's `context` is what the page gives every section; see `explore/start.js`.
+ * A section's `context` is what the page gives every section; see `page/start.js`.
  */
 
 import { columnTotal, renderFigure, showError, showLoading } from "../shared/charts.js";
 import { formatCompactCount, formatQuantity } from "../shared/format.js";
 import { ENDPOINT_SERIES, FAMILY_SERIES } from "../shared/series.js";
-import { drawWithLegend } from "../explore/legend.js";
+import { drawWithLegend } from "../shared/legend.js";
 import { donutLegend, drawDonut } from "../charts/donut.js";
 
 /** The two donuts, in the page's order: each card's words and the series it slices the requests by. */

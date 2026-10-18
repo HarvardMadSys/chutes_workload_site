@@ -92,7 +92,7 @@ make data:  the artifact's caches, chute_models.csv and model_families.csv, and 
               family) and data/all/queries.json
             the artifact's config/figures.json and data/paper/plotdata/<figure>.parquet  →  data/all/figures/<figure>.json
               and data/all/figures.json
-The page:   index.html  →  js/pages/explore.js  →  js/explore/start.js, the section modules and js/shared/
+The page:   index.html  →  js/page/main.js  →  js/page/start.js, the section modules and js/shared/
               →  data/all/explore/<query>.json and data/all/figures/<figure>.json
 ```
 
@@ -101,15 +101,15 @@ checks that each path it names exists.
 
 - `index.html` is a shell: a header, titled sections with ids, a footer,
   and one `<script type="module">`. It holds no data and no inline script.
-  It is the site's one page: the hero and stats strip, the Overview
+  It holds the page's sections: the hero and stats strip, the Overview
   (`#overview`), the Traffic Explorer (`#traffic`), the Insights
   (`#insights`), Cite (`#cite`) and Team.
-- The page's module, `js/pages/explore.js`, lists its sections in
+- The page's module, `js/page/main.js`, lists its sections in
   `SECTIONS`, each `{ id, run }`, starts the charting library's load
-  (see "JavaScript style") and calls `startPage` of `explore/start.js`
+  (see "JavaScript style") and calls `startPage` of `page/start.js`
   with the sections. `startPage` places the Insights' groups and cards
   and their tabs, draws the header and the footer, and runs each section as
-  `run(container, context)`; `context` is described in `explore/start.js`.
+  `run(container, context)`; `context` is described in `page/start.js`.
   Its `orders` are the rows of `explore/family_mix` and
   `explore/endpoint_mix`, asked for once: the donuts' rows, and the order
   every chart colours the endpoint groups by.
@@ -122,19 +122,19 @@ checks that each path it names exists.
   `data/all/explore/trace_totals.json`, which `make data` wrote by running
   `queries/explore/trace_totals.sql`; `readAnswer("figures/<figure>")`
   reads a figure's plot-ready rows. The page runs no query.
-- The Insights' six topics are tabs (`explore/topic_tabs.js`), following
+- The Insights' six topics are tabs (`page/topic_tabs.js`), following
   the ARIA tabs pattern (one tab stop, the arrow keys, Home and End, each
   topic a tab panel): one is shown and the others hidden, the shown one
   named by the URL's hash and kept in the history entry's state; a tab
   chosen pushes a new entry with its topic, so Back returns to the topic
-  before. `explore/start.js` is the page's one listener of `popstate`
+  before. `page/start.js` is the page's one listener of `popstate`
   (`followHistory`): on Back or Forward it shows the entry's topic, draws
   the header from the entry's query and tells each section that asked
-  through `context.onReturn`. `explore/figure_sections.js` lists the topics in
-  `FIGURE_SECTIONS`, one module each in `js/insights/`, and `index.html`
+  through `context.onReturn`. `page/topics.js` lists the topics in
+  `TOPICS`, one module each in `js/insights/`, and `index.html`
   holds, under the Insights heading and its `#topic-tabs` row, a section
   with a heading for each, its id the topic's anchor. `placeTopic` of
-  `explore/start.js` writes the rest of a topic's section: its takeaway,
+  `page/start.js` writes the rest of a topic's section: its takeaway,
   then for each group its heading (an `h3`), its takeaway and a card grid
   of its cards, each card's title an `h4`. A topic's answers are fetched
   the first time it is shown, so a topic never shown requests none.
@@ -187,7 +187,7 @@ at the page's width by the stylesheet's `.page > section`, which caps it
 at the page's width less the gutters, `.page` keeping the gutters as its
 padding; the Traffic Explorer's `#traffic` alone is uncapped. A new
 topic of figures is a module of `js/insights/` instead, added to
-`FIGURE_SECTIONS` and to `index.html`'s Insights, where it becomes a
+`TOPICS` and to `index.html`'s Insights, where it becomes a
 tab.
 
 ## Patterns to copy
@@ -328,7 +328,7 @@ most six words, with no full stop; its `takeaway`, what its figures show
 and, where the paper draws one, what that means for a serving system, is
 at most two sentences and forty words; its `cards` are in the paper's
 order. A topic module freezes the topic, each group and each `cards` list, and
-`topicCards(topic)` of `explore/figure_sections.js` lists a topic's
+`topicCards(topic)` of `page/topics.js` lists a topic's
 cards group by group, the one way the tests list them.
 `tests/figure_words.test.js` counts these limits and a card's below;
 `TOPIC_FIELDS` and `GROUP_FIELDS` in

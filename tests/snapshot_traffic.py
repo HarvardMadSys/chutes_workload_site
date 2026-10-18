@@ -1,4 +1,4 @@
-"""The Traffic Explorer's snapshot units, read from the Explore page as it opens, nothing chosen: its controls, its
+"""The Traffic Explorer's snapshot units, read from the page as it opens, nothing chosen: its controls, its
 tiles' texts with their notes, its bars' texts and legend, its bars' axes, its day range and its three distribution
 charts. Each is the text written to its file, as `snapshot_units.py` writes the page's other units: a control's choice
 as `field: choice | selected=…`, a handle of the day range as `name: day | value=… | max=…`, a distribution chart as

@@ -6,7 +6,7 @@
  * The strip says "User ids", not users: the release's user ids rotate every quarter, so the count is of ids, not of
  * people.
  *
- * A section's `context` is what the page gives every section; see `explore/start.js`.
+ * A section's `context` is what the page gives every section; see `page/start.js`.
  */
 
 import { showError, showLoading } from "../shared/charts.js";

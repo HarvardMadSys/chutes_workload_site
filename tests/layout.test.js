@@ -4,8 +4,8 @@ import { test } from "node:test";
 
 import { LINKED_SECTIONS, renderFooter, renderHeader, queryString } from "../site/js/shared/layout.js";
 
-// The Explore page, whose sections the header and footer link by anchor.
-const EXPLORE_PAGE = new URL("../site/index.html", import.meta.url);
+// The page, whose sections the header and footer link by anchor.
+const PAGE_FILE = new URL("../site/index.html", import.meta.url);
 
 // URL keys, as the page gives them to the header.
 const PAGE_KEYS = "model=qwen3&period=q3";
@@ -104,17 +104,17 @@ test("the footer holds the brand, its line and the two lists of links, with no h
   assert.doesNotMatch(markup, /Copyright|Accessibility|footer-legal/);
 });
 
-test("the Explore page is the site's one page of sections, titled with the dataset's name and run by its module", () => {
-  const page = readFileSync(EXPLORE_PAGE, "utf8");
+test("the page is the site's one page of sections, titled with the dataset's name and run by its module", () => {
+  const page = readFileSync(PAGE_FILE, "utf8");
   assert.match(page, /<title>Chutes Production Trace<\/title>/);
-  assert.match(page, /<script type="module" src="js\/pages\/explore\.js"><\/script>/);
+  assert.match(page, /<script type="module" src="js\/page\/main\.js"><\/script>/);
   for (const section of LINKED_SECTIONS) {
     assert.match(page, new RegExp(`<section id="${section.anchor.slice(1)}"`), `index.html has no section ${section.anchor}`);
   }
 });
 
-test("the Explore page runs Overview, Traffic Explorer, Insights, Cite and Team, each of the four a heading alone", () => {
-  const page = readFileSync(EXPLORE_PAGE, "utf8");
+test("the page runs Overview, Traffic Explorer, Insights, Cite and Team, each of the four a heading alone", () => {
+  const page = readFileSync(PAGE_FILE, "utf8");
   const order = [...page.matchAll(/<section (?:id="([a-z-]+)" )?class="([a-z -]+)"/g)].map((match) => match[1] ?? match[2]);
   assert.deepEqual(order, [
     "hero", "overview", "traffic", "insights", "insights-overview", "insights-tokens", "insights-users",

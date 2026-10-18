@@ -13,7 +13,7 @@ import {
   formatCount, formatCountTick, formatDurationTick, formatSignificantSeconds, formatWholeCount,
 } from "../shared/format.js";
 import { drawLines } from "../charts/lines.js";
-import { drawShownSeries, hasLegend } from "../explore/legend.js";
+import { drawShownSeries, hasLegend } from "../shared/legend.js";
 import { binTotals, cdfRows } from "./traffic_distributions.js";
 
 // The y axis of every chart: the share of the chosen requests at or below a value, in percent, ticked as every CDF on

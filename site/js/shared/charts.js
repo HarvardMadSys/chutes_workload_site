@@ -200,7 +200,7 @@ export function chartWidth(body) {
 
 /**
  * Plot's colour scale for the `shown` names, each in its colour from the map `colours`. It draws no legend: a chart of
- * more than one series has the Explore page's legend of buttons instead.
+ * more than one series has the legend of buttons (`shared/legend.js`) instead.
  */
 export function colourScale(colours, shown) {
   return {

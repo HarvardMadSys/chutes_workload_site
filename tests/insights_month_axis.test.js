@@ -9,7 +9,7 @@ import { axisScale } from "../site/js/axes/ticks.js";
 import {
   chartParameters, PARTIAL_TRACE_MONTH, TRACE_MONTH_AXIS, TRACE_MONTH_NAMES, TRACE_MONTH_TICKS, traceMonthName,
 } from "../site/js/insights/figure_card.js";
-import { FIGURE_SECTIONS, topicCards } from "../site/js/explore/figure_sections.js";
+import { TOPICS, topicCards } from "../site/js/page/topics.js";
 import { TRACE_FIRST_DAY } from "../site/js/shared/format.js";
 
 const TRACE_MONTHS = 13; // the trace's months, 1 to 13
@@ -35,7 +35,7 @@ function xInset(card) {
 
 // The cards on the trace's month axis, every topic's.
 function monthCards() {
-  return FIGURE_SECTIONS.flatMap(topicCards).filter(isOnMonthAxis);
+  return TOPICS.flatMap(topicCards).filter(isOnMonthAxis);
 }
 
 test("the trace's month axis labels the first, the middle and the last month by name, the partial last starred", () => {

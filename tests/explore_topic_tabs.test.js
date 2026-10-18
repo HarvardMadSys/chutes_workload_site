@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import {
   mountTopicTabs, showTopic, tabIndexForKey, topicForEntry, topicForHash, topicTab,
-} from "../site/js/explore/topic_tabs.js";
+} from "../site/js/page/topic_tabs.js";
 
 import {
   FakeElement, FakeHistory, PAGE_ADDRESS, shownIds, TOPIC_ANCHORS, topicSections,
@@ -12,7 +12,7 @@ import {
 /**
  * Mount the tabs on a page opened at `hash`, `onShow` called as a topic is shown: `{ tabs, sections, history }`; the
  * globals are the fakes until `done`. Back and Forward reach the tabs as the page's start passes them on
- * (`explore/start.js`).
+ * (`page/start.js`).
  */
 function mountedTabs(hash, onShow = () => undefined) {
   const sections = topicSections();

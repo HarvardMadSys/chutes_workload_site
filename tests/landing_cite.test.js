@@ -5,8 +5,8 @@ import { test } from "node:test";
 import { copySource, mountCopyButtons, renderCiteLine } from "../site/js/landing/cite.js";
 import { URLS } from "../site/js/shared/layout.js";
 
-// The Explore page, which holds the BibTeX block.
-const EXPLORE_PAGE = new URL("../site/index.html", import.meta.url);
+// The page, which holds the BibTeX block.
+const PAGE_FILE = new URL("../site/index.html", import.meta.url);
 
 // A stand-in clipboard that keeps what it was given.
 function fakeClipboard() {
@@ -24,7 +24,7 @@ function fakePage(text) {
 }
 
 test("the BibTeX entry links the paper's address, and its copy button starts hidden, naming the block it copies", () => {
-  const page = readFileSync(EXPLORE_PAGE, "utf8");
+  const page = readFileSync(PAGE_FILE, "utf8");
   assert.match(page, /<pre id="bibtex">/);
   assert.ok(page.includes(`howpublished = {\\url{${URLS.paper}}}`), "the entry links the paper");
   assert.match(page, /<button class="cite-copy" type="button" data-copy="bibtex" hidden>Copy<\/button>/);

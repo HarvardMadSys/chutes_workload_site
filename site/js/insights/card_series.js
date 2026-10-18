@@ -32,7 +32,7 @@ const DEFAULT_PALETTE = "series";
 const POLICY_PALETTE = "policies";
 
 /**
- * The legend of `card` over its answer's `rows`: `{ series, colours, dashed }` (as `explore/legend.js` takes one), the
+ * The legend of `card` over its answer's `rows`: `{ series, colours, dashed }` (as `shared/legend.js` takes one), the
  * series `colours` names that the rows hold, labelled by the card's `chart.labels`, and its `chart.dashed`, the
  * series drawn dashed, whose swatches are dashed too; for a card of the policies' palette, `policyLegend`'s. A card
  * whose every panel holds one series lists none, so it has no legend: each panel's title names its series, and hiding

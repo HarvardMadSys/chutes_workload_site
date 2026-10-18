@@ -19,7 +19,7 @@ class SharedTitleError(Exception):
     """Two cards of one state share a title, so their units, which are named by title, would share files."""
 
 
-# The Explore page's states, each a folder of `tests/snapshots/`, and the Insights topic each shows, by its section id,
+# The page's states, each a folder of `tests/snapshots/`, and the Insights topic each shows, by its section id,
 # which is also the anchor the page is opened at to show it; in the order of the topic tabs.
 EXPLORE_STATES = {
     "explore-overview": "insights-overview",
@@ -255,7 +255,7 @@ def stats_lines(page) -> str:
 
 
 def explore_page_units(page) -> dict[str, str]:
-    """The Explore page's units outside the Insights and the Traffic Explorer (`snapshot_traffic.py`): hero, stats
+    """The page's units outside the Insights and the Traffic Explorer (`snapshot_traffic.py`): hero, stats
     strip, Overview cards, cite, team, footer."""
     units = {
         "hero": "\n".join(text_lines(page.locator("#hero"))),

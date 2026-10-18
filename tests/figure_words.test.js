@@ -1,16 +1,16 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { FIGURE_SECTIONS, topicCards } from "../site/js/explore/figure_sections.js";
+import { TOPICS, topicCards } from "../site/js/page/topics.js";
 
 // Every card of every topic.
 function everyCard() {
-  return FIGURE_SECTIONS.flatMap(topicCards);
+  return TOPICS.flatMap(topicCards);
 }
 
 // Every group of every topic.
 function everyGroup() {
-  return FIGURE_SECTIONS.flatMap((topic) => topic.groups);
+  return TOPICS.flatMap((topic) => topic.groups);
 }
 
 // A sentence ends at a full stop, a question mark or an exclamation mark followed by a space; a line break also
@@ -80,7 +80,7 @@ test("every card has a definition of at most three sentences and sixty words", (
 });
 
 test("every topic has a takeaway of one sentence, at most thirty words", () => {
-  for (const topic of FIGURE_SECTIONS) {
+  for (const topic of TOPICS) {
     assertWords(topic.takeaway, topic.selector, "takeaway", { sentences: 1, words: MAX_TAKEAWAY_WORDS });
   }
 });

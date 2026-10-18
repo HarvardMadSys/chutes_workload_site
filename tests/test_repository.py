@@ -15,8 +15,9 @@ MAX_MODULES_PER_FOLDER = 9  # a folder holds one purpose and about eight modules
 JAVASCRIPT_FOLDER = ROOT / "site" / "js"
 LIBRARIES_MODULE = ROOT / "site" / "js" / "shared" / "libraries.js"  # the only file that names a library URL
 QUERIES_FOLDER = ROOT / "site" / "queries"  # the only place SQL is written
-ANSWERS_MODULE = JAVASCRIPT_FOLDER / "shared" / "answers.js"  # the Explore page's answers
-PAGES = ("index.html",)  # the site's one page: Explore, the landing page
+ANSWERS_MODULE = JAVASCRIPT_FOLDER / "shared" / "answers.js"  # the page's answers
+PAGES = ("index.html",)  # the site's pages: index.html alone
+PAGE_SCRIPT = '<script type="module" src="js/page/main.js"></script>'  # how index.html loads the page's module
 CDN_HOSTS = ("cdn.jsdelivr.net", "unpkg.com", "cdnjs.cloudflare.com", "esm.sh")
 MAX_FILE_BYTES = 25 * 1024 * 1024  # the largest file Cloudflare serves as a static asset
 
@@ -162,14 +163,14 @@ def statically_imported_modules(page_module: pathlib.Path) -> set[pathlib.Path]:
     return found
 
 
-def test_the_explore_page_s_start_imports_the_answers_module() -> None:
-    assert ANSWERS_MODULE.resolve() in statically_imported_modules(JAVASCRIPT_FOLDER / "explore" / "start.js")
+def test_the_page_s_start_imports_the_answers_module() -> None:
+    assert ANSWERS_MODULE.resolve() in statically_imported_modules(JAVASCRIPT_FOLDER / "page" / "start.js")
 
 
 def test_the_site_has_one_page_with_its_module() -> None:
     assert tuple(sorted(path.name for path in (ROOT / "site").glob("*.html"))) == PAGES
-    page_modules = sorted(path.name for path in (JAVASCRIPT_FOLDER / "pages").glob("*.js"))
-    assert page_modules == ["explore.js"]
+    assert (JAVASCRIPT_FOLDER / "page" / "main.js").is_file()
+    assert PAGE_SCRIPT in (ROOT / "site" / "index.html").read_text()
 
 
 def tracked_text_files(tracked_files: set[str]) -> list[pathlib.Path]:

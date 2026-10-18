@@ -15,7 +15,7 @@ import { TOKENS_TOPIC } from "../insights/tokens.js";
 import { USERS_TOPIC } from "../insights/users.js";
 
 /** The six topics of the Insights, in the order of their tabs. */
-export const FIGURE_SECTIONS = Object.freeze([
+export const TOPICS = Object.freeze([
   OVERVIEW_TOPIC,
   TOKENS_TOPIC,
   USERS_TOPIC,
@@ -24,7 +24,7 @@ export const FIGURE_SECTIONS = Object.freeze([
   BALANCING_TOPIC,
 ]);
 
-/** Every card of `topic`, a topic of `FIGURE_SECTIONS`: its first group's cards in order, then its second's, and on. */
+/** Every card of `topic`, a topic of `TOPICS`: its first group's cards in order, then its second's, and on. */
 export function topicCards(topic) {
   const cards = [];
   for (const group of topic.groups) {

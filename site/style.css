@@ -1733,7 +1733,7 @@ button:disabled:hover {
 /* ---------- Rows that scroll sideways ---------- */
 
 /* A row with more beyond its right edge, such as the Insights' row of tabs, fades that edge, to say it scrolls
-   sideways (`mountScrollingRow` in js/shared/scrolling_row.js). */
+   sideways (`mountScrollingRow` in js/page/scrolling_row.js). */
 .has-more-beyond-edge {
   mask-image: linear-gradient(90deg, #000 calc(100% - 2.5rem), transparent);
 }

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { drawShownSeries, drawWithLegend } from "../site/js/explore/legend.js";
+import { drawShownSeries, drawWithLegend } from "../site/js/shared/legend.js";
 import { FakeElement, FakeFigureBody, settled, useFakeDocument } from "./fake_page.js";
 
 // A legend of two series, as the Traffic Explorer's bars give one.

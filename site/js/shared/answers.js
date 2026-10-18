@@ -1,5 +1,5 @@
 /**
- * The Explore page's data, read from files, with no query run in the browser. `make data` runs every query under
+ * The page's data, read from files, with no query run in the browser. `make data` runs every query under
  * `site/queries/explore/` and writes each one's rows to `data/all/<name>.json`, `name` being the query's path under
  * `site/queries/` without `.sql`: `readAnswer("explore/trace_totals")` reads `data/all/explore/trace_totals.json`. It
  * also writes each of the paper's figures' plot-ready rows to `data/all/figures/<figure>.json`, read the same way:

@@ -7,7 +7,7 @@
  *
  * And the kinds of series the Overview and the Traffic Explorer draw, the models, the endpoint groups and the
  * families, each `{ order, column, colours, labels? }`: `order`, the key of the orders (the page's `context.orders`,
- * `explore/start.js`, and the Traffic Explorer's own) whose rows give the colour order;
+ * `page/start.js`, and the Traffic Explorer's own) whose rows give the colour order;
  * `column`, the column of an answer naming a row's series; `colours(orderRows)`, a Map from name to colour; and, for a
  * kind whose series are not written by their names, `labels`, each series' label (the endpoint groups'
  * `ENDPOINT_LABELS`).

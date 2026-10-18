@@ -1,4 +1,4 @@
-// The Insights' cards drawn from their shipped answers, as the landing page's spec describes them: the value under the
+// The Insights' cards drawn from their shipped answers, as the `landing-page` spec describes them: the value under the
 // pointer, a log axis, a raster, a hidden series of a CDF card, a CDF's straight lines, the hourly lines' gaps, the
 // routing card's rows of panels and its policy legend, a bands card's key, the hit-ratio grid's all-cached row, and
 // the colour and the day axis the cards share. Each reads a card as its topic lists it and its answer as the
@@ -17,10 +17,10 @@ import {
 } from "../site/js/charts/raster.js";
 import { axisTicks } from "../site/js/axes/ticks.js";
 import { cellTipText } from "../site/js/charts/cells.js";
-import { drawWithLegend, hasLegend } from "../site/js/explore/legend.js";
+import { drawWithLegend, hasLegend } from "../site/js/shared/legend.js";
 import { cardColours, figureLegend } from "../site/js/insights/card_series.js";
 import { chartParameters, COUNT_COLOUR, TRACE_DAY_AXIS } from "../site/js/insights/figure_card.js";
-import { FIGURE_SECTIONS, topicCards } from "../site/js/explore/figure_sections.js";
+import { TOPICS, topicCards } from "../site/js/page/topics.js";
 import { sequentialColour, titledFrame } from "../site/js/shared/charts.js";
 import { SERIES_SLOTS } from "../site/js/theme/colours.js";
 import { SERIES_COLUMN } from "../site/js/shared/series.js";
@@ -32,7 +32,7 @@ const FAKE_LINE_PLOT = { line: (...args) => ["line", ...args] };
 
 // The card that draws `figure`, as its topic lists it.
 function cardOf(figure) {
-  return FIGURE_SECTIONS.flatMap(topicCards).find((card) => card.figure === figure);
+  return TOPICS.flatMap(topicCards).find((card) => card.figure === figure);
 }
 
 // A shipped answer's rows, read from its file as the page reads it over HTTP.

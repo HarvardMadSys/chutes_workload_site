@@ -4,7 +4,7 @@ import { test } from "node:test";
 import {
   dashedBackground, drawWithLegend, hasLegend, isEverySeriesHidden, legendEntryNames, legendIndexForKey, mountLegend,
   toggledSeries,
-} from "../site/js/explore/legend.js";
+} from "../site/js/shared/legend.js";
 import { settled } from "./fake_page.js";
 
 /**

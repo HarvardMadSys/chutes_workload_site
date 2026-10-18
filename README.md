@@ -16,7 +16,7 @@ server code, no bundler and no database in the browser.
 
 ## What the site shows
 
-The one page, `index.html`, holds, in order:
+The page, `index.html`, holds, in order:
 
 - **The hero and the stats strip.** The title, a lede that counts the
   trace's months, and buttons to the Traffic Explorer, the Insights, the
@@ -386,13 +386,19 @@ tables/              built by make tables from the released trace, and tracked
   weekly_histograms.json
                      its sidecar: the trace query's hash, the trace's rows and the table's rows
 site/                exactly the files that are deployed
-  index.html         the one page: header, hero, Overview, Traffic Explorer, Insights, Cite, Team, footer; its head
+  index.html         the page: header, hero, Overview, Traffic Explorer, Insights, Cite, Team, footer; its head
                      preloads the explorer's daily answer
   style.css          tokens, layout and components
   favicon.svg        the brand mark, for the browser tab
-  js/pages/explore.js
-                     the page's module: it names the page's sections, starts the charting library's load and starts
+  js/page/           the page's module and its start, the Insights' topics and their tabs
+    main.js          the page's module: it names the page's sections, starts the charting library's load and starts
                      the page
+    start.js         places the Insights' groups and cards and draws their tabs, draws the header and footer, runs
+                     the sections, then draws the shown topic, and follows Back and Forward
+    topic_tabs.js    the Insights' tabs, one topic shown at a time, the shown one in the URL's hash
+    topics.js        the Insights' six topics in the order of their tabs, and a topic's cards group by group
+    scrolling_row.js
+                     a row that scrolls sideways, as the Insights' tabs do on a phone
   js/shared/         what the page's parts share
     answers.js       reads an answer by its query's name, a figure's among them
     libraries.js     the one module that names a library URL: Observable Plot, at a pinned version
@@ -402,8 +408,7 @@ site/                exactly the files that are deployed
     link_marks.js    the marks before the text of a link off the site: Hugging Face's, a document's and GitHub's
     series.js        a chart's shown rows and its legend; the models, the endpoint groups and the families as series;
                      the figure cards' fixed colours
-    scrolling_row.js
-                     a row that scrolls sideways, as the Insights' tabs do on a phone
+    legend.js        the legend of buttons that hides and shows a series
   js/charts/         the chart kinds
     stacked_bars.js  the Traffic Explorer's bars and the two monthly share cards
     donut.js         the family and endpoint mixes
@@ -425,13 +430,6 @@ site/                exactly the files that are deployed
     donuts.js        the Overview's family and endpoint mixes
     cite.js, team.js
                      the citation's sentence and copy buttons; the lab and the authors
-  js/explore/        the page's start and its sections
-    start.js         places the Insights' groups and cards and draws their tabs, draws the header and footer, runs
-                     the sections, then draws the shown topic, and follows Back and Forward
-    legend.js        the legend of buttons that hides and shows a series
-    topic_tabs.js    the Insights' tabs, one topic shown at a time, the shown one in the URL's hash
-    figure_sections.js
-                     the Insights' six topics in the order of their tabs, and a topic's cards group by group
   js/traffic/        the Traffic Explorer: its section, its filter, its controls, its bars, its day range, its tiles,
                      and its distributions and their three charts
     traffic.js, traffic_controls.js, traffic_filter.js

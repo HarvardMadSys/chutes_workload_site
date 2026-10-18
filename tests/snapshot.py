@@ -3,9 +3,9 @@
 A snapshot is one folder per page state, `tests/snapshots/<state>/`, holding one text file per unit the state shows:
 each chart's SVG, or an Insights card's chart's name and tick labels, each legend's entries, each card's texts, the
 stats strip. `snapshot_units.py` names the states and says what each file holds, `snapshot_traffic.py` the Traffic
-Explorer's. The states are the Explore page opened at each of its six Insights topics' anchors
+Explorer's. The states are the page opened at each of its six Insights topics' anchors
 (`index.html#insights-tokens`), each in a fresh page. A unit that is the same in every state is written once, with
-the first state: the Explore page's hero, stats strip, Overview, Traffic Explorer, cite, team and footer.
+the first state: the page's hero, stats strip, Overview, Traffic Explorer, cite, team and footer.
 
     .venv/bin/python tests/snapshot.py           # compare: fails naming each unit that changed (make test)
     .venv/bin/python tests/snapshot.py --write   # rewrite every file (make snapshots)
@@ -167,7 +167,7 @@ def wait_until_drawn(page, topic: str) -> None:
 
 
 def read_state(page, address: str, topic: str, with_page_units: bool) -> dict[str, str]:
-    """The units of the Explore page opened at the topic `topic` (its anchor), once drawn; with `with_page_units`, also
+    """The units of the page opened at the topic `topic` (its anchor), once drawn; with `with_page_units`, also
     the page's units that no topic changes. Raises a PageError when the page requested another topic's answers."""
     requested = []
     page.on("request", functools.partial(record_figure_answer, requested))

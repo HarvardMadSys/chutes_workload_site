@@ -1,14 +1,14 @@
 /**
  * The Traffic Explorer's bars: the chosen metric per day as stacked bars, by family while no family is chosen, by model
  * once one is and by endpoint group once a model is, a figure of the card pattern with its words for each metric, its
- * months written under the bars, and a legend that hides and shows a series (`explore/legend.js`). Its rows are those
+ * months written under the bars, and a legend that hides and shows a series (`shared/legend.js`). Its rows are those
  * `rowsInChoice` of `traffic/traffic_filter.js` keeps; a bar takes no click.
  */
 
 import { chartWidth, nameChart, renderFigure, showNote } from "../shared/charts.js";
 import { formatCount, formatCountTick, formatQuantity } from "../shared/format.js";
 import { drawStackedBars, stackedBarsLegend } from "../charts/stacked_bars.js";
-import { drawWithLegend } from "../explore/legend.js";
+import { drawWithLegend } from "../shared/legend.js";
 import { choiceSeries, dailyValues, periodDays } from "./traffic_filter.js";
 
 // The bars' margins, in pixels: room on the left for a count tick ("600M"), below for a slanted month ("2025-04"),

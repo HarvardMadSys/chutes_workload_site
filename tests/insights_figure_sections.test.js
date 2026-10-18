@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { FIGURE_SECTIONS, topicCards } from "../site/js/explore/figure_sections.js";
+import { TOPICS, topicCards } from "../site/js/page/topics.js";
 import { CHART_HEIGHT } from "../site/js/shared/charts.js";
 
 // The figure answers the data step wrote, as their index lists them: each figure's row count, by name.
@@ -35,7 +35,7 @@ const WIDE_CARDS = ["fig_output_input_ratio_cdf_by_model", "fig_iat_pair_ttl_cov
 
 // Every card of every topic.
 function everyCard() {
-  return FIGURE_SECTIONS.flatMap(topicCards);
+  return TOPICS.flatMap(topicCards);
 }
 
 // How many times each figure is used: once for a card's figure, once more for each card it is the legend of.
@@ -52,11 +52,11 @@ function figureUses() {
 }
 
 test("the six topics are in the order of their tabs", () => {
-  assert.deepEqual(FIGURE_SECTIONS.map((topic) => topic.selector), SELECTORS);
+  assert.deepEqual(TOPICS.map((topic) => topic.selector), SELECTORS);
 });
 
 test("a topic has its selector, takeaway and groups, and a group its heading, takeaway and cards, and no other", () => {
-  for (const topic of FIGURE_SECTIONS) {
+  for (const topic of TOPICS) {
     assert.deepEqual(Object.keys(topic), TOPIC_FIELDS, topic.selector);
     assert.equal(typeof topic.takeaway, "string", topic.selector);
     for (const group of topic.groups) {
@@ -68,12 +68,12 @@ test("a topic has its selector, takeaway and groups, and a group its heading, ta
 });
 
 test("every topic holds its cards in groups of the paper's runs", () => {
-  const groupCardCounts = FIGURE_SECTIONS.map((topic) => topic.groups.map((group) => group.cards.length));
+  const groupCardCounts = TOPICS.map((topic) => topic.groups.map((group) => group.cards.length));
   assert.deepEqual(groupCardCounts, GROUP_CARD_COUNTS);
 });
 
 test("no group is empty", () => {
-  for (const topic of FIGURE_SECTIONS) {
+  for (const topic of TOPICS) {
     for (const group of topic.groups) {
       assert.ok(group.cards.length > 0, `${topic.selector}: ${group.heading}`);
     }
@@ -86,7 +86,7 @@ test("topicCards lists a topic's cards group by group, each group's in its order
 });
 
 test("no card object is held by two groups", () => {
-  const groups = FIGURE_SECTIONS.flatMap((topic) => topic.groups);
+  const groups = TOPICS.flatMap((topic) => topic.groups);
   for (const card of everyCard()) {
     const holding = groups.filter((group) => group.cards.includes(card));
     assert.equal(holding.length, 1, card.figure);
@@ -133,8 +133,8 @@ function heldObjects(value) {
 }
 
 test("the topics, their groups and cards cannot be changed, nor the cards' charts, panels and panels' charts", () => {
-  assert.ok(Object.isFrozen(FIGURE_SECTIONS));
-  for (const topic of FIGURE_SECTIONS) {
+  assert.ok(Object.isFrozen(TOPICS));
+  for (const topic of TOPICS) {
     assert.ok(Object.isFrozen(topic) && Object.isFrozen(topic.groups), topic.selector);
     for (const group of topic.groups) {
       assert.ok(Object.isFrozen(group) && Object.isFrozen(group.cards), `${topic.selector}: ${group.heading}`);
@@ -173,7 +173,7 @@ function gridRows(cards) {
 }
 
 test("the two cards of a grid row draw their charts at one height, so the row stays level", () => {
-  for (const group of FIGURE_SECTIONS.flatMap((topic) => topic.groups)) {
+  for (const group of TOPICS.flatMap((topic) => topic.groups)) {
     for (const row of gridRows(group.cards)) {
       // A card that gives no height draws at the frame's, so it is compared as that.
       const heights = row.map((card) => card.chart.height ?? CHART_HEIGHT);

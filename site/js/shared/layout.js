@@ -1,6 +1,5 @@
 /**
- * The header and footer of the site's one page, and the query string of the URL keys the header's brand carries
- * (`queryString`).
+ * The header and footer of the page, and the query string of the URL keys the header's brand carries (`queryString`).
  *
  * Their links lead to the page's sections by anchor alone, so following one scrolls the page rather than loading it
  * again. The header's brand links the page itself with the URL's keys, so it opens the page at the top with the Traffic
@@ -18,7 +17,7 @@ export const URLS = Object.freeze({
   github: "https://github.com/HarvardMadSys",
 });
 
-// The site's one page, which the brand links.
+// The page, which the brand links.
 const PAGE_FILE = "index.html";
 
 /** The anchor of the Traffic Explorer, where the header's link and the hero's first button lead. */

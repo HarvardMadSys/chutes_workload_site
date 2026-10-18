@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { bringIntoRow, markMoreBeyondEdge } from "../site/js/shared/scrolling_row.js";
+import { bringIntoRow, markMoreBeyondEdge } from "../site/js/page/scrolling_row.js";
 
 // A stand-in row that scrolls sideways: `scrollWidth` of content in a box `clientWidth` wide, scrolled `scrollLeft`.
 function fakeRow(scrollLeft, clientWidth, scrollWidth) {

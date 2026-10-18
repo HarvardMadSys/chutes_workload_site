@@ -1,7 +1,7 @@
 /**
- * The Explore page's start: it places the Insights' groups and cards and draws their topic tabs, draws the header and
- * the footer, then runs the page's sections, once, from their answer files. The topics (`explore/figure_sections.js`)
- * are shown one at a time behind the tabs of the `#topic-tabs` row (`explore/topic_tabs.js`); a topic's figures are
+ * The page's start: it places the Insights' groups and cards and draws their topic tabs, draws the header and
+ * the footer, then runs the page's sections, once, from their answer files. The topics (`page/topics.js`)
+ * are shown one at a time behind the tabs of the `#topic-tabs` row (`page/topic_tabs.js`); a topic's figures are
  * drawn from their answers the first time it is shown, so a topic never shown requests none. The topic the page opens
  * on is drawn once the sections have drawn or shown their errors; a topic a tab shows before then is drawn at once.
  *
@@ -22,11 +22,11 @@ import { readAnswer } from "../shared/answers.js";
 import { textElement } from "../shared/charts.js";
 import { mountHeader, renderFooter, queryString } from "../shared/layout.js";
 import { drawFigureChart, newCardElement, renderFigureCard } from "../insights/figure_card.js";
-import { FIGURE_SECTIONS } from "./figure_sections.js";
+import { TOPICS } from "./topics.js";
 import { mountTopicTabs } from "./topic_tabs.js";
 
 /**
- * Start the Explore page: draw its topic tabs, header and footer and its `sections`, and call `showMonthCount` with the
+ * Start the page: draw its topic tabs, header and footer and its `sections`, and call `showMonthCount` with the
  * number of months the trace spans, null until the trace totals give it; once the sections have drawn, draw the shown
  * topic's figures. Settles once the sections have drawn or failed.
  */
@@ -64,10 +64,10 @@ export function followHistory(showEntryTopic) {
  * as it shows a topic; the topic shown on opening waits for the page to call it.
  */
 function mountInsights() {
-  const topics = FIGURE_SECTIONS.map(placeTopic);
+  const topics = TOPICS.map(placeTopic);
   const drawnSections = new Set();
   const drawShown = () => drawShownTopic(topics, drawnSections);
-  const showEntryTopic = mountTopicTabs(document.querySelector("#topic-tabs"), FIGURE_SECTIONS, drawShown);
+  const showEntryTopic = mountTopicTabs(document.querySelector("#topic-tabs"), TOPICS, drawShown);
   return { showEntryTopic, drawShown };
 }
 
@@ -165,7 +165,7 @@ function scrollToAnchor() {
   if (window.location.hash === "" || target === null) {
     return;
   }
-  const isTopic = FIGURE_SECTIONS.some((section) => section.selector === window.location.hash);
+  const isTopic = TOPICS.some((topic) => topic.selector === window.location.hash);
   const scrolled = isTopic ? target.parentElement : target;
   scrolled.scrollIntoView();
 }

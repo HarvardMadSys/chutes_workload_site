@@ -1,7 +1,7 @@
 /**
  * A card of the Insights: one of the paper's figures, drawn by the site from the figure's answer, its plot-ready rows.
  * A card is `{ figure, title, insight, caption, definition, kind, chart, panels?, legend?, series?, palette?,
- * isWide? }` (`explore/figure_sections.js` lists the topics, each card made by `frozenCard`): `figure` the figure's
+ * isWide? }` (`page/topics.js` lists the topics, each card made by `frozenCard`): `figure` the figure's
  * name, its answer being `data/all/figures/<figure>.json`; `kind` the chart kind that draws it, a key of `CHART_KINDS`;
  * `chart` the parameters handed to the kind's draw function (`js/charts/<kind>.js` says what each decides); `panels`,
  * for a figure of several panels, `[{ panel, title, chart }]`, one chart per entry drawn from the rows whose `panel`
@@ -31,7 +31,7 @@ import { drawLines } from "../charts/lines.js";
 import { drawRaster } from "../charts/raster.js";
 import { drawScatter } from "../charts/scatter.js";
 import { drawStackedBars } from "../charts/stacked_bars.js";
-import { drawWithLegend } from "../explore/legend.js";
+import { drawWithLegend } from "../shared/legend.js";
 import { cardColours, figureLegend } from "./card_series.js";
 
 /**

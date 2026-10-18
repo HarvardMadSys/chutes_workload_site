@@ -6,7 +6,7 @@ import {
   CHART_KINDS, chartParameters, drawFigureChart, frozenCard, newCardElement, renderFigureCard,
 } from "../site/js/insights/figure_card.js";
 import { PALETTES } from "../site/js/insights/card_series.js";
-import { FIGURE_SECTIONS, topicCards } from "../site/js/explore/figure_sections.js";
+import { TOPICS, topicCards } from "../site/js/page/topics.js";
 
 // The columns a figure answer of each chart kind holds: the plot-ready tables' contract.
 const KIND_COLUMNS = Object.freeze({
@@ -38,7 +38,7 @@ function shippedAnswer(figure) {
 
 // Every card of every topic.
 function everyCard() {
-  return FIGURE_SECTIONS.flatMap(topicCards);
+  return TOPICS.flatMap(topicCards);
 }
 
 // The columns of `rows` missing from at least one row: none for an answer of the kind's columns.

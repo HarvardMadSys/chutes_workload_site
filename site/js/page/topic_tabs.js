@@ -9,7 +9,7 @@
  * phone the row scrolls sideways and keeps the shown tab in it.
  */
 
-import { bringIntoRow, markMoreBeyondEdge, mountScrollingRow } from "../shared/scrolling_row.js";
+import { bringIntoRow, markMoreBeyondEdge, mountScrollingRow } from "./scrolling_row.js";
 
 // The anchor of the Insights section itself, which, as no anchor does, shows the first topic.
 const INSIGHTS_ANCHOR = "insights";

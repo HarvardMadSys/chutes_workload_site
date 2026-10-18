@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { FIGURE_SECTIONS } from "../site/js/explore/figure_sections.js";
-import { followHistory, placeTopic, startPage } from "../site/js/explore/start.js";
-import { mountTopicTabs } from "../site/js/explore/topic_tabs.js";
+import { TOPICS } from "../site/js/page/topics.js";
+import { followHistory, placeTopic, startPage } from "../site/js/page/start.js";
+import { mountTopicTabs } from "../site/js/page/topic_tabs.js";
 import { runTraffic } from "../site/js/traffic/traffic.js";
 import { mountTrafficControls } from "../site/js/traffic/traffic_controls.js";
 import { familyChoices, modelChoices } from "../site/js/traffic/traffic_filter.js";
@@ -269,7 +269,7 @@ test("the opening topic's figures are read once the explorer has drawn: the dail
     await page.started;
     assert.deepEqual(page.reads.slice(3, 5), [DAILY_FILE, HISTOGRAMS_FILE]);
     // The first topic's cards read no legend answer, so its figures are every read of the figures' folder.
-    assert.deepEqual(figureReads(page.reads), topicFigureFiles(FIGURE_SECTIONS[0]));
+    assert.deepEqual(figureReads(page.reads), topicFigureFiles(TOPICS[0]));
   });
 
 test("a tab pressed before the explorer has drawn reads its topic's figures at once, and the opening topic's never",
@@ -280,7 +280,7 @@ test("a tab pressed before the explorer has drawn reads its topic's figures at o
     page.tabs[1].dispatch("click");
     await settled();
     // The second topic's cards read no legend answer either.
-    const pressedFigures = topicFigureFiles(FIGURE_SECTIONS[1]);
+    const pressedFigures = topicFigureFiles(TOPICS[1]);
     assert.deepEqual(figureReads(page.reads), pressedFigures);
     assert.ok(!page.reads.includes(HISTOGRAMS_FILE), "the explorer has not drawn yet");
     daily.resolve(DAILY_ROWS);

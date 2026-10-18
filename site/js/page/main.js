@@ -1,9 +1,9 @@
 /**
- * The Explore page, the landing page: the hero with its stats strip, the family mix and the endpoint mix, the Traffic
- * Explorer, the paper's figures in six topics, and the citation and the team. `explore/start.js` draws and runs them.
+ * The page's module: the hero with its stats strip, the family mix and the endpoint mix, the Traffic Explorer, the
+ * paper's figures in six topics, and the citation and the team. `page/start.js` draws and runs them.
  */
 
-import { startPage } from "../explore/start.js";
+import { startPage } from "./start.js";
 import { runTraffic } from "../traffic/traffic.js";
 import { runMixes } from "../landing/donuts.js";
 import { mountCopyButtons, renderCiteLine } from "../landing/cite.js";

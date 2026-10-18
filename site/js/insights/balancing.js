@@ -1,7 +1,7 @@
 /**
  * The Insights' sixth topic, Load balancing: the paper's two months of one popular model's load across its instances,
  * latency against instance load, one user's requests across instances, and the routing simulation's trade-off, as
- * `explore/figure_sections.js` defines a topic. The words are the paper's and the definitions the artifact's README
+ * `page/topics.js` defines a topic. The words are the paper's and the definitions the artifact's README
  * or, for the simulation, its plotting script's; a line marked "placeholder" is not the paper's own, for the authors
  * to review. The routing simulation's series and panels are made by `insights/routing_panels.js`.
  * A card's kind and chart say how its figure is drawn from its answer, as `insights/figure_card.js` defines them.

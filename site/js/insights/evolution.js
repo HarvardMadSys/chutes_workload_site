@@ -1,6 +1,6 @@
 /**
  * The Insights' fourth topic, A year of change: the paper's monthly model mix, monthly token-length bands and the
- * token lengths of each release cohort of users, as `explore/figure_sections.js` defines a topic. The two share
+ * token lengths of each release cohort of users, as `page/topics.js` defines a topic. The two share
  * cards show the legend the paper draws once above both. The words are the paper's and the definitions the artifact
  * README's; a line marked "placeholder" is not the paper's own, for the authors to review.
  * A card's kind and chart say how its figure is drawn from its answer, as `insights/figure_card.js` defines them.
