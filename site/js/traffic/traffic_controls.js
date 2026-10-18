@@ -1,17 +1,10 @@
 /**
- * The Traffic Explorer's controls, a family drop-down, a model drop-down, an endpoint drop-down, a metric drop-down and
- * the period buttons, kept in step with the URL, which holds the explorer's choice (`traffic/traffic_choice.js` defines
- * the choice and its keys). The model drop-down is disabled until a family is chosen, and then offers the family's
- * models, which come from the family's answer. A period button sets the day range to its days and shows pressed while
- * the range is its days (`traffic/traffic_range.js`). A change writes the new choice to the URL; Back or Forward to a
- * history entry of another choice shows that one. Either then hands the explorer the choice to draw,
- * `{ family, model, endpoint, metric, from, to }`.
- *
- * The explorer gives the controls `{ modelsOf, onChange, onError }`: `modelsOf(family)` resolves to the model
- * drop-down's entries (`modelChoices`') for the family whose slug is `family`; `onChange(choice)` draws a choice; and
- * `onError(error)` shows a family's answer that cannot be read. The controls give the explorer `chooseRange(range)`,
- * through which the slider, which draws a range as a handle moves, hands over the range a handle is released on: it
- * is written to the URL and the period buttons follow it, and the explorer is not asked to draw it again.
+ * The Traffic Explorer's controls: the family, model, endpoint and metric drop-downs and the period buttons, kept in
+ * step with the URL, which holds the explorer's choice (`TrafficChoice` of `traffic/traffic_choice.js`). The model
+ * drop-down is disabled until a family is chosen, then offers the family's models, read from the family's answer. A
+ * period button sets the day range to its days and shows pressed while the range is its days (`traffic_range.js`). A
+ * change writes the new choice to the URL; Back or Forward to an entry of another choice shows that one; either then
+ * hands the choice to the explorer to draw. What the two give each other is `ControlsCallbacks` and `MountedControls`.
  */
 
 import { textElement } from "../shared/figure.js";
@@ -25,15 +18,36 @@ const PERIOD_FIELD_NAME = "Period";
 const PERIOD_NAME_ID = "traffic-period-name";
 
 /**
- * Draw the controls into `row` showing the URL's choice, `entries` being `{ families, days }`, the family drop-down's
- * entries (`familyChoices`') and the trace's days, and resolve to `{ choice, error, chooseRange }` once the choice's
- * family's models are read: the choice shown, null or the error of a URL's family that cannot be read, and the
- * slider's way in (see the module's comment). A key of the URL the choice does not keep, such as a model with no family
- * or not among the family's, or a day outside the trace's, is then rewritten with `context.replaceQuery`. If the URL's
- * family cannot be read, the controls show the choice without it, as a failed choice of a family leaves them, and the
- * explorer is to show `error` rather than draw. A change writes the new choice to the URL the same way and calls
- * `explorer.onChange(choice)`; a return to a history entry (`context.onReturn`) whose URL holds another choice than the
- * one shown draws the controls again showing it and calls `explorer.onChange(choice)`.
+ * What the explorer gives the controls.
+ * @typedef {object} ControlsCallbacks
+ * @property {function} modelsOf  `modelsOf(family)` resolves to the model drop-down's entries (`modelChoices`') for
+ *   the family whose slug is `family`
+ * @property {function} onChange  `onChange(choice)` draws a `TrafficChoice`
+ * @property {function} onError  `onError(error)` shows a family's answer that cannot be read
+ */
+
+/**
+ * What the controls give the explorer once mounted.
+ * @typedef {object} MountedControls
+ * @property {TrafficChoice} choice  the choice shown
+ * @property {Error|null} error  the error of a URL's family that cannot be read, which the explorer shows rather than
+ *   draw; null when it is read
+ * @property {function} chooseRange  `chooseRange(range)`, the slider's way in: the range a handle is released on,
+ *   which the slider has drawn, is written to the URL and the period buttons follow it; the explorer is not asked to
+ *   draw it again
+ */
+
+/**
+ * Draw the controls into `row` showing the URL's choice, and resolve to the `MountedControls` once the choice's
+ * family's models are read. `entries` is `{ families, days }`, the family drop-down's entries (`familyChoices`') and
+ * the trace's days; `explorer` is the `ControlsCallbacks`. Then:
+ * - a key of the URL the choice does not keep, such as a model with no family or not among the family's, or a day
+ *   outside the trace's, is rewritten with `context.replaceQuery`;
+ * - if the URL's family cannot be read, the controls show the choice without it, as a failed choice of a family leaves
+ *   them;
+ * - a change writes the new choice to the URL the same way and calls `explorer.onChange(choice)`;
+ * - a return to a history entry (`context.onReturn`) whose URL holds another choice than the one shown draws the
+ *   controls again showing it and calls `explorer.onChange(choice)`.
  */
 export async function mountTrafficControls(row, entries, context, explorer) {
   const params = new URLSearchParams(window.location.search);
@@ -84,9 +98,8 @@ export function pressPeriodButtons(buttons, choice, days) {
 }
 
 /**
- * The choice the URL's keys `params` name, `{ choice, models }`: the choice among the family drop-down's entries
- * `entries.families`, the models of the URL's family, which `modelsOf` gives, and the trace's `entries.days`, and those
- * models' entries.
+ * The choice the URL's keys `params` name, among the families and the trace's days of `entries` and the URL's family's
+ * models, which `modelsOf` gives. Resolves to `{ choice, models }`, `models` being the model drop-down's entries.
  */
 async function urlChoice(params, { families, days }, modelsOf) {
   const familyValues = families.map((entry) => entry.value);
@@ -97,9 +110,9 @@ async function urlChoice(params, { families, days }, modelsOf) {
 }
 
 /**
- * The choice the URL's keys `params` name when the page opens, `{ choice, models, error }`, as `urlChoice` gives it with
- * `error` null; if the URL's family's models cannot be read, the choice without the family, the model drop-down's
- * "Choose a family", and the error.
+ * The choice the URL's keys `params` name when the page opens, `{ choice, models, error }`: as `urlChoice` gives it,
+ * with `error` null; if the URL's family's models cannot be read, the choice without the family, the model
+ * drop-down's "Choose a family", and the error.
  */
 async function openedChoice(params, entries, modelsOf) {
   try {

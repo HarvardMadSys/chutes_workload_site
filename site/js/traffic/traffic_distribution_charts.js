@@ -21,16 +21,13 @@ import { binTotals, cdfRows } from "./traffic_distributions.js";
 // minutes, which `formatDurationTick` would write with three decimals.
 const SECONDS_PER_MINUTE = 60;
 
-// The x domains, the same for every choice, each with its ticks: decades, at most four so the labels do not crowd a
-// chart as wide as a phone, from the domain's start to its end so each axis names both its ends.
-// Over the whole trace, at the bins' upper edges, 99.9% of the requests send at most 131,072 input tokens, and all at
-// most 112,863,206;
+// The x domains, the same for every choice. Each is wide enough for nearly every request; a line past either end is cut
+// at the chart's edge. Each has its ticks: decades, at most four so the labels do not crowd a chart as wide as a
+// phone, from the domain's start to its end so each axis names both its ends.
 const INPUT_TOKENS_DOMAIN = Object.freeze([1, 1_000_000]);
 const INPUT_TOKENS_TICKS = Object.freeze([1, 100, 10_000, 1_000_000]);
-// 99.9% are answered with at most 11,585 output tokens, and all with at most 8,388,608;
 const OUTPUT_TOKENS_DOMAIN = Object.freeze([1, 100_000]);
 const OUTPUT_TOKENS_TICKS = Object.freeze([1, 1_000, 100_000]);
-// 0.1% have a TTFT of at most 0.088 s, 99.9% of at most 64 s, and all of at most 4,096 s.
 const TTFT_DOMAIN = Object.freeze([0.01, 100]);
 const TTFT_TICKS = Object.freeze([0.01, 1, 100]);
 

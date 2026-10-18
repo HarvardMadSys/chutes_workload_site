@@ -1,17 +1,25 @@
 /**
- * The Traffic Explorer's choice: the URL keys that hold it, its metrics with the bars' words for each, and the
- * drop-downs' entries, plain functions tested with `node --test`. The rows it keeps are `traffic/traffic_filter.js`'s.
- *
- * A choice is `{ family, model, endpoint, metric, from, to }`, each "" for everything: `family` a family's slug;
- * `model`, within the family, a named model's `chute_id`, or `other` for the rows of the family's other models;
- * `endpoint` an endpoint group (`chat`, `chat_stream`, …); `metric` the value of one of `METRICS` ("" for requests);
- * `from` and `to` the first and last chosen day, "YYYY-MM-DD", each "" for the trace's end on its side, within the
- * trace's days (`traffic/traffic_range.js`).
+ * The Traffic Explorer's choice (`TrafficChoice`, below): the URL keys that hold it, its metrics with the bars' words
+ * for each, and the drop-downs' entries; plain functions, tested with `node --test`. The rows it keeps are
+ * `traffic/traffic_filter.js`'s.
  */
 
 import { ENDPOINT_LABELS } from "../shared/series.js";
 import { OTHER_NAME } from "../theme/colours.js";
 import { clippedRange } from "./traffic_range.js";
+
+/**
+ * What the Traffic Explorer shows. Each field is kept in the URL under its own name; "" chooses everything and writes
+ * no key.
+ * @typedef {object} TrafficChoice
+ * @property {string} family  a family's slug
+ * @property {string} model  within the family, a named model's `chute_id`, or `other` (`OTHER_MODEL`) for the rows of
+ *   the family's other models
+ * @property {string} endpoint  an endpoint group (`chat`, `chat_stream`, …)
+ * @property {string} metric  the value of one of `METRICS`; "" is requests
+ * @property {string} from  the first chosen day of the trace's, "YYYY-MM-DD"; "" for the trace's first day
+ * @property {string} to  the last chosen day of the trace's, "YYYY-MM-DD"; "" for the trace's last day
+ */
 
 // The URL keys the choice is written in, one value each.
 const FAMILY_KEY = "family";
@@ -21,7 +29,7 @@ const METRIC_KEY = "metric";
 const FROM_KEY = "from";
 const TO_KEY = "to";
 
-/** The model of the rows of a family's models past its eight named ones, in a choice and in the URL. */
+/** The model of the rows of a family's other models, past its named ones (`setup/family_models.sql`), in a choice. */
 export const OTHER_MODEL = "other";
 
 // The text of each drop-down's first entry, which chooses everything.
@@ -163,7 +171,7 @@ export function metricChoices() {
 const REST_OF_OTHER_TEXT = "Rest of Other";
 
 /**
- * The text of the other models, past the eight named ones, of the family named `familyName`, whose rows of
+ * The text of the other models, past the named ones, of the family named `familyName`, whose rows of
  * `explore/daily_by_model` are `rows`: the `model` the answer writes on its rows whose `chute_id` is null, "Other
  * DeepSeek", and `REST_OF_OTHER_TEXT` for the family Other; undefined for a family whose rows hold no other models,
  * which then has no such drop-down entry and no such series in the bars, so the undefined text is never shown.

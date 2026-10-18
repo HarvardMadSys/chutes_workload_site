@@ -33,8 +33,12 @@ export const PERIODS = Object.freeze([
 
 /**
  * The first day of a range that a `from` of `day` gives over the trace's `days`: the first trace day at or after
- * `day`, the trace's last day for a day after it; and "" (the trace's first day) for "" and where that is the trace's
- * first day, as it is for a day before it. Days are compared as text, which for "YYYY-MM-DD" is their order in time.
+ * `day`, "" where that is the trace's first day. Days are compared as text, which for "YYYY-MM-DD" is their order in
+ * time. For example:
+ * - `clippedFrom("2024-01-01", days)` is `""`, the trace's first day;
+ * - `clippedFrom("2025-06-01", days)` is `"2025-06-01"`, a trace day;
+ * - `clippedFrom("2027-01-01", days)` is the trace's last day;
+ * - `clippedFrom("", days)` is `""`.
  */
 export function clippedFrom(day, days) {
   if (day === "") {
@@ -47,8 +51,11 @@ export function clippedFrom(day, days) {
 
 /**
  * The last day of a range that a `to` of `day` gives over the trace's `days`: the last trace day at or before `day`,
- * the trace's first day for a day before it; and "" (the trace's last day) for "" and where that is the trace's last
- * day, as it is for a day after it.
+ * "" where that is the trace's last day. For example:
+ * - `clippedTo("2024-01-01", days)` is the trace's first day;
+ * - `clippedTo("2025-06-01", days)` is `"2025-06-01"`, a trace day;
+ * - `clippedTo("2027-01-01", days)` is `""`, the trace's last day;
+ * - `clippedTo("", days)` is `""`.
  */
 export function clippedTo(day, days) {
   if (day === "") {
