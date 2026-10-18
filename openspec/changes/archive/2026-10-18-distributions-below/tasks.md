@@ -6,7 +6,7 @@ user writes is marked `// placeholder:` where this change adds any.
 
 ## 1. The fake page's selectors
 
-- [ ] 1.1 `tests/fake_page.js`: `FakeElement.querySelector` and
+- [x] 1.1 `tests/fake_page.js`: `FakeElement.querySelector` and
       `querySelectorAll` of design D5, with `matches`; the `controlsOf`
       helper there, once; `tests/fake_page.test.js`. The explorer's
       tests (`traffic.test.js`, `traffic_tiles.test.js`,
@@ -18,7 +18,7 @@ user writes is marked `// placeholder:` where this change adds any.
 
 ## 2. The charts under the range, the tiles as numbers
 
-- [ ] 2.1 `traffic_distribution_charts.js` from `traffic_tile_charts.js`
+- [x] 2.1 `traffic_distribution_charts.js` from `traffic_tile_charts.js`
       (design D3), making the three titled places of design D1 keyed
       by metric, at the kinds' default height and margins, the y axis
       at the kind's ticks; `choicePercentiles` keyed by metric;
@@ -35,7 +35,7 @@ user writes is marked `// placeholder:` where this change adds any.
 
 ## 3. The explorer as wide as the window
 
-- [ ] 3.1 The width cap moved from `.page` to `.page > section`, the
+- [x] 3.1 The width cap moved from `.page` to `.page > section`, the
       Traffic Explorer's section uncapped (design D4); the hero's
       band, the section borders and the Insights' grid checked.
       *Verify:* at 1920 px the explorer's card spans the window less
@@ -45,7 +45,7 @@ user writes is marked `// placeholder:` where this change adds any.
 
 ## 4. Documents and the spec's values
 
-- [ ] 4.1 README and CONTRIBUTING (the row of three charts, the
+- [x] 4.1 README and CONTRIBUTING (the row of three charts, the
       tiles as numbers, the page's width, `js/traffic/`'s modules, the
       fake page's selectors), the `site` spec's layout line, the
       scenario values as built.
