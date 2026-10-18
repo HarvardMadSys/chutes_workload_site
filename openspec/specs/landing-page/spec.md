@@ -56,8 +56,9 @@ the choice; one legend that toggles a series in every chart of the
 card; the chosen metric per day as stacked bars over the chosen days,
 by family while no family is chosen, by model once a family is and by
 endpoint group once a model is; under the bars one slider over the
-trace's days with two handles, the chosen first day written under the
-track's left end and the chosen last day under its right, which set the
+trace's days with two handles, named From and To, the chosen first day
+written under the track's left end and the chosen last day under its
+right, which set the
 day range (a handle moved past the other moves the other along; each
 handle reached by Tab and moved by the arrow keys), the bars, the tiles
 and the distributions following as a handle moves; and under the slider
@@ -300,15 +301,27 @@ with the paper's axes: the same quantities on x and y, a log scale where
 the paper's axis is log, the paper's limits where the card gives them,
 and tick labels in the site's formats; a y axis of a count SHALL start
 at zero and an axis of a ratio at its floor, and an axis of the trace's
-days or months SHALL say which dates they are. A CDF SHALL be drawn as
+days or months SHALL say which dates they are. The one exception to the
+paper's axes SHALL be the per-user inter-arrival band card, on a linear
+axis to 400 s that clips its bands where the paper's axis is log, so
+that the median's move over the year shows. The daily and hourly cards
+SHALL count days from the trace's first, their tooltips writing each
+day's date. A monthly card SHALL name a trace month by the calendar
+month its first day falls in, "Apr '25" to "Apr '26", and SHALL star the
+thirteenth, "Apr '26*", since it holds only the trace's last two days;
+each card on that axis SHALL say what the star means in its definition.
+A CDF SHALL be drawn as
 straight lines between its points. A chart SHALL be as tall as its card
 asks, 240 px by default, and the two cards of a grid row SHALL take the
-same height. Every kind but `raster` SHALL
-show a tooltip with the values under the pointer; a `raster` is drawn
+same height. Every kind except `raster` SHALL
+show a tooltip with the values under the pointer; the two
+eviction-algorithm cards' tooltip SHALL list every algorithm's value at
+the hovered cache size. A `raster` is drawn
 on a canvas and takes no tooltip, and its row ticks sit on the rows'
 centres. A bands card SHALL show a key naming its two bands and its
-median. Series colours SHALL come from the
-theme, the three highlighted models and the global series keeping one
+median. The routing card's legend SHALL hold one button per policy,
+which hides that policy in both rows of panels. Series colours SHALL
+come from the theme, the three highlighted models and the global series keeping one
 colour each across every card. In the dark scheme a chart SHALL use the
 dark tokens as the Overview's charts do. On a phone a chart SHALL be as
 wide as its card and the page SHALL NOT scroll sideways. A card whose
@@ -330,6 +343,14 @@ SHALL carry the card's title and insight as its accessible name.
 #### Scenario: A phone
 - **WHEN** the page is opened 360 pixels wide
 - **THEN** the cards SHALL stack in one column, each chart as wide as its card, and the page SHALL not scroll sideways
+
+#### Scenario: The partial last month
+- **WHEN** a card on the trace's month axis is drawn
+- **THEN** its last tick SHALL read "Apr '26*" and its definition SHALL say that the thirteenth month holds only the trace's last two days
+
+#### Scenario: Hiding a routing policy
+- **WHEN** the visitor presses a policy in the routing card's legend
+- **THEN** that policy's lines SHALL leave every panel of both rows
 
 ### Requirement: The Overview's two mixes
 Below the hero, an Overview section (`#overview`) SHALL hold two cards

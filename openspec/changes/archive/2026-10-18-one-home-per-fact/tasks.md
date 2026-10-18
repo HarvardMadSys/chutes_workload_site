@@ -12,13 +12,13 @@ of moves.
 
 ## 1. Shapes, the topic modules and the explorer's comments
 
-- [ ] 1.1 Around one-chart-interface's `AxisOptions` and
+- [x] 1.1 Around one-chart-interface's `AxisOptions` and
       `ChartParameters`: `plot/axes.js`' header cut to what the module
       holds, pointing to `AxisOptions`; the run-on JSDocs of design D8
       split into a sentence and a list.
       *Verify:* no kind's JSDoc restates a field of either typedef;
       snapshots unchanged.
-- [ ] 1.2 `FigureCard`, `TopicGroup` and `Topic` in
+- [x] 1.2 `FigureCard`, `TopicGroup` and `Topic` in
       `insights/figure_card.js`, one line per field, with the topic
       modules' repeated paragraph written once above them (design D7,
       D9); the card module's header cut to what it does;
@@ -28,7 +28,7 @@ of moves.
       *Verify:* every name of the card and topic fields' test lists is a
       `@property` of its typedef; the header check no longer lists
       `figure_card.js`; snapshots unchanged.
-- [ ] 1.3 `frozenTopic(topic)` in `insights/figure_card.js`; each topic
+- [x] 1.3 `frozenTopic(topic)` in `insights/figure_card.js`; each topic
       module writes its topic as one `frozenTopic({ … })` over plain
       literals; `frozenCard` goes, its test becoming one of
       `frozenTopic` (design D9).
@@ -36,7 +36,7 @@ of moves.
       that every object a card holds is frozen passes; `grep -c
       "Object.freeze(" site/js/insights/*.js` is recorded before and
       after in the commit message; snapshots unchanged.
-- [ ] 1.4 `TrafficChoice` in `traffic/traffic_choice.js` in place of the
+- [x] 1.4 `TrafficChoice` in `traffic/traffic_choice.js` in place of the
       sentence of the choice; `ControlsCallbacks` and `MountedControls`
       in `traffic/traffic_controls.js`, which its header and
       `mountTrafficControls` point to; `clippedFrom` as examples;
@@ -48,7 +48,7 @@ of moves.
 
 ## 2. The long headers
 
-- [ ] 2.1 Every other header the header check lists, and the code's
+- [x] 2.1 Every other header the header check lists, and the code's
       comments that read "but" for "except", rewritten by design D8's
       rules, a sentence a first reader needs kept; the repository
       test's "about eight modules" says nine.
@@ -58,7 +58,7 @@ of moves.
 
 ## 3. README
 
-- [ ] 3.1 README to the sections of design D2: the tour, the
+- [x] 3.1 README to the sections of design D2: the tour, the
       provenance with the cache table and the column contract,
       "Building the data" as the one home of the trace step's cost (the
       Makefile's comment on `tables` points to it), the Layout with the
@@ -71,7 +71,7 @@ of moves.
 
 ## 4. CONTRIBUTING
 
-- [ ] 4.1 The opening, Words (one-vocabulary's, every house word
+- [x] 4.1 The opening, Words (one-vocabulary's, every house word
       defined elsewhere moved into it or pointing to it), "The rules"
       with "a fact has one home", and "How the site is put together":
       the arrow block one step per line, the two worked traces of design
@@ -79,7 +79,7 @@ of moves.
       as pointers.
       *Verify:* every file and test the traces name exists; each step
       of each trace is read in the code; snapshots unchanged.
-- [ ] 4.2 "Patterns to copy" pointing to the typedefs and README's
+- [x] 4.2 "Patterns to copy" pointing to the typedefs and README's
       column contract, its example card copied from the code as
       one-home-per-rule left it; "Charts" removed, each of its rules
       found in this change's site spec delta, in an earlier change's
@@ -91,7 +91,7 @@ of moves.
 
 ## 5. The documents' wording
 
-- [ ] 5.1 README and CONTRIBUTING read once more by design D8's prose
+- [x] 5.1 README and CONTRIBUTING read once more by design D8's prose
       rules: one fact per sentence, "except" for an exception, a list as
       a list.
       *Verify:* the sentences over 40 words, counted as the onboarding
@@ -109,14 +109,14 @@ of moves.
 
 ## 7. CLAUDE.md
 
-- [ ] 7.1 CLAUDE.md to the pointer and the git rules of design D11,
+- [x] 7.1 CLAUDE.md to the pointer and the git rules of design D11,
       shown to the owner before the commit.
       *Verify:* each line removed is in README or CONTRIBUTING; the
       owner has seen the text; snapshots unchanged.
 
 ## 8. The stylesheet
 
-- [ ] 8.1 `style.css` reordered as design D10 lists, each media rule
+- [x] 8.1 `style.css` reordered as design D10 lists, each media rule
       after the rule it changes, the header comment naming the order; no
       selector or declaration changes.
       *Verify:* the computed styles of every element at 360 px and 1280
@@ -124,7 +124,7 @@ of moves.
       legend buttons, the cite copy button and the tabs hovered by hand
       in both schemes; the card grid's span test passes; snapshots
       unchanged.
-- [ ] 8.2 The dead rules removed, the stale comments fixed, the topic
+- [x] 8.2 The dead rules removed, the stale comments fixed, the topic
       tabs styled by `aria-selected` and `page/topic_tabs.js` no longer
       setting `is-active`, its test checking `aria-selected`.
       *Verify:* the computed styles are equal before and after; `grep -n
@@ -133,7 +133,7 @@ of moves.
 
 ## 9. The specs and the close
 
-- [ ] 9.1 This change's spec deltas checked against the main specs and
+- [x] 9.1 This change's spec deltas checked against the main specs and
       the deltas of distributions-below to one-test-harness as they
       stand then: each modified requirement restated from the latest
       earlier text with this change's edits; design D2 and D3 given the
