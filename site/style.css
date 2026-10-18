@@ -1206,13 +1206,27 @@ section[id] {
 
 /* ---------- Page layout ---------- */
 
+/* The page spans the window, its gutters at both sides; its sections set its width (below), the Traffic Explorer's the
+   one section that takes the whole of it. */
 .page {
-  max-width: var(--page-width);
-  margin: 0 auto;
   padding: 2rem var(--gutter) 0;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+/* A section is as wide as the page's content, the page's width less its two gutters, so the section rules, the hero's
+   band and every section's box end where the header's content does. Every box is border-box (Base, above), so the
+   header's page width holds its gutters, and a section's edges meet the header's brand. */
+.page > section {
+  width: 100%; /* auto margins stop a column's item from stretching, so it is given the column's width */
+  max-width: calc(var(--page-width) - 2 * var(--gutter));
+  margin-inline: auto; /* centred where the window is wider than the page */
+}
+
+/* The Traffic Explorer spans the window less the gutters; every other section keeps the page's width. */
+#traffic {
+  max-width: none;
 }
 
 .card {
