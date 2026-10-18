@@ -143,10 +143,7 @@ function svgElement(name, attributes) {
 
 /** Each of `slices` (`[{ name, count }]`) with its `share` of their total count, in their order. */
 export function sliceShares(slices) {
-  let total = 0;
-  for (const slice of slices) {
-    total += slice.count;
-  }
+  const total = columnTotal(slices, "count");
   return slices.map((slice) => ({ ...slice, share: slice.count / total }));
 }
 

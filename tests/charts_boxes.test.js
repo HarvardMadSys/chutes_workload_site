@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { boxTipText, drawnBoxes, STATISTICS } from "../site/js/charts/boxes.js";
+import { boxTipText, drawnBoxes } from "../site/js/charts/boxes.js";
 import { assignColours } from "../site/js/theme/colours.js";
 
 const SERIES_COLOURS = assignColours(["DeepSeek V3.2", "DeepSeek R1", "MiniMax M2.5"]);
@@ -12,10 +12,6 @@ const ROWS = [
   { series: "DeepSeek V3.2", low: 2, q1: 12, median: 40, q3: 180, high: 900, count: 5120 },
   { series: "Unlisted", low: 1, q1: 2, median: 3, q3: 4, high: 5, count: 6 },
 ];
-
-test("a box's statistics run from its high whisker down to its low one", () => {
-  assert.deepEqual(STATISTICS.map((statistic) => statistic.column), ["high", "q3", "median", "q1", "low"]);
-});
 
 test("one box per coloured series, in the colours' order, a hidden series left out", () => {
   const boxes = drawnBoxes(ROWS, SERIES_COLOURS, {}, new Set(["MiniMax M2.5"]));

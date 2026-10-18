@@ -35,7 +35,7 @@ export async function drawBars(rows, body, seriesColours, parameters, hidden) {
   const { x: xAxis = {}, y: yAxis = {}, margins } = parameters;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
-  const bars = drawnBars(rows, seriesColours, parameters, hidden);
+  const bars = shownSeriesRows(rows, seriesColours, parameters.panel, hidden);
   const names = distinct(bars.map((bar) => bar[SERIES_COLUMN]));
   const chart = Plot.plot({
     ...titledFrame(body, yAxis.label ?? null, margins, parameters.height),
@@ -54,14 +54,6 @@ export async function drawBars(rows, body, seriesColours, parameters, hidden) {
   });
   body.replaceChildren(chart);
   nameChart(body, parameters.name);
-}
-
-/**
- * The bars drawn, in their order: the rows of `parameters.panel` (all when not given), of the series `seriesColours`
- * names that are not in `hidden`.
- */
-export function drawnBars(rows, seriesColours, { panel }, hidden) {
-  return shownSeriesRows(rows, seriesColours, panel, hidden);
 }
 
 /**
