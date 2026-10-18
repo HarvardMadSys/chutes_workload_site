@@ -25,7 +25,7 @@ test. The tests SHALL enforce the countable rules.
 
 #### Scenario: One name exported twice
 - **WHEN** a module of `site/js/` exports `drawBars` and another module exports a `drawBars` too
-- **THEN** the repository test SHALL fail naming the name and both modules
+- **THEN** the naming test (`tests/test_naming.py`) SHALL fail naming the name and both modules
 
 #### Scenario: A word of the site
 - **WHEN** a reader meets `breakdown`, `topic`, `mix` or `place` in the code
@@ -62,14 +62,14 @@ site/             exactly the files that are deployed
   js/page/        the page's module and its start, the topic tabs and their scrolling row, the list of the Insights' topics
   js/sections/    the hero, the stats strip, the Overview's two mixes, the cite and team sections
   js/shared/      the answers, the libraries, formatting, a figure's elements and states, the rows' helpers, series and breakdowns, the legend of buttons, the layout, the link marks
-  js/plot/        what every chart kind gives the charting library: the frame and ink, the axes, the trace's day and month axes
+  js/plot/        what the chart kinds and the cards give the charting library: the frame and ink, the axes, the trace's day and month axes
   js/charts/      the nine chart kinds: donut, stacked_bars, lines, bands, cells, raster, scatter, boxes, bars
   js/theme/       the site's colours as the style tokens give them
   js/traffic/     the Traffic Explorer: its section, its choice, its filter, its controls, its day range, its tiles, its bars, its distributions and their three charts
   js/insights/    the figure cards and their colours, and the topics: one module per Insights topic with its id, its title, its takeaway and its groups of cards, and the routing card's panels and policies
   queries/        one .sql file per query answer, under explore/; under setup/ the queries of the derived tables; under trace/ the query of the trace table
   data/           built by make data and tracked: the query answers, the queries' hashes, the figure answers and their index
-tests/            Python tests, node --test files named by the folder of the module each tests, the fake page they share, and snapshots/: the six page states as text, each named by the topic's anchor it opens on
+tests/            Python tests, node --test files named by the folder of the module each tests, the fake page they share (its elements found by selector), and snapshots/: the six page states as text, each named by the topic's anchor it opens on
 openspec/         the specs and the open changes; archived changes live in git history
 ```
 
@@ -108,7 +108,7 @@ folder under `site/js/` (`charts_lines.test.js` for `charts/lines.js`,
 `traffic_bars.test.js` for `traffic/traffic_bars.js`), a check over
 every Insights card starting `insights_cards_`, except the checks of the
 stylesheet and of the module headers and the test of a test helper,
-named after the helper (`fake_page.test.js`); the repository test SHALL
+named after the helper (`fake_page.test.js`); the naming test SHALL
 check the first word of each name. A snapshot test SHALL hold, under
 `tests/snapshots/`, the normalised text of every chart (its series,
 legend, titles and tick labels), table, legend and text block of six
@@ -143,7 +143,7 @@ fail, naming the host, where the libraries or fonts cannot load.
 
 #### Scenario: A test file named after no folder
 - **WHEN** a node test file `legend.test.js` is added for `shared/legend.js`
-- **THEN** the repository test SHALL fail naming the file, which is to be `shared_legend.test.js`
+- **THEN** the naming test (`tests/test_naming.py`) SHALL fail naming the file, which is to be `shared_legend.test.js`
 
 #### Scenario: A rename that moves nothing
 - **WHEN** a module is renamed and the page shows what it showed
@@ -273,15 +273,16 @@ cache file's name, `chute_models.csv` as `chute_models`,
 `trace_totals`, `daily_rollup` and `function_name_daily_requests`, and
 no other. It SHALL add three tables derived from them, and no other:
 `trace_calendar`, each trace day's calendar day, trace month and
-calendar month; `trace_weeks`, each trace week's first and last
-calendar day (see Trace days and months); and `family_models`, the
-named models of the daily rollup ranked within their family by the
-rollup's requests, made by the setup query `setup/family_models`. The
-queries SHALL read from these nine tables and from nothing else. A
-query under `queries/explore/` and `queries/setup/` SHALL NOT match a
-model's name against a family pattern: a row's family is the cache's
-or the trace table's; the one query that does is the trace query,
-which applies the artifact's rule and is checked against the rollup.
+calendar month, computed from the trace's start date; `trace_weeks`,
+each trace week's first and last calendar day (see Trace days and
+months); and `family_models`, the named models of the daily rollup
+ranked within their family by the rollup's requests, made by the setup
+query `setup/family_models`. The queries SHALL read from these nine
+tables and from nothing else. A query under `queries/explore/` and
+`queries/setup/` SHALL NOT match a model's name against a family
+pattern: a row's family is the cache's or the trace table's; the one
+query that does is the trace query, which applies the artifact's rule
+and is checked against the rollup.
 
 #### Scenario: A query over the trace
 - **WHEN** a query under `queries/explore/` or `queries/setup/` names a table that is not one of the nine
@@ -302,10 +303,10 @@ source in a comment, and SHALL hold the trace's epoch and a week's
 length and compute a trace day's calendar day and month and a trace
 week's days in one module: the answer queries join its tables, and the
 trace query takes the epoch and the week's length from it as bound
-parameters, so no query restates them. The daily answers SHALL carry each day as a calendar day, the
-histogram answers each week's first and last calendar day, and
-`trace_totals` SHALL count the trace months, so the page never
-computes a date.
+parameters, so no query restates them. The daily answers SHALL carry
+each day as a calendar day, the histogram answers each week's first and
+last calendar day, and `trace_totals` SHALL count the trace months, so
+the page never computes a date.
 
 #### Scenario: The month count
 - **WHEN** `trace_totals` is written
@@ -331,22 +332,22 @@ name from the data step's calendar module, and write
 `tables/weekly_histograms.json` holding the query's hash, the trace's
 row count and the table's row count. The table SHALL hold one row per
 trace week (seven trace days, week 0 the trace's first seven),
-family, model (a `chute_id` for one of the family's eight most
-requested named models, else null for the family's other models, as
-the daily rollup keeps them), endpoint group, metric (`input_tokens`,
-`output_tokens`, `ttft`) and bin, with the requests in the bin. A bin
-is a quarter-doubling: a value `v` is in bin `floor(4 · log2(v))`; a
-token count at or below 1 is in bin 0; a TTFT is binned only where it
-is positive, as the rollup counts it. A request's family SHALL be the
-artifact's rule, the family of the first pattern of the family table
-its model's name contains, applied in this query; `make test` SHALL
-check, when `ARTIFACT` is set, that the table's requests per week,
-family and endpoint group equal the daily rollup's counted requests
-over the week's days, metric by metric, so that the two rules agree,
-and SHALL fail when the query's text no longer matches the sidecar's
-hash. The table SHALL be tracked, and rebuilt when the family table,
-the daily rollup or the query changes. No file under `tables/` SHALL
-exceed 25 MiB.
+family, model (a `chute_id` for one of the family's eight most requested
+named models, else null for the family's other models, as the daily
+rollup keeps them), endpoint group, metric (`input_tokens`,
+`output_tokens`, `ttft`) and bin, with the requests in the bin. A bin is
+a quarter-doubling: a value `v` is in bin `floor(4 · log2(v))`; a token
+count at or below 1 is in bin 0; a TTFT is binned only where it is
+positive, as the rollup counts it. A request's family SHALL be the
+artifact's rule, the family of the first pattern of the family table its
+model's name contains, applied in this query; `make test` SHALL check,
+when `ARTIFACT` is set, that the table's requests per week, family and
+endpoint group equal the daily rollup's counted requests over the
+week's days, metric by metric, so that the two rules agree, and SHALL
+fail when the query's text no longer matches the sidecar's hash. The
+table SHALL be tracked, and rebuilt when the family table, the daily
+rollup or the query changes. No file under `tables/` SHALL exceed 25
+MiB.
 
 #### Scenario: A rebuilt table
 - **WHEN** `make tables` runs against the released trace and the artifact's checkout

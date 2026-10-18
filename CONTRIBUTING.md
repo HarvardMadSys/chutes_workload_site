@@ -43,7 +43,7 @@ Each word below has one meaning in the code, the tests and these documents.
   means the query answers, not the explorer.
 - **trace day**, **trace week**, **trace month**: one day, seven days, a
   month-long stretch, counted from the trace's first day, 2025-04-11; not
-  calendar weeks or months.
+  calendar weeks or months. `site_data/months.py` defines all three.
 - **chart**: what one draw function draws into one body.
 - **kind**: one of the nine ways to draw a chart, a module of `js/charts/`.
   An Insights card names its kind by a key of `CHART_KINDS`, which adds
@@ -109,9 +109,11 @@ Each word below has one meaning in the code, the tests and these documents.
   cut to reach a count.
 - **SQL is a literal.** Every query is one `.sql` file under `site/queries/`.
   No SQL is written in JavaScript or in the data step, and no query is
-  assembled from strings. A query takes at most one parameter, the family
-  (`$family`), bound by name by DuckDB and never written into the text. A
-  query of `queries/explore/` or `queries/setup/` reads the site's eight
+  assembled from strings. A number or a value a query needs is a
+  parameter, bound by name by DuckDB and never written into the text: an
+  answer's query takes at most one, the family (`$family`), and the trace
+  query takes the week's two (`$trace_epoch`, `$days_per_trace_week`). A
+  query of `queries/explore/` or `queries/setup/` reads the site's nine
   tables and nothing else (`SITE_TABLES` in `tests/test_queries.py`):
   - the artifact's three caches, each the table of its file's name:
     `trace_totals`, `daily_rollup` and `function_name_daily_requests`;
@@ -119,10 +121,15 @@ Each word below has one meaning in the code, the tests and these documents.
     `model_families`, its family table (`match_order`, `family`,
     `pattern`), which no answer matches a name against: a row's family is
     the daily rollup's or the trace table's;
-  - `trace_calendar`, made by `site_data/months.py`: each trace day's
-    calendar day, its trace month and the calendar month that trace month
-    is labelled with. It is the one place the data step computes a date; a
-    query joins it rather than doing date arithmetic. The site's
+  - `trace_calendar` and `trace_weeks`, made by `site_data/months.py`:
+    each trace day's calendar day, its trace month and the calendar month
+    that trace month is labelled with; and each trace week's first and
+    last calendar day within the trace. `months.py` is the one place the
+    data step computes a date and the one home of the trace's epoch and
+    a week's length; a query joins its tables rather than doing date
+    arithmetic, `trace_weeks` with an explicit `ON trace_weeks.week = …`,
+    since the table check (`duckdb.get_table_names`) cannot bind a
+    `USING` join. The site's
     JavaScript holds two copies for its axes and tooltips: the trace's
     first day, `TRACE_FIRST_DAY` of `shared/format.js`, which
     `tests/shared_format.test.js` checks against the shipped `trace_totals`, and
@@ -139,7 +146,9 @@ Each word below has one meaning in the code, the tests and these documents.
   The one query over the trace, `queries/trace/weekly_histograms.sql`,
   reads the view `trace` and `chute_models`, `model_families` and
   `family_models`, and nothing else (`TRACE_QUERY_TABLES`, in the same
-  test file).
+  test file). A request's week is born there, from its timestamp, by the
+  epoch and the week's length that `months.py` holds and
+  `TRACE_QUERY_PARAMETERS` of `site_data/tables.py` binds.
 - **Every definition comes from the artifact.** A query filters, groups,
   counts and sums; none restates a definition the artifact owns, and neither
   a query nor the browser decides what a user, a model's name, an endpoint
@@ -160,10 +169,11 @@ Each word below has one meaning in the code, the tests and these documents.
 
 ```
 make tables: the released trace as the view trace, and the artifact's chute_models.csv, model_families.csv and daily
-               rollup (for family_models)  →  queries/trace/weekly_histograms.sql  →  tables/weekly_histograms.parquet
-               and its sidecar, tables/weekly_histograms.json
+               rollup (for family_models)  →  queries/trace/weekly_histograms.sql, bound the week from months.py  →
+               tables/weekly_histograms.parquet and its sidecar, tables/weekly_histograms.json
 make data:  the artifact's caches, chute_models.csv and model_families.csv, and tables/weekly_histograms.parquet  →
-              eight tables in DuckDB, with trace_calendar and family_models  →  queries/explore/<query>.sql  →
+              nine tables in DuckDB, with trace_calendar, trace_weeks and family_models  →
+              queries/explore/<query>.sql  →
               data/all/explore/<query>.json (a family query's data/all/explore/<query>/<family>.json, once per
               family) and data/all/queries.json
             the artifact's config/figures.json and data/paper/plotdata/<figure>.parquet  →  data/all/figures/<figure>.json
@@ -179,17 +189,18 @@ checks that each path it names exists.
   and one `<script type="module">`. It holds no data and no inline script.
   It holds the page's sections: the hero and stats strip, the Overview
   (`#overview`), the Traffic Explorer (`#traffic`), the Insights
-  (`#insights`), Cite (`#cite`) and Team.
+  (`#insights`, its heading and tab row alone), Cite (`#cite`) and Team.
 - The page's module, `js/page/main.js`, lists its sections in
   `SECTIONS`, each `{ id, run }`, starts the charting library's load (see
   "JavaScript style") and calls `startPage` of `page/start.js` with the
-  sections. `startPage` asks for the answers the sections share, places
-  the Insights' groups and cards and mounts their tabs, mounts the header,
+  sections. `startPage` asks for the answers the sections share, writes
+  the Insights' topic sections and mounts their tabs, mounts the header,
   renders the footer, and runs each section as `run(container, context)`;
   `context` is described in `page/start.js`. Its `mixes` are the rows of
   `explore/family_mix` and `explore/endpoint_mix`, asked for once: the
-  donuts' rows, and the order every chart, the Insights' cards among them,
-  colours the endpoint groups by.
+  donuts' rows, the Traffic Explorer's families in their order, and the
+  order every chart, the Insights' cards among them, colours the endpoint
+  groups by.
 - The header links the page's sections by anchor alone (`LINKED_SECTIONS`
   of `shared/layout.js`); its brand links the page with the URL's keys. On
   a phone it is two rows, the brand and the four links, which wrap, and the
@@ -208,12 +219,14 @@ checks that each path it names exists.
   (`followHistory`): on Back or Forward it shows the entry's topic, draws
   the header from the entry's query and tells each section that asked
   through `context.onReturn`. `page/topics.js` lists the topics in
-  `TOPICS`, one module each in `js/insights/`, and `index.html`
-  holds, under the Insights heading and its `#topic-tabs` row, a section
-  with a heading for each, its id the topic's anchor. `placeTopic` of
-  `page/start.js` writes the rest of a topic's section: its takeaway,
-  then for each group its heading (an `h3`), its takeaway and a card grid
-  of its cards, each card's title an `h4`. A topic's answers are fetched
+  `TOPICS`, one module each in `js/insights/`, the one place a topic is
+  declared; the tabs (`mountTopicTabs`), the node tests and the snapshot
+  states all read the list. `placeTopic` of `page/start.js` appends each
+  topic's section to `#insights`, after the `#topic-tabs` row: a tab
+  panel whose id is the topic's anchor, its heading (an `h2` of its
+  number, `topicNumber`, and its title), its takeaway, then for each
+  group its heading (an `h3`), its takeaway and a card grid of its cards,
+  each card's title an `h4`. A topic's answers are fetched
   the first time it is shown, so a topic never shown requests none.
 - **The order of the reads.** The explorer's answers come first, as the
   page's largest. `index.html`'s head preloads the explorer's daily
@@ -231,13 +244,22 @@ checks that each path it names exists.
   or a family not chosen. `tests/page_start.test.js` runs the page's
   start with the explorer on a fake page and checks this order.
 - **The Traffic Explorer's URL keys.** The explorer's choice is the URL's
-  `family` (a family's slug, `daily_by_family`'s `family_slug`), `model`
+  `family` (a family's slug, `family_mix`'s `family_slug`), `model`
   (within the family, a named model's `chute_id`, or `other` for its other
   models), `endpoint` (an endpoint group: `chat`, `chat_stream`,
-  `completion`, `completion_stream`, `other`), `metric` (`input_tokens`
-  or `output_tokens`; requests when absent) and `from` and `to` (the first
+  `completion`, `completion_stream`, `other`), `metric` (the value of an
+  entry of `METRICS`, `input_tokens` or `output_tokens`; requests when
+  absent) and `from` and `to` (the first
   and last chosen day, `YYYY-MM-DD`). `traffic/traffic_choice.js` is their
-  one home: `readTrafficChoice` reads them when the page starts, a value it
+  one home, and the home of the drop-downs' entries: the families in
+  `family_mix`'s order (`familyChoices`), a family's models
+  (`modelChoices`), its other models named as the answer writes them,
+  "Other DeepSeek", but the family Other's, "Rest of Other"
+  (`otherModelsText`, the one home of that wording), and `METRICS`, the
+  one metric list, each metric with its column and its bars' words
+  (`metricOf`). `traffic/traffic_filter.js` holds the arithmetic over the
+  rows a choice keeps and imports the choice, never the reverse.
+  `readTrafficChoice` reads the keys when the page starts, a value it
   does not know falling back to everything (a `model` with no `family`, or
   not among the family's, too); the days follow the day range's rules of
   `traffic/traffic_range.js` (`clippedRange`): a day outside the trace is
@@ -264,8 +286,8 @@ at the page's width by the stylesheet's `.page > section`, which caps it
 at the page's width less the gutters, `.page` keeping the gutters as its
 padding; the Traffic Explorer's `#traffic` alone is uncapped. A new
 topic of figures is a module of `js/insights/` instead, added to
-`TOPICS` and to `index.html`'s Insights, where it becomes a
-tab.
+`TOPICS`, where it becomes a tab and a section, numbered by its place,
+with no edit to `index.html`, a test or the snapshot.
 
 ## Patterns to copy
 
@@ -282,9 +304,9 @@ ORDER BY requests DESC, endpoint_group;
 ```
 
 The first line says what one row is. Columns are named in words. A number
-that is a choice carries a comment (`AND family_models.rank <= 8  -- the
-eight models a family's drop-down names`). Every query is run by
-`tests/test_queries.py` against the fixture artifact, which checks its
+the query needs is bound by name from its one home, never written in
+(the trace query's `$days_per_trace_week`, from `months.py`). Every
+query is run by `tests/test_queries.py` against the fixture artifact, which checks its
 columns against `EXPECTED_COLUMNS`, the tables it reads against
 `SITE_TABLES`, and its numbers against values counted by hand.
 
@@ -293,13 +315,14 @@ columns against `EXPECTED_COLUMNS`, the tables it reads against
 ```sql
 -- One row per calendar day, model and endpoint group of the family `$family`, the query's one parameter, bound by name:
 -- ...
+       coalesce(family_models.name, 'Other ' || $family) AS model,
+-- ...
 LEFT JOIN family_models ON family_models.chute_id = daily_rollup.chute_id
-                       AND family_models.rank <= 8  -- the eight models a family's drop-down names
 WHERE daily_rollup.family = $family
 ```
 
-A query takes at most one parameter, the family, written `$family` and
-named in the query's first line. DuckDB binds it by name
+An answer's query takes at most one parameter, the family, written
+`$family` and named in the query's first line. DuckDB binds it by name
 (`site_database.run_query(connection, name, {"family": "DeepSeek"})`);
 the value is never substituted into the text, so no family's name can
 change the SQL. Listing the query in `FAMILY_QUERIES` of
@@ -313,10 +336,13 @@ by `make data`, once, over the whole trace: its rows in
 `data/all/explore/<query>.json`, and every answer is read by the page. A
 query that takes the family (`FAMILY_QUERIES` of `site_data/answers.py`,
 `explore/daily_by_model` and `explore/histograms_by_model`) is answered
-once per family of
-`explore/daily_by_family`, each family bound as `$family` and its rows
-written to `data/all/explore/<query>/<family_slug>.json`, the slug being
-`daily_by_family`'s `family_slug` column, the one place a slug is made. A
+once per family of `explore/family_mix` (`FAMILIES_QUERY`), in its order,
+each family bound as `$family` and its rows written to
+`data/all/explore/<query>/<family_slug>.json`. The family mix is the
+families' one home: their names, their slugs and their order.
+`explore/daily_by_family` makes the same slug by the same expression,
+read by nothing; `tests/test_queries.py` checks that its slugs are the
+mix's. A
 query under `queries/setup/` makes a table of the site's database and is
 not answered. `make data` also records the hash of the text of every query
 the answers depend on, the answered ones (a family query once) and
@@ -347,8 +373,9 @@ query over the released trace, run by `make tables` (`site_data/tables.py`)
 rather than `make data`. The trace is the view `trace`, made by DuckDB's
 Python API from the file `TRACE=` names, so no path is written into the
 SQL; the query reads it with `chute_models`, `model_families` and
-`family_models`, sorts its rows by every key so that a rebuild writes the
-same bytes, and its result is the trace table,
+`family_models`, takes `$trace_epoch` and `$days_per_trace_week` from
+`months.py` (`TRACE_QUERY_PARAMETERS`), sorts its rows by every key so
+that a rebuild writes the same bytes, and its result is the trace table,
 `tables/weekly_histograms.parquet`, tracked. Its sidecar,
 `tables/weekly_histograms.json`, records the hash of the query's text
 and the trace's and the table's row counts; `tests/test_tables.py` fails
@@ -398,10 +425,12 @@ the site carries a mark.
 groups, each a run of the paper's figures that says one thing together:
 
 ```js
-{ selector, takeaway, groups: [{ heading, takeaway, cards }] }
+{ id, title, takeaway, groups: [{ heading, takeaway, cards }] }
 ```
 
-A topic's `selector` is its section in `index.html`; its `takeaway`, the
+A topic's `id` is the anchor of the section the page writes for it and
+of its tab; its `title` is written after its number in its heading and
+its tab; its `takeaway`, the
 paper's finding for its section in plain words, is one sentence of at
 most thirty words, written under its heading. A group's `heading` is at
 most six words, with no full stop; its `takeaway`, what its figures show
@@ -474,7 +503,7 @@ frozenCard({
   kind: "lines",
   chart: {
     x: TRACE_DAY_AXIS,
-    // From zero, so the caption's growth reads at its true ratio; the busiest day, 34.9M, sits under the top.
+    // From zero, so the caption's growth reads at its true ratio, to a little past the busiest day.
     y: { label: "Requests per day", domain: [0, 36e6], tickFormat: formatCountTick },
     valueLabel: "Requests",
     valueFormat: formatCompactCount,
@@ -511,7 +540,10 @@ table and the card's words.
    there in its place, which also checks that the
    cards draw every answer of the index once (the shared legend is named by
    two cards); `tests/insights_figure_card.test.js` checks that its answer
-   has its kind's columns; `tests/insights_cards_words.test.js` counts the words of
+   has its kind's columns; `tests/insights_cards_domains.test.js` that
+   its answer's values fit each fixed domain of its axes, but a clip it
+   lists in `INTENDED_CLIPS` with its reason;
+   `tests/insights_cards_words.test.js` counts the words of
    its insight, caption and definition; and, with `ARTIFACT`,
    `tests/test_figures_registry.py` checks that the cards draw every figure
    the artifact lists, and no other.
@@ -656,8 +688,8 @@ Insights' figures are drawn from their plot-ready tables.
   Insights' cards of more than eight series, the two monthly share cards
   (the `families` palette of `insights/card_series.js`), which take the
   same ten slots in their legend's order. The families
-  take the slots from the first, in the order of their requests
-  (`explore/family_mix`'s, and the explorer's `familyOrder`), and the
+  take the slots from the first, in `explore/family_mix`'s order, which
+  the donut and the explorer both read, and the
   endpoint groups from `ENDPOINT_FIRST_SLOT`, in
   `explore/endpoint_mix`'s order, so the two donuts do not open on one
   colour; in the Traffic Explorer a family's models take the slots in the
@@ -708,7 +740,10 @@ Insights' figures are drawn from their plot-ready tables.
   shows its key there), its caption under the chart, and a Definition
   control that opens on its definition: alone on a figure card of the
   Insights; with the line of rows it rests on in the two Overview mixes
-  and the Traffic Explorer's bars.
+  and the Traffic Explorer's bars. In a card grid, a card spans one grid
+  row per part `renderFigure` appends (`.card-grid > .card` in
+  `style.css`); `tests/shared_figure.test.js` counts the parts against
+  the span, so a part added fails it until the span follows.
   A legend names only what is drawn. After each drawing its kind names
   the chart for a screen reader by its title and insight (its caption
   where it has none), or by the name it is given (`nameChart` in
@@ -777,9 +812,16 @@ make serve      # then open http://localhost:8000
 A change to the trace query, or to the artifact's family table or daily
 rollup's kept models, also runs `make tables TRACE=<the released
 trace's Parquet file> ARTIFACT=<the artifact's checkout>` first, then
-`make data`: it reads the 91 GB trace once, in about half a minute and
-16 GB of memory on a 344-thread machine, and `make test` with `ARTIFACT`
-then checks the table against the daily rollup.
+`make data`: it reads the 91 GB trace once (README's "Building the data"
+gives its cost), and `make test` with `ARTIFACT` then checks the table
+against the daily rollup.
+
+`make test` passes the artifact's checkout as `ARTIFACT`, beside this
+repository by default; without one, the tests that need it skip
+(README's "Running it" names them), and pytest's summary says why each
+skipped. A push to `main` is deployed only once the deploy workflow's
+job `test` has run `make test ARTIFACT=` and passed (README's
+"Deploying").
 
 The node tests drive the page's modules on the fake page of
 `tests/fake_page.js`. The explorer's tests reach an element by the fake
@@ -791,8 +833,9 @@ stylesheet and `tests/snapshot_traffic.py` use; `controlsOf`, a row's
 controls, lives in `fake_page.js` too.
 
 `make test` ends with the snapshot test (`tests/snapshot.py`): it opens
-six states of the page in headless Chromium (the page opened at each
-Insights topic's anchor) and compares every chart (an Insights card's as
+six states of the page in headless Chromium (the page opened at the
+anchor of each topic its tab row lists) and compares every chart (an
+Insights card's as
 its accessible name, its panels' titles, its colour legend's title and
 labelled ticks, and its axes' tick labels and titles), legend and block of
 text they show with its text file in `tests/snapshots/`, failing with the
@@ -811,8 +854,12 @@ no loading line visible, the hero and the footer counting the months,
 every chart of the Overview and the Traffic Explorer drawn and named (as
 many as `CHART_COUNTS` says), every card of the topic drawn and the first
 tile showing a number. A part of the page that is drawn later than
-these adds its own condition there. Without Chromium (`make
-setup-browser`) the snapshot test skips, saying so. It needs the network,
+these adds its own condition there. When Chromium cannot start (`make
+setup-browser` installs it) the snapshot test skips and exits 0, so the
+rest of the suite still counts, and prints framed lines to standard
+error, the last thing `make test` prints (`SKIP_MESSAGE`): the snapshots
+were skipped, nothing of the page was compared, and how to install
+Chromium. It needs the network,
 since the page loads Plot from its CDN and the fonts from Google: offline
 it fails, naming each request that failed and its host. A unit is named by
 its card's title, so a retitled card shows as a "new" unit and its old one

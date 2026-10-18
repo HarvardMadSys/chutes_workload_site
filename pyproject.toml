@@ -24,3 +24,4 @@ include = ["site_data*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "-rs"  # the summary names each skipped test and why it skipped

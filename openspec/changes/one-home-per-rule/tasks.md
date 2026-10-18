@@ -152,7 +152,7 @@ empty. This change follows `distributions-below`, `one-vocabulary` and
       removed in a scratch edit and passes with it; the workflow runs
       on the owner's next push to `main`, nothing being pushed without
       the owner's word, and its page shows `test` finishing before
-      `deploy` starts, with the four artifact tests skipped and the
+      `deploy` starts, with the three artifact tests skipped and the
       snapshot test run.
 
 ## 6. Documents and the spec's values
@@ -165,6 +165,7 @@ empty. This change follows `distributions-below`, `one-vocabulary` and
       `answer_files.py`, Arrow in place of pandas, `traffic_choice.js`
       and the metric list, a topic's one declaration, the domain test,
       the loud skip, the suite before the deploy; the spec deltas'
-      values as built.
+      values as built; `-rs` in `pyproject.toml`'s pytest options, so
+      that a skipped test says why (design D16).
       *Verify:* `make test` green; `tests/test_readme.py` finds every
       path; `openspec validate one-home-per-rule --strict` passes.

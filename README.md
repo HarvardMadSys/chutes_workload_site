@@ -122,12 +122,12 @@ of time; the browser runs no query, it fetches the answers and draws them.
   table, `tables/weekly_histograms.parquet`. `make data` holds each cache
   as a DuckDB table of its name, the model names as `chute_models`, the
   family table as `model_families` and the trace table as
-  `weekly_histograms`, adds two tables derived from them, eight tables in
+  `weekly_histograms`, adds three tables derived from them, nine tables in
   all, and runs each query of `site/queries/explore/` once, writing its
   rows to `site/data/all/explore/<query>.json`; the two queries that take
   a family, `daily_by_model` and `histograms_by_model`, it runs once per
-  family of the `daily_by_family` answer, writing one file per family,
-  `site/data/all/explore/<query>/<family slug>.json` (`deepseek.json`,
+  family of the `family_mix` answer, in its order, writing one file per
+  family, `site/data/all/explore/<query>/<family slug>.json` (`deepseek.json`,
   `gpt-oss.json`, …, `other.json`):
 
   | Cache | What it holds | The answers drawn from it |
@@ -137,8 +137,9 @@ of time; the browser runs no query, it fetches the answers and draws them.
   | `function_name_daily_requests` | one row per trace day and endpoint group: requests | `endpoint_mix`: the Overview's endpoint mix |
   | `weekly_histograms`, the site's trace table | one row per trace week, family, model (as the daily rollup keeps them), endpoint group, metric and bin: the requests in the bin | `histograms_by_family` and `histograms_by_model`: the Traffic Explorer's distribution charts and its tiles' percentiles |
 
-  The two derived tables are `trace_calendar`, each trace day's
-  calendar day and each trace month's label (`site_data/months.py`); and
+  The three derived tables are `trace_calendar`, each trace day's
+  calendar day and each trace month's label, and `trace_weeks`, each trace
+  week's first and last calendar day (both `site_data/months.py`); and
   `family_models`,
   the daily rollup's named models ranked within their family
   (`site/queries/setup/family_models.sql`), from which a family's answer
@@ -154,12 +155,15 @@ of time; the browser runs no query, it fetches the answers and draws them.
   (`input_tokens`, `output_tokens` or `ttft`) and a bin, with the
   requests in it. A bin is a quarter of a doubling: a value `v` is in bin
   `floor(4 · log2(v))`, a token count of at most 1 in bin 0, and a TTFT is
-  binned only where it is positive, as the rollup counts it. Its sidecar,
+  binned only where it is positive, as the rollup counts it. The query
+  takes the week's epoch and length as two parameters, bound by name
+  (Trace months, below). Its sidecar,
   `tables/weekly_histograms.json`, holds the query's hash and the trace's
   and the table's row counts.
 - **The histogram answers.** `histograms_by_family` holds one row per
-  trace week, family, endpoint group and metric: the week's first
-  calendar day and two lists in bin order, the bins and the requests in
+  trace week, family, endpoint group and metric: the calendar days of the
+  week's first and last trace day (`first_day`, `last_day`, from
+  `trace_weeks`) and two lists in bin order, the bins and the requests in
   each, a family's models summed together. A family's
   `histograms_by_model` holds the same per week, model (as
   `daily_by_model` names it) and endpoint group.
@@ -168,9 +172,13 @@ of time; the browser runs no query, it fetches the answers and draws them.
   the first pattern (by `match_order`) its name contains, case-insensitively,
   and every other model is in Other. The artifact applies the rule when it
   writes the daily rollup, which carries each row's family; the site's
-  answers never match a name against a pattern, and order the families by
-  their requests, Other last. The one query that does is the trace query,
-  since the trace's rows carry no family: it applies the same rule, and
+  answers never match a name against a pattern. The `family_mix` answer is
+  the families' one home: their names, their slugs and their order, most
+  requested first and Other last. The data step answers the family queries
+  for its families, and the page lists them in its order, in the donut and
+  the explorer's family drop-down alike. `daily_by_family` carries the same
+  slug, which nothing reads. The one query that does match a name is the
+  trace query, since the trace's rows carry no family: it applies the same rule, and
   `make test`, given the artifact's checkout, checks that the trace table's
   requests per week, family, model and endpoint group equal the daily
   rollup's counted requests, so the two applications agree.
@@ -186,16 +194,27 @@ of time; the browser runs no query, it fetches the answers and draws them.
   the calendar month its first day falls in, "Apr '25" to "Apr '26", and
   star the thirteenth, "Apr '26*", since it holds only the trace's last
   two days, as each such card's definition says
-  (`site/js/insights/figure_card.js`).
+  (`site/js/insights/figure_card.js`). A trace week is seven trace days,
+  week 0 the trace's first seven; the last holds three. `site_data/months.py`
+  is the week's one home: `TRACE_EPOCH`, the trace's first day as the
+  caches write it, and `DAYS_PER_TRACE_WEEK`. The trace query takes the
+  two as `$trace_epoch` and `$days_per_trace_week`, bound by name
+  (`TRACE_QUERY_PARAMETERS` of `site_data/tables.py`), so no query
+  restates them; `trace_weeks` gives the histogram answers each week's
+  first and last calendar day, so the browser computes no week's dates.
 - **The Traffic Explorer** filters and sums the `daily_by_family` answer,
   and a family's `daily_by_model` answer once the family is chosen, in
   the browser. The first holds one row per calendar day, family and
   endpoint group; a family's file one row per calendar day, model (each
   of the family's eight most requested named models, by its chute id and
-  name, and its other models as "Other <family>") and endpoint group; each
-  row holds the requests, the input and output token sums, the TTFT sum,
+  name, and its other models together, with a null chute id) and endpoint
+  group; each row holds the requests, the input and output token sums, the TTFT sum,
   and how many requests recorded each. An average divides by the requests
-  that record its value, not by every request. Once the bars are drawn,
+  that record its value, not by every request. The explorer shows a
+  model's name as the answer writes it, the other models as
+  "Other DeepSeek", with one relabel: the family Other's, which the answer
+  names "Other Other", are "Rest of Other" (`otherModelsText` of
+  `site/js/traffic/traffic_choice.js`). Once the bars are drawn,
   the explorer reads the histogram answer of the choice
   (`histograms_by_family`, or the family's `histograms_by_model`), so the
   bars never wait for it, and sums the bins of the trace weeks that hold a
@@ -260,7 +279,7 @@ is. With Python 3.12 and Node 22:
 
 ```bash
 make setup           # a virtual environment, .venv, with this package and its test tools
-make setup-browser   # the headless Chromium the snapshot test opens the page in; without it that test skips
+make setup-browser   # the headless Chromium the snapshot test opens the page in; without it that test skips, loudly
 make serve           # http://localhost:8000
 make test            # the Python tests, the node tests and the snapshot test
 make snapshots       # rewrite tests/snapshots/ when a change is meant to alter what the page shows
@@ -270,8 +289,11 @@ npm ci               # wrangler, for make deploy and npm run check
 `make test` passes the artifact's checkout to the Python tests as
 `ARTIFACT`; the test that compares the Insights' cards with the artifact's
 figure list, the one that compares the shipped data with a rebuild, and
-the one that compares the trace table with the daily rollup skip, saying
-so, where that checkout is not there.
+the one that compares the trace table with the daily rollup skip where
+that checkout is not there, and pytest's summary names each with its
+reason (`-rs` in `pyproject.toml`). Without Chromium the snapshot test
+skips and exits 0, ending the run with framed lines on standard error
+that say no chart, legend or text was compared.
 
 ## Building the data
 
@@ -281,8 +303,8 @@ repository, `../2027_chutes_repo_artifact`.
 
 **The trace table** is rebuilt only when the artifact's family table or
 its daily rollup's kept models change, or `site/queries/trace/weekly_histograms.sql`
-does. It also takes the released trace's Parquet file, named with
-`TRACE=`, which has no default:
+or the week of `site_data/months.py` does. It also takes the released
+trace's Parquet file, named with `TRACE=`, which has no default:
 
 ```bash
 make tables TRACE=<the released trace's Parquet file> ARTIFACT=<the artifact's checkout>   # tables/
@@ -317,13 +339,26 @@ size. A rebuild from the same artifact writes the same bytes, so git sees
 only what changed. The rebuilt data and snapshots are committed with the
 change that needed them.
 
+Where an Insights card fixes an axis's domain to the paper's,
+`tests/insights_cards_domains.test.js` checks that the figure answer's
+values fit it. When a rebuild outgrows a domain, `make test` fails
+naming the figure, the axis, the domain and the value. Widen the domain
+in the card, run `make snapshots` and review the diff; or, where the
+paper's axis means to cut the values off, list the clip in the test's
+`INTENDED_CLIPS` with its reason.
+
 ## Deploying
 
 The site is a Cloudflare Worker named `chutes-trace-site`, with static
 assets and no code of its own: `wrangler.jsonc` points it at `site/`. Every
-push to `main` deploys it through `.github/workflows/deploy.yml` (GitHub
-Actions), which runs `wrangler deploy` with two repository secrets, added
-under the repository's Settings > Secrets and variables > Actions:
+push to `main` runs the suite and then deploys it, through
+`.github/workflows/deploy.yml` (GitHub Actions). Its job `test` installs
+the Python and Node dependencies and Chromium and runs `make test
+ARTIFACT=`: the three tests that need the artifact's checkout skip, saying
+why, and every other test runs, the snapshot test among them. Its job
+`deploy` waits for it (`needs: test`), so a red `main` is never deployed,
+and runs `wrangler deploy` with two repository secrets, added under the
+repository's Settings > Secrets and variables > Actions:
 
 - `CLOUDFLARE_API_TOKEN`, a token made from the Cloudflare dashboard's
   "Edit Cloudflare Workers" template;
@@ -366,16 +401,18 @@ package-lock.json    wrangler's exact version and its dependencies', which npm c
 wrangler.jsonc       the Cloudflare Worker that serves site/ as static assets: its name and its hostnames
 .gitignore           what git leaves out: installed and generated folders, the tools' own folders, local secrets
 .github/workflows/deploy.yml
-                     deploys site/ on every push to main, then asks the published site for four files
+                     on every push to main, runs make test, then deploys site/ and asks the published site for four
+                     files
 site_data/           builds tables/ from the released trace (make tables), and site/data/ from the artifact's caches
                      and plot-ready tables and tables/ (make data)
   __init__.py        the package's summary
   __main__.py        the command make data runs: reads the artifact, writes the answers and the figure answers
   loading.py         reads the three caches, the model names, the family table and the trace table as Arrow
                      tables, and holds the trace table's file names; a missing file stops the step
-  months.py          the trace's start date, and the calendar of its trace days and trace months
+  months.py          the trace's start date, its epoch and a week's length, and the calendar of its trace days, weeks
+                     and months
   site_database.py   the site's database in DuckDB: the caches, model names and family table as tables, with
-                     trace_calendar and family_models, and the trace table as weekly_histograms
+                     trace_calendar, trace_weeks and family_models, and the trace table as weekly_histograms
   answers.py         runs every query of site/queries/explore/, a family's query once per family, writes its
                      answers and the queries' hashes
   figure_answers.py  writes the plot-ready table of every figure the artifact lists as its answer, and their index
@@ -388,18 +425,20 @@ tables/              built by make tables from the released trace, and tracked
   weekly_histograms.json
                      its sidecar: the trace query's hash, the trace's rows and the table's rows
 site/                exactly the files that are deployed
-  index.html         the page: header, hero, Overview, Traffic Explorer, Insights, Cite, Team, footer; its head
-                     preloads the explorer's daily answer
+  index.html         the page: header, hero, Overview, Traffic Explorer, Insights (its heading and tab row), Cite,
+                     Team, footer; its head preloads the explorer's daily answer
   style.css          tokens, layout and components
   favicon.svg        the brand mark, for the browser tab
   js/page/           the page's module and its start, the Insights' topics, their tabs and the tabs' scrolling row
     main.js          the page's module: it names the page's sections, starts the charting library's load and starts
                      the page
-    start.js         asks for the answers the sections share, places the Insights' groups and cards and mounts their
-                     tabs, mounts the header and renders the footer, runs the sections, then draws the shown topic,
-                     and follows Back and Forward
-    topic_tabs.js    the Insights' tabs, one topic shown at a time, the shown one in the URL's hash
-    topics.js        the Insights' six topics in the order of their tabs, and a topic's cards group by group
+    start.js         asks for the answers the sections share, writes each Insights topic's section with its groups
+                     and cards and mounts their tabs, mounts the header and renders the footer, runs the sections,
+                     then draws the shown topic, and follows Back and Forward
+    topic_tabs.js    the Insights' tabs, from the topic list, one topic shown at a time, the shown one in the URL's
+                     hash
+    topics.js        the Insights' six topics in the order of their tabs, the one place a topic is declared; a
+                     topic's number, and its cards group by group
     scrolling_row.js
                      a row that scrolls sideways, as the Insights' tabs do on a phone
   js/shared/         what the page's parts share
@@ -457,8 +496,8 @@ site/                exactly the files that are deployed
     card_series.js   a card's series: their order, each palette's colours, the fixed and highlighted series, the
                      count colour, the card's legend
     workload.js, tokens.js, users.js, evolution.js, caching.js, balancing.js
-                     one module per topic: its takeaway, its groups' headings and takeaways, its cards' words,
-                     kinds and charts' parameters
+                     one module per topic: its id, its title, its takeaway, its groups' headings and takeaways, its
+                     cards' words, kinds and charts' parameters
     routing_panels.js
                      the load-balancing topic's routing simulation card: its series and eight panels, and the
                      policies' colours and legend
@@ -499,13 +538,15 @@ tests/               what make test runs
   test_naming.py     the name rules: a name is exported by one module of site/js/, and a node test file's name
                      starts with the folder of the module it tests
   test_deployment.py
-                     the Worker's settings, and the paths the deploy workflow checks are files of site/
+                     the Worker's settings, the paths the deploy workflow checks are files of site/, and the deploy
+                     waiting for the test job, which installs Chromium and then runs make test
   test_readme.py     every path this layout names exists
   snapshot.py, snapshot_units.py, snapshot_traffic.py, test_snapshot.py, test_snapshot_units.py
-                     the snapshot test: the page opened at each of the six topics in headless Chromium, each
+                     the snapshot test: the page opened at each topic its tab row lists in headless Chromium, each
                      unit it shows (a chart, a legend, a block of text; a card's chart as its name, panel titles,
                      colour legend, axis ticks and axis titles) read as text and compared with tests/snapshots/,
-                     and no other topic's figure answers requested
+                     and no other topic's figure answers requested; framed lines on standard error when Chromium
+                     cannot start
   snapshots/         one folder per page state, one text file per unit, rewritten by make snapshots
   *.test.js          node --test: one file per JavaScript module with pure functions, and the checks of the whole
                      page below. Each is named after the folder of the module it tests and then the module, the

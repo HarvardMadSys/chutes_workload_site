@@ -13,7 +13,7 @@ setup:
 	$(PYTHON) -m pip install -e '.[test]'
 
 # The headless Chromium the snapshot test opens the pages in, also for checking pages by hand; without it the snapshot
-# test skips, saying so.
+# test skips, in framed lines at the end of make test.
 setup-browser:
 	$(PYTHON) -m playwright install chromium
 
@@ -26,9 +26,9 @@ data:
 TRACE ?=
 
 # Build the trace table, tables/weekly_histograms.parquet, and its sidecar from the released trace and the artifact's
-# model names, family table and daily rollup (about 16 GB of memory and half a minute on 344 threads). Rerun it, and
-# commit the two files, when the family table, the daily rollup's kept models or
-# site/queries/trace/weekly_histograms.sql changed.
+# model names, family table and daily rollup; README's "Building the data" gives its cost. Rerun it, and commit the two
+# files, when the family table, the daily rollup's kept models, site/queries/trace/weekly_histograms.sql or the week of
+# site_data/months.py changed.
 tables:
 	@if [ -z "$(TRACE)" ]; then echo "set TRACE=<the released trace's Parquet file>"; exit 1; fi
 	$(PYTHON) -m site_data.tables --trace "$(TRACE)" --artifact "$(ARTIFACT)" --out tables
@@ -38,7 +38,7 @@ serve:
 	python3 -m http.server -d site -b 127.0.0.1 8000
 
 # The Python tests, the JavaScript modules' tests, then the snapshot test. The Python tests are given the artifact's
-# checkout, against whose figure list they compare the Insights' cards; without it that test skips, saying so.
+# checkout; without it the tests that read it skip, and pytest's summary says why (README's "Running it").
 test:
 	ARTIFACT=$(ARTIFACT) $(PYTHON) -m pytest
 	node --test "tests/*.test.js"

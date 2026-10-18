@@ -121,7 +121,7 @@ This change follows `distributions-below`, `one-vocabulary` and
    query test checks that its slugs are the mix's. A later data change
    may drop it.
 5. **The deploy workflow runs without the artifact's checkout.** The
-   four tests that need it skip, saying so. The maintainer runs them
+   three tests that need it skip, saying so. The maintainer runs them
    at every commit with `make test ARTIFACT=…`, as CLAUDE.md asks.
    Checking out a second, private repository in CI needs a token and
    would pin nothing.

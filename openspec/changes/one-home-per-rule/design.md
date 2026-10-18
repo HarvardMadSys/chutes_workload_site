@@ -117,9 +117,13 @@ explicit schema keeps each column's type: dates as `date32`, and
 same way.
 `site_database.register_tables` reads the last trace day with
 `pyarrow.compute.max(tables.daily_rollup["day"])`. It registers
-`family_models` from the setup query's `.arrow()` result, not
-`.df()`. `pyproject.toml` moves pandas to the `test` extra; the
-tests' groupbys keep it.
+`family_models` from the setup query's `.to_arrow_table()` result, not
+`.df()`. DuckDB's `.arrow()` gives a stream that can be read once: a
+second query over the registered table read no rows, and a
+registration hung. `family_models.requests` is then `DECIMAL(38,0)`,
+the exact sum, where pandas gave a double; no query reads it.
+`pyproject.toml` moves pandas to the `test` extra; the tests' groupbys
+keep it.
 
 The answers must not move a byte. `make data` is run and `git diff
 --stat site/data` must be empty. With the artifact,
@@ -206,10 +210,13 @@ After this change, the browser composes nothing. It shows the
 answer's `model` as it is, through one function in
 `traffic_choice.js` (D10): `otherModelsText(rows, familyName)`. The
 function returns the `model` of the family's rows whose `chute_id` is
-null. For the family Other, it returns "Rest of Other" instead,
-marked `// placeholder:` as the site's copy. That function is the one
-home of the wording. `modelChoices` and `choiceBreakdown`'s label take
-it. `otherModelsName` goes.
+null. For the family Other, it returns "Rest of Other" instead, the
+constant `REST_OF_OTHER_TEXT` beside it, marked `// placeholder:` as
+the site's copy. That function and its constant are the one home of
+the wording. `modelChoices` and `choiceBreakdown`'s label take it, so
+`choiceBreakdown(choice, family)` takes the chosen family's answer,
+`{ name, rows }`, or null for every family, in place of its name.
+`otherModelsName` goes.
 
 No answer changes, and the drop-down and the legend read as before.
 The snapshots do not move.
@@ -240,8 +247,11 @@ After this change:
   trace, so the last week, of three days, ends on 2026-04-12. Its
   schema gives `week` as `int32`, the trace table's type.
 - **Histogram queries.** `histograms_by_family.sql` and
-  `histograms_by_model.sql` join `trace_weeks USING (week)` and return
-  `first_day` and `last_day`.
+  `histograms_by_model.sql` join `trace_weeks ON trace_weeks.week =
+  bin_requests.week` and return `first_day` and `last_day`. The join
+  names its columns rather than `USING (week)`: the table check runs
+  `duckdb.get_table_names`, which cannot bind a `USING` join over
+  tables it does not hold.
 - **Trace query.** `weekly_histograms.sql` keeps its arithmetic, since
   a week is born there from a request's timestamp. The arithmetic
   becomes `(date_diff('day', $trace_epoch, trace.started_at::DATE) //
@@ -354,7 +364,7 @@ After this change:
   `#insights` keeps its heading and the tab row only.
 - **The tabs.** `topic_tabs.js` takes `{ anchor, number, title }` from
   `TOPICS` and `topicNumber`. `pageTopics` and its markup reading go.
-- **Tests.** `SELECTORS`, `TOPIC_ANCHORS` and `TOPIC_TITLES` are
+- **Tests.** `SELECTORS` goes. `TOPIC_ANCHORS` and `TOPIC_TITLES` are
   derived from `TOPICS`. `page_topics.test.js`'s `TOPIC_FIELDS`
   becomes `id`, `title`, `takeaway` and `groups`.
 - **Snapshot.** The test opens `index.html` once and reads the tab
@@ -387,9 +397,10 @@ Neither can hold both, so a test ties them.
 ### D13. Two duplicated constants
 
 - `SHARE_OF_REQUESTS` is defined in `insights/tokens.js` and
-  `insights/caching.js`. It becomes `SHARE_OF_REQUESTS_AXIS` in
-  `plot/axes.js`, with the axis options, as one-vocabulary put the
-  trace's axes in `plot/`. Both topics import it.
+  `insights/caching.js`, and a third copy of the same axis in
+  `traffic/traffic_distribution_charts.js`. It becomes
+  `SHARE_OF_REQUESTS_AXIS` in `plot/axes.js`, with the axis options, as
+  one-vocabulary put the trace's axes in `plot/`. All three import it.
 - `MEDIAN_WIDTH = 2` is defined in `charts/bands.js` and
   `charts/boxes.js`. It becomes `MEDIAN_STROKE_WIDTH = 2  // pixels:
   a median's line or tick, drawn heavier than the rest of its mark` in
@@ -467,9 +478,11 @@ failed install fails that step.
 5. `.venv/bin/python -m playwright install --with-deps chromium`;
 6. `make test ARTIFACT=`.
 
-The empty `ARTIFACT` makes the four tests that need the artifact's
-checkout skip, saying so (proposal, pushback 4). Every other test
-runs:
+The empty `ARTIFACT` makes the three tests that need the artifact's
+checkout skip, saying so (proposal, pushback 5). pytest prints no
+reason for a skip by default, so `pyproject.toml`'s pytest options
+gain `-rs`, and the summary names each skipped test and why. Every
+other test runs:
 
 - the Python tests;
 - the staleness of every answer against its query's text;
@@ -481,8 +494,9 @@ The job adds about three minutes before a deploy. `concurrency`
 stays at the workflow's level.
 
 `tests/test_deployment.py` checks that the `deploy` job needs `test`
-and that `test` runs `make test`. It reads the workflow's text, as it
-reads the checked paths today.
+and that `test` installs Chromium and then runs `make test
+ARTIFACT=`. It reads the workflow's text, as it reads the checked
+paths today.
 
 Not taken: running only the node tests and the repository tests in
 CI. The snapshot test is the one that opens the page, and a page that
