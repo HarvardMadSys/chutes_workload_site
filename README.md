@@ -424,9 +424,10 @@ site/                exactly the files that are deployed
     boxes.js         a box per series from its five statistics
     bars.js          a bar per x of a panel
   js/plot/           what the chart kinds and the cards give Plot: the frame, the axes, the trace's axes
-    frame.js         a chart's frame and ink, its reference rules, and its colour scales
-    axes.js          how many ticks an axis asks for, a log axis's powers of ten, a card's axis as Plot's scale and
-                     marks, and a value as its axis writes it
+    frame.js         a chart's frame and ink, its reference rules, and its colour scales; the parameters most kinds
+                     share and the draw contract every kind keeps
+    axes.js          the options of an axis and their names; how many ticks an axis asks for, a log axis's powers
+                     of ten, a card's axis as Plot's scale and marks, and a value as its axis writes it
     trace_axes.js    the trace's day and month axes that cards hand to the kinds, the months named and the partial
                      last starred
   js/theme/colours.js
@@ -514,7 +515,8 @@ tests/               what make test runs
                      the word counts of every card's insight, caption and definition, of each topic's takeaway,
                      and of each group's heading and takeaway
   insights_figure_card.test.js
-                     every card's kind, and its shipped answer holding that kind's columns
+                     every card's kind, and its shipped answer holding that kind's columns; every card's and
+                     panel's chart naming only parameters its kind lists, its axes only axis options
   insights_card_series.test.js
                      a card's series' order, the colours each palette gives them, the fixed and highlighted series,
                      and its legend

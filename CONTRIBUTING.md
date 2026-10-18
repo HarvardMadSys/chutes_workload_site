@@ -436,7 +436,8 @@ the fields below, and of no other:
 - `kind`: the chart kind that draws it, a key of `CHART_KINDS` in
   `insights/figure_card.js` (`cdf` is the lines kind with a share axis).
 - `chart`: the parameters handed to the kind's draw function: its axes,
-  `valueLabel`, `valueFormat` and the kind's own (`js/charts/<kind>.js`).
+  `valueLabel`, `valueFormat` and the kind's own, each a name its kind's
+  list holds (`<KIND>_PARAMETERS` of `js/charts/<kind>.js`).
 - `panels` (optional): `[{ panel, title, chart }]`, one chart per panel of
   a multi-panel figure, from the rows of its `panel`, under its title.
 - `legend` (optional): the name of a legend answer, rows `{ series, rank }`,
@@ -559,34 +560,61 @@ These nine chart modules are not quite a card's nine kinds:
 `CHART_KINDS` of `insights/figure_card.js` names `cdf`, drawn by
 `lines`, and no `donut`, which only the Overview draws, for its two
 mixes, by family and by endpoint. Each module exports one draw function of one
-interface, `draw<Kind>(rows, body, colours, parameters, hidden)`: the rows
-of its answer, the place to draw into, `colours.series` (the Map of its
-series' colours in the legend's order), its named parameters (a card's
-`chart`, with its kind's and a panel's) and the Set of series its legend
-hides; it replaces the place's content with one Plot chart, but the donut,
-which is plain SVG of its own drawing. Its module's header says what rows
-it takes and its draw function's JSDoc what each parameter decides; its
-pure functions (the rows drawn, the tooltip's text, a scale's options) are
-exported and tested in `tests/charts_<kind>.test.js`. A kind imports only
-from `shared/`, `plot/` and `theme/`. A kind takes only parameters two or
-more charts use, or a frame or axis setting (the bars' `margins`, `inset`
-and `xTickRotate`, the stacked bars' `segmentInset` and `xInset`, the
-lines' `gap`).
+signature, `async draw<Kind>(rows, body, seriesColours, parameters,
+hidden)`: the rows of its answer, the place to draw into, the Map from
+series name to colour in the legend's order, its parameters (a card's
+`chart`, with its kind's defaults and a panel's) and the Set of series its
+legend hides. A kind without series (bands, cells, raster, scatter)
+declares `seriesColours` and `hidden` too, and reads neither. It replaces
+the place's content with one Plot chart (the donut with plain SVG of its
+own drawing) and returns nothing. Its last step names the chart for a
+screen reader, `nameChart(body, parameters.name)` of
+`shared/figure.js`, so no caller names a chart. The draw contract comment
+of `plot/frame.js` says this once.
+
+Each module also exports the frozen list of every parameter name its
+kind reads, `<KIND>_PARAMETERS` (`LINES_PARAMETERS`), the shared names
+first, then its own. The shared names are one typedef, `ChartParameters`
+of `plot/frame.js`. An axis, `x` or `y`, is one shape on every kind, the
+typedef `AxisOptions` of `plot/axes.js`, its names listed in
+`AXIS_OPTION_NAMES`. `tests/insights_figure_card.test.js` walks every
+card's and panel's `chart`, and its kind's defaults, and fails on a name
+its kind's list does not hold or an axis option that is not one, naming
+the card and the key; a new parameter goes into its kind's list. A
+kind's draw function's JSDoc opens with "Reads `<KIND>_PARAMETERS`" and
+says what its own names decide; its module's header says what rows it
+takes. Its pure functions (the rows drawn, the tooltip's text, a scale's
+options) are exported and tested in `tests/charts_<kind>.test.js`. A
+kind imports only from `shared/`, `plot/` and `theme/`. A kind takes
+only parameters two or more charts use, or a frame or axis setting (the
+stacked bars' `barInset` and `segmentInset`, the lines' `gap`, an axis's
+`inset` and `tickRotate`).
 Every Plot kind takes `height`, the chart's height in pixels,
 `CHART_HEIGHT` (240) when not given (`titledFrame` of `plot/frame.js`);
 the two cards of a grid row take the same height, so the row stays level.
 Every Plot kind but the raster has a tooltip, written by the kind's
 `…TipText` function, its x after the x axis's title (`axisValueText` of
 `plot/axes.js`), or written by the axis's `tipFormat` alone where it
-gives one (a trace day with its date; the stacked bars take it as
-`xTipFormat`, the Traffic Explorer's day bars writing the whole day where
-a tick names only the month; the cells write each edge of a cell's range
-by it, after the axis's title); the donut's slices carry their tooltip as an
-SVG `<title>` each. The lines kind joins a CDF's points with straight
-lines, its tooltip naming the point nearest the pointer in x and y; with
-`tipAllSeries` its tooltip lists every drawn series' value at the hovered
-x, highest first, and with `series` it draws only the series named (a
-panel's own).
+gives one (a trace day with its date; the Traffic Explorer's day bars
+writing the whole day where a tick names only the month; the cells write
+each edge of a cell's range by it, after the axis's title); the donut's
+slices carry their tooltip as an SVG `<title>` each. The lines kind joins
+a CDF's points with straight lines, its tooltip naming the point nearest
+the pointer in x and y; with `tipAllSeries` its tooltip lists every drawn
+series' value at the hovered x, highest first, and with `series` it draws
+only the series named (a panel's own).
+
+**The legend** (`shared/legend.js`) takes two objects, each a typedef at
+the head of that module. The legend object, a `Legend`, holds the entries,
+their colours, and how their swatches are drawn (`swatch` and `dashed`);
+a card gives it its kind's `swatch` from `CHART_KINDS`. The options
+object, a `LegendState`, is the last argument: the series hidden at first
+and `onToggle`, told of each change. `mountLegend(container, legend,
+legendState)` places the buttons, which hold the hidden set; after each
+press every button's pressed state is set from the new set.
+`drawWithLegend(body, legend, drawChart, legendState)` places them above
+`body` and draws the chart again after each press. A legend of fewer
+than two entries places no button and hides nothing (`hasLegend`).
 
 ## JavaScript style
 
@@ -681,9 +709,10 @@ Insights' figures are drawn from their plot-ready tables.
   control that opens on its definition: alone on a figure card of the
   Insights; with the line of rows it rests on in the two Overview mixes
   and the Traffic Explorer's bars.
-  A legend names only what is drawn. After each drawing the chart is named
-  for a screen reader by its title and caption, `nameChart` in
-  `shared/figure.js`, or by the name it is given.
+  A legend names only what is drawn. After each drawing its kind names
+  the chart for a screen reader by its title and insight (its caption
+  where it has none), or by the name it is given (`nameChart` in
+  `shared/figure.js`).
 - **The distribution charts.** The Traffic Explorer's row of three
   charts under the day range (README's "What the site shows") is
   `traffic/traffic_distribution_charts.js`. A chart is keyed everywhere

@@ -7,11 +7,11 @@ its answer, the place to draw into, the Map from series name to colour
 in the legend's order (not read by a kind without series), its
 parameters and the Set of the series its legend hides. It SHALL settle
 once its chart is in the place and named for a screen reader, by the
-name its parameters give or else by its card's title and insight, and
-SHALL return nothing; no caller SHALL name a chart. Every kind that
-draws axes SHALL take them as `x` and `y` in one shape, the axis
-options, whose names are listed once. Each kind SHALL export the list
-of the parameter names it reads.
+name its parameters give, or else by its figure's title and insight
+(its caption where it has no insight), and SHALL return nothing; no
+caller SHALL name a chart. Every kind that draws axes SHALL take them
+as `x` and `y` in one shape, the axis options, whose names are listed
+once. Each kind SHALL export the list of the parameter names it reads.
 
 #### Scenario: One axis on two kinds
 - **WHEN** a stacked-bars card and a bands card are drawn on the trace's month axis
@@ -37,12 +37,12 @@ shipped answer has the kind's columns. A node test SHALL check that
 every card's `chart`, and every panel's, names only parameters its
 kind lists, and every axis in it only the axis options. A node test
 file SHALL be named after the module it tests and start with that
-module's folder under
-`site/js/` (`charts_lines.test.js` for `charts/lines.js`,
+module's folder under `site/js/` (`charts_lines.test.js` for `charts/lines.js`,
 `traffic_bars.test.js` for `traffic/traffic_bars.js`), a check over
 every Insights card starting `insights_cards_`, except the checks of the
-stylesheet and of the module headers; the repository test SHALL check
-the first word of each name. A snapshot test SHALL hold, under
+stylesheet and of the module headers and the test of a test helper,
+named after the helper (`fake_page.test.js`); the naming test SHALL
+check the first word of each name. A snapshot test SHALL hold, under
 `tests/snapshots/`, the normalised text of every chart (its series,
 legend, titles and tick labels), table, legend and text block of six
 page states (the page opened at each topic's anchor, each state's
@@ -73,7 +73,7 @@ fail, naming the host, where the libraries or fonts cannot load.
 
 #### Scenario: A test file named after no folder
 - **WHEN** a node test file `legend.test.js` is added for `shared/legend.js`
-- **THEN** the repository test SHALL fail naming the file, which is to be `shared_legend.test.js`
+- **THEN** the naming test (`tests/test_naming.py`) SHALL fail naming the file, which is to be `shared_legend.test.js`
 
 #### Scenario: A rename that moves nothing
 - **WHEN** a module is renamed and the page shows what it showed

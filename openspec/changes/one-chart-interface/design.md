@@ -178,8 +178,8 @@ export async function draw<Kind>(rows, body, seriesColours, parameters, hidden) 
   awaited the same way.
 - **The kind names its chart, last.** `nameChart(body, parameters.name)`
   (`shared/figure.js`) names every chart SVG in `body` for a screen
-  reader: by `parameters.name` where given, else by its card's title and
-  insight (`chartName`), as today. The three callers' `nameChart`
+  reader: by `parameters.name` where given, else by its figure's title
+  and insight, or its caption where it has none (`chartName`), as today. The three callers' `nameChart`
   calls go, and so does the donut's own `role` and `aria-label` code,
   since `nameChart`'s selector already finds its `<svg>`. The
   distribution charts pass each chart's `name`, the name they give
@@ -202,7 +202,7 @@ result to every helper:
 
 ```js
 const chart = { ...parameters, x: parameters.x ?? {}, y: lineYAxis(parameters) };
-const points = drawnPoints(linePoints(rows, chart.cdf), seriesColours, chart, hidden);
+const drawn = drawnPoints(linePoints(rows, chart.cdf), seriesColours, chart, hidden);
 ```
 
 `chart` is the word a card already uses for its parameters (`card.chart`),
@@ -427,8 +427,9 @@ in one function while the buttons that show it live in another.
 Modules: the nine kinds of `js/charts/`; `plot/axes.js` (the axis
 typedef and list); `plot/frame.js` (the parameters' typedef,
 `sequentialColour`); `shared/legend.js`; `insights/figure_card.js`
-(`CHART_KINDS`, the legend's swatch, no naming); `insights/evolution.js`
-and `insights/workload.js` (the cards' axes);
+(`CHART_KINDS`, the legend's swatch, no naming); `shared/figure.js`
+(`nameChart`'s comment: the kinds call it); `insights/evolution.js` and
+`insights/workload.js` (the cards' axes);
 `traffic/traffic_bars.js` and `traffic/traffic_distribution_charts.js`
 (the parameters, the Map, no naming, the legend's rule);
 `sections/mixes.js` (the Map). `plot/trace_axes.js` is untouched. No
@@ -438,8 +439,9 @@ Tests: `charts_stacked_bars`, `charts_cells`, `charts_lines`,
 `charts_bars`, `charts_bands`, `charts_boxes`, `charts_donut`,
 `plot_frame` (`sequentialColour`), `shared_legend` and
 `shared_legend_state`, `insights_figure_card` (the walk),
-`insights_cards_charts`, `plot_trace_axes` and
-`traffic_distribution_charts` follow the new signatures. Two tests are
+`insights_cards_charts` and `plot_trace_axes` follow the new
+signatures; `traffic_distribution_charts` calls none of them and is
+unchanged. Two tests are
 added: the walk, and in `shared_legend.test.js` one that presses two
 buttons of a legend and finds every button's `aria-pressed` equal to
 its entry being shown in the hidden set `onToggle` received.
