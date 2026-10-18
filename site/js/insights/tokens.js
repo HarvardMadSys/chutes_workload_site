@@ -1,5 +1,5 @@
 /**
- * The Insights' second topic, Request shape and latency: the paper's token-length and latency distributions of all
+ * An Insights topic, Request shape and latency: the paper's token-length and latency distributions of all
  * requests and three highlighted models, and median latency by request shape, as `page/topics.js` defines
  * a topic. The words are the paper's and the definitions the artifact README's; a line marked "placeholder" is not
  * the paper's own, for the authors to review.
@@ -42,7 +42,9 @@ function formatHitRatio(ratio) {
 
 /** The topic "Request shape and latency". */
 export const TOKENS_TOPIC = Object.freeze({
-  selector: "#insights-tokens",
+  id: "insights-tokens",
+  // placeholder: the title is the site's name for the topic, for the authors.
+  title: "Request shape and latency",
   // placeholder: the takeaway is the section's closing conclusion in plain words, for the authors.
   takeaway: "Requests are often prompt-heavy and most latency is decode; the three highlighted models spend it differently, on long outputs or on long prompts.",
   groups: Object.freeze([

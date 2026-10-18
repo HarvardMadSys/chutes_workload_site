@@ -1,21 +1,17 @@
 /**
  * Stand-ins for the parts of the page the node tests drive, as node has no page of its own: an element, found under
  * another by a tag, a class, an id or a data attribute, or a chain of them; the Traffic Explorer's controls in its
- * controls row; a figure's body with its legend's place, the topic sections the tabs read, the browser's history, and
+ * controls row; a figure's body with its legend's place, the topic sections the tabs show, the browser's history, and
  * the response to fetching an answer.
  */
 
-/** The topics' anchors on the page, in the order of their tabs. */
-export const TOPIC_ANCHORS = Object.freeze([
-  "insights-overview", "insights-tokens", "insights-users", "insights-evolution", "insights-caching",
-  "insights-balancing",
-]);
+import { TOPICS } from "../site/js/page/topics.js";
 
-/** The topics' titles, as their headings give them after the number. */
-export const TOPIC_TITLES = Object.freeze([
-  "The workload at a glance", "Request shape and latency", "Users and models", "A year of change", "Prefix caching",
-  "Load balancing",
-]);
+/** The topics' anchors on the page, their ids, in the order of their tabs. */
+export const TOPIC_ANCHORS = Object.freeze(TOPICS.map((topic) => topic.id));
+
+/** The topics' titles, as their headings and tabs write them after the number, in the order of their tabs. */
+export const TOPIC_TITLES = Object.freeze(TOPICS.map((topic) => topic.title));
 
 /** The address the fake page is opened at, before its query and anchor. */
 export const PAGE_ADDRESS = "http://localhost/index.html";
@@ -212,17 +208,9 @@ export class FakeFigureBody extends FakeElement {
   }
 }
 
-/** The six topic sections as the page holds them: each heading the number's element, a space and the title. */
+/** The six topic sections as the page writes them, as far as the tabs read them: each an element of its topic's id. */
 export function topicSections() {
-  const sections = [];
-  for (const [index, anchor] of TOPIC_ANCHORS.entries()) {
-    const section = new FakeElement("section", anchor);
-    const number = { textContent: `0${index + 1}` };
-    const heading = { querySelector: () => number, lastChild: { textContent: ` ${TOPIC_TITLES[index]}` } };
-    section.querySelector = () => heading;
-    sections.push(section);
-  }
-  return sections;
+  return TOPIC_ANCHORS.map((anchor) => new FakeElement("section", anchor));
 }
 
 /** The ids of the sections of `sections` that are shown. */

@@ -2,9 +2,9 @@
 
 A snapshot is one folder per page state, `tests/snapshots/<state>/`, holding one text file per unit the state shows:
 each chart's SVG, or an Insights card's chart's name and tick labels, each legend's entries, each card's texts, the
-stats strip. `snapshot_units.py` names the states and says what each file holds, `snapshot_traffic.py` the Traffic
-Explorer's. The states are the page opened at each of its six Insights topics' anchors (`index.html#insights-tokens`),
-each in a fresh page, and each state's folder is named by its anchor. A unit that is the same in every state is
+stats strip. `snapshot_units.py` says what each file holds, `snapshot_traffic.py` the Traffic Explorer's. The states are
+the page opened at each of its Insights topics' anchors (`index.html#insights-tokens`), each in a fresh page, and each
+state's folder is named by its anchor; the anchors are read once from the tab row's `aria-controls`. A unit that is the same in every state is
 written once, with the first state: the page's hero, stats strip, Overview, Traffic Explorer, cite, team and footer.
 
     .venv/bin/python tests/snapshot.py           # compare: fails naming each unit that changed (make test)
@@ -65,7 +65,6 @@ TILE_VALUE = "#traffic-explorer .traffic-tiles li strong"  # the value of each o
 A_DIGIT = re.compile(r"\d")  # a tile showing a number, not its loading or missing text
 MONTH_COUNT = re.compile(r"\d+ months? of")  # the hero's lede and the footer's line, once the totals give the months
 FIGURE_ANSWER = re.compile(r"/data/all/figures/(?P<figure>[^/?#]+)\.json$")  # the address of a figure's answer
-CARD_FIGURE = "data-figure"  # the attribute of a card's article that names its figure
 SKIP_MESSAGE = "snapshots skipped: Chromium could not start ({reason}). `make setup-browser` installs it."
 
 
@@ -132,24 +131,6 @@ def record_figure_answer(requested: list[str], request) -> None:
         requested.append(figure)
 
 
-def topic_figures(page, topic: str) -> set[str]:
-    """The figures of the cards of the topic section `topic` (its id), as their articles' `data-figure` name them."""
-    figures = set()
-    for card in page.locator(f"#{topic} [{CARD_FIGURE}]").all():
-        figures.add(card.get_attribute(CARD_FIGURE))
-    return figures
-
-
-def other_topics_answers(page, topic: str, requested: list[str]) -> list[str]:
-    """The figures of `requested` that are the cards' of a topic other than `topic`: none, when a topic shown reads
-    only its own answers."""
-    others = set()
-    for other in snapshot_units.PAGE_STATES:
-        if other != topic:
-            others |= topic_figures(page, other)
-    return sorted(set(requested) & others)
-
-
 def wait_until_drawn(page, topic: str) -> None:
     """Wait until the topic section `topic` (its id) is the one shown and every unit the state reads has drawn: no
     loading line is visible, the hero and the footer count the months, every chart of the Overview and the Traffic
@@ -173,7 +154,7 @@ def read_state(page, address: str, topic: str, with_page_units: bool) -> dict[st
     page.on("request", functools.partial(record_figure_answer, requested))
     page.goto(f"{address}/index.html#{topic}", wait_until="networkidle")
     wait_until_drawn(page, topic)
-    strays = other_topics_answers(page, topic, requested)
+    strays = snapshot_units.other_topics_answers(page, topic, requested)
     if strays:
         raise PageError(f"opened at #{topic}, the page requested other topics' answers: {', '.join(strays)}")
     units = snapshot_units.topic_units(page, topic)
@@ -186,12 +167,23 @@ def read_state(page, address: str, topic: str, with_page_units: bool) -> dict[st
     return units
 
 
+def page_states(browser, address: str) -> list[str]:
+    """The page's states, the anchors of its Insights topics in the order of their tabs, read once from the tab row of
+    the site at `address`, which the page writes as it starts."""
+    page = browser.new_page(viewport=VIEWPORT, locale=LOCALE, timezone_id=TIME_ZONE, color_scheme=COLOUR_SCHEME)
+    page.goto(f"{address}/index.html")
+    playwright.sync_api.expect(page.locator(snapshot_units.TOPIC_TABS).first).to_be_attached(timeout=DRAW_TIMEOUT_MS)
+    anchors = snapshot_units.topic_anchors(page)
+    page.close()
+    return anchors
+
+
 def read_states(browser, address: str) -> dict[str, dict[str, str]]:
     """Every state's units, `{state: {unit: text}}`, each read in a fresh page of `browser` from the site at
     `address`; the first state also holds the page's units that no topic changes."""
     errors = []
     states = {}
-    for state in snapshot_units.PAGE_STATES:
+    for state in page_states(browser, address):
         page = browser.new_page(viewport=VIEWPORT, locale=LOCALE, timezone_id=TIME_ZONE, color_scheme=COLOUR_SCHEME)
         record_errors(page, errors)
         try:
@@ -254,7 +246,7 @@ def compare_snapshots(files: dict[pathlib.Path, str]) -> int:
     folder_name = SNAPSHOTS_FOLDER.relative_to(ROOT)
     report = changed_units(files, SNAPSHOTS_FOLDER)
     if not report:
-        print(f"snapshots unchanged: {len(files)} units in {len(snapshot_units.state_names())} states")
+        print(f"snapshots unchanged: {len(files)} units in {len({path.parent for path in files})} states")
         return 0
     print(f"units that differ from {folder_name}/:")
     for entry in report:

@@ -10,29 +10,29 @@
  */
 
 import { bringIntoRow, markMoreBeyondEdge, mountScrollingRow } from "./scrolling_row.js";
+import { topicNumber } from "./topics.js";
 
 // The anchor of the Insights section itself, which, as no anchor does, shows the first topic.
-const INSIGHTS_ANCHOR = "insights";
+export const INSIGHTS_ANCHOR = "insights";
 
 // The prefix of a tab's id, before its topic's anchor: the tab of `#insights-tokens` is `#tab-insights-tokens`.
 const TAB_ID_PREFIX = "tab-";
 
+/** The id of the tab of the topic `anchor`, which labels its section: `tab-insights-tokens`. */
+export function tabId(anchor) {
+  return `${TAB_ID_PREFIX}${anchor}`;
+}
+
 /**
- * Each of `topics` (each `{ selector }`, the selector of a topic's section) as its tab shows it, read from its heading
- * on the page: `[{ anchor, number, title }]`, the section's id, its number ("01") and its title ("The workload at a
- * glance").
+ * Each of `topics`, the topics of `page/topics.js` in order, as its tab shows it: `[{ anchor, number, title }]`, the
+ * topic's id, its number ("01", `topicNumber`) and its title ("The workload at a glance").
  */
-function pageTopics(topics) {
-  const tabTopics = [];
-  for (const topic of topics) {
-    const element = document.querySelector(topic.selector);
-    const heading = element.querySelector("h2");
-    const number = heading.querySelector(".topic-number").textContent;
-    // The heading is the number's element, a space and the title, its last text node.
-    const title = heading.lastChild.textContent.trim();
-    tabTopics.push({ anchor: element.id, number, title });
+function tabbedTopics(topics) {
+  const tabbed = [];
+  for (const [index, topic] of topics.entries()) {
+    tabbed.push({ anchor: topic.id, number: topicNumber(index), title: topic.title });
   }
-  return tabTopics;
+  return tabbed;
 }
 
 /**
@@ -82,11 +82,11 @@ export function tabIndexForKey(key, index, count) {
   return null;
 }
 
-/** A tab for `topic` (as `pageTopics` returns it): a button, "01 The workload at a glance", that controls its section. */
+/** A tab for `topic`, as `tabbedTopics` gives it: a button, "01 The workload at a glance", that controls its section. */
 export function topicTab(topic) {
   const tab = document.createElement("button");
   tab.type = "button";
-  tab.id = `${TAB_ID_PREFIX}${topic.anchor}`;
+  tab.id = tabId(topic.anchor);
   tab.className = "topic-tab";
   tab.setAttribute("role", "tab");
   tab.setAttribute("aria-controls", topic.anchor);
@@ -111,17 +111,17 @@ export function showTopic(topicSections, tabs, anchor) {
 }
 
 /**
- * Render the tabs into `row` for `topics`, show the topic the URL's hash names (the first by
- * default), keep it in the history entry the page opened on, and wire the tabs: a click or a key shows its topic and
- * writes its anchor as a new history entry. Return `showEntryTopic(state)`, which shows the topic of the history entry
+ * Render the tabs into `row` for `topics`, the topics of `page/topics.js` in order, each controlling the section the
+ * page wrote for it, found by its id; show the topic the URL's hash names (the first by default), keep it in the
+ * history entry the page opened on, and wire the tabs: a click or a key shows its topic and writes its anchor as a new
+ * history entry. Return `showEntryTopic(state)`, which shows the topic of the history entry
  * that Back or Forward returned to, `state` being the entry's state. `onShow()` is called each time a tab, a key, Back
  * or Forward shows a topic, after it is shown, so that its figures are drawn at their cards' width; the topic shown on
  * mounting is shown without it, so the page chooses when that topic's figures are drawn.
  */
 export function mountTopicTabs(row, topics, onShow) {
-  const tabTopics = pageTopics(topics);
-  const anchors = tabTopics.map((topic) => topic.anchor);
-  const tabs = tabTopics.map(topicTab);
+  const anchors = topics.map((topic) => topic.id);
+  const tabs = tabbedTopics(topics).map(topicTab);
   row.replaceChildren(...tabs);
   const view = { row, tabs, topicSections: anchors.map((anchor) => document.getElementById(anchor)), onShow };
   for (const tab of tabs) {

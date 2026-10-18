@@ -83,7 +83,7 @@ test("every card has a definition of at most three sentences and sixty words", (
 
 test("every topic has a takeaway of one sentence, at most thirty words", () => {
   for (const topic of TOPICS) {
-    assertWords(topic.takeaway, topic.selector, "takeaway", { sentences: 1, words: MAX_TAKEAWAY_WORDS });
+    assertWords(topic.takeaway, topic.id, "takeaway", { sentences: 1, words: MAX_TAKEAWAY_WORDS });
   }
 });
 

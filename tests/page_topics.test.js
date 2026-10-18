@@ -1,20 +1,14 @@
-// The topic list (`page/topics.js`): the six topics in their tabs' order, their groups and cards, every field of a
+// The topic list (`page/topics.js`): the six topics, their ids and numbers, their groups and cards, every field of a
 // card, the figure answers they draw, and their being frozen.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { TOPICS, topicCards } from "../site/js/page/topics.js";
+import { TOPICS, topicCards, topicNumber } from "../site/js/page/topics.js";
 import { CHART_HEIGHT } from "../site/js/plot/frame.js";
 
 // The figure answers the data step wrote, as their index lists them: each figure's row count, by name.
 const INDEX = JSON.parse(readFileSync(new URL("../site/data/all/figures.json", import.meta.url), "utf8"));
-
-// The topics' sections, in the order of their tabs.
-const SELECTORS = [
-  "#insights-overview", "#insights-tokens", "#insights-users", "#insights-evolution", "#insights-caching",
-  "#insights-balancing",
-];
 
 // How many cards each group of each topic holds, in the order of the topics and of their groups: a card for each panel
 // of the paper's figures of the topic's section.
@@ -22,7 +16,7 @@ const GROUP_CARD_COUNTS = [[4, 1], [3, 2, 3], [4, 4, 2], [2, 2, 2], [4, 3, 2], [
 
 // The fields of a topic, of a group, and of a card: its words, each a string, then its kind and its chart's
 // parameters; a card may also have the optional ones.
-const TOPIC_FIELDS = ["selector", "takeaway", "groups"];
+const TOPIC_FIELDS = ["id", "title", "takeaway", "groups"];
 const GROUP_FIELDS = ["heading", "takeaway", "cards"];
 const CARD_FIELDS = ["figure", "title", "insight", "caption", "definition", "kind"];
 const OPTIONAL_CARD_FIELDS = ["panels", "legend", "series", "palette", "isWide"];
@@ -53,18 +47,28 @@ function figureUses() {
   return uses;
 }
 
-test("the six topics are in the order of their tabs", () => {
-  assert.deepEqual(TOPICS.map((topic) => topic.selector), SELECTORS);
+test("there are six topics, each with an id of its own, an anchor under the Insights' own", () => {
+  const ids = TOPICS.map((topic) => topic.id);
+  assert.equal(ids.length, 6);
+  assert.equal(new Set(ids).size, ids.length);
+  for (const id of ids) {
+    assert.match(id, /^insights-[a-z]+$/);
+  }
 });
 
-test("a topic has its selector, takeaway and groups, and a group its heading, takeaway and cards, and no other", () => {
+test("a topic's number is its place in the list, in two digits", () => {
+  assert.deepEqual([0, 5, 9].map(topicNumber), ["01", "06", "10"]);
+});
+
+test("a topic has its id, title, takeaway and groups, and a group its heading, takeaway and cards, and no other", () => {
   for (const topic of TOPICS) {
-    assert.deepEqual(Object.keys(topic), TOPIC_FIELDS, topic.selector);
-    assert.equal(typeof topic.takeaway, "string", topic.selector);
+    assert.deepEqual(Object.keys(topic), TOPIC_FIELDS, topic.id);
+    assert.ok(typeof topic.title === "string" && topic.title.length > 0, topic.id);
+    assert.equal(typeof topic.takeaway, "string", topic.id);
     for (const group of topic.groups) {
-      assert.deepEqual(Object.keys(group), GROUP_FIELDS, `${topic.selector}: ${group.heading}`);
-      assert.equal(typeof group.heading, "string", topic.selector);
-      assert.equal(typeof group.takeaway, "string", `${topic.selector}: ${group.heading}`);
+      assert.deepEqual(Object.keys(group), GROUP_FIELDS, `${topic.id}: ${group.heading}`);
+      assert.equal(typeof group.heading, "string", topic.id);
+      assert.equal(typeof group.takeaway, "string", `${topic.id}: ${group.heading}`);
     }
   }
 });
@@ -77,7 +81,7 @@ test("every topic holds its cards in groups of the paper's runs", () => {
 test("no group is empty", () => {
   for (const topic of TOPICS) {
     for (const group of topic.groups) {
-      assert.ok(group.cards.length > 0, `${topic.selector}: ${group.heading}`);
+      assert.ok(group.cards.length > 0, `${topic.id}: ${group.heading}`);
     }
   }
 });
@@ -137,9 +141,9 @@ function heldObjects(value) {
 test("the topics, their groups and cards cannot be changed, nor the cards' charts, panels and panels' charts", () => {
   assert.ok(Object.isFrozen(TOPICS));
   for (const topic of TOPICS) {
-    assert.ok(Object.isFrozen(topic) && Object.isFrozen(topic.groups), topic.selector);
+    assert.ok(Object.isFrozen(topic) && Object.isFrozen(topic.groups), topic.id);
     for (const group of topic.groups) {
-      assert.ok(Object.isFrozen(group) && Object.isFrozen(group.cards), `${topic.selector}: ${group.heading}`);
+      assert.ok(Object.isFrozen(group) && Object.isFrozen(group.cards), `${topic.id}: ${group.heading}`);
     }
     for (const card of topicCards(topic)) {
       const unfrozen = heldObjects(card).filter((part) => !Object.isFrozen(part));

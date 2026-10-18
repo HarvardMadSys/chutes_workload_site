@@ -1,5 +1,5 @@
 /**
- * The Insights' sixth topic, Load balancing: the paper's two months of one popular model's load across its instances,
+ * An Insights topic, Load balancing: the paper's two months of one popular model's load across its instances,
  * latency against instance load, one user's requests across instances, and the routing simulation's trade-off, as
  * `page/topics.js` defines a topic. The words are the paper's and the definitions the artifact's README
  * or, for the simulation, its plotting script's; a line marked "placeholder" is not the paper's own, for the authors
@@ -59,7 +59,9 @@ const LOW_LOAD_INSTANCES = 11;
 
 /** The Load balancing topic. */
 export const BALANCING_TOPIC = Object.freeze({
-  selector: "#insights-balancing",
+  id: "insights-balancing",
+  // placeholder: the title is the site's name for the topic, for the authors.
+  title: "Load balancing",
   // placeholder: the takeaway is the paper's finding for the section in plain words, for the authors.
   takeaway: "Routing for cache locality fights load balancing: spreading a user over instances duplicates cache state, keeping them together costs a little imbalance.",
   groups: Object.freeze([

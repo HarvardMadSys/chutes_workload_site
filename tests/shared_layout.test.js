@@ -118,10 +118,8 @@ test("the page is the site's one page of sections, titled with the dataset's nam
 test("the page runs Overview, Traffic Explorer, Insights, Cite and Team, each of the four a heading alone", () => {
   const page = readFileSync(PAGE_FILE, "utf8");
   const order = [...page.matchAll(/<section (?:id="([a-z-]+)" )?class="([a-z -]+)"/g)].map((match) => match[1] ?? match[2]);
-  assert.deepEqual(order, [
-    "hero", "overview", "traffic", "insights", "insights-overview", "insights-tokens", "insights-users",
-    "insights-evolution", "insights-caching", "insights-balancing", "cite", "team",
-  ]);
+  // The topics' sections are not in the markup: the page writes them from the topic list (`page/start.js`).
+  assert.deepEqual(order, ["hero", "overview", "traffic", "insights", "cite", "team"]);
   for (const section of LINKED_SECTIONS) {
     const start = page.indexOf(`<section id="${section.anchor.slice(1)}"`);
     const firstHeading = page.slice(start).match(/<h2 id="[^"]+">([^<]+)<\/h2>/)[1];

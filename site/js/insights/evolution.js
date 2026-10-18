@@ -1,5 +1,5 @@
 /**
- * The Insights' fourth topic, A year of change: the paper's monthly model mix, monthly token-length bands and the
+ * An Insights topic, A year of change: the paper's monthly model mix, monthly token-length bands and the
  * token lengths of each release cohort of users, as `page/topics.js` defines a topic. The two share
  * cards show the legend the paper draws once above both. The words are the paper's and the definitions the artifact
  * README's; a line marked "placeholder" is not the paper's own, for the authors to review.
@@ -24,7 +24,9 @@ const COHORT_AXIS = Object.freeze({ ...TRACE_MONTH_AXIS, label: "Release cohort 
 
 /** The topic "A year of change". */
 export const EVOLUTION_TOPIC = Object.freeze({
-  selector: "#insights-evolution",
+  id: "insights-evolution",
+  // placeholder: the title is the site's name for the topic, for the authors.
+  title: "A year of change",
   // placeholder: the takeaway is the paper's finding for the section in plain words, for the authors.
   takeaway: "Over the year the leading models change, outputs get shorter and newer users send longer inputs.",
   groups: Object.freeze([

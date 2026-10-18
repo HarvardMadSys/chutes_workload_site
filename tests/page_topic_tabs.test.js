@@ -7,8 +7,9 @@ import {
   mountTopicTabs, showTopic, tabIndexForKey, topicForEntry, topicForHash, topicTab,
 } from "../site/js/page/topic_tabs.js";
 
+import { TOPICS, topicNumber } from "../site/js/page/topics.js";
 import {
-  FakeElement, FakeHistory, PAGE_ADDRESS, shownIds, TOPIC_ANCHORS, topicSections,
+  FakeElement, FakeHistory, PAGE_ADDRESS, shownIds, TOPIC_ANCHORS, TOPIC_TITLES, topicSections,
 } from "./fake_page.js";
 
 /**
@@ -28,8 +29,7 @@ function mountedTabs(hash, onShow = () => undefined) {
     createElement: () => new FakeElement(),
   };
   const row = new FakeElement("div", "topic-tabs");
-  const topics = TOPIC_ANCHORS.map((anchor) => ({ selector: `#${anchor}` }));
-  const showEntryTopic = mountTopicTabs(row, topics, onShow);
+  const showEntryTopic = mountTopicTabs(row, TOPICS, onShow);
   window.addEventListener("popstate", (event) => showEntryTopic(event.state));
   return { tabs: row.children, sections, history: window.history };
 }
@@ -49,6 +49,15 @@ test("a tab is a button in the tab role, controlling its topic's section", () =>
   assert.equal(tab.className, "topic-tab");
   assert.equal(tab.getAttribute("role"), "tab");
   assert.equal(tab.getAttribute("aria-controls"), "insights-tokens");
+});
+
+test("the tabs write each topic's number and title from the topic list, in its order, each controlling its topic", () => {
+  const { tabs } = mountedTabs("");
+  done();
+  assert.equal(tabs[0].textContent, "01 The workload at a glance");
+  const texts = TOPIC_TITLES.map((title, index) => `${topicNumber(index)} ${title}`);
+  assert.deepEqual(tabs.map((tab) => tab.textContent), texts);
+  assert.deepEqual(tabs.map((tab) => tab.getAttribute("aria-controls")), TOPIC_ANCHORS);
 });
 
 test("a hash naming a topic shows that topic", () => {

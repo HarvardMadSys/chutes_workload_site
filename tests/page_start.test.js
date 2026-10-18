@@ -10,7 +10,7 @@ import { runTraffic } from "../site/js/traffic/traffic.js";
 import { mountTrafficControls } from "../site/js/traffic/traffic_controls.js";
 import { familyChoices, modelChoices } from "../site/js/traffic/traffic_choice.js";
 import {
-  deferred, FakeElement, FakeHistory, PAGE_ADDRESS, settled, shownIds, TOPIC_ANCHORS, topicSections,
+  deferred, EVERYTHING, FakeElement, FakeHistory, PAGE_ADDRESS, settled, shownIds, topicSections,
 } from "./fake_page.js";
 
 // Two families, Qwen and Other, as the family drop-down offers them.
@@ -21,9 +21,6 @@ const FAMILIES = familyChoices([
 
 // The trace's days, as far as the controls read them: its first and last.
 const DAYS = ["2025-04-11", "2026-04-12"];
-
-// The choice of everything: every family, every model, every endpoint group, requests, every day.
-const EVERYTHING = Object.freeze({ family: "", model: "", endpoint: "", metric: "", from: "", to: "" });
 
 // Qwen's daily answer by model: one named model and its other models, its counts zero but requests.
 const QWEN_ROWS = [
@@ -51,7 +48,7 @@ async function startedPage(context) {
   };
   context.after(forgetThePage);
   const tabsRow = new FakeElement("div", "topic-tabs");
-  const showEntryTopic = mountTopicTabs(tabsRow, TOPIC_ANCHORS.map((anchor) => ({ selector: `#${anchor}` })), () => 0);
+  const showEntryTopic = mountTopicTabs(tabsRow, TOPICS, () => 0);
   const pageHistory = followHistory(showEntryTopic);
   const controls = new FakeElement("div");
   const drawn = [];
@@ -146,7 +143,8 @@ function cardOf(figure) {
 
 // A topic of two groups, of two cards and of one.
 const TOPIC = {
-  selector: "#insights-overview",
+  id: "insights-overview",
+  title: "Workload",
   takeaway: "The topic's finding.",
   groups: [
     { heading: "First group", takeaway: "What the first shows.", cards: [cardOf("fig_a"), cardOf("fig_b")] },
@@ -154,13 +152,22 @@ const TOPIC = {
   ],
 };
 
-test("a topic is placed as its takeaway, then each group's heading, takeaway and its cards, titled h4", (context) => {
-  const section = new FakeElement("section", "insights-overview");
-  globalThis.document = { querySelector: () => section, createElement: (tag) => new FakeCardPart(tag) };
+test("a topic is placed after the tab row, a tab panel of its heading, takeaway, groups and cards", (context) => {
+  const insights = new FakeElement("section", "insights");
+  const tabsRow = new FakeElement("div", "topic-tabs");
+  insights.append(tabsRow);
+  globalThis.document = { getElementById: () => insights, createElement: (tag) => new FakeCardPart(tag) };
   context.after(forgetThePage);
-  const placed = placeTopic(TOPIC);
-  const parts = section.children.map((part) => [part.tag, part.className, part.textContent]);
-  assert.deepEqual(parts, [
+  const { section, cards } = placeTopic(TOPIC, 4);
+  assert.deepEqual(insights.children, [tabsRow, section]);
+  assert.deepEqual([section.tag, section.id, section.className], ["section", "insights-overview", "topic"]);
+  assert.equal(section.getAttribute("role"), "tabpanel");
+  assert.equal(section.getAttribute("aria-labelledby"), "tab-insights-overview");
+  const [heading, ...parts] = section.children;
+  const [number, titleText] = heading.children;
+  assert.deepEqual([heading.tag, number.tag, number.className], ["h2", "span", "topic-number"]);
+  assert.deepEqual([number.textContent, number.getAttribute("aria-hidden"), titleText], ["05", "true", " Workload"]);
+  assert.deepEqual(parts.map((part) => [part.tag, part.className, part.textContent]), [
     ["p", "topic-takeaway", "The topic's finding."],
     ["h3", "figure-group-title", "First group"],
     ["p", "figure-group-takeaway", "What the first shows."],
@@ -169,13 +176,12 @@ test("a topic is placed as its takeaway, then each group's heading, takeaway and
     ["p", "figure-group-takeaway", "What the second shows."],
     ["div", "card-grid", ""],
   ]);
-  const grids = [section.children[3], section.children[6]];
+  const grids = [parts[3], parts[6]];
   assert.deepEqual(grids[0].children.map((card) => card.dataset.figure), ["fig_a", "fig_b"]);
   assert.deepEqual(grids[1].children.map((card) => card.dataset.figure), ["fig_c"]);
   const [title] = grids[0].children[0].children[0].children;
   assert.deepEqual([title.tag, title.className, title.textContent], ["h4", "figure-title", "Title of fig_a"]);
-  assert.equal(placed.section, section);
-  assert.deepEqual(placed.cards.map((placedCard) => placedCard.card.figure), ["fig_a", "fig_b", "fig_c"]);
+  assert.deepEqual(cards.map((placedCard) => placedCard.card.figure), ["fig_a", "fig_b", "fig_c"]);
 });
 
 // The answers the page reads as it opens, in the order it reads them: the hero's, the Overview's, the explorer's.
@@ -207,15 +213,13 @@ const ENDPOINT_ROWS = [{ endpoint_group: "chat", requests: 10 }];
  * started }`: the files read, in order, the topic tabs and the page's promise.
  */
 function startedPageWithExplorer(context, answers) {
-  const sections = topicSections();
-  for (const section of sections) {
-    // The Insights section, which the page scrolls into view when it opens on a topic's anchor.
-    section.parentElement = { scrollIntoView: () => undefined };
-  }
   const header = new FakeElement("header", "site-header");
   const footer = new FakeElement("footer", "site-footer");
   const tabsRow = new FakeElement("div", "topic-tabs");
-  const places = [header, footer, tabsRow, new FakeElement("div", "traffic-explorer"), ...sections];
+  // The Insights section, to which the page appends each topic's section, and which it scrolls to on a topic's anchor.
+  const insights = new FakeElement("section", "insights");
+  insights.scrollIntoView = () => undefined;
+  const places = [header, footer, tabsRow, insights, new FakeElement("div", "traffic-explorer")];
   const window = new FakeElement();
   window.history = new FakeHistory(window, `${PAGE_ADDRESS}?endpoint=completion`);
   globalThis.window = window;
@@ -223,7 +227,7 @@ function startedPageWithExplorer(context, answers) {
   globalThis.requestAnimationFrame = () => 0;
   globalThis.document = {
     querySelector: (selector) => places.find((element) => `#${element.id}` === selector),
-    getElementById: (id) => sections.find((section) => section.id === id),
+    getElementById: (id) => [insights, ...insights.children].find((element) => element.id === id),
     createElement: (tag) => new FakeCardPart(tag),
   };
   context.after(() => {

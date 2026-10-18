@@ -1,5 +1,5 @@
 /**
- * The Insights' first topic, The workload at a glance: the five panels of the paper's figure of daily demand over the
+ * An Insights topic, The workload at a glance: the five panels of the paper's figure of daily demand over the
  * year, as `page/topics.js` defines a topic. The words are the paper's and the definitions the artifact
  * README's; a line marked "placeholder" is not the paper's own, for the authors to review.
  * A card's kind and chart say how its figure is drawn from its answer, as `insights/figure_card.js` defines them.
@@ -27,7 +27,9 @@ const WEEKDAY_LABELS = Object.freeze(["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", 
 
 /** The topic "The workload at a glance". */
 export const WORKLOAD_TOPIC = Object.freeze({
-  selector: "#insights-overview",
+  id: "insights-overview",
+  // placeholder: the title is the site's name for the topic, for the authors.
+  title: "The workload at a glance",
   // placeholder: the takeaway is the section's closing conclusion in plain words, for the authors.
   takeaway: "Demand changes all year, in volume, in which models are active and in how the API is called; one request rate would not describe it.",
   groups: Object.freeze([

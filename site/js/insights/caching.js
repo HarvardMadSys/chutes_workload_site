@@ -1,5 +1,5 @@
 /**
- * The Insights' fifth topic, Prefix caching: the paper's token hit ratios of requests, models and users, how soon users
+ * An Insights topic, Prefix caching: the paper's token hit ratios of requests, models and users, how soon users
  * return, and the eviction algorithms' hit ratios in simulation, as `page/topics.js` defines a topic. The
  * words are the paper's and the definitions the artifact's README or, for the simulation, its plotting script's; a
  * line marked "placeholder" is not the paper's own, for the authors to review.
@@ -38,7 +38,9 @@ const IAT_CAP_SECONDS = 400;
 
 /** The Prefix caching topic. */
 export const CACHING_TOPIC = Object.freeze({
-  selector: "#insights-caching",
+  id: "insights-caching",
+  // placeholder: the title is the site's name for the topic, for the authors.
+  title: "Prefix caching",
   // placeholder: the takeaway is the paper's finding for the section in plain words, for the authors.
   takeaway: "Cache reuse is common but uneven: most requests reuse nearly all of their prefix or none, and most reuse returns within minutes, so simple eviction works.",
   groups: Object.freeze([

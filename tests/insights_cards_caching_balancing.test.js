@@ -42,7 +42,7 @@ test("the TTL card's axis is ticked at 1 ms and at the paper's thresholds, 0.1 s
 });
 
 test("the eviction pair, the caching topic's last group, shares its row on one hit-ratio axis from 0 to 1", () => {
-  const groups = TOPICS.find((topic) => topic.selector === "#insights-caching").groups;
+  const groups = TOPICS.find((topic) => topic.id === "insights-caching").groups;
   assert.deepEqual(groups.at(-1).cards.map((card) => card.figure), EVICTION_CARDS);
   for (const figure of EVICTION_CARDS) {
     assert.equal(cardOf(figure).isWide, undefined, figure);

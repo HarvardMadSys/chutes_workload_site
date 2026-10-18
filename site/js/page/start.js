@@ -1,10 +1,10 @@
 /**
- * The page's start: it asks for the answers the sections share, places the Insights' groups and cards and mounts their
- * topic tabs, mounts the header and renders the footer, then runs the page's sections, once, from their answer files.
- * The topics (`page/topics.js`) are shown one at a time behind the tabs of the `#topic-tabs` row
- * (`page/topic_tabs.js`); a topic's figures are drawn from their answers the first time it is shown, so a topic never
- * shown requests none. The topic the page opens on is drawn once the sections have drawn or shown their errors; a topic
- * a tab shows before then is drawn at once.
+ * The page's start: it asks for the answers the sections share, writes the Insights' topic sections with their groups
+ * and cards and mounts their topic tabs, mounts the header and renders the footer, then runs the page's sections, once,
+ * from their answer files. The topics (`page/topics.js`) are shown one at a time behind the tabs of the `#topic-tabs`
+ * row (`page/topic_tabs.js`); a topic's figures are drawn from their answers the first time it is shown, so a topic
+ * never shown requests none. The topic the page opens on is drawn once the sections have drawn or shown their errors; a
+ * topic a tab shows before then is drawn at once.
  *
  * The page's module names its sections, each `{ id, run }`: the id of its place in `index.html` and the function that
  * runs it, which shows its loading state at once and then draws its answer. A section runs as `run(container,
@@ -23,8 +23,8 @@ import { readAnswer } from "../shared/answers.js";
 import { textElement } from "../shared/figure.js";
 import { mountHeader, renderFooter, queryString } from "../shared/layout.js";
 import { drawFigureChart, newCardElement, renderFigureCard } from "../insights/figure_card.js";
-import { TOPICS } from "./topics.js";
-import { mountTopicTabs } from "./topic_tabs.js";
+import { TOPICS, topicNumber } from "./topics.js";
+import { INSIGHTS_ANCHOR, mountTopicTabs, tabId } from "./topic_tabs.js";
 
 /**
  * Start the page: mount its topic tabs and header, render its footer, run its `sections`, and call `showMonthCount`
@@ -66,7 +66,7 @@ export function followHistory(showEntryTopic) {
  * Forward calls `drawShown` as it shows a topic; the topic shown on opening waits for the page to call it.
  */
 function mountInsights(mixes) {
-  const placedTopics = TOPICS.map(placeTopic);
+  const placedTopics = TOPICS.map((topic, index) => placeTopic(topic, index));
   const drawnTopics = new Set();
   const drawShown = () => drawShownTopic(placedTopics, drawnTopics, mixes);
   const showEntryTopic = mountTopicTabs(document.querySelector("#topic-tabs"), TOPICS, drawShown);
@@ -74,19 +74,35 @@ function mountInsights(mixes) {
 }
 
 /**
- * Write `topic`'s takeaway under its heading, then, for each of its groups in order, the group's heading, its takeaway
- * and a grid of its cards, each card with its words and its chart's place loading; return `{ section, cards }`, its
- * section element and every card of its groups, each `{ card, body }`. The section holds its heading alone until
- * then, so each part is appended after it.
+ * Append to the Insights section, after its tab row, the section of `topic`, the topic at `index` of `TOPICS`: a tab panel
+ * whose id is the topic's and which its tab labels; in it the topic's heading, its number (`topicNumber`) and its
+ * title, then its takeaway, then, for each of its groups in order, the group's heading, its takeaway and a grid of its
+ * cards, each card with its words and its chart's place loading. Return `{ section, cards }`, its section element and
+ * every card of its groups, each `{ card, body }`.
  */
-export function placeTopic(topic) {
-  const section = document.querySelector(topic.selector);
-  section.append(textElement("p", "topic-takeaway", topic.takeaway));
+export function placeTopic(topic, index) {
+  const section = document.createElement("section");
+  section.id = topic.id;
+  section.className = "topic";
+  section.setAttribute("role", "tabpanel");
+  section.setAttribute("aria-labelledby", tabId(topic.id));
+  section.append(topicHeading(topic, index), textElement("p", "topic-takeaway", topic.takeaway));
+  document.getElementById(INSIGHTS_ANCHOR).append(section);
   const cards = [];
   for (const group of topic.groups) {
     cards.push(...placeGroup(section, group));
   }
   return { section, cards };
+}
+
+/** The heading of `topic`, at `index` of `TOPICS`: its number, which a screen reader skips, a space and its title. */
+function topicHeading(topic, index) {
+  const heading = document.createElement("h2");
+  const number = textElement("span", "topic-number", topicNumber(index));
+  // The number is for the eye; a screen reader reads the title alone.
+  number.setAttribute("aria-hidden", "true");
+  heading.append(number, ` ${topic.title}`);
+  return heading;
 }
 
 /**
@@ -176,8 +192,8 @@ function scrollToAnchor() {
   if (window.location.hash === "" || target === null) {
     return;
   }
-  const isTopic = TOPICS.some((topic) => topic.selector === window.location.hash);
-  const scrolled = isTopic ? target.parentElement : target;
+  const isTopic = TOPICS.some((topic) => topic.id === target.id);
+  const scrolled = isTopic ? document.getElementById(INSIGHTS_ANCHOR) : target;
   scrolled.scrollIntoView();
 }
 

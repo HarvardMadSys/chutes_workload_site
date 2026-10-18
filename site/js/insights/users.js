@@ -1,5 +1,5 @@
 /**
- * The Insights' third topic, Users and models: the paper's request volume, token shape, access rasters and
+ * An Insights topic, Users and models: the paper's request volume, token shape, access rasters and
  * burstiness of each model and user, as `page/topics.js` defines a topic. The words are the paper's and
  * the definitions the artifact README's; a line marked "placeholder" is not the paper's own, for the authors to
  * review.
@@ -57,7 +57,9 @@ function formatDayTick(hour) {
 
 /** The Users and models topic. */
 export const USERS_TOPIC = Object.freeze({
-  selector: "#insights-users",
+  id: "insights-users",
+  // placeholder: the title is the site's name for the topic, for the authors.
+  title: "Users and models",
   // placeholder: the takeaway is the paper's finding for the section in plain words, for the authors.
   takeaway: "Users and models each have their own rhythm of access and bursts, and busy or quiet spells tend to last, which serving decisions can use.",
   groups: Object.freeze([

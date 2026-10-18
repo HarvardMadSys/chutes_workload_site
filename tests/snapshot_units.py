@@ -1,5 +1,6 @@
 """The states of a snapshot, and the units read from each in the browser: each unit is one block a visitor sees (a
-chart, a legend, a block of text), returned as the text written to its file, `<state>/<unit>.txt`.
+chart, a legend, a block of text), returned as the text written to its file, `<state>/<unit>.txt`. The states are the
+Insights' topics, read from the tab row, and the figures of each topic's cards are read to check what a state requested.
 
 Text units hold one line per entry, whitespace collapsed: a card's texts as `label: text`, a legend's entries as `text
 | pressed=… | mark`, a control's choice as `field: choice | selected=…`, an axis as `x-axis: label | label …`. An
@@ -19,16 +20,9 @@ class SharedTitleError(Exception):
     """Two cards of one state share a title, so their units, which are named by title, would share files."""
 
 
-# The page's states, each the page opened at an Insights topic's anchor, its section's id, to show that topic; in the
-# order of the topic tabs. A state's folder of `tests/snapshots/` is named by its anchor.
-PAGE_STATES = [
-    "insights-overview",
-    "insights-tokens",
-    "insights-users",
-    "insights-evolution",
-    "insights-caching",
-    "insights-balancing",
-]
+# The Insights' topic tabs, in their order; each tab's `aria-controls` is its topic's anchor, the id of its section.
+TOPIC_TABS = "#topic-tabs [role=tab]"
+CARD_FIGURE = "data-figure"  # the attribute of a card's article that names its figure
 
 # Plot numbers each clip path, marker and pattern in the order charts are drawn, which follows the order their answers
 # arrive, so the number is left out: `plot-clip-7` is written `plot-clip`.
@@ -82,9 +76,28 @@ PANEL = ".chart-panel"
 PANEL_TITLE = ".chart-panel-title"
 
 
-def state_names() -> list[str]:
-    """The folder name of every state, in the order the states are read."""
-    return list(PAGE_STATES)
+def topic_anchors(page) -> list[str]:
+    """The anchor of every Insights topic, in the order of the tabs, as the tab row's `aria-controls` name them. Each is
+    one of the page's states, the page opened at that anchor, and names the state's folder of `tests/snapshots/`."""
+    return [tab.get_attribute("aria-controls") for tab in page.locator(TOPIC_TABS).all()]
+
+
+def topic_figures(page, topic: str) -> set[str]:
+    """The figures of the cards of the topic section `topic` (its id), as their articles' `data-figure` name them."""
+    figures = set()
+    for card in page.locator(f"#{topic} [{CARD_FIGURE}]").all():
+        figures.add(card.get_attribute(CARD_FIGURE))
+    return figures
+
+
+def other_topics_answers(page, topic: str, requested: list[str]) -> list[str]:
+    """The figures of `requested` that are the cards' of a topic other than `topic`, every topic the tab row names: none,
+    when a topic shown reads only its own answers."""
+    others = set()
+    for other in topic_anchors(page):
+        if other != topic:
+            others |= topic_figures(page, other)
+    return sorted(set(requested) & others)
 
 
 def plain_text(text: str) -> str:
@@ -229,7 +242,7 @@ def cards_units(cards, card_units) -> dict[str, str]:
 def topic_units(page, topic: str) -> dict[str, str]:
     """The units of the Insights' topic section `topic` (its id): the tabs, its `TOPIC_TEXTS`, then each card."""
     tabs = []
-    for tab in page.locator("#topic-tabs [role=tab]").all():
+    for tab in page.locator(TOPIC_TABS).all():
         tabs.append(f"tab: {plain_text(tab.inner_text())} | selected={tab.get_attribute('aria-selected')}")
     section = page.locator(f"#{topic}")
     heading = labelled_texts(section, TOPIC_TEXTS)
