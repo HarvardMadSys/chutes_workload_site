@@ -22,7 +22,7 @@ test("a chart may start from a hidden set, its buttons not pressed, and tell eac
   const drawnWith = [];
   const told = [];
   const legendState = { hidden: new Set(["pi"]), onToggle: (hidden) => told.push([...hidden]) };
-  await drawWithLegend(body, LEGEND, (hidden) => drawnWith.push([...hidden]), "square", legendState);
+  await drawWithLegend(body, LEGEND, (hidden) => drawnWith.push([...hidden]), legendState);
   assert.deepEqual(pressedStates(body), ["true", "false"]);
   body.legendPlace.children[0].dispatch("click");
   await settled();
@@ -39,7 +39,7 @@ test("a chart of one series is drawn with nothing hidden, whatever hidden set it
   const drawnWith = [];
   const oneSeries = { series: LEGEND.series.slice(0, 1), colours: LEGEND.colours };
   const legendState = { hidden: new Set(["hermes"]) };
-  await drawWithLegend(body, oneSeries, (hidden) => drawnWith.push([...hidden]), "square", legendState);
+  await drawWithLegend(body, oneSeries, (hidden) => drawnWith.push([...hidden]), legendState);
   assert.deepEqual(drawnWith, [[]]);
   assert.deepEqual(body.legendPlace.children, [], "no legend is placed");
 });

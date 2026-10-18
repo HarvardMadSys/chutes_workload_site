@@ -126,9 +126,9 @@ export async function drawFigureChart(body, card, mixes) {
       await drawFigure(rows, body, card, colours, new Set());
       return;
     }
-    const legend = figureLegend(card, rows, colours);
+    const legend = { ...figureLegend(card, rows, colours), swatch: CHART_KINDS[card.kind].swatch };
     const drawChart = (hidden) => drawFigure(rows, body, card, colours, hidden);
-    await drawWithLegend(body, legend, drawChart, CHART_KINDS[card.kind].swatch);
+    await drawWithLegend(body, legend, drawChart);
   } catch (error) {
     showError(body, error);
   }

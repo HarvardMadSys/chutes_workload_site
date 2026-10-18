@@ -107,7 +107,7 @@ export function dayMonth(day) {
  * `chosen` rows of `choice`, of the answer of `family` (null for every family), `requests` in all, their metric per day
  * over the days of `days` (the trace's) in the choice's range, stacked by the choice's breakdown, each breakdown's
  * series coloured in the order of its rows of `colourOrders` (`{ families, models, endpoints }`), with its legend, or a
- * note when there are none. The legend starts from and tells `legendState` (`{ hidden, onToggle }`) as `drawWithLegend`
+ * note when there are none. The legend starts from and tells `legendState` (a `LegendState`) as `drawWithLegend`
  * takes it. Returns the bars' `{ breakdown, legend }`: their breakdown and their legend, empty when there are no bars.
  */
 export async function drawTrafficBars(place, { choice, family, chosen, requests, days, colourOrders }, legendState) {
@@ -127,7 +127,7 @@ export async function drawTrafficBars(place, { choice, family, chosen, requests,
     return { breakdown, legend };
   }
   const drawing = { days: periodDays(days, choice), breakdown, colours: legend.colours, words };
-  await drawWithLegend(body, legend, (hidden) => drawDayBars(daily, body, drawing, hidden), "square", legendState);
+  await drawWithLegend(body, legend, (hidden) => drawDayBars(daily, body, drawing, hidden), legendState);
   return { breakdown, legend };
 }
 

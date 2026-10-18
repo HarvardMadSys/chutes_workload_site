@@ -120,21 +120,21 @@ test("a legend of one series mounts no button", (context) => {
   useFakeDocument(context);
   const container = new FakeElement("div");
   container.append(new FakeElement("button")); // a button of an earlier legend, which the mount clears
-  mountLegend(container, LEGEND.series.slice(0, 1), LEGEND.colours, () => undefined);
+  mountLegend(container, { series: LEGEND.series.slice(0, 1), colours: LEGEND.colours });
   assert.deepEqual(container.children, []);
 });
 
 test("the legend is one button per series", (context) => {
   useFakeDocument(context);
   const container = new FakeElement("div");
-  mountLegend(container, LEGEND.series, LEGEND.colours, () => undefined);
+  mountLegend(container, LEGEND);
   assert.deepEqual(container.children.map((button) => button.tag), ["button", "button"]);
 });
 
 test("a line's swatch is dashed for a series the legend names dashed, solid for the others", (context) => {
   useFakeDocument(context);
   const container = new FakeElement("div");
-  mountLegend(container, LEGEND.series, LEGEND.colours, () => undefined, "line", ["pi"]);
+  mountLegend(container, { ...LEGEND, swatch: "line", dashed: ["pi"] });
   const [solid, dashed] = container.children.map((button) => button.children[0]);
   assert.deepEqual([solid.className, solid.style.background], ["legend-swatch is-line", "var(--series-1)"]);
   assert.deepEqual([dashed.className, dashed.style.background],
@@ -144,13 +144,13 @@ test("a line's swatch is dashed for a series the legend names dashed, solid for 
 test("a square swatch is never dashed, and a legend without a dashed list draws every line solid", async (context) => {
   useFakeDocument(context);
   const container = new FakeElement("div");
-  mountLegend(container, LEGEND.series, LEGEND.colours, () => undefined, "square", ["pi"]);
+  mountLegend(container, { ...LEGEND, swatch: "square", dashed: ["pi"] });
   assert.equal(container.children[1].children[0].style.background, "var(--series-2)");
   const body = new FakeElement("div");
-  await drawWithLegend(body, LEGEND, () => undefined, "line");
+  await drawWithLegend(body, { ...LEGEND, swatch: "line" }, () => undefined);
   assert.equal(body.legendSlot.children[1].children[0].style.background, "var(--series-2)");
   const dashedBody = new FakeElement("div");
-  await drawWithLegend(dashedBody, { ...LEGEND, dashed: ["hermes"] }, () => undefined, "line");
+  await drawWithLegend(dashedBody, { ...LEGEND, swatch: "line", dashed: ["hermes"] }, () => undefined);
   assert.equal(dashedBody.legendSlot.children[0].children[0].style.background, dashedBackground("var(--series-1)"));
 });
 
@@ -159,16 +159,28 @@ test("a dashed swatch is its colour in dashes of four pixels and gaps of three",
     "repeating-linear-gradient(to right, var(--series-3) 0 4px, transparent 4px 7px)");
 });
 
-test("a click on a legend button names its series and flips the button", (context) => {
+test("a click on a legend button tells the new hidden set and flips the button", (context) => {
   useFakeDocument(context);
   const container = new FakeElement("div");
-  const toggled = [];
-  mountLegend(container, LEGEND.series, LEGEND.colours, (names) => toggled.push(names));
+  const told = [];
+  mountLegend(container, LEGEND, { onToggle: (hidden) => told.push([...hidden]) });
   container.children[1].click();
-  assert.deepEqual(toggled, [["pi"]]);
   assert.equal(container.children[1].getAttribute("aria-pressed"), "false");
   container.children[1].click();
   assert.equal(container.children[1].getAttribute("aria-pressed"), "true");
+  assert.deepEqual(told, [["pi"], []]);
+});
+
+test("after two presses every button is pressed exactly when its entry is shown in the hidden set told", (context) => {
+  useFakeDocument(context);
+  const container = new FakeElement("div");
+  let told = null;
+  mountLegend(container, LEGEND, { hidden: new Set(["pi"]), onToggle: (hidden) => { told = hidden; } });
+  container.children[0].click();
+  container.children[1].click();
+  assert.deepEqual([...told], ["hermes"]);
+  const pressed = container.children.map((button) => button.getAttribute("aria-pressed"));
+  assert.deepEqual(pressed, LEGEND.series.map((entry) => String(!told.has(entry.name))));
 });
 
 test("a chart with a legend is drawn with nothing hidden, then again with each click's series hidden or shown", async (context) => {
@@ -188,7 +200,8 @@ test("a click on an entry of names hides all of them in one drawing, and a secon
   useFakeDocument(context);
   const body = new FakeElement("div");
   const drawnWith = [];
-  await drawWithLegend(body, POLICY_LEGEND, (hidden) => drawnWith.push([...hidden].sort()), "line");
+  const lineLegend = { ...POLICY_LEGEND, swatch: "line" };
+  await drawWithLegend(body, lineLegend, (hidden) => drawnWith.push([...hidden].sort()));
   assert.equal(body.legendSlot.children[0].children[0].style.background, "var(--series-3)");
   body.legendSlot.children[0].click();
   await settled();
@@ -230,7 +243,7 @@ test("a chart of one series or none is drawn once, nothing hidden, with no legen
     const drawnWith = [];
     await drawWithLegend(body, { series, colours: LEGEND.colours }, (hidden) => drawnWith.push([...hidden]));
     assert.deepEqual(drawnWith, [[]]);
-    assert.equal(body.legendSlot, null, "no legend is placed");
+    assert.deepEqual(body.legendSlot.children, [], "no legend button is placed");
     assert.deepEqual(body.children, []);
   }
 });
@@ -265,7 +278,7 @@ test("the arrow keys move between a legend's buttons, stopping at its ends; any 
 test("a legend is one tab stop, a named group, and ArrowRight moves the stop and the focus to the next button", (context) => {
   useFakeDocument(context);
   const container = new FakeElement("div");
-  mountLegend(container, LEGEND.series, LEGEND.colours, () => undefined);
+  mountLegend(container, LEGEND);
   assert.equal(container.getAttribute("role"), "group");
   assert.equal(container.getAttribute("aria-label"), "Series");
   assert.deepEqual(container.children.map((button) => button.tabIndex), [0, -1]);

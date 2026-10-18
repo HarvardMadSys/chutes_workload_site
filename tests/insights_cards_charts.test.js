@@ -122,7 +122,7 @@ test("hiding DeepSeek R1 in the input-tokens card's legend leaves the other line
   const drawings = [];
   const drawChart = (hidden) => drawings.push(drawnPoints(rows, colours, chartParameters(card), hidden));
   const body = new FakeFigureBody();
-  await drawWithLegend(body, figureLegend(card, rows, colours), drawChart, "line");
+  await drawWithLegend(body, { ...figureLegend(card, rows, colours), swatch: "line" }, drawChart);
   const button = body.legendPlace.children.find((entry) => entry.children.includes("DeepSeek R1"));
   button.dispatch("click");
   await settled();
@@ -228,7 +228,7 @@ test("the routing card's legend lists each policy once, and hiding Sticky hides 
   const drawings = [];
   const drawChart = (hidden) => drawings.push(everyPanelsPoints(card, rows, colours, hidden));
   const body = new FakeFigureBody();
-  await drawWithLegend(body, figureLegend(card, rows, colours), drawChart, "line");
+  await drawWithLegend(body, { ...figureLegend(card, rows, colours), swatch: "line" }, drawChart);
   const labels = body.legendPlace.children.map((button) => button.children[1]);
   assert.deepEqual(labels, ["Round-robin", "Load-first", "Cache-first", "Sticky"]);
   const button = body.legendPlace.children.find((entry) => entry.children.includes("Sticky"));
