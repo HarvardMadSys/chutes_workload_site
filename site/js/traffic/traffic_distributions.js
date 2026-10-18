@@ -151,13 +151,14 @@ export function percentile(bins, share) {
 }
 
 /**
- * The tiles' percentiles of `rows`, the histogram rows of a choice: `{ input, output, ttft }`, each `{ p50, p90 }`
- * of the input tokens, output tokens and TTFT in seconds over every series, each null where no request records it.
+ * The tiles' percentiles of `rows`, the histogram rows of a choice, by metric: `{ input_tokens, output_tokens, ttft }`,
+ * each `{ p50, p90 }` of the input tokens, output tokens and TTFT in seconds over every series, each null where no
+ * request records it.
  */
 export function choicePercentiles(rows) {
   return {
-    input: medianAndP90(metricBins(rows, "input_tokens")),
-    output: medianAndP90(metricBins(rows, "output_tokens")),
+    input_tokens: medianAndP90(metricBins(rows, "input_tokens")),
+    output_tokens: medianAndP90(metricBins(rows, "output_tokens")),
     ttft: medianAndP90(metricBins(rows, "ttft")),
   };
 }

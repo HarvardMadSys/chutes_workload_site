@@ -104,15 +104,15 @@ test("over two bins, the percentile is the second's middle when the first holds 
   assert.equal(percentile(bins, 0.9), binMiddle(41));
 });
 
-test("the tiles' percentiles are read over every series of the choice, null where no request records the value", () => {
+test("the tiles' percentiles are read by metric over every series, null where no request records the value", () => {
   const rows = [
     weekRow({ bins: [40], requests: [6] }),
     weekRow({ family: "Pi", bins: [50], requests: [4] }),
     weekRow({ metric: "ttft", bins: [-2], requests: [1] }),
   ];
   assert.deepEqual(choicePercentiles(rows), {
-    input: { p50: binMiddle(40), p90: binMiddle(50) },
-    output: { p50: null, p90: null },
+    input_tokens: { p50: binMiddle(40), p90: binMiddle(50) },
+    output_tokens: { p50: null, p90: null },
     ttft: { p50: binMiddle(-2), p90: binMiddle(-2) },
   });
 });

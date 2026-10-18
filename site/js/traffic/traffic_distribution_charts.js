@@ -1,15 +1,14 @@
 /**
- * The charts in the Traffic Explorer's input tokens, output tokens and TTFT tiles: each the chosen requests'
- * distribution of the tile's value as a CDF per series of the bars, in the bars' legend's colours, over the trace weeks
- * holding a chosen day (`traffic/traffic_distributions.js`), drawn by the lines kind with `cdf: true` on a fixed log x
- * axis, with no title, caption or definition. `traffic/traffic_tiles.js` makes the charts' places in the tiles, `{ input, output, ttft }`, by the tile's name.
- *
- * The charts are drawn from `{ rows, series, legend }`: the histogram rows of the choice, the bars' kind of series
- * (`choiceSeries` of `traffic/traffic_filter.js`) and the bars' legend. A drawing gives back the charts drawn, `{
- * legend, labels, charts }`, which a press in the bars' legend draws again.
+ * The Traffic Explorer's three distribution charts, input tokens, output tokens and TTFT, in a row of their own, each
+ * under a one-line title: the chosen requests' distribution of its value as a CDF per series of the bars, in the bars'
+ * legend's colours, over the trace weeks holding a chosen day (`traffic/traffic_distributions.js`), on a fixed log x
+ * axis. The module makes the three places in the row it is given, keyed by metric, `{ input_tokens, output_tokens,
+ * ttft }`; where the row stands is the explorer's choice. The charts are drawn from `{ rows, series, legend }`: the
+ * choice's histogram rows, the bars' kind of series (`choiceSeries` of `traffic/traffic_filter.js`) and the bars'
+ * legend; a drawing gives back the charts drawn, `{ legend, labels, charts }`, which the legend draws again.
  */
 
-import { nameChart, showError, showErrorNote, showLoading, showNote } from "../shared/charts.js";
+import { nameChart, showError, showErrorNote, showLoading, showNote, textElement } from "../shared/charts.js";
 import {
   formatCount, formatCountTick, formatDurationTick, formatSignificantSeconds, formatWholeCount,
 } from "../shared/format.js";
@@ -17,26 +16,17 @@ import { drawLines } from "../charts/lines.js";
 import { drawShownSeries, hasLegend } from "../explore/legend.js";
 import { binTotals, cdfRows } from "./traffic_distributions.js";
 
-// The y axis of every chart: the share of the chosen requests at or below a value, in percent, ticked at 0%, 50% and
-// 100% only, as a tile's chart is too low for six labels to stand apart.
+// The y axis of every chart: the share of the chosen requests at or below a value, in percent, ticked as every CDF on
+// the page is.
 // placeholder: its label, for the authors.
-const SHARE_OF_REQUESTS = Object.freeze({ label: "Share of requests", ticks: Object.freeze([0, 0.5, 1]) });
+const SHARE_OF_REQUESTS = Object.freeze({ label: "Share of requests" });
 
 // A TTFT tick of at least a minute is written in seconds, "100 s": a power of ten of seconds is no whole count of
 // minutes, which `formatDurationTick` would write with three decimals.
 const SECONDS_PER_MINUTE = 60;
 
-// A tile's chart's height in pixels: under its number and notes, it is lower than a figure card's chart. The chart's
-// place keeps this height while it loads or shows a note, `.traffic-tiles .tile-chart`'s 140px in `style.css`;
-// change the two together.
-const TILE_CHART_HEIGHT = 140;
-
-// A tile's chart's side margins in pixels, in place of a figure card's: room for "100%" on the left and half of the
-// last x tick's label on the right, so the plot keeps most of a tile's width.
-const TILE_CHART_MARGINS = Object.freeze({ marginLeft: 52, marginRight: 20 });
-
 // The x domains, the same for every choice, each with its ticks: decades, at most four so the labels do not crowd a
-// tile's width, from the domain's start to its end so each axis names both its ends.
+// chart as wide as a phone, from the domain's start to its end so each axis names both its ends.
 // Over the whole trace, at the bins' upper edges, 99.9% of the requests send at most 131,072 input tokens, and all at
 // most 112,863,206;
 const INPUT_TOKENS_DOMAIN = Object.freeze([1, 1_000_000]);
@@ -48,19 +38,20 @@ const OUTPUT_TOKENS_TICKS = Object.freeze([1, 1_000, 100_000]);
 const TTFT_DOMAIN = Object.freeze([0.01, 100]);
 const TTFT_TICKS = Object.freeze([0.01, 1, 100]);
 
-// placeholder: the note in place of a tile's chart when the choice keeps no request that records its value, for the
-// authors.
+// placeholder: the note in place of a chart when the choice keeps no request that records its value, for the authors.
 const NO_RECORDED_VALUE_NOTE = "None of the chosen requests records this value.";
 
 /**
- * The three charts: the tile each draws into ("input", "output" or "ttft", a key of the tiles' places), the metric of
- * the histogram rows it draws, its accessible name, its x axis (a log one over its fixed domain, ticked at its listed ticks, the first the domain's start and the last its
- * end) and what its tooltip names a value and how it writes it.
+ * The three charts in their order: the metric of the histogram rows each draws (`input_tokens`, `output_tokens` or
+ * `ttft`, the chart's key everywhere), its title, its accessible name, its x axis (a log one over its fixed domain,
+ * ticked at its listed ticks, the first the domain's start and the last its end) and what its tooltip names a value
+ * and how it writes it.
  */
-export const TILE_CHARTS = Object.freeze([
+export const DISTRIBUTION_CHARTS = Object.freeze([
   Object.freeze({
-    tile: "input",
     metric: "input_tokens",
+    // placeholder: the chart's title, for the authors.
+    title: "Input tokens",
     // placeholder: the chart's name for a screen reader, for the authors.
     name: "Input tokens distribution",
     // placeholder: the x axis's title, for the authors.
@@ -70,8 +61,9 @@ export const TILE_CHARTS = Object.freeze([
     valueFormat: formatWholeCount,
   }),
   Object.freeze({
-    tile: "output",
     metric: "output_tokens",
+    // placeholder: the chart's title, for the authors.
+    title: "Output tokens",
     // placeholder: the chart's name for a screen reader, for the authors.
     name: "Output tokens distribution",
     // placeholder: the x axis's title, for the authors.
@@ -81,8 +73,9 @@ export const TILE_CHARTS = Object.freeze([
     valueFormat: formatWholeCount,
   }),
   Object.freeze({
-    tile: "ttft",
     metric: "ttft",
+    // placeholder: the chart's title, for the authors.
+    title: "Time to first token",
     // placeholder: the chart's name for a screen reader, for the authors.
     name: "Time to first token distribution",
     // placeholder: the x axis's title, for the authors.
@@ -103,7 +96,28 @@ function logAxis(label, domain, ticks, tickFormat) {
   return Object.freeze({ label, log: true, domain, ticks, tickFormat });
 }
 
-/** Show the loading state in each of the charts' `places`, `{ input, output, ttft }`. */
+/**
+ * Fill `row`, the row of the three charts (the caller gives it its class, `traffic-distributions`), with one
+ * `div.distribution-chart` per entry of `DISTRIBUTION_CHARTS`, each its title, an `h4.figure-title`, over its place, a
+ * `div.figure-body` showing the loading state; return the places by metric, `{ input_tokens, output_tokens, ttft }`.
+ * Called once. The place is a figure's body, so the chart is drawn, counted and styled as every other chart is.
+ */
+export function placeDistributionCharts(row) {
+  const charts = [];
+  const places = {};
+  for (const { metric, title } of DISTRIBUTION_CHARTS) {
+    const place = textElement("div", "figure-body", "");
+    showLoading(place);
+    const chart = textElement("div", "distribution-chart", "");
+    chart.append(textElement("h4", "figure-title", title), place);
+    charts.push(chart);
+    places[metric] = place;
+  }
+  row.replaceChildren(...charts);
+  return places;
+}
+
+/** Show the loading state in each of the charts' `places`, `{ input_tokens, output_tokens, ttft }`. */
 export function showChartsLoading(places) {
   for (const place of Object.values(places)) {
     showLoading(place);
@@ -111,8 +125,8 @@ export function showChartsLoading(places) {
 }
 
 /**
- * Show `error` in each of the charts' `places`, `{ input, output, ttft }`, in place of its chart; it is logged once,
- * not once per chart.
+ * Show `error` in each of the charts' `places`, `{ input_tokens, output_tokens, ttft }`, in place of its chart; it is
+ * logged once, not once per chart.
  */
 export function showChartsError(places, error) {
   console.error(error);
@@ -122,28 +136,30 @@ export function showChartsError(places, error) {
 }
 
 /**
- * Draw the three charts into their `places`, `{ input, output, ttft }`, from `distributions`, `{ rows, series, legend }`, the series of `hidden`
- * left out, and return the charts drawn, `{ legend, labels, charts }`, each chart `{ body, tileChart, rows }`: its
- * place, its entry of `TILE_CHARTS` and its CDF rows. The rows beyond the x domain's ends are kept: the line is cut at
- * the chart's edge rather than ended before it. Settles when every chart has drawn.
+ * Draw the three charts into their `places`, `{ input_tokens, output_tokens, ttft }`, from `{ rows, series, legend }`,
+ * the series of `hidden` left out, and return the charts drawn, `{ legend, labels, charts }`, each chart `{ body,
+ * distributionChart, rows }`: its place, its entry of `DISTRIBUTION_CHARTS` and its CDF rows. The rows beyond the x
+ * domain's ends are kept: the line is cut at the chart's edge rather than ended before it. Settles when every chart
+ * has drawn.
  */
-export async function drawTileCharts(places, { rows, series, legend }, hidden) {
+export async function drawDistributionCharts(places, { rows, series, legend }, hidden) {
   const charts = [];
-  for (const tileChart of TILE_CHARTS) {
-    const totals = binTotals(rows, series.column, tileChart.metric, legend.colours);
-    charts.push({ body: places[tileChart.tile], tileChart, rows: listedRows(cdfRows(totals), legend) });
+  for (const distributionChart of DISTRIBUTION_CHARTS) {
+    const totals = binTotals(rows, series.column, distributionChart.metric, legend.colours);
+    const chartRows = listedRows(cdfRows(totals), legend);
+    charts.push({ body: places[distributionChart.metric], distributionChart, rows: chartRows });
   }
   const drawn = { legend, labels: series.labels ?? {}, charts };
-  await drawTileCurves(drawn, hidden);
+  await drawDistributionCurves(drawn, hidden);
   return drawn;
 }
 
 /**
- * Draw the lines of `drawn`'s charts (as `drawTileCharts` gives them) again, the series of `hidden` left out, as the
- * bars' legend hides them: each chart whose every series of the legend is hidden shows the legend's note, and a chart
- * that fails shows its error in its place. A legend of fewer than two series hides none.
+ * Draw the lines of `drawn`'s charts (as `drawDistributionCharts` gives them) again, the series of `hidden` left out,
+ * as the bars' legend hides them: each chart whose every series of the legend is hidden shows the legend's note, and a
+ * chart that fails shows its error in its place. A legend of fewer than two series hides none.
  */
-export async function drawTileCurves(drawn, hidden) {
+export async function drawDistributionCurves(drawn, hidden) {
   const hiddenHere = hasLegend(drawn.legend.series) ? hidden : new Set();
   const drawings = [];
   for (const chart of drawn.charts) {
@@ -162,24 +178,22 @@ function listedRows(rows, legend) {
   return rows.filter((row) => listed.has(row.series));
 }
 
-// Draw `chart`'s CDF rows, one line per series not in `hidden`, in `drawn`'s legend colours, and name the chart; a
-// note where the choice keeps no request that records the tile's value.
+// Draw `chart`'s CDF rows, one line per series not in `hidden`, in `drawn`'s legend colours, at the kind's default
+// height and margins, and name the chart; a note where the choice keeps no request that records the chart's value.
 async function drawCurves(chart, drawn, hidden) {
   const shownRows = chart.rows.filter((row) => !hidden.has(row.series));
   if (shownRows.length === 0) {
     showNote(chart.body, NO_RECORDED_VALUE_NOTE);
     return;
   }
-  const { tileChart } = chart;
+  const { distributionChart } = chart;
   await drawLines(chart.rows, chart.body, { series: drawn.legend.colours }, {
-    x: tileChart.x,
+    x: distributionChart.x,
     y: SHARE_OF_REQUESTS,
     cdf: true,
-    height: TILE_CHART_HEIGHT,
-    margins: TILE_CHART_MARGINS,
     labels: drawn.labels,
-    valueLabel: tileChart.valueLabel,
-    valueFormat: tileChart.valueFormat,
+    valueLabel: distributionChart.valueLabel,
+    valueFormat: distributionChart.valueFormat,
   }, hidden);
-  nameChart(chart.body, tileChart.name);
+  nameChart(chart.body, distributionChart.name);
 }

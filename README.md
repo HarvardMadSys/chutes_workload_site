@@ -434,7 +434,7 @@ site/                exactly the files that are deployed
     traffic_bars.js, traffic_range.js, traffic_tiles.js
                      the bars and their legend; the day range's slider of two handles and the period buttons' days;
                      the four tiles' texts and their charts' places
-    traffic_distributions.js, traffic_tile_charts.js
+    traffic_distributions.js, traffic_distribution_charts.js
                      the histogram rows' bin maps, CDF rows and percentiles; the charts in the three averages'
                      tiles, on fixed axes
   js/insights/       the figure cards and the topics

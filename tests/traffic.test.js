@@ -31,12 +31,11 @@ function fakeElement(tag) {
 }
 
 /**
- * Run the explorer into a new container for the test of `context`, the page opened at `query` and each file of
- * `answers` (a map from file to its promised rows) fetched as its rows, any other answering 404; errors are not
- * logged. Returns `{ container, running, replaced, frames, reads, returns }`, the container, the explorer's promise,
- * the queries written to the URL, in order, the animation frames asked for and not yet run, the files read, in order,
- * each `[file, bars]` with what the bars' body held then (`barsState`), and the functions given to `onReturn`, which
- * Back and Forward call.
+ * Run the explorer into a new container for the test of `context`, opened at `query`, each file of `answers` (a map
+ * from file to its promised rows) fetched as its rows, any other answering 404; errors are not logged. Returns `{
+ * container, running, replaced, frames, reads, returns }`: the container, the explorer's promise, the queries written
+ * to the URL, the animation frames not yet run, the files read, each `[file, bars]` with what the bars' body held then
+ * (`barsState`), and the functions given to `onReturn`, which Back and Forward call; each list in order.
  */
 function runExplorer(context, query, answers) {
   const page = { container: new FakeElement("div"), replaced: [], frames: [], reads: [], returns: [] };
@@ -75,12 +74,15 @@ function barsState(container) {
   return container.querySelector(".traffic-bars .figure-body p")?.className ?? "none";
 }
 
-// The family drop-down of the explorer in `container`.
-function familySelect(container) {
-  return controlsOf(container.querySelector(".traffic-controls")).family;
+// Choose the family `slug` in the family drop-down of the explorer in `container`, as a visitor does; return it.
+function chooseFamily(container, slug) {
+  const family = controlsOf(container.querySelector(".traffic-controls")).family;
+  family.value = slug;
+  family.dispatch("change");
+  return family;
 }
 
-test("the explorer loads until the URL's family is read; a family that cannot be, shows its error in the chart's place",
+test("the explorer loads until the URL's family is read; one that cannot be shows its error in the bars and the charts",
   async (context) => {
     const kin = deferred();
     const page = runExplorer(context, "?family=kin", { [FAMILY_FILE]: FAMILY_ROWS, [KIN_FILE]: kin.promise });
@@ -91,13 +93,18 @@ test("the explorer loads until the URL's family is read; a family that cannot be
     const [controls] = page.container.children;
     assert.equal(controls.className, "controls traffic-controls");
     assert.equal(controlsOf(controls).family.value, "", "the controls show the choice without the family");
-    const figure = page.container.querySelector(".traffic-bars");
-    assert.deepEqual(figure.children.map((child) => [child.className, child.textContent]), [
-      ["note is-error", "Could not fetch kin"],
-    ]);
-    const charts = explorerParts(page.container).chartPlaces.map((place) => place.querySelector(".note").className);
-    assert.deepEqual(charts, ["note is-error", "note is-error", "note is-error"], "no tile chart loads for ever");
+    const barsNote = page.container.querySelector(".traffic-bars p");
+    assert.deepEqual([barsNote.className, barsNote.textContent], ["note is-error", "Could not fetch kin"]);
+    assert.deepEqual(chartStates(page.container), ERROR_STATES, "no chart loads for ever");
+    assert.deepEqual(tileNotes(explorerParts(page.container).tiles), [], "no tile, so no percentile, loads for ever");
   });
+
+test("the card holds, in order, the tiles, the bars, the day range and the row of three charts", async (context) => {
+  const page = runExplorer(context, NO_COMPLETION_QUERY, { [FAMILY_FILE]: THREE_DAY_ROWS, [HISTOGRAMS_FILE]: [] });
+  await page.running;
+  const parts = page.container.querySelector(".traffic-card").children.map((child) => child.className);
+  assert.deepEqual(parts, ["traffic-tiles", "traffic-bars", "traffic-range", "traffic-distributions"]);
+});
 
 test("choosing a family not read before shows the chart loading until its answer arrives", async (context) => {
   const kin = deferred();
@@ -105,9 +112,7 @@ test("choosing a family not read before shows the chart loading until its answer
   const page = runExplorer(context, "?endpoint=completion", { [FAMILY_FILE]: FAMILY_ROWS, [KIN_FILE]: kin.promise });
   await page.running;
   const figure = page.container.querySelector(".traffic-bars");
-  const family = familySelect(page.container);
-  family.value = "kin";
-  family.dispatch("change");
+  chooseFamily(page.container, "kin");
   await settled();
   assert.deepEqual(figure.children.map((child) => child.className), ["loading"]);
   kin.resolve(KIN_ROWS);
@@ -123,21 +128,21 @@ const THREE_DAY_ROWS = [
 ];
 
 // The explorer's parts in the fake page: `{ tiles, chartPlaces, handles, rangeDays, periodButtons }`, the tiles'
-// list, the places of the input, output and TTFT tiles' charts, the day range's From and To inputs, the From and To
-// days under the track's ends, and the period buttons.
+// list, the places of the input tokens, output tokens and TTFT charts, the day range's From and To inputs, the From
+// and To days under the track's ends, and the period buttons.
 function explorerParts(container) {
   return {
     tiles: container.querySelector(".traffic-tiles"),
-    chartPlaces: container.querySelectorAll(".traffic-tiles .tile-chart"),
+    chartPlaces: container.querySelectorAll(".traffic-distributions .distribution-chart .figure-body"),
     handles: container.querySelectorAll(".range-track input"),
     rangeDays: container.querySelectorAll(".range-days .range-day"),
     periodButtons: container.querySelectorAll(".period-button"),
   };
 }
 
-// The value of the requests' tile.
-function requestsTile(tiles) {
-  return tiles.querySelector('[data-tile="requests"] .tile-text strong').textContent;
+// The value of each tile, in order: the requests', the average input tokens', output tokens' and TTFT's.
+function tileValues(tiles) {
+  return tiles.querySelectorAll("strong").map((value) => value.textContent);
 }
 
 // Opened on the completions of the trace's first two days, which hold none, the bars are a note node can draw.
@@ -150,12 +155,12 @@ test("the handles sit under the bars on the URL's range and draw the tiles as th
     const { tiles, handles, rangeDays } = explorerParts(page.container);
     const [, toHandle] = handles;
     const [, toDay] = rangeDays;
-    assert.deepEqual([requestsTile(tiles), toHandle.value, toDay.textContent], ["0", "1", "2025-07-01"]);
+    assert.deepEqual([tileValues(tiles)[0], toHandle.value, toDay.textContent], ["0", "1", "2025-07-01"]);
     toHandle.value = "2";
     toHandle.dispatch("input");
     runFrames(page.frames);
     await settled();
-    assert.equal(requestsTile(tiles), "5");
+    assert.equal(tileValues(tiles)[0], "5");
     assert.deepEqual(page.replaced, [], "a handle moving does not write the URL");
     toHandle.dispatch("change");
     assert.deepEqual(page.replaced, ["endpoint=completion"]);
@@ -172,14 +177,9 @@ test("a period button stands the handles on its days and draws them", async (con
   const handleValues = handles.map((handle) => handle.value);
   assert.deepEqual(handleValues, ["1", "2"], "Q3 '25 is the trace's days from July 1");
   assert.deepEqual(pressed(), ["false", "false", "true", "false", "false"]);
-  assert.equal(requestsTile(tiles), "5");
+  assert.equal(tileValues(tiles)[0], "5");
   assert.deepEqual(page.replaced, ["endpoint=completion&from=2025-07-01"]);
 });
-
-// The value of each tile, in order.
-function tileValues(tiles) {
-  return tiles.querySelectorAll(".tile-text strong").map((value) => value.textContent);
-}
 
 test("a token metric titles the bars and closes their caption with the token note; the tiles stay the requests'",
   async (context) => {
@@ -208,7 +208,7 @@ test("Back to an entry of another range stands the handles on it and draws it", 
   await page.returns[0]();
   await settled();
   assert.deepEqual(rangeDays.map((day) => day.textContent), ["2025-07-01", "2025-07-02"]);
-  assert.equal(requestsTile(tiles), "5");
+  assert.equal(tileValues(tiles)[0], "5");
   assert.deepEqual(page.replaced, [], "Back writes nothing");
 });
 
@@ -216,14 +216,20 @@ test("Back to an entry of another range stands the handles on it and draws it", 
 const HISTOGRAMS_FILE = "data/all/explore/histograms_by_family.json";
 const KIN_HISTOGRAMS_FILE = "data/all/explore/histograms_by_model/kin.json";
 
-// The class of each tile chart's place's paragraph: its loading line, its error, or its note once drawn with no
-// request.
+// The class of each chart's place's paragraph: its loading line, its error, or its note once drawn with no request.
 function chartStates(container) {
   return explorerParts(container).chartPlaces.map((place) => place.querySelector("p").className);
 }
 
-// The note a tile chart shows where no chosen request records its value: the histogram answers here are empty.
+// The three charts each showing the note where no chosen request records its value (the histogram answers here are
+// empty), or each showing an error.
 const NO_VALUE_STATES = ["note", "note", "note"];
+const ERROR_STATES = ["note is-error", "note is-error", "note is-error"];
+
+// The notes under the tiles, in order: under the input and output tokens' averages, then under the TTFT's.
+function tileNotes(tiles) {
+  return tiles.querySelectorAll(".tile-note").map((note) => note.textContent);
+}
 
 test("the histogram answer is read once the bars are drawn, the charts and the notes loading until it arrives",
   async (context) => {
@@ -234,11 +240,11 @@ test("the histogram answer is read once the bars are drawn, the charts and the n
     assert.deepEqual(page.reads, [[FAMILY_FILE, "none"], [HISTOGRAMS_FILE, "note"]], "read once the bars are drawn");
     assert.deepEqual(chartStates(page.container), ["loading", "loading", "loading"]);
     const { tiles } = explorerParts(page.container);
-    assert.equal(tiles.querySelector('[data-tile="input"] .tile-note').textContent, "…");
+    assert.deepEqual(tileNotes(tiles), ["…", "…", "— record it", "…"]);
     histograms.resolve([]);
     await page.running;
     assert.deepEqual(chartStates(page.container), NO_VALUE_STATES);
-    assert.equal(tiles.querySelector('[data-tile="input"] .tile-note').textContent, "— p50 · — p90");
+    assert.deepEqual(tileNotes(tiles), ["— p50 · — p90", "— p50 · — p90", "— record it", "— p50 · — p90"]);
   });
 
 test("a choice the explorer has moved on from draws nothing when its histogram answer lands", async (context) => {
@@ -251,9 +257,7 @@ test("a choice the explorer has moved on from draws nothing when its histogram a
   // No row is of the endpoint group chosen, so the bars, which node cannot draw without Plot, are a note.
   const page = runExplorer(context, "?endpoint=completion", answers);
   await settled();
-  const family = familySelect(page.container);
-  family.value = "kin";
-  family.dispatch("change");
+  chooseFamily(page.container, "kin");
   await settled();
   everyFamily.resolve([]);
   await settled();
@@ -268,15 +272,29 @@ test("a failed histogram read shows its error in the charts, logged once, the no
     const answers = { [FAMILY_FILE]: THREE_DAY_ROWS };
     const page = runExplorer(context, NO_COMPLETION_QUERY, answers);
     await page.running;
-    assert.deepEqual(chartStates(page.container), ["note is-error", "note is-error", "note is-error"]);
+    assert.deepEqual(chartStates(page.container), ERROR_STATES);
     assert.equal(console.error.mock.callCount(), 1);
     const { tiles, handles } = explorerParts(page.container);
-    const partCounts = tiles.querySelectorAll("li").map((tile) => tile.querySelector(".tile-text").children.length);
-    assert.deepEqual(partCounts, [2, 2, 2, 3], "only the TTFT's share");
+    assert.deepEqual(tileNotes(tiles), ["— record it"], "only the TTFT's share");
     answers[HISTOGRAMS_FILE] = [];
     handles[1].dispatch("input");
     runFrames(page.frames);
     await settled();
     assert.deepEqual(page.reads.map(([file]) => file), [FAMILY_FILE, HISTOGRAMS_FILE, HISTOGRAMS_FILE]);
     assert.deepEqual(chartStates(page.container), NO_VALUE_STATES);
+  });
+
+test("a family that cannot be read on a choice shows its error in the bars and charts, the tiles without percentiles",
+  async (context) => {
+    // No row is of the endpoint group chosen, so the bars, which node cannot draw without Plot, are a note.
+    const page = runExplorer(context, "?endpoint=completion", { [FAMILY_FILE]: FAMILY_ROWS, [HISTOGRAMS_FILE]: [] });
+    await page.running;
+    const { tiles } = explorerParts(page.container);
+    const family = chooseFamily(page.container, "kin");
+    await settled();
+    assert.equal(page.container.querySelector(".traffic-bars p").className, "note is-error");
+    assert.deepEqual(chartStates(page.container), ERROR_STATES);
+    assert.deepEqual(tileValues(tiles), ["0", "—", "—", "—"], "the tiles keep their numbers");
+    assert.deepEqual(tileNotes(tiles), ["— record it"], "and lose their percentiles");
+    assert.equal(family.value, "", "the drop-down shows the family drawn last");
   });

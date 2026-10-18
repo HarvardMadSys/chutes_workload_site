@@ -630,13 +630,13 @@ section[id] {
 
 .stats-grid strong,
 .stats-grid span,
-.traffic-tiles .tile-text strong,
-.traffic-tiles .tile-text span {
+.traffic-tiles strong,
+.traffic-tiles span {
   display: block;
 }
 
 .stats-grid strong,
-.traffic-tiles .tile-text strong {
+.traffic-tiles strong {
   font-family: var(--font-serif);
   font-size: 1.75rem;
   font-variant-numeric: tabular-nums;
@@ -646,7 +646,7 @@ section[id] {
 }
 
 .stats-grid span,
-.traffic-tiles .tile-text span {
+.traffic-tiles span {
   margin-top: 0.2rem;
   font-size: var(--font-size-smallest);
   color: var(--color-text-faint);
@@ -866,25 +866,6 @@ section[id] {
   border-radius: var(--radius-small);
 }
 
-/* A tile is a column: its text at the top, and under it, at the tile's foot, its chart as wide as the tile, so the
-   charts' x axes line up across a row whose tiles' texts differ in lines. The chart's place is a figure's body, kept
-   as tall as a drawn chart, 140px (`TILE_CHART_HEIGHT` of `traffic/traffic_tile_charts.js`, in pixels as Plot draws
-   it, not rem; change the two together), so that its loading line, an error or a note does not shrink the tiles and
-   move the bars under them. */
-.traffic-tiles li {
-  display: flex;
-  flex-direction: column;
-}
-
-.traffic-tiles .tile-text {
-  flex: 1 0 auto;
-}
-
-.traffic-tiles .tile-chart {
-  min-height: 140px;
-  margin-top: 0.5rem;
-}
-
 @media (max-width: 50rem) {
   .traffic-tiles {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1029,6 +1010,32 @@ section[id] {
 .range-days {
   display: flex;
   justify-content: space-between;
+}
+
+/* The row of three distribution charts under the day range: three abreast, parted as the card grid's figures are, a
+   figure's spacing above it; one under the other on a narrow screen (below). */
+.traffic-distributions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+/* A chart never widens its column: it is drawn at its place's width. */
+.distribution-chart {
+  min-width: 0;
+}
+
+/* A chart's title stands as far above its chart as a figure's title does above its body. */
+.distribution-chart .figure-title {
+  margin-bottom: 0.5rem;
+}
+
+/* One chart a row where three would each be too narrow for their axes' labels. */
+@media (max-width: 50rem) {
+  .traffic-distributions {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* ---------- Cite and Team ---------- */
