@@ -72,10 +72,10 @@ def load_artifact(artifact: pathlib.Path) -> ArtifactTables:
 def load_trace_table(tables_folder: pathlib.Path) -> pyarrow.Table:
     """The trace table of the tables folder `tables_folder`, `weekly_histograms.parquet`; stops naming it if missing.
 
-    One row per trace week (`week`, seven trace days, week 0 the trace's first seven), `family`, `chute_id` (null for
-    every model of the family outside its eight most requested named ones), `endpoint_group`, `metric`
-    (`input_tokens`, `output_tokens` or `ttft`) and `bin` (a value v is in bin floor(4 * log2(v))), with the `requests`
-    whose value fell in the bin. `site/queries/trace/weekly_histograms.sql` states each column's definition.
+    One row per trace week (`week`, `months.DAYS_PER_TRACE_WEEK` trace days, week 0 the trace's first), `family`,
+    `chute_id` (null for every model of the family outside its eight most requested named ones), `endpoint_group`,
+    `metric` (`input_tokens`, `output_tokens` or `ttft`) and `bin` (a value v is in bin floor(4 * log2(v))), with the
+    `requests` whose value fell in the bin. `site/queries/trace/weekly_histograms.sql` states each column's definition.
     """
     return read_cache(required_file(tables_folder / TRACE_TABLE_FILE, TRACE_TABLE_HINT))
 

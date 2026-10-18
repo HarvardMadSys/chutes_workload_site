@@ -51,7 +51,7 @@ def query_names() -> list[str]:
 
 
 def query_records(connection: duckdb.DuckDBPyConnection, name: str,
-                  parameters: dict[str, str] | None = None) -> list[dict]:
+                  parameters: dict[str, object] | None = None) -> list[dict]:
     """The query's rows, given `parameters`, each a dict from column to value."""
     result = site_database.run_query(connection, name, parameters)
     records = []
@@ -124,8 +124,7 @@ def test_the_family_mix_sums_to_the_trace_and_names_the_daily_families(connectio
     assert set(mix_families) == {row["family"] for row in by_family}
 
 
-def test_the_daily_rows_by_family_slug_each_family_as_the_family_mix_does(
-        connection: duckdb.DuckDBPyConnection) -> None:
+def test_the_daily_rows_slugs_are_the_family_mix_s(connection: duckdb.DuckDBPyConnection) -> None:
     mix_slugs = {(row["family"], row["family_slug"]) for row in query_records(connection, "explore/family_mix")}
     by_family = query_records(connection, "explore/daily_by_family")
     assert {(row["family"], row["family_slug"]) for row in by_family} == mix_slugs

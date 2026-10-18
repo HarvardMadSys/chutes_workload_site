@@ -1,15 +1,15 @@
 -- The trace table: one row per trace week, family, kept model, endpoint group, metric and bin of the trace's requests
 -- that have a start time, with the requests in the bin. A request's week is the days from `$trace_epoch`, the trace's
 -- first day as its timestamps write it, to its start, divided by `$days_per_trace_week`, the two parameters bound by
--- name from the data step's one definition of the week; week 0 is the trace's first seven days. A request's family is
--- the artifact's rule: the family of the first pattern of `model_families` (lowest `match_order`) that its model's
--- name in `chute_models` contains, case-insensitively, and `Other` for a named model matching none and for a chute
--- `chute_models` does not name. Its chute id is kept for the models of `family_models`, a family's eight most
--- requested named models, as the daily rollup keeps it, and is null for the family's other models. Its endpoint group
--- is its function name for the four the rollup names, else `other`. The metrics are `input_tokens` (`it`),
--- `output_tokens` (`ot`) and `ttft`. A bin is a quarter of a doubling, four bins per doubling: a value v is in bin
--- floor(4 * log2(v)). A recorded token count is binned, one at or below 1 in bin 0; a TTFT is binned only where it is
--- positive, as the rollup counts it, and may fall in a negative bin (0.5 s is bin -4). The rows are sorted by every
+-- name from the data step's one definition of the week; week 0 is the trace's first `$days_per_trace_week` days. A
+-- request's family is the artifact's rule: the family of the first pattern of `model_families` (lowest `match_order`)
+-- that its model's name in `chute_models` contains, case-insensitively, and `Other` for a named model matching none
+-- and for a chute `chute_models` does not name. Its chute id is kept for the models of `family_models`, a family's
+-- eight most requested named models, as the daily rollup keeps it, and is null for the family's other models. Its
+-- endpoint group is its function name for the four the rollup names, else `other`. The metrics are `input_tokens`
+-- (`it`), `output_tokens` (`ot`) and `ttft`. A bin is a quarter of a doubling, four bins per doubling: a value v is in
+-- bin floor(4 * log2(v)). A recorded token count is binned, one at or below 1 in bin 0; a TTFT is binned only where it
+-- is positive, as the rollup counts it, and may fall in a negative bin (0.5 s is bin -4). The rows are sorted by every
 -- key, so a rebuild writes the same bytes.
 -- The query reads the trace once and never holds its rows whole: one projection gives each request its three bins,
 -- and UNPIVOT turns them into one row per metric.
