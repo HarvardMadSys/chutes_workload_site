@@ -604,8 +604,10 @@ tests/               what make test runs
   fake_element.js    the one stand-in for an element or the window: found by selector (querySelector,
                      querySelectorAll, closest), its parent, and the elements of markup written into it
   traffic_fixtures.js
-                     the Traffic Explorer's tests' choice of everything, the response to fetching an answer, and a
-                     controls row's controls (controlsOf)
+                     the Traffic Explorer's tests' choice of everything, the trace's days and families the controls
+                     are mounted with, Kin's daily answer by model and a daily row (dayRow), a controls row's
+                     controls (controlsOf), the period buttons pressed, and the page's part the controls are given,
+                     recording what they ask of it (recordingExplorer)
   page_fixtures.js   the page's tests' Insights section holding a section per topic, and which of them are shown
   palette_contrast.test.js, palette.js
                      the colours' contrast in both schemes, read from style.css

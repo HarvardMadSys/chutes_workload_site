@@ -4,7 +4,6 @@
  */
 
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
@@ -14,39 +13,15 @@ import { modelOrder, OTHER_MODEL } from "../site/js/traffic/traffic_choice.js";
 import { PERIODS, periodRange } from "../site/js/traffic/traffic_range.js";
 import { BY_ENDPOINT, BY_FAMILY, BY_MODEL } from "../site/js/shared/series.js";
 import { modelColours } from "../site/js/theme/colours.js";
-
-/** The rows of the shipped answer of the query `name`, as the page reads them. */
-function shippedAnswer(name) {
-  return JSON.parse(readFileSync(new URL(`../site/data/all/${name}.json`, import.meta.url), "utf8"));
-}
+import { shippedAnswer } from "./fake_page.js";
+import { dayRow, EVERYTHING, KIN_ROWS } from "./traffic_fixtures.js";
 
 // The rows of the shipped daily answer by family, and the trace's days, theirs.
 const SHIPPED_ROWS = shippedAnswer("explore/daily_by_family");
 const TRACE_DAYS = [...new Set(SHIPPED_ROWS.map((row) => row.day))];
 
-// A row of the family Kin's daily answer by model, with every count zero but those given.
-function modelRow(fields) {
-  return {
-    day: "2025-07-01", chute_id: null, model: "Other Kin", endpoint_group: "chat", requests: 0,
-    input_tokens: null, input_counted: 0, output_tokens: null, output_counted: 0, ttft_sum: null, ttft_counted: 0,
-    ...fields,
-  };
-}
-
-// A family's two named models and its Other over three days and two endpoint groups.
-const ROWS = [
-  modelRow({ day: "2025-06-30", chute_id: "id-a", model: "A", requests: 10 }),
-  modelRow({ day: "2025-07-01", chute_id: "id-a", model: "A", endpoint_group: "chat_stream", requests: 30 }),
-  modelRow({ day: "2025-07-01", chute_id: "id-b", model: "B", requests: 50 }),
-  modelRow({ day: "2025-07-01", requests: 5 }),
-  modelRow({ day: "2025-10-01", chute_id: "id-b", model: "B", endpoint_group: "chat_stream", requests: 20 }),
-];
-
 // The family Kin's answer, as the explorer reads it: its name and its rows.
-const KIN = Object.freeze({ name: "Kin", rows: ROWS });
-
-// The choice of everything: every family, every model, every endpoint group, requests, every day.
-const EVERYTHING = Object.freeze({ family: "", model: "", endpoint: "", metric: "", from: "", to: "" });
+const KIN = Object.freeze({ name: "Kin", rows: KIN_ROWS });
 
 test("each period's range holds the shipped answer's days of its quarter; All every day, April 2026's too", () => {
   const spans = PERIODS.map((period) => {
@@ -63,7 +38,7 @@ test("each period's range holds the shipped answer's days of its quarter; All ev
 });
 
 test("a choice keeps the rows of its model, its endpoint group and its range's days", () => {
-  const requests = (choice) => rowsInChoice(ROWS, { ...EVERYTHING, ...choice }).map((row) => row.requests);
+  const requests = (choice) => rowsInChoice(KIN_ROWS, { ...EVERYTHING, ...choice }).map((row) => row.requests);
   assert.deepEqual(requests({}), [10, 30, 50, 5, 20]);
   assert.deepEqual(requests({ family: "kin", model: "id-a" }), [10, 30]);
   assert.deepEqual(requests({ family: "kin", model: OTHER_MODEL }), [5]);
@@ -76,8 +51,8 @@ test("a choice keeps the rows of its model, its endpoint group and its range's d
 
 test("an average divides by the requests that have the value: 490 of 1,000 recording a TTFT is 49%", () => {
   const rows = [
-    modelRow({ requests: 600, input_tokens: 6000, input_counted: 600, ttft_sum: 98, ttft_counted: 490 }),
-    modelRow({ requests: 400, input_tokens: 2000, input_counted: 400, output_tokens: 900, output_counted: 300 }),
+    dayRow({ requests: 600, input_tokens: 6000, input_counted: 600, ttft_sum: 98, ttft_counted: 490 }),
+    dayRow({ requests: 400, input_tokens: 2000, input_counted: 400, output_tokens: 900, output_counted: 300 }),
   ];
   assert.deepEqual(trafficSummary(rows), {
     requests: 1000, inputAverage: 8, outputAverage: 3, ttftAverage: 0.2, ttftShare: 0.49,
@@ -101,8 +76,8 @@ test("the bars are by family with no family chosen, by model with one, and by en
 });
 
 test("a family's other models fold into Other in the bars, their requests summed per day", () => {
-  const colours = modelColours(modelOrder(ROWS));
-  assert.deepEqual(dailyValues(ROWS, "model", "", colours), [
+  const colours = modelColours(modelOrder(KIN_ROWS));
+  assert.deepEqual(dailyValues(KIN_ROWS, "model", "", colours), [
     { day: "2025-06-30", model: "A", value: 10 },
     { day: "2025-07-01", model: "A", value: 30 },
     { day: "2025-07-01", model: "B", value: 50 },
@@ -113,9 +88,9 @@ test("a family's other models fold into Other in the bars, their requests summed
 
 test("the bars of a token metric sum its column per day and series, a null sum adding nothing", () => {
   const rows = [
-    modelRow({ chute_id: "id-a", model: "A", requests: 3, input_tokens: 300, output_tokens: 30 }),
-    modelRow({ chute_id: "id-a", model: "A", endpoint_group: "chat_stream", requests: 2, input_tokens: 200 }),
-    modelRow({ chute_id: "id-b", model: "B", requests: 4 }),
+    dayRow({ chute_id: "id-a", model: "A", requests: 3, input_tokens: 300, output_tokens: 30 }),
+    dayRow({ chute_id: "id-a", model: "A", endpoint_group: "chat_stream", requests: 2, input_tokens: 200 }),
+    dayRow({ chute_id: "id-b", model: "B", requests: 4 }),
   ];
   const colours = modelColours(modelOrder(rows));
   assert.deepEqual(dailyValues(rows, "model", "input_tokens", colours), [
@@ -135,6 +110,6 @@ test("the shipped answer by family adds up to the trace totals', so the tile equ
 });
 
 test("the family Other's other models are Rest of Other on its bars", () => {
-  const other = { name: "Other", rows: ROWS };
+  const other = { name: "Other", rows: KIN_ROWS };
   assert.deepEqual(choiceBreakdown({ ...EVERYTHING, family: "other" }, other).labels, { Other: "Rest of Other" });
 });

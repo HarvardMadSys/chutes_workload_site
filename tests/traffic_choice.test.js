@@ -4,7 +4,6 @@
  */
 
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
@@ -12,40 +11,16 @@ import {
   OTHER_MODEL, otherModelsText, readTrafficChoice, writeTrafficChoice,
 } from "../site/js/traffic/traffic_choice.js";
 import { familyColours } from "../site/js/theme/colours.js";
-
-/** The rows of the shipped answer of the query `name`, as the page reads them. */
-function shippedAnswer(name) {
-  return JSON.parse(readFileSync(new URL(`../site/data/all/${name}.json`, import.meta.url), "utf8"));
-}
+import { shippedAnswer } from "./fake_page.js";
+import { EVERYTHING, KIN_ROWS } from "./traffic_fixtures.js";
 
 // The rows of the shipped daily answer by family, and the trace's days, theirs.
 const SHIPPED_ROWS = shippedAnswer("explore/daily_by_family");
 const TRACE_DAYS = [...new Set(SHIPPED_ROWS.map((row) => row.day))];
 
-// A row of the family Kin's daily answer by model, with every count zero but those given.
-function modelRow(fields) {
-  return {
-    day: "2025-07-01", chute_id: null, model: "Other Kin", endpoint_group: "chat", requests: 0,
-    input_tokens: null, input_counted: 0, output_tokens: null, output_counted: 0, ttft_sum: null, ttft_counted: 0,
-    ...fields,
-  };
-}
-
-// A family's two named models and its Other over three days and two endpoint groups.
-const ROWS = [
-  modelRow({ day: "2025-06-30", chute_id: "id-a", model: "A", requests: 10 }),
-  modelRow({ day: "2025-07-01", chute_id: "id-a", model: "A", endpoint_group: "chat_stream", requests: 30 }),
-  modelRow({ day: "2025-07-01", chute_id: "id-b", model: "B", requests: 50 }),
-  modelRow({ day: "2025-07-01", requests: 5 }),
-  modelRow({ day: "2025-10-01", chute_id: "id-b", model: "B", endpoint_group: "chat_stream", requests: 20 }),
-];
-
 // The family drop-down's values, and the model drop-down's for the family `kin`.
 const FAMILY_VALUES = ["", "kin", "other"];
 const MODEL_VALUES = ["", "id-a", "id-b", OTHER_MODEL];
-
-// The choice of everything: every family, every model, every endpoint group, requests, every day.
-const EVERYTHING = Object.freeze({ family: "", model: "", endpoint: "", metric: "", from: "", to: "" });
 
 /** The choice the URL query `query` names over the trace's days, for the family `kin` and its models. */
 function readQuery(query) {
@@ -133,27 +108,27 @@ test("the shipped family drop-down offers All families, the ten named families b
 });
 
 test("a family's model drop-down offers its named models by requests, then Other <family> where it has a rest", () => {
-  assert.deepEqual(modelChoices(ROWS, "Kin"), [
+  assert.deepEqual(modelChoices(KIN_ROWS, "Kin"), [
     { value: "", text: "All Kin models" },
     { value: "id-b", text: "B" },
     { value: "id-a", text: "A" },
     { value: OTHER_MODEL, text: "Other Kin" },
   ]);
-  const named = ROWS.filter((row) => row.chute_id !== null);
+  const named = KIN_ROWS.filter((row) => row.chute_id !== null);
   assert.deepEqual(modelChoices(named, "Kin").map((choice) => choice.text), ["All Kin models", "B", "A"]);
 });
 
 test("the family Other's other models are Rest of Other in its drop-down", () => {
-  const texts = modelChoices(ROWS, "Other").map((choice) => choice.text);
+  const texts = modelChoices(KIN_ROWS, "Other").map((choice) => choice.text);
   assert.deepEqual(texts, ["All Other models", "B", "A", "Rest of Other"]);
 });
 
 test("a family's other models are named as its answer names them, the family Other's as Rest of Other", () => {
-  const renamed = ROWS.map((row) => (row.chute_id === null ? { ...row, model: "The rest of Kin" } : row));
+  const renamed = KIN_ROWS.map((row) => (row.chute_id === null ? { ...row, model: "The rest of Kin" } : row));
   assert.equal(otherModelsText(renamed, "Kin"), "The rest of Kin");
   assert.equal(modelChoices(renamed, "Kin").at(-1).text, "The rest of Kin");
-  assert.equal(otherModelsText(ROWS, "Other"), "Rest of Other");
-  const named = ROWS.filter((row) => row.chute_id !== null);
+  assert.equal(otherModelsText(KIN_ROWS, "Other"), "Rest of Other");
+  const named = KIN_ROWS.filter((row) => row.chute_id !== null);
   assert.equal(otherModelsText(named, "Kin"), undefined);
 });
 

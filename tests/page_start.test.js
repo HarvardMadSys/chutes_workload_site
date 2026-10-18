@@ -8,25 +8,9 @@ import { followHistory, placeTopic, startPage } from "../site/js/page/start.js";
 import { mountTopicTabs } from "../site/js/page/topic_tabs.js";
 import { runTraffic } from "../site/js/traffic/traffic.js";
 import { mountTrafficControls } from "../site/js/traffic/traffic_controls.js";
-import { familyChoices, modelChoices } from "../site/js/traffic/traffic_choice.js";
 import { deferred, FakeElement, settled, useFakePage } from "./fake_page.js";
 import { shownIds, topicSections } from "./page_fixtures.js";
-import { EVERYTHING } from "./traffic_fixtures.js";
-
-// Two families, Qwen and Other, as the family drop-down offers them.
-const FAMILIES = familyChoices([
-  { family: "Qwen", family_slug: "qwen", requests: 10 },
-  { family: "Other", family_slug: "other", requests: 5 },
-]);
-
-// The trace's days, as far as the controls read them: its first and last.
-const DAYS = ["2025-04-11", "2026-04-12"];
-
-// Qwen's daily answer by model: one named model and its other models, its counts zero but requests.
-const QWEN_ROWS = [
-  { day: "2025-07-01", chute_id: "id-a", model: "A", endpoint_group: "chat", requests: 10 },
-  { day: "2025-07-01", chute_id: null, model: "Other Qwen", endpoint_group: "chat", requests: 5 },
-];
+import { dayRow, EVERYTHING, MOUNT_ENTRIES, recordingExplorer } from "./traffic_fixtures.js";
 
 /**
  * The page opened at `PAGE_ADDRESS` on the fake page of the test of `context`, as `startPage` starts it: the topic
@@ -42,12 +26,8 @@ async function startedPage(context) {
   const showEntryTopic = mountTopicTabs(tabsRow, TOPICS, () => 0);
   const pageHistory = followHistory(showEntryTopic);
   const controls = new FakeElement("div");
-  const drawn = [];
-  await mountTrafficControls(controls, { families: FAMILIES, days: DAYS }, pageHistory, {
-    modelsOf: async () => modelChoices(QWEN_ROWS, "Qwen"),
-    onChange: (choice) => drawn.push(choice),
-    onError: (error) => assert.fail(error),
-  });
+  const { explorer, drawn } = recordingExplorer();
+  await mountTrafficControls(controls, MOUNT_ENTRIES, pageHistory, explorer);
   const field = (index) => controls.children[index].children[1];
   return { tabs: tabsRow.children, sections: insights.children, header, field, drawn, history: page.history };
 }
@@ -73,9 +53,9 @@ async function choose(page, index, value) {
 test("Back after a tab and a family shows the earlier entry's choice and topic; Forward the later's", async (context) => {
   const page = await startedPage(context);
   page.tabs[3].dispatch("click");
-  await choose(page, FAMILY_FIELD, "qwen");
-  assert.equal(addressBar(), "?family=qwen#insights-evolution");
-  assert.match(page.header.innerHTML, /href="index\.html\?family=qwen"/);
+  await choose(page, FAMILY_FIELD, "kin");
+  assert.equal(addressBar(), "?family=kin#insights-evolution");
+  assert.match(page.header.innerHTML, /href="index\.html\?family=kin"/);
   page.history.back();
   await settled();
   assert.equal(addressBar(), "");
@@ -86,11 +66,11 @@ test("Back after a tab and a family shows the earlier entry's choice and topic; 
   assert.deepEqual(shownIds(page.sections), ["insights-overview"]);
   page.history.forward();
   await settled();
-  assert.equal(addressBar(), "?family=qwen#insights-evolution");
-  assert.equal(page.field(FAMILY_FIELD).value, "qwen");
-  assert.equal(page.field(MODEL_FIELD).children[0].textContent, "All Qwen models");
-  assert.deepEqual(page.drawn.at(-1), { ...EVERYTHING, family: "qwen" });
-  assert.match(page.header.innerHTML, /href="index\.html\?family=qwen"/);
+  assert.equal(addressBar(), "?family=kin#insights-evolution");
+  assert.equal(page.field(FAMILY_FIELD).value, "kin");
+  assert.equal(page.field(MODEL_FIELD).children[0].textContent, "All Kin models");
+  assert.deepEqual(page.drawn.at(-1), { ...EVERYTHING, family: "kin" });
+  assert.match(page.header.innerHTML, /href="index\.html\?family=kin"/);
   assert.deepEqual(shownIds(page.sections), ["insights-evolution"]);
 });
 
@@ -167,10 +147,7 @@ const FIGURES_FOLDER = "data/all/figures/";
 
 // The daily answer by family: one family's requests of the endpoint group chat on one day, so that the explorer opened
 // on the endpoint group completion draws its bars as a note, which node can draw without the charting library.
-const DAILY_ROWS = [{
-  day: "2025-07-01", family: "Kin", family_slug: "kin", endpoint_group: "chat", requests: 10, input_tokens: null,
-  input_counted: 0, output_tokens: null, output_counted: 0, ttft_sum: null, ttft_counted: 0,
-}];
+const DAILY_ROWS = [dayRow({ family: "Kin", family_slug: "kin", requests: 10 })];
 
 // The Overview's families, which the explorer's family drop-down lists, and its endpoint groups, the order the
 // explorer colours them in.

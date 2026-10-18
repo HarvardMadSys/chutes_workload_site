@@ -3,23 +3,14 @@ import { test } from "node:test";
 
 import { runTraffic } from "../site/js/traffic/traffic.js";
 import { deferred, FakeElement, runFrames, settled, useFakePage } from "./fake_page.js";
-import { controlsOf } from "./traffic_fixtures.js";
+import { controlsOf, dayRow, KIN_ROWS, pressedButtons } from "./traffic_fixtures.js";
 
 // The answer files the explorer reads: every family's rows, and the family Kin's by model.
 const FAMILY_FILE = "data/all/explore/daily_by_family.json";
 const KIN_FILE = "data/all/explore/daily_by_model/kin.json";
 
-// A row of an answer of the explorer on 2025-07-01, its counts zero but its requests.
-function dayRow(fields) {
-  return {
-    day: "2025-07-01", endpoint_group: "chat", requests: 10, input_tokens: null, input_counted: 0,
-    output_tokens: null, output_counted: 0, ttft_sum: null, ttft_counted: 0, ...fields,
-  };
-}
-
-// One family, Kin, on one day of 2025's third quarter; and its one named model.
-const FAMILY_ROWS = [dayRow({ family: "Kin", family_slug: "kin" })];
-const KIN_ROWS = [dayRow({ chute_id: "id-a", model: "A" })];
+// One family, Kin, on one day of 2025's third quarter.
+const FAMILY_ROWS = [dayRow({ family: "Kin", family_slug: "kin", requests: 10 })];
 
 /**
  * Run the explorer into a new container on the fake page of the test of `context`, opened at `query`, each file of
@@ -151,13 +142,12 @@ test("a period button stands the handles on its days and draws them", async (con
   const page = runExplorer(context, NO_COMPLETION_QUERY, { [FAMILY_FILE]: THREE_DAY_ROWS });
   await page.running;
   const { tiles, handles, periodButtons } = explorerParts(page.container);
-  const pressed = () => periodButtons.map((button) => button.getAttribute("aria-pressed"));
-  assert.deepEqual(pressed(), ["false", "false", "false", "false", "false"]);
+  assert.deepEqual(pressedButtons(periodButtons), ["false", "false", "false", "false", "false"]);
   periodButtons[2].dispatch("click");
   await settled();
   const handleValues = handles.map((handle) => handle.value);
   assert.deepEqual(handleValues, ["1", "2"], "Q3 '25 is the trace's days from July 1");
-  assert.deepEqual(pressed(), ["false", "false", "true", "false", "false"]);
+  assert.deepEqual(pressedButtons(periodButtons), ["false", "false", "true", "false", "false"]);
   assert.equal(tileValues(tiles)[0], "5");
   assert.deepEqual(page.replaced, ["endpoint=completion&from=2025-07-01"]);
 });
