@@ -9,6 +9,7 @@
 
 import { titledFrame } from "../plot/frame.js";
 import { axisMark, axisScale, axisTicks, axisValueText, gridMark } from "../plot/axes.js";
+import { nameChart } from "../shared/figure.js";
 import { logColumns, positiveRows } from "../shared/rows.js";
 import { SERIES_SLOTS } from "../theme/colours.js";
 
@@ -37,8 +38,8 @@ const KEY_ENTRIES = Object.freeze([
 
 /**
  * Draw `rows` into `body` as the two bands and the median line, in the colour `parameters.colour` (a colour token,
- * the first series colour when not given), and return the chart, by the draw contract of `plot/frame.js`. It has no
- * series: `seriesColours` and `hidden` are not read. Its named parameters:
+ * the first series colour when not given), by the draw contract of `plot/frame.js`. It has no series:
+ * `seriesColours` and `hidden` are not read. Its named parameters:
  * - `x`, `y`: the card's axis options (`plot/axes.js`); on a log y axis, an x whose percentiles are not all above
  *   zero is not drawn; where either gives a domain, the bands and the median are clipped to the frame.
  * - `valueLabel`: what a value is, the tooltip's heading under the x; `valueFormat`: how a percentile is written there.
@@ -72,7 +73,7 @@ export async function drawBands(rows, body, seriesColours, parameters, hidden) {
     ],
   });
   body.replaceChildren(chart);
-  return chart;
+  nameChart(body, parameters.name);
 }
 
 /** The colour a bands chart of the parameters `parameters` is drawn in: its `colour`, the first series slot's if none. */

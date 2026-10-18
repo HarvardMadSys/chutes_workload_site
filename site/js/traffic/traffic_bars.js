@@ -6,7 +6,7 @@
  */
 
 import { chartWidth } from "../plot/frame.js";
-import { nameChart, renderFigure, showNote } from "../shared/figure.js";
+import { renderFigure, showNote } from "../shared/figure.js";
 import { formatCount, formatCountTick, formatQuantity } from "../shared/format.js";
 import { drawStackedBars, stackedBarsLegend } from "../charts/stacked_bars.js";
 import { drawWithLegend } from "../shared/legend.js";
@@ -132,7 +132,7 @@ export async function drawTrafficBars(place, { choice, family, chosen, requests,
 }
 
 // Draw the bars of the series not in `hidden`, one per day of `drawing.days`, the months written as `monthTicks`
-// says, each segment's value named in its tooltip by `drawing.words`, and name the chart.
+// says, each segment's value named in its tooltip by `drawing.words`.
 async function drawDayBars(daily, body, drawing, hidden) {
   await drawStackedBars(daily, body, drawing.colours, {
     xColumn: "day",
@@ -153,5 +153,4 @@ async function drawDayBars(daily, body, drawing, hidden) {
     segmentInset: DAY_BAR_INSET,
     labels: drawing.breakdown.labels,
   }, hidden);
-  nameChart(body);
 }

@@ -2,8 +2,8 @@
  * A figure's elements and states: the figure card `renderFigure` lays out (its title, insight or caption, the place of
  * its legend, the body a chart is drawn into, its Definition control), its chart's name for a screen reader, the
  * loading, note and error states that replace a place's content, and `textElement`, which they are built of. The
- * page's start, its sections, the Traffic Explorer, the Insights' cards, the legend and the donut use it; it needs the
- * page's document.
+ * page's start, its sections, the Traffic Explorer, the Insights' cards, the legend and the chart kinds use it; it
+ * needs the page's document.
  */
 
 /** Replace `container`'s content with the loading state. */
@@ -94,8 +94,8 @@ const CHART_SVG = 'svg:not(svg svg):not([class$="-ramp"])';
 
 /**
  * Name every chart drawn in `body` for a screen reader, as one image named `name`, or by `chartName` where no name is
- * given (a figure's body), its colour legend left out; called after each drawing, since a drawing replaces the chart. A
- * body holding a note has no chart to name.
+ * given (a figure's body), its colour legend left out; every kind calls it as its last step (the draw contract of
+ * `plot/frame.js`), since a drawing replaces the chart. A body holding a note has no chart to name.
  */
 export function nameChart(body, name = null) {
   for (const chart of body.querySelectorAll(CHART_SVG)) {

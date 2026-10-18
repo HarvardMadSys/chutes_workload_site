@@ -9,7 +9,7 @@
  * is plain functions, tested with `node --test`.
  */
 
-import { chartName } from "../shared/figure.js";
+import { nameChart } from "../shared/figure.js";
 import { columnTotal } from "../shared/rows.js";
 import { formatCount, formatShare } from "../shared/format.js";
 import { seriesLabel } from "../shared/series.js";
@@ -35,7 +35,7 @@ const WHOLE_RING_TOLERANCE = 1e-9;
  * - `totalFormat`: how the total in the centre is written.
  * - `labels`: each name's label where it is written otherwise, in the tooltip and the legend.
  */
-export function drawDonut(rows, body, seriesColours, parameters, hidden) {
+export async function drawDonut(rows, body, seriesColours, parameters, hidden) {
   const { nameColumn, countColumn, unit, totalFormat, labels = {} } = parameters;
   const slices = donutSlices(rows, nameColumn, countColumn, namedSeries(seriesColours));
   const shown = slices.filter((slice) => !hidden.has(slice.name));
@@ -43,20 +43,18 @@ export function drawDonut(rows, body, seriesColours, parameters, hidden) {
   const svg = document.createElementNS(SVG_NAMESPACE, "svg");
   svg.setAttribute("viewBox", `${-OUTER_RADIUS} ${-OUTER_RADIUS} ${2 * OUTER_RADIUS} ${2 * OUTER_RADIUS}`);
   svg.setAttribute("class", "donut");
-  svg.setAttribute("role", "img");
   let total = 0;
   for (const arc of donutArcs(shown, OUTER_RADIUS, INNER_RADIUS)) {
     svg.append(slicePath(arc, seriesColours, seriesLabel(labels, arc.name), centre));
     total += arc.count;
   }
-  // Named by its card's title and caption, as every chart is; the total in the centre is read as its text.
-  svg.setAttribute("aria-label", chartName(body));
   const value = svgElement("text", { y: "-0.15em", class: "donut-total" });
   value.textContent = totalFormat(total);
   const under = svgElement("text", { y: "1.35em", class: "donut-unit" });
   under.textContent = centre;
   svg.append(value, under);
   body.replaceChildren(svg);
+  nameChart(body, parameters.name);
 }
 
 /**

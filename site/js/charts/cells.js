@@ -8,14 +8,15 @@
 
 import { haloedReferenceRule, REFERENCE_STYLE, sequentialColour, titledFrame } from "../plot/frame.js";
 import { afterAxisTitle, axisMark, axisScale, axisText, axisTicks, colourLegendTicks, extent } from "../plot/axes.js";
+import { nameChart } from "../shared/figure.js";
 import { logColumns, positiveRows } from "../shared/rows.js";
 
 const DEFAULT_SCHEME = "YlOrRd"; // the paper's heatmaps' colour scheme, low values light
 const CATEGORY_CENTRE = 0.5; // a category's tick sits halfway between its cell's integer edges
 
 /**
- * Draw `rows` into `body` as one rectangle per row, filled by its value, and return the chart, by the draw contract of
- * `plot/frame.js`. It has no series: `seriesColours` and `hidden` are not read. Its named parameters:
+ * Draw `rows` into `body` as one rectangle per row, filled by its value, by the draw contract of `plot/frame.js`. It
+ * has no series: `seriesColours` and `hidden` are not read. Its named parameters:
  * - `x`, `y`: the card's axis options (`AxisOptions` of `plot/axes.js`); on a log axis, a cell with an edge at or
  *   below zero is not drawn. An axis's `categories` are its category names, in place of its ticks and their format,
  *   the cell from i to i + 1 named by the i-th, "Mon"; every category is labelled, or, where the axis gives `ticks`,
@@ -68,7 +69,7 @@ export async function drawCells(rows, body, seriesColours, parameters, hidden) {
     ],
   });
   body.replaceChildren(chart);
-  return chart;
+  nameChart(body, parameters.name);
 }
 
 /**

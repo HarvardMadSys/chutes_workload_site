@@ -88,7 +88,11 @@ export function chartWidth(body) {
 // `draw<Kind>(rows, body, seriesColours, parameters, hidden)`: `rows`, the answer's rows the chart is drawn from;
 // `body`, the element whose content the chart replaces; `seriesColours`, a Map from series name to colour, in legend
 // order; `parameters`, the kind's named parameters, which its JSDoc lists; and `hidden`, the Set of the series names
-// the legend hides. A kind without series declares `seriesColours` and `hidden` too, and does not read them.
+// the legend hides. A kind without series declares `seriesColours` and `hidden` too, and does not read them. The
+// function is `async` and returns nothing, so every kind is called and awaited the same way. Its last step names the
+// chart it drew for a screen reader, `nameChart(body, parameters.name)` of `shared/figure.js`: by `parameters.name`
+// where given, else by its figure's title and insight or caption (`chartName`); so no caller, a legend's redrawing
+// among them, names a chart.
 
 /**
  * Plot's colour scale for the `shown` names, each in its colour from the map `colours`. It draws no legend: a chart of

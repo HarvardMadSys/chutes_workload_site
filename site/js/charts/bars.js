@@ -8,6 +8,7 @@
 
 import { AXIS_STYLE, BAR_INSET, SURFACE_INK, colourScale, referenceRule, titledFrame } from "../plot/frame.js";
 import { axisMark, axisValueText, bandAxisMark, gridMark } from "../plot/axes.js";
+import { nameChart } from "../shared/figure.js";
 import { distinct } from "../shared/rows.js";
 import { SERIES_COLUMN, shownSeriesRows } from "../shared/series.js";
 
@@ -15,8 +16,8 @@ const REFERENCE_LABEL_RISE = -4; // pixels a reference's label sits above its ru
 const LABEL_HALO_WIDTH = 3; // pixels of the card's colour around a reference's label, so a bar under it does not cross it
 
 /**
- * Draw `rows` into `body`, one bar per row of the series of `seriesColours` not in `hidden`, and return the chart, by
- * the draw contract of `plot/frame.js`. Its named parameters:
+ * Draw `rows` into `body`, one bar per row of the series of `seriesColours` not in `hidden`, by the draw contract of
+ * `plot/frame.js`. Its named parameters:
  * - `x`: the bar axis's options `{ label, ticks, tickFormat, tickRotate }`, `tickRotate` slanting its labels.
  * - `y`: the value axis's options `{ label, domain, ticks, tickFormat }`, never a log one, since a bar starts at zero.
  * - `panel`: the panel drawn, of a multi-panel answer.
@@ -49,7 +50,7 @@ export async function drawBars(rows, body, seriesColours, parameters, hidden) {
     ],
   });
   body.replaceChildren(chart);
-  return chart;
+  nameChart(body, parameters.name);
 }
 
 /**

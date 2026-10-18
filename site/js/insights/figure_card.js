@@ -19,7 +19,7 @@
  * the key to its bands.
  */
 
-import { legendPlace, nameChart, renderFigure, showError, showLoading } from "../shared/figure.js";
+import { legendPlace, renderFigure, showError, showLoading } from "../shared/figure.js";
 import { readAnswer } from "../shared/answers.js";
 import { SERIES_COLUMN } from "../shared/series.js";
 import { bandKey, bandsColour, drawBands } from "../charts/bands.js";
@@ -157,7 +157,7 @@ async function legendAnswer(card) {
 }
 
 // Draw the chart of `card` into `body`, or one chart per panel under the panels' titles, of the series not in
-// `hidden`, then name it for a screen reader.
+// `hidden`.
 async function drawFigure(rows, body, card, colours, hidden) {
   const { draw } = CHART_KINDS[card.kind];
   if (card.panels === undefined) {
@@ -168,7 +168,6 @@ async function drawFigure(rows, body, card, colours, hidden) {
       await draw(rows, places[index], colours, chartParameters(card, entry), hidden);
     }
   }
-  nameChart(body);
 }
 
 // Fill `body` with one place per panel of `panels`, each under its title; return the places, in order.

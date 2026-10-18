@@ -8,7 +8,7 @@
  * legend; a drawing gives back the charts drawn, `{ legend, labels, charts }`, which the legend draws again.
  */
 
-import { nameChart, showError, showErrorNote, showLoading, showNote, textElement } from "../shared/figure.js";
+import { showError, showErrorNote, showLoading, showNote, textElement } from "../shared/figure.js";
 import {
   formatCount, formatCountTick, formatDurationTick, formatSignificantSeconds, formatWholeCount,
 } from "../shared/format.js";
@@ -180,8 +180,8 @@ function listedRows(rows, legend) {
 }
 
 // Draw `chart`'s CDF rows, one line per series not in `hidden`, in `distributionCharts`' legend colours, at the kind's
-// default height and margins, and name the chart; a note where the choice keeps no request that records the chart's
-// value.
+// default height and margins, named for a screen reader by the chart's `name`; a note where the choice keeps no
+// request that records the chart's value.
 async function drawCurves(chart, distributionCharts, hidden) {
   const shownRows = chart.rows.filter((row) => !hidden.has(row.series));
   if (shownRows.length === 0) {
@@ -196,6 +196,6 @@ async function drawCurves(chart, distributionCharts, hidden) {
     labels: distributionCharts.labels,
     valueLabel: distributionChart.valueLabel,
     valueFormat: distributionChart.valueFormat,
+    name: distributionChart.name,
   }, hidden);
-  nameChart(chart.body, distributionChart.name);
 }

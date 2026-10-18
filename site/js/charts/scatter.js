@@ -8,6 +8,7 @@
 
 import { AXIS_STYLE, divergingColour, referenceRule, titledFrame } from "../plot/frame.js";
 import { axisMark, axisScale, axisTicks, axisValueText, gridMark } from "../plot/axes.js";
+import { nameChart } from "../shared/figure.js";
 import { logColumns, positiveRows } from "../shared/rows.js";
 
 const DOT_RADIUS = 2; // pixels; small, so that thousands of points overlap little
@@ -15,8 +16,8 @@ const DOT_OUTLINE_WIDTH = 0.5; // pixels of axis ink around a dot, so a near-whi
 const DOT_OPACITY = 0.7; // a dot's fill opacity, so that dots lying on one another show through
 
 /**
- * Draw `rows` into `body` as one dot per row, and return the chart, by the draw contract of `plot/frame.js`. It has no
- * series: `seriesColours` and `hidden` are not read. Its named parameters:
+ * Draw `rows` into `body` as one dot per row, by the draw contract of `plot/frame.js`. It has no series:
+ * `seriesColours` and `hidden` are not read. Its named parameters:
  * - `x`, `y`: the card's axis options (`plot/axes.js`); on a log axis, a point at or below zero is not drawn.
  * - `scheme`: the diverging colour scheme, "RdBu" when not given; `colourDomain`: the values at its two ends, as
  *   `[-1, 1]`, else the values' own, centred on zero.
@@ -50,7 +51,7 @@ export async function drawScatter(rows, body, seriesColours, parameters, hidden)
     ],
   });
   body.replaceChildren(chart);
-  return chart;
+  nameChart(body, parameters.name);
 }
 
 /**

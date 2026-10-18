@@ -10,6 +10,7 @@
 
 import { colourScale, DASH, titledFrame } from "../plot/frame.js";
 import { axisMark, axisScale, axisTicks, axisValueText, gridMark } from "../plot/axes.js";
+import { nameChart } from "../shared/figure.js";
 import { logColumns, positiveRows } from "../shared/rows.js";
 import { formatPercent, formatShare } from "../shared/format.js";
 import { SERIES_COLUMN, seriesLabel, shownSeriesRows } from "../shared/series.js";
@@ -18,7 +19,7 @@ const CDF_COLUMN = "cdf"; // the column of a CDF answer holding the share at or 
 
 /**
  * Draw `rows` into `body`, one line per series of `seriesColours` the rows hold, leaving out the series in `hidden`,
- * and return the chart, by the draw contract of `plot/frame.js`. Its named parameters:
+ * by the draw contract of `plot/frame.js`. Its named parameters:
  * - `x`, `y`: the card's axis options (`plot/axes.js`); a row with a value at or below zero on a log axis is not
  *   drawn, and a line is cut at a given domain's ends.
  * - `cdf`: true for a CDF answer, its `cdf` column drawn as y from 0 to 1, the axis in percent; its tooltip names the
@@ -64,7 +65,7 @@ export async function drawLines(rows, body, seriesColours, parameters, hidden) {
     ],
   });
   body.replaceChildren(chart);
-  return chart;
+  nameChart(body, parameters.name);
 }
 
 /**

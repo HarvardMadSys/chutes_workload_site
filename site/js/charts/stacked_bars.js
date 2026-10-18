@@ -8,6 +8,7 @@
 
 import { AXIS_STYLE, BAR_INSET, colourScale, titledFrame } from "../plot/frame.js";
 import { axisMark, axisValueText, bandAxisMark, gridMark } from "../plot/axes.js";
+import { nameChart } from "../shared/figure.js";
 import { distinct } from "../shared/rows.js";
 import { OTHER_NAME } from "../theme/colours.js";
 import { seriesLabel, seriesLegend, shownRows } from "../shared/series.js";
@@ -68,6 +69,7 @@ export async function drawStackedBars(rows, body, seriesColours, parameters, hid
     ],
   });
   body.replaceChildren(chart);
+  nameChart(body, parameters.name);
 }
 
 /**

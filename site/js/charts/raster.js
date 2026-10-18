@@ -11,6 +11,7 @@
 
 import { SURFACE_INK, sequentialColour, titledFrame } from "../plot/frame.js";
 import { axisMark, axisTicks, colourLegendTicks, extent } from "../plot/axes.js";
+import { nameChart } from "../shared/figure.js";
 
 const DEFAULT_SCHEME = "Blues"; // a raster's colour scheme when the card names none: few requests light, many dark
 const MIN_ROW_HEIGHT_FOR_RULES = 6; // pixels a row needs before rules part it from its neighbours; thinner, none
@@ -19,8 +20,8 @@ const ROW_HALF = 0.5; // a row spans half a row on either side of its index, so 
 
 /**
  * Draw `rows` into `body` as a raster of `columnCount` columns by `rowCount` rows (`rasterGrid`), pooled to the
- * plot's pixels (`pooledGrid`), and return the chart, by the draw contract of `plot/frame.js`. It has no series:
- * `seriesColours` and `hidden` are not read. Its named parameters:
+ * plot's pixels (`pooledGrid`), by the draw contract of `plot/frame.js`. It has no series: `seriesColours` and
+ * `hidden` are not read. Its named parameters:
  * - `x`, `y`: the card's axis options `{ label, ticks, tickFormat }`; the x axis's `tickFormat` writes a column, an
  *   hour of the window, as a day, and `y.label` names what a row is, "User"; a y tick sits on its row's centre.
  * - `scheme`: the colour scheme, "Blues" when not given; `schemeStart`: the point of it, from 0 to 1, the lowest
@@ -69,7 +70,7 @@ export async function drawRaster(rows, body, seriesColours, parameters, hidden) 
     ],
   });
   body.replaceChildren(chart);
-  return chart;
+  nameChart(body, parameters.name);
 }
 
 /**

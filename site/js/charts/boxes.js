@@ -8,6 +8,7 @@
 
 import { colourScale, titledFrame } from "../plot/frame.js";
 import { axisMark, axisScale, axisTicks, bandAxisMark, gridMark } from "../plot/axes.js";
+import { nameChart } from "../shared/figure.js";
 import { logColumns, positiveRows } from "../shared/rows.js";
 import { formatCount } from "../shared/format.js";
 import { SERIES_COLUMN, seriesLabel, shownRows } from "../shared/series.js";
@@ -26,7 +27,7 @@ const MEDIAN_WIDTH = 2; // pixels; the median's tick, thicker than the whiskers
 
 /**
  * Draw `rows` into `body`, one box per series of `seriesColours` the rows hold, in its order, leaving out the series
- * in `hidden`, and return the chart, by the draw contract of `plot/frame.js`. Its named parameters:
+ * in `hidden`, by the draw contract of `plot/frame.js`. Its named parameters:
  * - `x`: the box axis's options `{ label, tickRotate }`, `tickRotate` slanting the series' names.
  * - `y`: the card's axis options (`plot/axes.js`); on a log y axis, a box with a statistic at or below zero is not
  *   drawn.
@@ -59,7 +60,7 @@ export async function drawBoxes(rows, body, seriesColours, parameters, hidden) {
     ],
   });
   body.replaceChildren(chart);
-  return chart;
+  nameChart(body, parameters.name);
 }
 
 /**
