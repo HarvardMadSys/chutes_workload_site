@@ -9,7 +9,7 @@ import { test } from "node:test";
 
 import { mountTrafficControls, renderControls } from "../site/js/traffic/traffic_controls.js";
 import { familyChoices, NO_FAMILY_MODEL_CHOICES } from "../site/js/traffic/traffic_filter.js";
-import { EVERYTHING, FakeElement, PAGE_ADDRESS, useFakeDocument } from "./fake_page.js";
+import { controlsOf, EVERYTHING, FakeElement, PAGE_ADDRESS, useFakeDocument } from "./fake_page.js";
 
 // The trace's days, as far as the period buttons read them: its first and last, and each quarter's first and last.
 const DAYS = [
@@ -42,14 +42,9 @@ function useFakeWindow(context, query) {
   return page;
 }
 
-// The group of period buttons of the controls row `row`, its fifth field's.
-function periodButtons(row) {
-  return row.children[4].children[1];
-}
-
 // Whether each period button of the controls row `row` shows pressed, "true" or "false".
 function pressedButtons(row) {
-  return periodButtons(row).children.map((button) => button.getAttribute("aria-pressed"));
+  return row.querySelectorAll(".period-button").map((button) => button.getAttribute("aria-pressed"));
 }
 
 test("the button whose days are the range is pressed alone; a press presses it and chooses its days", (context) => {
@@ -58,7 +53,7 @@ test("the button whose days are the range is pressed alone; a press presses it a
   const chosen = [];
   const choice = { ...EVERYTHING, from: "2026-01-01", to: "2026-03-31" };
   renderControls(row, choice, NO_FAMILY_ENTRIES, (part) => chosen.push(part));
-  const buttons = periodButtons(row).children;
+  const buttons = row.querySelectorAll(".period-button");
   assert.deepEqual(buttons.map((button) => button.textContent), ["All", "Q2 '25", "Q3 '25", "Q4 '25", "Q1 '26"]);
   assert.deepEqual(pressedButtons(row), ["false", "false", "false", "false", "true"]);
   buttons[2].dispatch("click");
@@ -68,7 +63,7 @@ test("the button whose days are the range is pressed alone; a press presses it a
   assert.deepEqual(pressedButtons(row), ["true", "false", "false", "false", "false"]);
   const quarters = [{ from: "2025-07-01", to: "2025-09-30" }, { from: "", to: "2025-06-30" }, { from: "", to: "" }];
   assert.deepEqual(chosen, quarters);
-  assert.equal(periodButtons(row).getAttribute("role"), "group");
+  assert.equal(controlsOf(row).periods.getAttribute("role"), "group");
 });
 
 test("the range a handle is released on is written to the URL and presses its button, and is not drawn again",
@@ -83,7 +78,7 @@ test("the range a handle is released on is written to the URL and presses its bu
     controls.chooseRange({ from: "2025-10-01", to: "2025-12-01" });
     assert.deepEqual(pressedButtons(row), ["false", "false", "false", "false", "false"]);
     assert.deepEqual(page.drawn, []);
-    const metric = row.children[3].children[1]; // the metric drop-down, the row's fourth field's
+    const { metric } = controlsOf(row);
     metric.value = "input_tokens";
     metric.dispatch("change");
     const range = { from: "2025-10-01", to: "2025-12-01" };

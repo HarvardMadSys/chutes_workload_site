@@ -9,7 +9,7 @@ import { test } from "node:test";
 
 import { mountTrafficControls, renderControls } from "../site/js/traffic/traffic_controls.js";
 import { familyChoices, modelChoices, NO_FAMILY_MODEL_CHOICES } from "../site/js/traffic/traffic_filter.js";
-import { EVERYTHING, FakeElement, PAGE_ADDRESS, useFakeDocument } from "./fake_page.js";
+import { controlsOf, EVERYTHING, FakeElement, PAGE_ADDRESS, useFakeDocument } from "./fake_page.js";
 
 // The trace's days, as far as the period buttons read them: its first and last, and each quarter's first and last.
 const DAYS = [
@@ -65,18 +65,9 @@ function modelsOf(page, family) {
   return KIN_MODELS;
 }
 
-// The controls row's five fields: the family, model, endpoint and metric drop-downs and the period buttons.
-function controlsOf(row) {
-  const [familyField, modelField, endpointField, metricField, periodField] = row.children;
-  return {
-    family: familyField.children[1], model: modelField.children[1], endpoint: endpointField.children[1],
-    metric: metricField.children[1], periods: periodField.children[1],
-  };
-}
-
 // Whether each period button of the controls row `row` shows pressed, "true" or "false".
 function pressedButtons(row) {
-  return controlsOf(row).periods.children.map((button) => button.getAttribute("aria-pressed"));
+  return row.querySelectorAll(".period-button").map((button) => button.getAttribute("aria-pressed"));
 }
 
 // The options of a drop-down as `[value, text]`.
@@ -97,7 +88,7 @@ test("the family drop-down lists All families and the families; the model one wa
   ]);
   const metrics = [["", "Requests"], ["input_tokens", "Input tokens"], ["output_tokens", "Output tokens"]];
   assert.deepEqual(optionsOf(metric), metrics);
-  const names = row.children.map((field) => field.children[0].textContent);
+  const names = row.querySelectorAll(".control-field-name").map((name) => name.textContent);
   assert.deepEqual(names, ["Family", "Model", "Endpoint", "Metric", "Period"]);
 });
 

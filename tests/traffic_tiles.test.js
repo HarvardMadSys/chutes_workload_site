@@ -52,14 +52,16 @@ const SMALL_SUMMARY = Object.freeze({
   requests: 1000, inputAverage: 8, outputAverage: 3, ttftAverage: 0.2, ttftShare: 0.49,
 });
 
-// The parts of each tile's text, as `placeTiles` lays a tile out: its text first.
+// The parts of each tile's text, in the order of the tiles of `list`: its value, its label and its notes.
 function tileTextParts(list) {
-  return list.children.map((tile) => tile.children[0].children);
+  return list.querySelectorAll("li").map((tile) => tile.querySelector(".tile-text").children);
 }
 
-// True when `places` are the very elements the input, output and TTFT tiles of `list` hold under their text.
+// True when `places` are the very elements the input, output and TTFT tiles of `list` hold as their chart's place.
 function areTheTilesPlaces(list, places) {
-  const [, input, output, ttft] = list.children.map((tile) => tile.children[1]);
+  const input = list.querySelector('[data-tile="input"] .tile-chart');
+  const output = list.querySelector('[data-tile="output"] .tile-chart');
+  const ttft = list.querySelector('[data-tile="ttft"] .tile-chart');
   return Object.keys(places).join() === "input,output,ttft"
     && places.input === input && places.output === output && places.ttft === ttft;
 }
@@ -73,8 +75,12 @@ test("the tiles are placed once, the input, output and TTFT tiles each holding a
   assert.deepEqual(list.children.map((tile) => tile.children.length), [1, 2, 2, 2]);
   assert.ok(areTheTilesPlaces(list, places));
   assert.deepEqual(Object.values(places).map((place) => place.className), Array(3).fill("tile-chart figure-body"));
-  assert.deepEqual(Object.values(places).map((place) => place.children[0].className), Array(3).fill("loading"));
-  assert.ok(list.children.every((tile) => tile.children[0].className === "tile-text"));
+  const loading = Object.values(places).map((place) => place.querySelector(".loading").className);
+  assert.deepEqual(loading, Array(3).fill("loading"));
+  for (const tile of list.querySelectorAll("li")) {
+    const [first] = tile.children; // the tile's text comes first, before its chart
+    assert.equal(first.className, "tile-text");
+  }
 });
 
 test("each tile shows its value, its label and its notes, each on a line, if any", (context) => {
@@ -99,7 +105,7 @@ test("each tile's text is written into the tile its data-tile names, wherever th
   list.replaceChildren(...[...list.children].reverse());
   renderTiles(list, SMALL_SUMMARY, PERCENTILES);
   const labels = list.children.map((tile) => {
-    const [, label] = tile.children[0].children;
+    const label = tile.querySelector(".tile-text span"); // the label is the text's first line under its value
     return [tile.getAttribute("data-tile"), label.textContent];
   });
   assert.deepEqual(labels, [
@@ -116,9 +122,10 @@ test("writing the tiles again leaves their charts' places as they are", (context
   renderTiles(list, SMALL_SUMMARY, null);
   renderTiles(list, SMALL_SUMMARY, PERCENTILES);
   assert.ok(areTheTilesPlaces(list, places), "the same elements");
-  assert.equal(places.input.children[0], drawn);
+  assert.equal(places.input.querySelector("svg"), drawn);
   assert.equal(places.input.children.length, 1);
-  assert.deepEqual([places.output, places.ttft].map((place) => place.children[0].className), ["loading", "loading"]);
+  const loading = [places.output, places.ttft].map((place) => place.querySelector(".loading").className);
+  assert.deepEqual(loading, ["loading", "loading"]);
   assert.equal(tileTextParts(list)[1][2].textContent, "≈1,100 p50 · ≈4,200 p90", "the latest notes, once");
   assert.equal(tileTextParts(list)[1].length, 3);
 });

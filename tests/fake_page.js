@@ -1,6 +1,7 @@
 /**
- * Stand-ins for the parts of the page the node tests drive, as node has no page of its own: an element, a figure's
- * body with its legend's place, the topic sections the tabs read, and the browser's history.
+ * Stand-ins for the parts of the page the node tests drive, as node has no page of its own: an element, found under
+ * another by a tag, a class, an id or a data attribute, or a chain of them; the Traffic Explorer's controls in its
+ * controls row; a figure's body with its legend's place, the topic sections the tabs read, and the browser's history.
  */
 
 /** The topics' anchors on the page, in the order of their tabs. */
@@ -36,6 +37,21 @@ export function settled() {
 export function runFrames(frames) {
   for (const frame of frames.splice(0)) {
     frame();
+  }
+}
+
+// The four forms of a simple selector the fake element reads, each matched whole: a tag, a class, an id, and a data
+// attribute without or with a value in double quotes.
+const TAG_SELECTOR = /^[a-z][a-z0-9]*$/;
+const CLASS_SELECTOR = /^\.([\w-]+)$/;
+const ID_SELECTOR = /^#([\w-]+)$/;
+const ATTRIBUTE_SELECTOR = /^\[(data-[\w-]+)(?:="([^"]*)")?\]$/;
+
+// Throw where `simple` is of none of the four forms, naming it, so that a test with a mistyped selector fails.
+function checkSimpleSelector(simple) {
+  const forms = [TAG_SELECTOR, CLASS_SELECTOR, ID_SELECTOR, ATTRIBUTE_SELECTOR];
+  if (!forms.some((form) => form.test(simple))) {
+    throw new Error(`The fake page reads no selector of the form "${simple}"`);
   }
 }
 
@@ -97,6 +113,79 @@ export class FakeElement {
   focus() {
     globalThis.document.activeElement = this;
   }
+
+  /**
+   * Whether this element matches `simple`, one simple selector: a tag (`input`), a class (`.range-track`, a word of
+   * `className` or a member of `classes`), an id (`#traffic-explorer`), or a data attribute without or with a value
+   * (`[data-copy]`, `[data-copy="bibtex"]`). Any other form throws, so that a test with a mistyped selector fails.
+   */
+  matches(simple) {
+    checkSimpleSelector(simple);
+    const classSelector = simple.match(CLASS_SELECTOR);
+    if (classSelector !== null) {
+      const [, name] = classSelector;
+      return this.className.split(" ").includes(name) || this.classes.has(name);
+    }
+    const idSelector = simple.match(ID_SELECTOR);
+    if (idSelector !== null) {
+      const [, id] = idSelector;
+      return this.id === id;
+    }
+    const attributeSelector = simple.match(ATTRIBUTE_SELECTOR);
+    if (attributeSelector !== null) {
+      const [, name, value] = attributeSelector;
+      return this.attributes.has(name) && (value === undefined || String(this.attributes.get(name)) === value);
+    }
+    return this.tag === simple;
+  }
+
+  /**
+   * Every element under this one that `selector` finds, in document order, each once: `selector` is one simple selector
+   * of `matches`, or several parted by spaces, the first matched among all the elements under this one and each next
+   * among the elements under each match of the one before, as the browser does.
+   */
+  querySelectorAll(selector) {
+    const simples = selector.trim().split(/\s+/);
+    for (const simple of simples) {
+      checkSimpleSelector(simple);
+    }
+    let matched = [this];
+    for (const simple of simples) {
+      const found = new Set();
+      for (const ancestor of matched) {
+        for (const element of descendantsOf(ancestor)) {
+          if (element.matches(simple)) {
+            found.add(element);
+          }
+        }
+      }
+      matched = [...found];
+    }
+    return matched;
+  }
+
+  /** The first element under this one that `selector` finds (`querySelectorAll`), or null where it finds none. */
+  querySelector(selector) {
+    return this.querySelectorAll(selector)[0] ?? null;
+  }
+}
+
+// Every element under `element`, depth first, in document order.
+function descendantsOf(element) {
+  const descendants = [];
+  for (const child of element.children) {
+    descendants.push(child, ...descendantsOf(child));
+  }
+  return descendants;
+}
+
+/**
+ * The Traffic Explorer's controls in its controls row `row`: `{ family, model, endpoint, metric, periods }`, the
+ * family, model, endpoint and metric drop-downs, in the row's order, and the group of period buttons.
+ */
+export function controlsOf(row) {
+  const [family, model, endpoint, metric] = row.querySelectorAll(".control-field select");
+  return { family, model, endpoint, metric, periods: row.querySelector(".period-buttons") };
 }
 
 /**

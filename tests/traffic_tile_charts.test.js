@@ -18,9 +18,9 @@ function chartPlaces() {
   return { input: new FakeElement("div"), output: new FakeElement("div"), ttft: new FakeElement("div") };
 }
 
-// The text of each place's first part: its note or its loading line.
+// The text of each place's note.
 function placeTexts(places) {
-  return Object.values(places).map((place) => place.children[0].textContent);
+  return Object.values(places).map((place) => place.querySelector(".note").textContent);
 }
 
 // A histogram row of the trace's first week, of the family `family`, of the metric `metric` in the bin `bin`.
@@ -72,9 +72,11 @@ test("the charts' places show the loading state, then an error, each in its plac
   context.mock.method(console, "error", () => undefined);
   const places = chartPlaces();
   showChartsLoading(places);
-  assert.deepEqual(Object.values(places).map((place) => place.children[0].className), Array(3).fill("loading"));
+  const loading = Object.values(places).map((place) => place.querySelector(".loading").className);
+  assert.deepEqual(loading, Array(3).fill("loading"));
   showChartsError(places, new Error("Could not fetch the histograms"));
-  assert.deepEqual(Object.values(places).map((place) => place.children[0].className), Array(3).fill("note is-error"));
+  const errors = Object.values(places).map((place) => place.querySelector(".note").className);
+  assert.deepEqual(errors, Array(3).fill("note is-error"));
   assert.deepEqual(placeTexts(places), Array(3).fill("Could not fetch the histograms"));
   assert.equal(console.error.mock.callCount(), 1);
 });
