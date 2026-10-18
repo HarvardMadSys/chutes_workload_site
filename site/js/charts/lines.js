@@ -40,32 +40,42 @@ const CDF_COLUMN = "cdf"; // the column of a CDF answer holding the share at or 
  * Required: `valueLabel` and `valueFormat`.
  */
 export async function drawLines(rows, body, seriesColours, parameters, hidden) {
-  const { x: xAxis = {}, cdf = false, gap, margins } = parameters;
-  const yAxis = lineYAxis(parameters);
+  // The parameters with both axes as drawn, worked out once; every helper reads them.
+  const chart = { ...parameters, x: parameters.x ?? {}, y: lineYAxis(parameters) };
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
-  const drawn = drawnPoints(rows, seriesColours, { ...parameters, x: xAxis, y: yAxis }, hidden);
+  const drawn = drawnPoints(linePoints(rows, chart.cdf), seriesColours, chart, hidden);
   const names = drawnSeries(drawn, seriesColours);
   const xValues = drawn.map((row) => row.x);
-  const xTicks = axisTicks(xAxis, xValues);
-  const yTicks = axisTicks(yAxis, drawn.map((row) => row[yColumn(cdf)]));
-  const broken = brokenAtGaps(drawn, gap, yColumn(cdf));
-  const chart = Plot.plot({
-    ...titledFrame(body, yAxis.label ?? null, margins, parameters.height),
-    x: axisScale(xAxis, xValues),
-    y: axisScale(yAxis),
+  const xTicks = axisTicks(chart.x, xValues);
+  const yTicks = axisTicks(chart.y, drawn.map((row) => row.y));
+  const broken = brokenAtGaps(drawn, chart.gap);
+  body.replaceChildren(Plot.plot({
+    ...titledFrame(body, chart.y.label ?? null, chart.margins, chart.height),
+    x: axisScale(chart.x, xValues),
+    y: axisScale(chart.y),
     color: colourScale(seriesColours, names),
     marks: [
       gridMark(Plot, "x", xTicks),
       gridMark(Plot, "y", yTicks),
-      axisMark(Plot, "x", xAxis, xTicks),
-      axisMark(Plot, "y", yAxis, yTicks),
-      ...names.map((name) => seriesLine(Plot, broken, name, parameters)),
-      lineTip(Plot, framedPoints(drawn, xAxis, yAxis, yColumn(cdf)), parameters),
+      axisMark(Plot, "x", chart.x, xTicks),
+      axisMark(Plot, "y", chart.y, yTicks),
+      ...names.map((name) => seriesLine(Plot, broken, name, chart)),
+      lineTip(Plot, framedPoints(drawn, chart.x, chart.y), chart),
     ],
-  });
-  body.replaceChildren(chart);
+  }));
   nameChart(body, parameters.name);
+}
+
+/**
+ * The rows a lines chart draws, each with its value in `y`: a CDF answer's rows (`cdf`) with each row's `cdf` copied
+ * to `y`; any other answer's rows as they are.
+ */
+export function linePoints(rows, cdf = false) {
+  if (!cdf) {
+    return rows;
+  }
+  return rows.map((row) => ({ ...row, y: row[CDF_COLUMN] }));
 }
 
 /**
@@ -81,15 +91,14 @@ export function lineYAxis({ y: yAxis = {}, cdf = false }) {
 
 /**
  * The line mark of the series `name` among `points` (the drawn points, broken at gaps): its points joined by straight
- * lines, a CDF's too, dashed where `parameters.dashed` names it, a dot at each point where `parameters.markers`, and
- * clipped to the frame where either axis gives a domain.
+ * lines, a CDF's too, dashed where `chart.dashed` names it, a dot at each point where `chart.markers`, and clipped to
+ * the frame where either of `chart`'s axes, as drawn, gives a domain.
  */
-export function seriesLine(Plot, points, name, parameters) {
-  const { x: xAxis = {}, cdf = false, markers = false, dashed = [] } = parameters;
-  const yAxis = lineYAxis(parameters);
+export function seriesLine(Plot, points, name, chart) {
+  const { x: xAxis, y: yAxis, markers = false, dashed = [] } = chart;
   return Plot.line(points.filter((row) => row[SERIES_COLUMN] === name), {
     x: "x",
-    y: yColumn(cdf),
+    y: "y",
     stroke: SERIES_COLUMN,
     strokeDasharray: seriesDash(name, dashed),
     curve: "linear",
@@ -100,16 +109,16 @@ export function seriesLine(Plot, points, name, parameters) {
 
 /**
  * The tooltip mark of a lines chart over the `framed` points (`framedPoints`): one listing every series at the hovered
- * x where `parameters.tipAllSeries` (`allSeriesTips`); else a point's own (`lineTipText`), the nearest in x and y for
- * a CDF, whose curves cross, and the nearest in x for any other.
+ * x where `chart.tipAllSeries` (`allSeriesTips`); else a point's own (`lineTipText`), the nearest in x and y for a CDF,
+ * whose curves cross, and the nearest in x for any other.
  */
-export function lineTip(Plot, framed, parameters) {
-  const { cdf = false, tipAllSeries = false } = parameters;
+export function lineTip(Plot, framed, chart) {
+  const { cdf = false, tipAllSeries = false } = chart;
   if (tipAllSeries) {
-    return Plot.tip(allSeriesTips(framed, parameters), Plot.pointerX({ x: "x", y: "y", title: "text" }));
+    return Plot.tip(allSeriesTips(framed, chart), Plot.pointerX({ x: "x", y: "y", title: "text" }));
   }
   const pointer = cdf ? Plot.pointer : Plot.pointerX;
-  return Plot.tip(framed, pointer({ x: "x", y: yColumn(cdf), title: (row) => lineTipText(row, parameters) }));
+  return Plot.tip(framed, pointer({ x: "x", y: "y", title: (row) => lineTipText(row, chart) }));
 }
 
 /** The dash pattern of the series `name`: `DASH` where `dashed`, a list of names, holds it, else none, a solid line. */
@@ -117,20 +126,15 @@ export function seriesDash(name, dashed) {
   return dashed.includes(name) ? DASH.join(",") : undefined;
 }
 
-/** The column a lines answer holds its y in: `cdf` for a CDF answer, else `y`. */
-export function yColumn(cdf) {
-  return cdf ? CDF_COLUMN : "y";
-}
-
 /**
- * The points drawn: the rows of `parameters.panel` (all when not given), of the series `seriesColours` names that are
- * in `parameters.series` where it is given and not in `hidden`, with a value above zero in every column drawn on a log
- * axis (`x` where `parameters.x.log`, the y column where `parameters.y.log`).
+ * The points drawn: the rows of `chart.panel` (all when not given), of the series `seriesColours` names that are in
+ * `chart.series` where it is given and not in `hidden`, with a value above zero in every column drawn on a log axis
+ * (`x` where `chart.x.log`, `y` where `chart.y.log`). The rows hold their value in `y` (`linePoints`).
  */
-export function drawnPoints(rows, seriesColours, { panel, series, x: xAxis = {}, y: yAxis = {}, cdf = false }, hidden) {
+export function drawnPoints(rows, seriesColours, { panel, series, x: xAxis = {}, y: yAxis = {} }, hidden) {
   const shown = shownSeriesRows(rows, seriesColours, panel, hidden);
   const named = series === undefined ? shown : shown.filter((row) => series.includes(row[SERIES_COLUMN]));
-  return positiveRows(named, logColumns({ x: xAxis, y: yAxis }, ["x"], [yColumn(cdf)]));
+  return positiveRows(named, logColumns({ x: xAxis, y: yAxis }, ["x"], ["y"]));
 }
 
 /**
@@ -169,19 +173,19 @@ export function allSeriesTipText(x, points, { x: xAxis = {}, valueFormat, labels
 }
 
 /**
- * The points a tooltip may name: those of `points` within the x axis's `domain` and, by their `yName`, the y axis's,
- * where the axis gives one: the part of the lines the frame shows, the rest being clipped.
+ * The points a tooltip may name: those of `points` within the x axis's `domain` and, by their `y`, the y axis's, where
+ * the axis gives one: the part of the lines the frame shows, the rest being clipped.
  */
-export function framedPoints(points, xAxis, yAxis, yName) {
-  return points.filter((point) => isWithin(point.x, xAxis.domain) && isWithin(point[yName], yAxis.domain));
+export function framedPoints(points, xAxis, yAxis) {
+  return points.filter((point) => isWithin(point.x, xAxis.domain) && isWithin(point.y, yAxis.domain));
 }
 
 /**
  * The `points` with, between two neighbouring points of one series whose x values are more than `gap` apart, a point
- * of the first's series and x whose `yName` is NaN, where Plot breaks the line; `points` as they are when `gap` is not
+ * of the first's series and x whose `y` is NaN, where Plot breaks the line; `points` as they are when `gap` is not
  * given. The points are read in their order, each series' in order of x, as an answer holds them.
  */
-export function brokenAtGaps(points, gap, yName) {
+export function brokenAtGaps(points, gap) {
   if (gap === undefined) {
     return points;
   }
@@ -190,7 +194,7 @@ export function brokenAtGaps(points, gap, yName) {
     const previous = points[index - 1];
     const isSameSeries = previous !== undefined && previous[SERIES_COLUMN] === point[SERIES_COLUMN];
     if (isSameSeries && point.x - previous.x > gap) {
-      broken.push({ [SERIES_COLUMN]: previous[SERIES_COLUMN], x: previous.x, [yName]: NaN });
+      broken.push({ [SERIES_COLUMN]: previous[SERIES_COLUMN], x: previous.x, y: NaN });
     }
     broken.push(point);
   }
@@ -211,7 +215,7 @@ export function drawnSeries(points, seriesColours) {
 export function lineTipText(row, { x: xAxis = {}, cdf = false, valueLabel, valueFormat, labels = {} }) {
   const series = seriesLabel(labels, row[SERIES_COLUMN]);
   if (cdf) {
-    return `${series}\n${valueLabel}: ${valueFormat(row.x)}\n${formatShare(row[CDF_COLUMN])} at or below`;
+    return `${series}\n${valueLabel}: ${valueFormat(row.x)}\n${formatShare(row.y)} at or below`;
   }
   return `${series}\n${axisValueText(xAxis, row.x)}\n${valueLabel}: ${valueFormat(row.y)}`;
 }

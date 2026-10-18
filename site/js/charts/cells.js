@@ -36,39 +36,36 @@ const CATEGORY_CENTRE = 0.5; // a category's tick sits halfway between its cell'
  * Required: `valueLabel` and `valueFormat`.
  */
 export async function drawCells(rows, body, seriesColours, parameters, hidden) {
-  const { margins } = parameters;
+  // The parameters with both axes as drawn, worked out once; the cells and their tooltips read them.
+  const chart = { ...parameters, x: categoryAxis(parameters.x ?? {}), y: categoryAxis(parameters.y ?? {}) };
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
-  const xAxis = categoryAxis(parameters.x ?? {});
-  const yAxis = categoryAxis(parameters.y ?? {});
-  const drawn = drawnCells(rows, { ...parameters, x: xAxis, y: yAxis });
+  const drawn = drawnCells(rows, chart);
   const xEdges = [...drawn.map((cell) => cell.x_low), ...drawn.map((cell) => cell.x_high)];
   const yEdges = [...drawn.map((cell) => cell.y_low), ...drawn.map((cell) => cell.y_high)];
-  const xSpan = xAxis.domain ?? extent(xEdges);
-  const ySpan = yAxis.domain ?? extent(yEdges);
-  const diagonal = parameters.diagonal ? diagonalEnds(xSpan, ySpan) : [];
-  const tipParameters = { ...parameters, x: xAxis, y: yAxis };
-  const legendTicks = colourLegendTicks(parameters, drawn.map((cell) => cell.value));
-  const chart = Plot.plot({
-    ...titledFrame(body, yAxis.label ?? null, margins, parameters.height),
-    x: axisScale(xAxis),
-    y: axisScale(yAxis),
-    color: sequentialColour(parameters, DEFAULT_SCHEME, legendTicks),
+  const xSpan = chart.x.domain ?? extent(xEdges);
+  const ySpan = chart.y.domain ?? extent(yEdges);
+  const diagonal = chart.diagonal ? diagonalEnds(xSpan, ySpan) : [];
+  const legendTicks = colourLegendTicks(chart, drawn.map((cell) => cell.value));
+  body.replaceChildren(Plot.plot({
+    ...titledFrame(body, chart.y.label ?? null, chart.margins, chart.height),
+    x: axisScale(chart.x),
+    y: axisScale(chart.y),
+    color: sequentialColour(chart, DEFAULT_SCHEME, legendTicks),
     marks: [
       Plot.rect(drawn, {
         x1: "x_low", x2: "x_high", y1: "y_low", y2: "y_high", fill: "value",
         shapeRendering: "crispEdges", // neighbouring cells meet without a seam of the card's colour between them
       }),
       Plot.line(diagonal, { x: "x", y: "y", ...REFERENCE_STYLE, clip: true }),
-      haloedReferenceRule(Plot, parameters.yReference),
-      axisMark(Plot, "x", xAxis, axisTicks(xAxis, xEdges)),
-      axisMark(Plot, "y", yAxis, axisTicks(yAxis, yEdges)),
+      haloedReferenceRule(Plot, chart.yReference),
+      axisMark(Plot, "x", chart.x, axisTicks(chart.x, xEdges)),
+      axisMark(Plot, "y", chart.y, axisTicks(chart.y, yEdges)),
       Plot.tip(drawn, Plot.pointer({
-        x1: "x_low", x2: "x_high", y1: "y_low", y2: "y_high", title: (cell) => cellTipText(cell, tipParameters),
+        x1: "x_low", x2: "x_high", y1: "y_low", y2: "y_high", title: (cell) => cellTipText(cell, chart),
       })),
     ],
-  });
-  body.replaceChildren(chart);
+  }));
   nameChart(body, parameters.name);
 }
 

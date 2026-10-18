@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  allSeriesTips, allSeriesTipText, brokenAtGaps, drawnPoints, framedPoints, drawnSeries, lineTip, lineTipText,
-  lineYAxis, seriesDash, seriesLine, yColumn,
+  allSeriesTips, allSeriesTipText, brokenAtGaps, drawnPoints, framedPoints, drawnSeries, linePoints, lineTip,
+  lineTipText, lineYAxis, seriesDash, seriesLine,
 } from "../site/js/charts/lines.js";
 import { formatPercent } from "../site/js/shared/format.js";
 import { assignColours } from "../site/js/theme/colours.js";
@@ -17,6 +17,10 @@ const CDF_ROWS = [
   { series: "DeepSeek R1", x: 40, cdf: 0.5 },
   { series: "Unlisted", x: 5, cdf: 0.2 },
 ];
+// The CDF's rows as a lines chart draws them, each share in `y`.
+const CDF_POINTS = linePoints(CDF_ROWS, true);
+// A CDF card's parameters as `drawLines` resolves them, both axes as drawn.
+const CDF_CHART = { cdf: true, x: {}, y: lineYAxis({ cdf: true }) };
 // A two-panel lines answer.
 const PANEL_ROWS = [
   { series: "Global", x: 1, y: 10, panel: "a" },
@@ -47,18 +51,22 @@ test("a series the card lists as dashed is drawn dashed, every other solid", () 
   assert.equal(seriesDash("Global", []), undefined);
 });
 
-test("a CDF's y is its cdf column; a lines answer's is y", () => {
-  assert.equal(yColumn(true), "cdf");
-  assert.equal(yColumn(false), "y");
+test("a CDF's rows are drawn with their share at or below in y; a lines answer's rows as they are", () => {
+  const [point] = linePoints([{ series: "Global", x: 40, cdf: 0.5 }], true);
+  assert.deepEqual(point, { series: "Global", x: 40, cdf: 0.5, y: 0.5 });
+  assert.equal(linePoints(PANEL_ROWS, false), PANEL_ROWS);
+  assert.equal(linePoints(PANEL_ROWS), PANEL_ROWS);
 });
 
 test("on a log x axis the points at zero are not drawn, nor a series without a colour", () => {
-  const drawn = drawnPoints(CDF_ROWS, SERIES_COLOURS, { cdf: true, x: { log: true } }, new Set());
-  assert.deepEqual(drawn, [{ series: "DeepSeek V3.2", x: 2, cdf: 0.01 }, { series: "DeepSeek R1", x: 40, cdf: 0.5 }]);
+  const drawn = drawnPoints(CDF_POINTS, SERIES_COLOURS, { ...CDF_CHART, x: { log: true } }, new Set());
+  assert.deepEqual(drawn, [
+    { series: "DeepSeek V3.2", x: 2, cdf: 0.01, y: 0.01 }, { series: "DeepSeek R1", x: 40, cdf: 0.5, y: 0.5 },
+  ]);
 });
 
 test("on a linear axis every coloured point is drawn, a hidden series left out", () => {
-  const drawn = drawnPoints(CDF_ROWS, SERIES_COLOURS, { cdf: true }, new Set(["DeepSeek R1"]));
+  const drawn = drawnPoints(CDF_POINTS, SERIES_COLOURS, CDF_CHART, new Set(["DeepSeek R1"]));
   assert.deepEqual(drawn.map((row) => [row.series, row.x]), [["DeepSeek V3.2", 0], ["DeepSeek V3.2", 2]]);
 });
 
@@ -92,17 +100,18 @@ test("a line is broken where two neighbouring points of a series are farther apa
     { series: "Requests", x: 1, y: 5 }, { series: "Requests", x: 2, y: 6 }, { series: "Requests", x: 5, y: 7 },
     { series: "Other", x: 9, y: 1 },
   ];
-  const broken = brokenAtGaps(points, 1.5, "y");
+  const broken = brokenAtGaps(points, 1.5);
   assert.deepEqual(broken.map((point) => [point.series, point.x]),
     [["Requests", 1], ["Requests", 2], ["Requests", 2], ["Requests", 5], ["Other", 9]]);
   assert.ok(Number.isNaN(broken[2].y));
-  assert.equal(brokenAtGaps(points, undefined, "y"), points);
-  assert.equal(brokenAtGaps(points, 4, "y").length, points.length);
+  assert.equal(brokenAtGaps(points, undefined), points);
+  assert.equal(brokenAtGaps(points, 4).length, points.length);
 });
 
 test("a CDF point's tooltip gives its value and the share at or below it", () => {
   const parameters = { cdf: true, valueLabel: "Input tokens", valueFormat: (value) => `${value}` };
-  assert.equal(lineTipText({ series: "DeepSeek R1", x: 1200, cdf: 0.45 }, parameters),
+  const [point] = linePoints([{ series: "DeepSeek R1", x: 1200, cdf: 0.45 }], true);
+  assert.equal(lineTipText(point, parameters),
     "DeepSeek R1\nInput tokens: 1200\n45.0% at or below");
 });
 
@@ -119,23 +128,24 @@ test("a tooltip names only the points within the axes' domains, the part of the 
   const points = [
     { series: "Global", x: 1, y: 0.2 }, { series: "Global", x: 50, y: 0.9 }, { series: "Global", x: 9, y: 3 },
   ];
-  assert.deepEqual(framedPoints(points, { domain: [1, 10] }, {}, "y"), [points[0], points[2]]);
-  assert.deepEqual(framedPoints(points, {}, { domain: [0, 1] }, "y"), [points[0], points[1]]);
-  assert.equal(framedPoints(points, {}, {}, "y").length, 3);
+  assert.deepEqual(framedPoints(points, { domain: [1, 10] }, {}), [points[0], points[2]]);
+  assert.deepEqual(framedPoints(points, {}, { domain: [0, 1] }), [points[0], points[1]]);
+  assert.equal(framedPoints(points, {}, {}).length, 3);
 });
 
-test("a CDF's points are joined by straight lines, as a lines chart's are", () => {
-  const [, points, options] = seriesLine(FAKE_PLOT, CDF_ROWS, "DeepSeek R1", { cdf: true });
+test("a CDF's points are joined by straight lines, as a lines chart's are, clipped to its share's domain", () => {
+  const [, points, options] = seriesLine(FAKE_PLOT, CDF_POINTS, "DeepSeek R1", CDF_CHART);
   assert.equal(options.curve, "linear");
-  assert.equal(options.y, "cdf");
-  assert.deepEqual(points.map((point) => point.x), [0, 40]);
-  assert.equal(seriesLine(FAKE_PLOT, PANEL_ROWS, "Global", {})[2].curve, "linear");
+  assert.equal(options.clip, true);
+  assert.deepEqual(points.map((point) => [point.x, point.y]), [[0, 0], [40, 0.5]]);
+  const [, , linesOptions] = seriesLine(FAKE_PLOT, PANEL_ROWS, "Global", { x: {}, y: {} });
+  assert.deepEqual([linesOptions.curve, linesOptions.clip], ["linear", false]);
 });
 
 test("a CDF's tooltip names the point nearest in x and y; a lines chart's the point nearest in x", () => {
-  const [, , [cdfPointer, cdfOptions]] = lineTip(FAKE_PLOT, CDF_ROWS, { cdf: true, valueFormat: String });
+  const [, , [cdfPointer, cdfOptions]] = lineTip(FAKE_PLOT, CDF_POINTS, { ...CDF_CHART, valueFormat: String });
   assert.equal(cdfPointer, "pointer");
-  assert.equal(cdfOptions.y, "cdf");
+  assert.equal(cdfOptions.y, "y");
   const [, , [linesPointer]] = lineTip(FAKE_PLOT, PANEL_ROWS, { valueFormat: String });
   assert.equal(linesPointer, "pointerX");
 });
@@ -152,8 +162,8 @@ test("a tooltip of every series lists each value at the hovered x, highest first
 });
 
 test("a chart given its series draws only those, its legend's hidden ones still left out", () => {
-  const named = drawnPoints(CDF_ROWS, SERIES_COLOURS, { series: ["DeepSeek R1", "Global"] }, new Set());
+  const named = drawnPoints(CDF_POINTS, SERIES_COLOURS, { series: ["DeepSeek R1", "Global"] }, new Set());
   assert.deepEqual(named.map((point) => [point.series, point.x]), [["DeepSeek R1", 0], ["DeepSeek R1", 40]]);
-  const hidden = drawnPoints(CDF_ROWS, SERIES_COLOURS, { series: ["DeepSeek R1"] }, new Set(["DeepSeek R1"]));
+  const hidden = drawnPoints(CDF_POINTS, SERIES_COLOURS, { series: ["DeepSeek R1"] }, new Set(["DeepSeek R1"]));
   assert.deepEqual(hidden, []);
 });

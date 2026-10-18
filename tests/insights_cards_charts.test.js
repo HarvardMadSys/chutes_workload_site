@@ -9,7 +9,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
-  brokenAtGaps, drawnPoints, framedPoints, lineTipText, lineYAxis, seriesLine,
+  brokenAtGaps, drawnPoints, framedPoints, linePoints, lineTipText, lineYAxis, seriesLine,
 } from "../site/js/charts/lines.js";
 import { bandKey, bandsColour } from "../site/js/charts/bands.js";
 import {
@@ -145,7 +145,7 @@ test("the hourly lines break where an hour is missing from their answers, and no
   for (const figure of ["fig_lb_request_rate", "fig_lb_active_instances", "fig_lb_maxmean_tokens"]) {
     const { gap } = cardOf(figure).chart;
     const rows = shippedAnswer(figure);
-    breaks[figure] = brokenAtGaps(rows, gap, "y").length - rows.length;
+    breaks[figure] = brokenAtGaps(rows, gap).length - rows.length;
   }
   // Counted from the answers: the steps between neighbouring hours longer than an hour.
   assert.deepEqual(breaks, { fig_lb_request_rate: 0, fig_lb_active_instances: 3, fig_lb_maxmean_tokens: 18 });
@@ -173,10 +173,11 @@ test("the workload topic's four daily lines and the three hourly lines share the
 
 test("the input-tokens CDF joins its percentile points with straight lines", () => {
   const card = cardOf("fig_token_length_input_cdf_by_model");
-  const rows = shippedAnswer(card.figure);
-  const [, points, options] = seriesLine(FAKE_LINE_PLOT, rows, "Global", chartParameters(card));
+  const points = linePoints(shippedAnswer(card.figure), true);
+  const parameters = chartParameters(card);
+  const [, drawn, options] = seriesLine(FAKE_LINE_PLOT, points, "Global", { ...parameters, y: lineYAxis(parameters) });
   assert.equal(options.curve, "linear");
-  assert.ok(points.length > 2);
+  assert.ok(drawn.length > 2);
 });
 
 // The routing card's models, as its answer names them, in the order of its rows of panels.
@@ -243,8 +244,8 @@ test("the input-tokens card's tooltip names no point outside its axis's 10 to 1,
   const card = cardOf("fig_token_length_input_cdf_by_model");
   const rows = shippedAnswer(card.figure);
   const parameters = chartParameters(card);
-  const drawn = drawnPoints(rows, cardColours(card, rows, null), parameters, new Set());
-  const tipped = framedPoints(drawn, parameters.x, lineYAxis(parameters), "cdf");
+  const drawn = drawnPoints(linePoints(rows, true), cardColours(card, rows, null), parameters, new Set());
+  const tipped = framedPoints(drawn, parameters.x, lineYAxis(parameters));
   assert.ok(drawn.some((point) => point.x < 10 || point.x > 1000000), "the answer runs past the axis");
   assert.ok(tipped.length > 0 && tipped.every((point) => point.x >= 10 && point.x <= 1000000));
 });
