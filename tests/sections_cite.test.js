@@ -6,6 +6,7 @@ import { test } from "node:test";
 
 import { copySource, mountCopyButtons, renderCiteLine } from "../site/js/sections/cite.js";
 import { URLS } from "../site/js/shared/layout.js";
+import { FakeElement, settled, useFakePage } from "./fake_page.js";
 
 // The page, which holds the BibTeX block.
 const PAGE_FILE = new URL("../site/index.html", import.meta.url);
@@ -15,14 +16,20 @@ function fakeClipboard() {
   return { written: [], async writeText(text) { this.written.push(text); } };
 }
 
-// A stand-in page of one copy button, `data-copy="bibtex"`, and the block it copies, holding `text`.
-function fakePage(text) {
-  const listeners = [];
-  const button = { hidden: true, textContent: "Copy", dataset: { copy: "bibtex" },
-    addEventListener: (type, listener) => listeners.push(listener) };
-  const source = { textContent: text };
-  const root = { querySelectorAll: () => [button], getElementById: (id) => (id === "bibtex" ? source : null) };
-  return { root, button, source, listeners };
+/**
+ * The fake page of the test of `context` holding one copy button, hidden, `data-copy="bibtex"`, and the block it
+ * copies, `pre#bibtex` holding `text`: `{ button, source }`.
+ */
+function citePage(context, text) {
+  const button = new FakeElement("button");
+  button.hidden = true;
+  button.textContent = "Copy";
+  button.dataset.copy = "bibtex";
+  button.setAttribute("data-copy", "bibtex");
+  const source = new FakeElement("pre", "bibtex");
+  source.textContent = text;
+  useFakePage(context, { elements: [button, source] });
+  return { button, source };
 }
 
 test("the BibTeX entry links the paper's address, and its copy button starts hidden, naming the block it copies", () => {
@@ -32,20 +39,21 @@ test("the BibTeX entry links the paper's address, and its copy button starts hid
   assert.match(page, /<button class="cite-copy" type="button" data-copy="bibtex" hidden>Copy<\/button>/);
 });
 
-test("with no clipboard the copy button stays hidden", () => {
-  const page = fakePage("@article{x}");
-  mountCopyButtons(page.root, undefined);
+test("with no clipboard the copy button stays hidden", (context) => {
+  const page = citePage(context, "@article{x}");
+  mountCopyButtons(document, undefined);
   assert.equal(page.button.hidden, true);
-  assert.equal(page.listeners.length, 0);
+  assert.equal(page.button.listeners.size, 0);
 });
 
 test("with a clipboard the button shows, and a click puts the block's text on it unchanged", async (context) => {
   context.mock.timers.enable({ apis: ["setTimeout"] });
-  const page = fakePage("\n@article{x,\n  year = {2026}\n}\n");
+  const page = citePage(context, "\n@article{x,\n  year = {2026}\n}\n");
   const clipboard = fakeClipboard();
-  mountCopyButtons(page.root, clipboard);
+  mountCopyButtons(document, clipboard);
   assert.equal(page.button.hidden, false);
-  await page.listeners[0]();
+  page.button.dispatch("click");
+  await settled();
   assert.deepEqual(clipboard.written, ["@article{x,\n  year = {2026}\n}"]);
   assert.equal(page.button.textContent, "Copied");
   context.mock.timers.tick(2000);

@@ -1,9 +1,8 @@
 /**
  * The stand-in for the browser through which the node tests reach the page's modules, as node has no page of its own:
  * an element or the window (`FakeElement`, of `fake_element.js`, exported here); the browser's history; the page's
- * document, window, fetch and animation frames for one test (`useFakePage`); and an answer the page ships. Until their
- * last tests move, it also holds a document of `createElement` alone and a figure's body with its legend's place. It
- * imports nothing from `site/`, so that a fault in a page module never breaks the fake every test stands on.
+ * document, window, fetch and animation frames for one test (`useFakePage`); and an answer the page ships. It imports
+ * nothing from `site/`, so that a fault in a page module never breaks the fake every test stands on.
  */
 
 import { readFileSync } from "node:fs";
@@ -22,12 +21,6 @@ const ANSWERS_FOLDER = new URL("../site/data/all/", import.meta.url);
 // `fetch`, which node has, is mocked through the test's context, and node restores it.
 const PAGE_GLOBALS = ["document", "window", "requestAnimationFrame", "ResizeObserver"];
 
-/** Make a stand-in the global document for the test of `context`; node has none of its own. */
-export function useFakeDocument(context) {
-  globalThis.document = { createElement: (tag) => new FakeElement(tag) };
-  context.after(() => delete globalThis.document);
-}
-
 /** Wait until every promise a click or a draw started, and that can settle, has: a redraw runs after its click returns. */
 export function settled() {
   return new Promise((resolve) => setImmediate(resolve));
@@ -37,21 +30,6 @@ export function settled() {
 export function runFrames(frames) {
   for (const frame of frames.splice(0)) {
     frame();
-  }
-}
-
-/**
- * A figure's body, the place its chart is drawn, as `renderFigure` of `shared/figure.js` lays it out, as far as a
- * legend reads it: its figure's place for the legend, `legendPlace`, found through `closest`.
- */
-export class FakeFigureBody extends FakeElement {
-  constructor() {
-    super("div");
-    this.legendPlace = new FakeElement("div");
-  }
-
-  closest() {
-    return { querySelector: () => this.legendPlace };
   }
 }
 

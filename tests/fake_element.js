@@ -1,25 +1,27 @@
 /**
  * The one stand-in for an element of the page, or for the window, that the node tests use (`FakeElement`): the fields
- * and methods the page's modules set and call, an element found under another by a tag, a class, an id or a data
- * attribute, or a chain of them, its nearest ancestor that one matches, and the elements of markup written into it.
- * The tests import it from `fake_page.js`, the one module through which they reach the browser.
+ * and methods the page's modules set and call, an element found under another by a tag, a class, an id, a data
+ * attribute or a tag with a data attribute, or a chain of them, its nearest ancestor that one matches, and the elements
+ * of markup written into it. The tests import it from `fake_page.js`, the one module through which they reach the
+ * browser.
  */
 
-// The four forms of a simple selector the fake element reads, each matched whole: a tag, a class, an id, and a data
-// attribute without or with a value in double quotes.
+// The five forms of a simple selector the fake element reads, each matched whole: a tag, a class, an id, a data
+// attribute without or with a value in double quotes, and a tag followed by one such attribute (`button[data-copy]`).
 const TAG_SELECTOR = /^[a-z][a-z0-9]*$/;
 const CLASS_SELECTOR = /^\.([\w-]+)$/;
 const ID_SELECTOR = /^#([\w-]+)$/;
 const ATTRIBUTE_SELECTOR = /^\[(data-[\w-]+)(?:="([^"]*)")?\]$/;
+const TAG_ATTRIBUTE_SELECTOR = /^([a-z][a-z0-9]*)(\[data-[\w-]+(?:="[^"]*")?\])$/;
 
 // An element of markup that the fake reads into children, holding text alone, of a tag and at most a class:
 // `<p class="figure-definition-text"></p>`.
 const MARKUP_ELEMENT = /<(\w+)(?: class="([^"]*)")?>([^<]*)<\/\1>/g;
 
-// Throw where `simple` is of none of the four forms, naming it, so that a test never passes on a selector the fake
+// Throw where `simple` is of none of the five forms, naming it, so that a test never passes on a selector the fake
 // misread: `:not(…)`, `>`, `,` and `[class$=…]` among them.
 function checkSimpleSelector(simple) {
-  const forms = [TAG_SELECTOR, CLASS_SELECTOR, ID_SELECTOR, ATTRIBUTE_SELECTOR];
+  const forms = [TAG_SELECTOR, CLASS_SELECTOR, ID_SELECTOR, ATTRIBUTE_SELECTOR, TAG_ATTRIBUTE_SELECTOR];
   if (!forms.some((form) => form.test(simple))) {
     throw new Error(`The fake page reads no selector of the form "${simple}"`);
   }
@@ -112,11 +114,17 @@ export class FakeElement {
 
   /**
    * Whether this element matches `simple`, one simple selector: a tag (`input`), a class (`.range-track`, a word of
-   * `className` or a member of `classes`), an id (`#traffic-explorer`), or a data attribute without or with a value
-   * (`[data-copy]`, `[data-copy="bibtex"]`). Any other form throws, so that a test with a mistyped selector fails.
+   * `className` or a member of `classes`), an id (`#traffic-explorer`), a data attribute without or with a value
+   * (`[data-copy]`, `[data-copy="bibtex"]`), or a tag and such an attribute, both required (`button[data-copy]`). Any
+   * other form throws, so that a test with a mistyped selector fails.
    */
   matches(simple) {
     checkSimpleSelector(simple);
+    const tagAttributeSelector = simple.match(TAG_ATTRIBUTE_SELECTOR);
+    if (tagAttributeSelector !== null) {
+      const [, tag, attribute] = tagAttributeSelector;
+      return this.tag === tag && this.matches(attribute);
+    }
     const classSelector = simple.match(CLASS_SELECTOR);
     if (classSelector !== null) {
       const [, name] = classSelector;

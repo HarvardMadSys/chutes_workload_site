@@ -1,7 +1,6 @@
 // The number and date formats (`shared/format.js`): counts, durations, shares and quantities as text and as axis ticks,
 // and the trace's days and its first day.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
@@ -10,6 +9,7 @@ import {
   formatSignificant, formatSignificantSeconds, formatThousandsTick, formatTraceDay, formatWholeCount,
   formatWholeCountTick, TRACE_FIRST_DAY,
 } from "../site/js/shared/format.js";
+import { shippedAnswer } from "./fake_page.js";
 
 test("a count gets thousands separators", () => {
   assert.equal(formatCount(1186582), "1,186,582");
@@ -156,7 +156,6 @@ test("a trace day's date does not move with the machine's time zone", (context) 
 });
 
 test("the trace's first day is the shipped trace totals' first day", () => {
-  const totalsFile = new URL("../site/data/all/explore/trace_totals.json", import.meta.url);
-  const [totals] = JSON.parse(readFileSync(totalsFile, "utf8"));
+  const [totals] = shippedAnswer("explore/trace_totals");
   assert.equal(TRACE_FIRST_DAY, totals.first_day);
 });

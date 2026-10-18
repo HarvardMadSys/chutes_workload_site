@@ -3,17 +3,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { TOPICS, topicCards } from "../site/js/page/topics.js";
-
-// Every card of every topic.
-function everyCard() {
-  return TOPICS.flatMap(topicCards);
-}
-
-// Every group of every topic.
-function everyGroup() {
-  return TOPICS.flatMap((topic) => topic.groups);
-}
+import { TOPICS } from "../site/js/page/topics.js";
+import { everyCard, everyGroup } from "./insights_fixtures.js";
 
 // A sentence ends at a full stop, a question mark or an exclamation mark followed by a space; a line break also
 // starts a new one.

@@ -5,7 +5,6 @@
 // a card as its topic lists it and its answer as the page reads it.
 
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
@@ -18,32 +17,23 @@ import {
 import { axisTicks } from "../site/js/plot/axes.js";
 import { cellTipText } from "../site/js/charts/cells.js";
 import { drawWithLegend, hasLegend } from "../site/js/shared/legend.js";
+import { legendPlace, renderFigure } from "../site/js/shared/figure.js";
 import { cardColours, COUNT_COLOUR, figureLegend } from "../site/js/insights/card_series.js";
 import { chartParameters } from "../site/js/insights/figure_card.js";
 import { TRACE_DAY_AXIS } from "../site/js/plot/trace_axes.js";
-import { TOPICS, topicCards } from "../site/js/page/topics.js";
 import { sequentialColour, titledFrame } from "../site/js/plot/frame.js";
 import { SERIES_SLOTS } from "../site/js/theme/colours.js";
 import { SERIES_COLUMN } from "../site/js/shared/series.js";
-import { FakeElement, FakeFigureBody, settled, useFakeDocument } from "./fake_page.js";
+import { FakeElement, settled, shippedAnswer, useFakePage } from "./fake_page.js";
+import { cardOf } from "./insights_fixtures.js";
 
 const HOURS_IN_WINDOW = 31 * 24; // a raster's window: thirty-one days of hours
 // A stand-in for Plot's line mark, returning its name and the arguments it was given.
 const FAKE_LINE_PLOT = { line: (...args) => ["line", ...args] };
 
-// The card that draws `figure`, as its topic lists it.
-function cardOf(figure) {
-  return TOPICS.flatMap(topicCards).find((card) => card.figure === figure);
-}
-
-// A shipped answer's rows, read from its file as the page reads it over HTTP.
-function shippedAnswer(figure) {
-  return JSON.parse(readFileSync(new URL(`../site/data/all/figures/${figure}.json`, import.meta.url), "utf8"));
-}
-
 test("the requests-per-day card's tooltip at day 120 gives the day with its date and its requests", () => {
   const card = cardOf("fig_request_rate_day");
-  const row = shippedAnswer(card.figure).find((point) => point.x === 120);
+  const row = shippedAnswer(`figures/${card.figure}`).find((point) => point.x === 120);
   const [, day, requests] = lineTipText(row, chartParameters(card)).split("\n");
   assert.equal(day, "Day 120 · Aug 9, 2025");
   assert.match(requests, /^Requests: \d+(\.\d)?[kM]?$/);
@@ -61,14 +51,14 @@ test("the hit-ratio grid labels its all-cached top row 100% at its centre, and i
   const parameters = chartParameters(card);
   const { y: yAxis } = parameters;
   assert.deepEqual(axisTicks(yAxis, []).map(yAxis.tickFormat), ["0%", "20%", "40%", "60%", "80%", "100%"]);
-  const allCached = shippedAnswer(card.figure).find((cell) => cell.y_low === 1);
+  const allCached = shippedAnswer(`figures/${card.figure}`).find((cell) => cell.y_low === 1);
   assert.equal(yAxis.ticks.at(-1), (allCached.y_low + allCached.y_high) / 2);
   assert.equal(cellTipText(allCached, parameters).split("\n")[1], "Token hit ratio: 100%");
 });
 
 test("the Qwen3-Next-80B raster shades each user row's hours by requests, days on x, pooled past its pixels", () => {
   const card = cardOf("fig_model_raster_qwen3_next_80b");
-  const rows = shippedAnswer(card.figure);
+  const rows = shippedAnswer(`figures/${card.figure}`);
   const grid = rasterGrid(rows);
   assert.equal(card.kind, "raster");
   assert.equal(grid.columnCount, HOURS_IN_WINDOW);
@@ -86,21 +76,21 @@ test("the Qwen3-Next-80B raster shades each user row's hours by requests, days o
 
 test("the periodic user's raster ticks its model rows on their centres and parts them by rules", () => {
   const card = cardOf("fig_user_raster_periodic");
-  const grid = rasterGrid(shippedAnswer(card.figure));
+  const grid = rasterGrid(shippedAnswer(`figures/${card.figure}`));
   const [low, high] = rasterYDomain(grid.rowCount);
   assert.deepEqual([low, high], [-0.5, grid.rowCount - 0.5]);
   assert.equal(rowBoundaries(grid.rowCount).length, grid.rowCount - 1);
   assert.ok(rowBoundaries(grid.rowCount).every((boundary) => boundary > low && boundary < high));
   // At the card's own plot height its rows are tall enough to be parted: a rule at every boundary.
-  const frame = titledFrame(new FakeFigureBody(), card.chart.y.label, card.chart.margins, card.chart.height);
+  const frame = titledFrame(new FakeElement("div"), card.chart.y.label, card.chart.margins, card.chart.height);
   const plotHeight = frame.height - frame.marginTop - frame.marginBottom;
   assert.deepEqual(rowRules({ ruleY: (values) => values }, grid.rowCount, plotHeight), rowBoundaries(grid.rowCount));
 });
 
 test("a bands card's key names its two bands and its median in the card's colour, with no legend of buttons", (context) => {
-  useFakeDocument(context);
+  useFakePage(context);
   const card = cardOf("fig_monthly_input_token_intervals");
-  const rows = shippedAnswer(card.figure);
+  const rows = shippedAnswer(`figures/${card.figure}`);
   assert.equal(card.kind, "bands");
   assert.ok(!hasLegend(figureLegend(card, rows, cardColours(card, rows, null)).series));
   const key = bandKey(bandsColour(chartParameters(card)));
@@ -115,15 +105,15 @@ test("a bands card's key names its two bands and its median in the card's colour
 
 test("hiding DeepSeek R1 in the input-tokens card's legend leaves the other lines as drawn", async (context) => {
   const hiddenSeries = "Deepseek R1"; // the answer's spelling, which the legend labels "DeepSeek R1"
-  useFakeDocument(context);
+  useFakePage(context);
   const card = cardOf("fig_token_length_input_cdf_by_model");
-  const rows = shippedAnswer(card.figure);
+  const rows = shippedAnswer(`figures/${card.figure}`);
   const colours = cardColours(card, rows, null);
   const drawings = [];
   const drawChart = (hidden) => drawings.push(drawnPoints(rows, colours, chartParameters(card), hidden));
-  const body = new FakeFigureBody();
+  const body = renderFigure(new FakeElement("div"), card);
   await drawWithLegend(body, { ...figureLegend(card, rows, colours), swatch: "line" }, drawChart);
-  const button = body.legendPlace.children.find((entry) => entry.children.includes("DeepSeek R1"));
+  const button = legendPlace(body).children.find((entry) => entry.children.includes("DeepSeek R1"));
   button.dispatch("click");
   await settled();
   const [before, after] = drawings;
@@ -134,7 +124,7 @@ test("hiding DeepSeek R1 in the input-tokens card's legend leaves the other line
 
 test("a CDF card's legend draws its global series' swatch dashed, as its line", () => {
   const card = cardOf("fig_token_length_input_cdf_by_model");
-  const rows = shippedAnswer(card.figure);
+  const rows = shippedAnswer(`figures/${card.figure}`);
   const legend = figureLegend(card, rows, cardColours(card, rows, null));
   assert.deepEqual(legend.dashed, ["Global"]);
   assert.ok(legend.series.some((entry) => entry.name === "Global"));
@@ -144,7 +134,7 @@ test("the hourly lines break where an hour is missing from their answers, and no
   const breaks = {};
   for (const figure of ["fig_lb_request_rate", "fig_lb_active_instances", "fig_lb_maxmean_tokens"]) {
     const { gap } = cardOf(figure).chart;
-    const rows = shippedAnswer(figure);
+    const rows = shippedAnswer(`figures/${figure}`);
     breaks[figure] = brokenAtGaps(rows, gap).length - rows.length;
   }
   // Counted from the answers: the steps between neighbouring hours longer than an hour.
@@ -167,13 +157,13 @@ test("the workload topic's four daily lines and the three hourly lines share the
     assert.equal(cardOf(figure).chart.x, TRACE_DAY_AXIS, figure);
   }
   assert.equal(TRACE_DAY_AXIS.label, "Day of the trace");
-  const hourly = shippedAnswer("fig_lb_request_rate")[0];
+  const hourly = shippedAnswer("figures/fig_lb_request_rate")[0];
   assert.match(TRACE_DAY_AXIS.tipFormat(hourly.x), /^Day 305 · Feb 10, 2026, \d\d:\d\d UTC$/);
 });
 
 test("the input-tokens CDF joins its percentile points with straight lines", () => {
   const card = cardOf("fig_token_length_input_cdf_by_model");
-  const points = linePoints(shippedAnswer(card.figure), true);
+  const points = linePoints(shippedAnswer(`figures/${card.figure}`), true);
   const parameters = chartParameters(card);
   const [, drawn, options] = seriesLine(FAKE_LINE_PLOT, points, "Global", { ...parameters, y: lineYAxis(parameters) });
   assert.equal(options.curve, "linear");
@@ -200,7 +190,7 @@ function seriesOf(points) {
 
 test("the routing card draws eight panels, a row of four per model, each its model's lines only, under its top", () => {
   const card = cardOf("fig_routing_tradeoff");
-  const rows = shippedAnswer(card.figure);
+  const rows = shippedAnswer(`figures/${card.figure}`);
   const colours = cardColours(card, rows, null);
   assert.equal(card.panels.length, ROUTING_MODELS.length * ROUTING_PANELS_PER_MODEL);
   for (const [index, entry] of card.panels.entries()) {
@@ -221,17 +211,17 @@ test("the routing card draws eight panels, a row of four per model, each its mod
 });
 
 test("the routing card's legend lists each policy once, and hiding Sticky hides its line in both rows", async (context) => {
-  useFakeDocument(context);
+  useFakePage(context);
   const card = cardOf("fig_routing_tradeoff");
-  const rows = shippedAnswer(card.figure);
+  const rows = shippedAnswer(`figures/${card.figure}`);
   const colours = cardColours(card, rows, null);
   const drawings = [];
   const drawChart = (hidden) => drawings.push(everyPanelsPoints(card, rows, colours, hidden));
-  const body = new FakeFigureBody();
+  const body = renderFigure(new FakeElement("div"), card);
   await drawWithLegend(body, { ...figureLegend(card, rows, colours), swatch: "line" }, drawChart);
-  const labels = body.legendPlace.children.map((button) => button.children[1]);
+  const labels = legendPlace(body).children.map((button) => button.children[1]);
   assert.deepEqual(labels, ["Round-robin", "Load-first", "Cache-first", "Sticky"]);
-  const button = body.legendPlace.children.find((entry) => entry.children.includes("Sticky"));
+  const button = legendPlace(body).children.find((entry) => entry.children.includes("Sticky"));
   button.dispatch("click");
   await settled();
   const [before, after] = drawings;
@@ -242,7 +232,7 @@ test("the routing card's legend lists each policy once, and hiding Sticky hides 
 
 test("the input-tokens card's tooltip names no point outside its axis's 10 to 1,000,000 tokens", () => {
   const card = cardOf("fig_token_length_input_cdf_by_model");
-  const rows = shippedAnswer(card.figure);
+  const rows = shippedAnswer(`figures/${card.figure}`);
   const parameters = chartParameters(card);
   const drawn = drawnPoints(linePoints(rows, true), cardColours(card, rows, null), parameters, new Set());
   const tipped = framedPoints(drawn, parameters.x, lineYAxis(parameters));
@@ -253,10 +243,10 @@ test("the input-tokens card's tooltip names no point outside its axis's 10 to 1,
 test("the two user zooms have no legend: each of their panels holds one series, which its title names", () => {
   for (const figure of ["fig_lb_user_zoom_top", "fig_lb_user_zoom_min"]) {
     const card = cardOf(figure);
-    const rows = shippedAnswer(figure);
+    const rows = shippedAnswer(`figures/${figure}`);
     assert.deepEqual(figureLegend(card, rows, cardColours(card, rows, null)).series, [], figure);
   }
   const routing = cardOf("fig_routing_tradeoff");
-  const rows = shippedAnswer(routing.figure);
+  const rows = shippedAnswer(`figures/${routing.figure}`);
   assert.equal(figureLegend(routing, rows, cardColours(routing, rows, null)).series.length, 4);
 });

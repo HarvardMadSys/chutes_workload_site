@@ -6,8 +6,8 @@ import { test } from "node:test";
 
 import { CHART_KINDS } from "../site/js/insights/figure_card.js";
 import { PALETTES } from "../site/js/insights/card_series.js";
-import { TOPICS, topicCards } from "../site/js/page/topics.js";
 import { shippedAnswer } from "./fake_page.js";
+import { everyCard } from "./insights_fixtures.js";
 
 // The columns a figure answer of each chart kind holds: the plot-ready tables' contract.
 const KIND_COLUMNS = Object.freeze({
@@ -24,11 +24,6 @@ const KIND_COLUMNS = Object.freeze({
 
 // The columns of a legend answer, which gives the share cards their series' order.
 const LEGEND_COLUMNS = ["series", "rank"];
-
-// Every card of every topic.
-function everyCard() {
-  return TOPICS.flatMap(topicCards);
-}
 
 // The columns of `rows` missing from at least one row: none for an answer of the kind's columns.
 function missingColumns(rows, columns) {

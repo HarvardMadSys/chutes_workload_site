@@ -5,7 +5,6 @@
 // zooms' even split. Each reads a card as its topic lists it and, where it needs one, its answer as the page reads it.
 
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { axisTicks } from "../site/js/plot/axes.js";
@@ -13,20 +12,12 @@ import { cellTipText } from "../site/js/charts/cells.js";
 import { allSeriesTips, drawnPoints } from "../site/js/charts/lines.js";
 import { cardColours } from "../site/js/insights/card_series.js";
 import { chartParameters } from "../site/js/insights/figure_card.js";
-import { TOPICS, topicCards } from "../site/js/page/topics.js";
+import { TOPICS } from "../site/js/page/topics.js";
+import { shippedAnswer } from "./fake_page.js";
+import { cardOf } from "./insights_fixtures.js";
 
 const EVICTION_CARDS = ["fig_hit_ratio_minimax_m25", "fig_hit_ratio_deepseek_v32"];
 const USER_ZOOMS = ["fig_lb_user_zoom_top", "fig_lb_user_zoom_min"];
-
-// The card that draws `figure`, as its topic lists it.
-function cardOf(figure) {
-  return TOPICS.flatMap(topicCards).find((card) => card.figure === figure);
-}
-
-// A shipped answer's rows, read from its file as the page reads it over HTTP.
-function shippedAnswer(figure) {
-  return JSON.parse(readFileSync(new URL(`../site/data/all/figures/${figure}.json`, import.meta.url), "utf8"));
-}
 
 // The tick labels of the axis `axis` ("x" or "y") of the chart of `figure`, as the axis writes them.
 function tickLabels(figure, axis) {
@@ -54,7 +45,7 @@ test("the eviction pair, the caching topic's last group, shares its row on one h
 test("an eviction card's tooltip lists all seven algorithms at a cache size, LRU beside the LRB that covers it", () => {
   for (const figure of EVICTION_CARDS) {
     const card = cardOf(figure);
-    const rows = shippedAnswer(figure);
+    const rows = shippedAnswer(`figures/${figure}`);
     const parameters = chartParameters(card);
     const tips = allSeriesTips(drawnPoints(rows, cardColours(card, rows, null), parameters, new Set()), parameters);
     // A tip at each cache size of the answer, so the loop below cannot pass on no tips at all.
@@ -79,7 +70,7 @@ test("the occupancy's window is ticked in hours elapsed, from 0 h to 24 h", () =
 
 test("the occupancy's tooltip writes a cell's minute in hours to a tenth, once where its two edges read alike", () => {
   const parameters = chartParameters(cardOf("fig_lb_concurrency"));
-  const minute = shippedAnswer("fig_lb_concurrency").find((cell) => cell.x_low === 832);
+  const minute = shippedAnswer("figures/fig_lb_concurrency").find((cell) => cell.x_low === 832);
   assert.equal(cellTipText(minute, parameters).split("\n")[0], "Hours into the window: 13.9 h");
   const sixHours = { ...minute, x_low: 0, x_high: 360 };
   assert.equal(cellTipText(sixHours, parameters).split("\n")[0], "Hours into the window: 0.0 h–6.0 h");
@@ -88,7 +79,7 @@ test("the occupancy's tooltip writes a cell's minute in hours to a tenth, once w
 test("a user zoom's request-share panel marks an even split over the instances of its answer", () => {
   for (const figure of USER_ZOOMS) {
     const card = cardOf(figure);
-    const instances = shippedAnswer(figure).filter((row) => row.panel === "request_share").length;
+    const instances = shippedAnswer(`figures/${figure}`).filter((row) => row.panel === "request_share").length;
     const [requestShare, tokenHit] = card.panels.map((entry) => chartParameters(card, entry));
     assert.deepEqual(requestShare.reference, { value: 100 / instances, label: "even split" }, figure);
     assert.equal(tokenHit.reference, undefined, figure);
@@ -101,7 +92,7 @@ test("the per-user IAT band card's y axis is linear from 0 to 400 s, its median 
   assert.deepEqual(yAxis.domain, [0, 400]);
   assert.equal(yAxis.label, "Inter-arrival time (s)");
   // The axis shows every month's median, and the 90th percentile, cut off at its top, passes it in some month.
-  const rows = shippedAnswer("fig_iat_monthly_per_user_band");
+  const rows = shippedAnswer("figures/fig_iat_monthly_per_user_band");
   assert.ok(rows.every((row) => row.p50 < yAxis.domain[1]));
   assert.ok(rows.some((row) => row.p90 > yAxis.domain[1]));
 });

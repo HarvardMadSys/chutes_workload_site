@@ -1,14 +1,15 @@
 // The topic list (`page/topics.js`): the topics' ids and numbers, their groups and cards, every field of a card, the
 // figure answers they draw, and their being frozen.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { TOPICS, topicCards, topicNumber } from "../site/js/page/topics.js";
 import { CHART_HEIGHT } from "../site/js/plot/frame.js";
+import { shippedAnswer } from "./fake_page.js";
+import { everyCard, everyGroup } from "./insights_fixtures.js";
 
 // The figure answers the data step wrote, as their index lists them: each figure's row count, by name.
-const INDEX = JSON.parse(readFileSync(new URL("../site/data/all/figures.json", import.meta.url), "utf8"));
+const INDEX = shippedAnswer("figures");
 
 // How many cards each group of each topic holds, in the order of the topics and of their groups: a card for each panel
 // of the paper's figures of the topic's section. A pin of the paper's layout, updated with a topic or a group added.
@@ -28,11 +29,6 @@ const SHARE_PANELS = ["fig_top10_model_monthly_request_share", "fig_top10_model_
 // The wide cards, in the topics' order, as the spec's table marks them: the output-to-input ratio and the TTL
 // coverage, each a log axis of many decades, and the routing simulation's eight panels.
 const WIDE_CARDS = ["fig_output_input_ratio_cdf_by_model", "fig_iat_pair_ttl_coverage", "fig_routing_tradeoff"];
-
-// Every card of every topic.
-function everyCard() {
-  return TOPICS.flatMap(topicCards);
-}
 
 // How many times each figure is used: once for a card's figure, once more for each card it is the legend of.
 function figureUses() {
@@ -91,7 +87,7 @@ test("topicCards lists a topic's cards group by group, each group's in its order
 });
 
 test("no card object is held by two groups", () => {
-  const groups = TOPICS.flatMap((topic) => topic.groups);
+  const groups = everyGroup();
   for (const card of everyCard()) {
     const holding = groups.filter((group) => group.cards.includes(card));
     assert.equal(holding.length, 1, card.figure);
@@ -178,7 +174,7 @@ function gridRows(cards) {
 }
 
 test("the two cards of a grid row draw their charts at one height, so the row stays level", () => {
-  for (const group of TOPICS.flatMap((topic) => topic.groups)) {
+  for (const group of everyGroup()) {
     for (const row of gridRows(group.cards)) {
       // A card that gives no height draws at the frame's, so it is compared as that.
       const heights = row.map((card) => card.chart.height ?? CHART_HEIGHT);

@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import { bandKey, bandsColour, bandTipText, drawnBands } from "../site/js/charts/bands.js";
 import { SERIES_SLOTS } from "../site/js/theme/colours.js";
-import { FakeElement } from "./fake_page.js";
+import { useFakePage } from "./fake_page.js";
 
 const ROWS = [
   { x: "2025-06", p10: 0, p25: 40, p50: 300, p75: 2000, p90: 9000 },
@@ -35,8 +35,7 @@ test("a bands chart is drawn in its card's colour, the first series slot's when 
 });
 
 test("the key lists a light band, a darker band and the median line, in the chart's colour and opacities", (context) => {
-  globalThis.document = { createElement: (tag) => new FakeElement(tag) };
-  context.after(() => delete globalThis.document);
+  useFakePage(context);
   const key = bandKey("var(--series-2)");
   assert.equal(key.className, "band-key");
   const [outer, inner, median] = key.children.map((entry) => entry.children[0]);

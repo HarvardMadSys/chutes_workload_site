@@ -543,7 +543,8 @@ tests/               what make test runs
   test_figures_registry.py
                      with ARTIFACT, every figure the artifact lists is one card's, or the share cards' legend
   test_repository.py
-                     the countable rules of CONTRIBUTING.md and the files git tracks
+                     the countable rules of CONTRIBUTING.md, among them that only fake_page.js sets a global of
+                     the node tests, and the files git tracks
   test_naming.py     the name rules: a name is exported by one module of site/js/, a node test file's name starts
                      with the folder of the module it tests, and no module of tests/ imports a test module
   test_deployment.py
@@ -609,6 +610,8 @@ tests/               what make test runs
                      controls (controlsOf), the period buttons pressed, and the page's part the controls are given,
                      recording what they ask of it (recordingExplorer)
   page_fixtures.js   the page's tests' Insights section holding a section per topic, and which of them are shown
+  insights_fixtures.js
+                     the Insights' tests' every card, every group and the card that draws a figure (cardOf)
   palette_contrast.test.js, palette.js
                      the colours' contrast in both schemes, read from style.css
   module_headers.test.js

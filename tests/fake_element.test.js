@@ -1,7 +1,8 @@
 /**
- * The fake element (`fake_element.js`): an element found under another by a tag, a class, an id or a data attribute,
- * or by a chain of them; null or an empty list where none matches; an unread form failing; its parent set when it is
- * appended, its nearest ancestor that a selector matches, and the elements of the markup written into it.
+ * The fake element (`fake_element.js`): an element found under another by a tag, a class, an id, a data attribute or a
+ * tag with a data attribute, or by a chain of them; null or an empty list where none matches; an unread form failing;
+ * its parent set when it is appended, its nearest ancestor that a selector matches, and the elements of the markup
+ * written into it.
  */
 
 import assert from "node:assert/strict";
@@ -55,6 +56,19 @@ test("a data attribute finds the elements that have it, or that have it with the
   assert.deepEqual(root.querySelectorAll("[data-key]"), [first, second]);
   assert.equal(root.querySelector('[data-key="second"]'), second);
   assert.equal(root.querySelector('[data-key="third"]'), null, "a wrong value misses");
+});
+
+test("a tag with a data attribute finds the elements of that tag that have it, both required", () => {
+  const copy = element("button", "");
+  copy.setAttribute("data-copy", "bibtex");
+  const other = element("span", "");
+  other.setAttribute("data-copy", "bibtex");
+  const root = element("div", "", copy, other, element("button", ""));
+  assert.deepEqual(root.querySelectorAll("button[data-copy]"), [copy]);
+  assert.deepEqual(root.querySelectorAll('button[data-copy="bibtex"]'), [copy]);
+  assert.deepEqual(root.querySelectorAll('button[data-copy="doi"]'), [], "a value not the element's misses");
+  assert.throws(() => root.querySelector("button.cite-copy"), /"button\.cite-copy"/);
+  assert.throws(() => root.querySelector("button[data-copy][data-x]"), /"button\[data-copy\]\[data-x\]"/);
 });
 
 test("a chain finds each next selector under a match of the one before", () => {

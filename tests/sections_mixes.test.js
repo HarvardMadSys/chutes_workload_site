@@ -1,7 +1,6 @@
 // The two mixes (`sections/mixes.js`): the family and endpoint donuts, their legends' colours and order, and each
 // donut's centre against its answer and the stats strip.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { MIXES, mixLegend } from "../site/js/sections/mixes.js";
@@ -13,11 +12,7 @@ import { familyChoices } from "../site/js/traffic/traffic_choice.js";
 import {
   ENDPOINT_FIRST_SLOT, FAMILY_SLOTS, familyColours, OTHER_SERIES, SERIES_SLOTS,
 } from "../site/js/theme/colours.js";
-
-// The rows of a shipped answer, as the page reads them.
-function shippedAnswer(name) {
-  return JSON.parse(readFileSync(new URL(`../site/data/all/${name}.json`, import.meta.url), "utf8"));
-}
+import { shippedAnswer } from "./fake_page.js";
 
 test("the two donuts are the family mix and the endpoint mix", () => {
   assert.deepEqual(MIXES.map((mix) => [mix.title, mix.breakdown.order, mix.breakdown.column]), [

@@ -4,11 +4,11 @@
 // A rebuild that outgrows a domain fails here: the fix is a wider domain, with `make snapshots` and its diff reviewed,
 // or a listed clip with its reason.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { chartParameters } from "../site/js/insights/figure_card.js";
-import { TOPICS, topicCards } from "../site/js/page/topics.js";
+import { shippedAnswer } from "./fake_page.js";
+import { everyCard } from "./insights_fixtures.js";
 
 // The columns each chart kind draws on each axis, as each kind's module of `js/charts/` names its rows' columns. An
 // axis a kind does not list draws no number a domain bounds there, such as the boxes' and bars' axes of names. The
@@ -50,11 +50,6 @@ const INTENDED_CLIPS = Object.freeze([
   }),
 ]);
 
-/** The rows of a shipped answer, read from its file as the page reads it over HTTP. */
-function shippedAnswer(figure) {
-  return JSON.parse(readFileSync(new URL(`../site/data/all/figures/${figure}.json`, import.meta.url), "utf8"));
-}
-
 /**
  * Every chart of every card with a numeric domain on an axis: `{ card, entry, axis, parameters }`, `entry` the panel of
  * the card's `panels` the chart draws, or null for a card of one chart. A domain of anything but numbers, such as
@@ -62,7 +57,7 @@ function shippedAnswer(figure) {
  */
 function chartsWithDomains() {
   const charts = [];
-  for (const card of TOPICS.flatMap(topicCards)) {
+  for (const card of everyCard()) {
     for (const entry of card.panels ?? [null]) {
       const parameters = chartParameters(card, entry);
       for (const axis of ["x", "y"]) {
@@ -142,7 +137,7 @@ function valueOutside(values, domain, isLog) {
 function clippedCharts() {
   const clipped = [];
   for (const { card, entry, axis, parameters } of chartsWithDomains()) {
-    const rows = drawnRows(card, parameters, shippedAnswer(card.figure));
+    const rows = drawnRows(card, parameters, shippedAnswer(`figures/${card.figure}`));
     const { domain, log } = parameters[axis];
     const value = valueOutside(axisValues(card, parameters, rows, axis), domain, log === true);
     if (value !== null) {

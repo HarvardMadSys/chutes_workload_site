@@ -8,13 +8,8 @@ import {
   CHART_KINDS, chartParameters, drawFigureChart, frozenCard, newCardElement, renderFigureCard,
 } from "../site/js/insights/figure_card.js";
 import { AXIS_OPTION_NAMES } from "../site/js/plot/axes.js";
-import { TOPICS, topicCards } from "../site/js/page/topics.js";
 import { FakeElement, useFakePage } from "./fake_page.js";
-
-// Every card of every topic.
-function everyCard() {
-  return TOPICS.flatMap(topicCards);
-}
+import { everyCard } from "./insights_fixtures.js";
 
 // The page's mixes as `page/start.js` promises them, the endpoint mix of one group.
 const MIXES = Object.freeze({ endpoints: Promise.resolve([{ endpoint_group: "chat", requests: 1 }]) });

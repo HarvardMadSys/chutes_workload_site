@@ -836,9 +836,16 @@ job `test` has run `make test ARTIFACT=` and passed (README's
 "Deploying").
 
 The node tests drive the page's modules on the fake page of
-`tests/fake_page.js`. The explorer's tests reach an element by the fake
+`tests/fake_page.js`, through `useFakePage`, which sets the page's
+globals for one test and removes them after it; no other file of
+`tests/` sets or mocks a property of `globalThis`, and
+`tests/test_repository.py` fails on one that does. What two test files
+of one section share lives in `tests/<section>_fixtures.js`
+(`traffic_fixtures.js`, `insights_fixtures.js`, `page_fixtures.js`).
+The explorer's tests reach an element by the fake
 page's `querySelector` and `querySelectorAll` (a tag, a `.class`, an
-`#id`, a `[data-x]` or `[data-x="v"]`, or a chain of them parted by
+`#id`, a `[data-x]` or `[data-x="v"]`, a tag with one of those
+(`button[data-copy]`), or a chain of them parted by
 spaces, each matched among the descendants of the one before), never by
 its place among an element's children, and by the selectors the
 stylesheet and `tests/snapshot_traffic.py` use; `controlsOf`, a row's

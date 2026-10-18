@@ -88,8 +88,8 @@ test("Back after a choice and then a tab keeps the choice, which is not drawn ag
   assert.deepEqual(shownIds(page.sections), ["insights-overview"]);
 });
 
-// A card as a topic lists it, its figure `figure`.
-function cardOf(figure) {
+// A made-up card as a topic lists it, its figure `figure`.
+function madeUpCard(figure) {
   return { figure, title: `Title of ${figure}`, insight: "An insight.", caption: "A caption.", definition: "Rows." };
 }
 
@@ -99,8 +99,8 @@ const TOPIC = {
   title: "Workload",
   takeaway: "The topic's finding.",
   groups: [
-    { heading: "First group", takeaway: "What the first shows.", cards: [cardOf("fig_a"), cardOf("fig_b")] },
-    { heading: "Second group", takeaway: "What the second shows.", cards: [cardOf("fig_c")] },
+    { heading: "First group", takeaway: "What the first shows.", cards: [madeUpCard("fig_a"), madeUpCard("fig_b")] },
+    { heading: "Second group", takeaway: "What the second shows.", cards: [madeUpCard("fig_c")] },
   ],
 };
 

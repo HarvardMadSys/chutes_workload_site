@@ -1,7 +1,8 @@
 """The repository's rules, checked on every commit: short units, small folders, no aliased imports, one home for library
-URLs and for SQL, libraries loaded only where they are drawn with, one page; and the files git tracks: the expected
-set by folder (no rows, no PDFs, no installed packages), no machine path, none too large to host. The name rules are
-`test_naming.py`'s, the built data's own checks `test_built_data.py`'s."""
+URLs and for SQL, the node tests' globals set by the fake page alone, libraries loaded only where they are drawn with,
+one page; and the files git tracks: the expected set by folder (no rows, no PDFs, no installed packages), no machine
+path, none too large to host. The name rules are `test_naming.py`'s, the built data's own checks
+`test_built_data.py`'s."""
 
 import ast
 import pathlib
@@ -56,6 +57,13 @@ MACHINE_PATH = re.compile(r"/(home|madsys|scratch)/")
 
 # A line of SQL: a statement keyword followed by the clause that names its table.
 SQL_STATEMENT = re.compile(r"\b(SELECT|INSERT|CREATE|UPDATE|DELETE)\b.*\b(FROM|INTO|TABLE|VIEW)\b", re.IGNORECASE)
+
+# The one module of tests/ that sets or mocks a property of `globalThis`: the fake page, which removes each after its test.
+GLOBALS_SETTER = "fake_page.js"
+
+# A property of `globalThis` set, `globalThis.document =` or `globalThis["fetch"] =`, or one of its methods mocked,
+# `mock.method(globalThis, ...`; a comparison (`==`, `===`) is no setting.
+GLOBAL_PROPERTY_SET = re.compile(r"\bglobalThis(?:\.\w+|\[[^\]]+\])\s*=(?!=)|\bmock\.method\(\s*globalThis\b")
 
 # Where a JavaScript function starts: a declaration, an arrow function given a name, or a method.
 JS_FUNCTION_STARTS = (
@@ -131,6 +139,40 @@ def test_sql_lives_in_query_files() -> None:
     for path in javascript_files():
         for number, line in enumerate(path.read_text().splitlines(), start=1):
             assert not SQL_STATEMENT.search(line), f"{path.relative_to(ROOT)}:{number} holds SQL; it belongs in {QUERIES_FOLDER.name}/"
+
+
+def test_only_the_fake_page_sets_a_global() -> None:
+    found = globals_set_outside_the_fake(ROOT / "tests")
+    listed = "\n".join(found)
+    assert found == [], f"node tests set or mock a property of globalThis; use useFakePage of {GLOBALS_SETTER}:\n{listed}"
+
+
+def test_a_global_set_outside_the_fake_is_named(tmp_path: pathlib.Path) -> None:
+    (tmp_path / GLOBALS_SETTER).write_text('globalThis.document = {};\ncontext.mock.method(globalThis, "fetch");\n')
+    (tmp_path / "charts_bands.test.js").write_text(
+        'const hash = globalThis.window.location.hash;\nassert.ok(globalThis.document === undefined);\n'
+        "globalThis.document = { createElement };\n")
+    (tmp_path / "shared_answers.test.js").write_text('context.mock.method(\n  globalThis, "fetch", fakeFetch);\n')
+    assert globals_set_outside_the_fake(tmp_path) == [
+        "charts_bands.test.js:3 globalThis.document",
+        "shared_answers.test.js:1 mock.method(globalThis",
+    ]
+
+
+def globals_set_outside_the_fake(tests: pathlib.Path) -> list[str]:
+    """Each setting or mock of a property of `globalThis` (`GLOBAL_PROPERTY_SET`) in a JavaScript file of `tests` but
+    `GLOBALS_SETTER`, sorted by file, at the line where it starts, written without its spaces and its "=":
+    "<file>:<line> globalThis.document", "<file>:<line> mock.method(globalThis"."""
+    found = []
+    for path in sorted(tests.glob("*.js")):
+        if path.name == GLOBALS_SETTER:
+            continue
+        text = path.read_text()
+        for match in GLOBAL_PROPERTY_SET.finditer(text):
+            line = text.count("\n", 0, match.start()) + 1
+            setting = re.sub(r"\s+", "", match.group(0)).removesuffix("=")
+            found.append(f"{path.name}:{line} {setting}")
+    return found
 
 
 def test_javascript_folders_are_small() -> None:
