@@ -73,13 +73,15 @@ def families(family_rows: list[dict]) -> list[Family]:
 
 
 def write_answers(connection: duckdb.DuckDBPyConnection, data_directory: pathlib.Path) -> list[pathlib.Path]:
-    """Replace the data folder's answers folder with the answer of every answered query, a family query's once per
-    family, and the hashes of the queries they depend on; the answer files written: the single answers in the queries'
-    order, then each family's, in the families' order."""
+    """Replace the answered folders under the data folder's answers folder, `all/explore/`, and `all/queries.json` with
+    the answer of every answered query, a family query's once per family, and the hashes of the queries they depend
+    on, leaving every other file there as it is; the answer files written: the single answers in the queries' order,
+    then each family's, in the families' order."""
     answers_directory = data_directory / paths.ANSWERS_FOLDER
-    if answers_directory.exists():
-        shutil.rmtree(answers_directory)  # a query since removed keeps no answer
-    answers_directory.mkdir(parents=True)
+    for folder in ANSWERED_FOLDERS:
+        if (answers_directory / folder).exists():
+            shutil.rmtree(answers_directory / folder)  # a query since removed keeps no answer
+    answers_directory.mkdir(parents=True, exist_ok=True)
     written = []
     single_answers = {}  # each single answer's rows by its query's name; the families are read from one of them
     for name in single_answer_query_names():

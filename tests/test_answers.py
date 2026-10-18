@@ -12,7 +12,7 @@ import duckdb
 import pytest
 
 import fixture_artifact
-from site_data import answers, paths, site_database
+from site_data import answers, figure_answers, paths, site_database
 
 # The fixture's families, as the by-family answer orders them: by requests, Other last.
 FIXTURE_FAMILIES = [answers.Family("DeepSeek", "deepseek"), answers.Family("gpt-oss", "gpt-oss"),
@@ -179,3 +179,14 @@ def test_a_removed_query_keeps_no_answer(connection: duckdb.DuckDBPyConnection, 
     left_over.write_text("[]\n")
     answers.write_answers(connection, data_directory)
     assert not left_over.exists()
+
+
+def test_the_figure_answers_written_first_are_kept(artifact: pathlib.Path, connection: duckdb.DuckDBPyConnection,
+                                                   tmp_path: pathlib.Path) -> None:
+    """The query answers clear only their own files: figure answers written before them are still there."""
+    data_directory = tmp_path / "data"
+    figure_files = figure_answers.write_figure_answers(figure_answers.read_figure_tables(artifact), data_directory)
+    answer_files = answers.write_answers(connection, data_directory)
+    for path in figure_files + answer_files:
+        assert path.is_file(), f"{path} is gone"
+    assert (data_directory / paths.ANSWERS_FOLDER / paths.FIGURE_INDEX_FILE).is_file()

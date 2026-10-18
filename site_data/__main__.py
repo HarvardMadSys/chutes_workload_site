@@ -26,7 +26,6 @@ def main(arguments: list[str] | None = None) -> None:
     weekly_histograms = loading.load_trace_table(options.tables)
     figure_tables = figure_answers.read_figure_tables(options.artifact)
     connection = site_database.open_database(frames, weekly_histograms)
-    # The figure answers come second: writing the query answers replaces the whole answers folder.
     print_sizes("answers", answers.write_answers(connection, options.out))
     print_sizes("figure answers", figure_answers.write_figure_answers(figure_tables, options.out))
 
