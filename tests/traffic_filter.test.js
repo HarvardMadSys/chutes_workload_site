@@ -42,6 +42,9 @@ const ROWS = [
   modelRow({ day: "2025-10-01", chute_id: "id-b", model: "B", endpoint_group: "chat_stream", requests: 20 }),
 ];
 
+// The family Kin's answer, as the explorer reads it: its name and its rows.
+const KIN = Object.freeze({ name: "Kin", rows: ROWS });
+
 // The choice of everything: every family, every model, every endpoint group, requests, every day.
 const EVERYTHING = Object.freeze({ family: "", model: "", endpoint: "", metric: "", from: "", to: "" });
 
@@ -88,13 +91,13 @@ test("a summary of no requests has no averages and no share", () => {
 });
 
 test("the bars are by family with no family chosen, by model with one, and by endpoint group with a model", () => {
-  assert.equal(choiceBreakdown(EVERYTHING, undefined), BY_FAMILY);
-  assert.equal(choiceBreakdown({ ...EVERYTHING, endpoint: "chat" }, undefined).column, "family");
-  const byModel = choiceBreakdown({ ...EVERYTHING, family: "kin" }, "Kin");
+  assert.equal(choiceBreakdown(EVERYTHING, null), BY_FAMILY);
+  assert.equal(choiceBreakdown({ ...EVERYTHING, endpoint: "chat" }, null).column, "family");
+  const byModel = choiceBreakdown({ ...EVERYTHING, family: "kin" }, KIN);
   assert.deepEqual([byModel.column, byModel.order, byModel.colours], ["model", "models", BY_MODEL.colours]);
   assert.deepEqual(byModel.labels, { Other: "Other Kin" });
-  assert.equal(choiceBreakdown({ ...EVERYTHING, family: "kin", model: "id-a" }, "Kin"), BY_ENDPOINT);
-  assert.equal(choiceBreakdown({ ...EVERYTHING, family: "kin", model: OTHER_MODEL }, "Kin"), BY_ENDPOINT);
+  assert.equal(choiceBreakdown({ ...EVERYTHING, family: "kin", model: "id-a" }, KIN), BY_ENDPOINT);
+  assert.equal(choiceBreakdown({ ...EVERYTHING, family: "kin", model: OTHER_MODEL }, KIN), BY_ENDPOINT);
 });
 
 test("a family's other models fold into Other in the bars, their requests summed per day", () => {
@@ -132,5 +135,6 @@ test("the shipped answer by family adds up to the trace totals', so the tile equ
 });
 
 test("the family Other's other models are Rest of Other on its bars", () => {
-  assert.deepEqual(choiceBreakdown({ ...EVERYTHING, family: "other" }, "Other").labels, { Other: "Rest of Other" });
+  const other = { name: "Other", rows: ROWS };
+  assert.deepEqual(choiceBreakdown({ ...EVERYTHING, family: "other" }, other).labels, { Other: "Rest of Other" });
 });

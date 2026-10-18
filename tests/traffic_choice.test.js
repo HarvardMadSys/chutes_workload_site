@@ -9,7 +9,7 @@ import { test } from "node:test";
 
 import {
   endpointChoices, familyChoices, familyOrder, isSameChoice, metricChoices, metricOf, METRICS, modelChoices,
-  OTHER_MODEL, readTrafficChoice, writeTrafficChoice,
+  OTHER_MODEL, otherModelsText, readTrafficChoice, writeTrafficChoice,
 } from "../site/js/traffic/traffic_choice.js";
 import { familyColours } from "../site/js/theme/colours.js";
 
@@ -151,6 +151,22 @@ test("a family's model drop-down offers its named models by requests, then Other
 test("the family Other's other models are Rest of Other in its drop-down", () => {
   const texts = modelChoices(ROWS, "Other").map((choice) => choice.text);
   assert.deepEqual(texts, ["All Other models", "B", "A", "Rest of Other"]);
+});
+
+test("a family's other models are named as its answer names them, the family Other's as Rest of Other", () => {
+  const renamed = ROWS.map((row) => (row.chute_id === null ? { ...row, model: "The rest of Kin" } : row));
+  assert.equal(otherModelsText(renamed, "Kin"), "The rest of Kin");
+  assert.equal(modelChoices(renamed, "Kin").at(-1).text, "The rest of Kin");
+  assert.equal(otherModelsText(ROWS, "Other"), "Rest of Other");
+  const named = ROWS.filter((row) => row.chute_id !== null);
+  assert.equal(otherModelsText(named, "Kin"), undefined);
+});
+
+test("the shipped family Other's drop-down ends with Rest of Other, where its answer writes Other Other", () => {
+  const rows = shippedAnswer("explore/daily_by_model/other");
+  assert.equal(otherModelsText(rows, "Other"), "Rest of Other");
+  assert.equal(rows.find((row) => row.chute_id === null).model, "Other Other");
+  assert.equal(modelChoices(rows, "Other").at(-1).text, "Rest of Other");
 });
 
 test("the shipped DeepSeek drop-down offers its eight models and Other DeepSeek", () => {

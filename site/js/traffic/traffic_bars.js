@@ -98,7 +98,7 @@ export function dayMonth(day) {
  * takes it. Returns the bars' `{ breakdown, legend }`: their breakdown and their legend, empty when there are no bars.
  */
 export async function drawTrafficBars(place, { choice, family, chosen, requests, days, colourOrders }, legendState) {
-  const breakdown = choiceBreakdown(choice, family?.name);
+  const breakdown = choiceBreakdown(choice, family);
   const metric = metricOf(choice.metric);
   const body = renderFigure(place, {
     title: metric.title,

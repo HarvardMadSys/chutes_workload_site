@@ -12,7 +12,7 @@
 import { foldedRows } from "../charts/stacked_bars.js";
 import { BY_ENDPOINT, BY_FAMILY, BY_MODEL } from "../shared/series.js";
 import { OTHER_NAME } from "../theme/colours.js";
-import { metricOf, OTHER_MODEL, otherModelsName } from "./traffic_choice.js";
+import { metricOf, OTHER_MODEL, otherModelsText } from "./traffic_choice.js";
 
 /**
  * The rows of `rows`, the answer of the choice's family (or of every family), that `choice` keeps: of its model, its
@@ -56,17 +56,19 @@ export function trafficSummary(rows) {
 }
 
 /**
- * The breakdown the bars stack by: by family (`BY_FAMILY`) while no family is chosen; by the models of the family
- * named `familyName` once one is (`BY_MODEL`, its "Other" written as the model drop-down names it, "Other
- * <family>"); by endpoint group (`BY_ENDPOINT`) once a model is.
+ * The breakdown the bars stack by: by family (`BY_FAMILY`) while no family is chosen; by the models of the chosen
+ * family once one is (`BY_MODEL`, its "Other" written as the model drop-down writes it, `otherModelsText`); by endpoint
+ * group (`BY_ENDPOINT`) once a model is. `family` is the chosen family's answer, `{ name, rows }`, null for every
+ * family.
  */
-export function choiceBreakdown(choice, familyName) {
+export function choiceBreakdown(choice, family) {
   if (choice.family === "") {
     return BY_FAMILY;
   }
   if (choice.model === "") {
-    // The family's other models fold into the models' "Other" (`modelColours`), named here for the family.
-    return Object.freeze({ ...BY_MODEL, labels: Object.freeze({ [OTHER_NAME]: otherModelsName(familyName) }) });
+    // The family's other models fold into the models' "Other" (`modelColours`), named here as the drop-down names them.
+    const otherText = otherModelsText(family.rows, family.name);
+    return Object.freeze({ ...BY_MODEL, labels: Object.freeze({ [OTHER_NAME]: otherText }) });
   }
   return BY_ENDPOINT;
 }

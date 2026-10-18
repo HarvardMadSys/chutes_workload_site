@@ -28,10 +28,6 @@ export const OTHER_MODEL = "other";
 const EVERY_FAMILY_TEXT = "All families";
 const EVERY_ENDPOINT_TEXT = "All endpoints";
 
-// The name of the other models of the family named Other, which the rule for every other family would name "Other
-// Other".
-const REST_OF_OTHER_TEXT = "Rest of Other";
-
 /** The model drop-down's one entry while no family is chosen, when it is disabled. */
 export const NO_FAMILY_MODEL_CHOICES = Object.freeze([Object.freeze({ value: "", text: "Choose a family" })]);
 
@@ -149,8 +145,7 @@ export function modelOrder(rows) {
 /**
  * The model drop-down's entries for the family named `familyName`, from its rows `rows`, `[{ value, text }]`: "All
  * <family> models" (value ""), each named model of `modelOrder(rows)` by its name, valued by its `chute_id`, and
- * "Other <family>" ("Rest of Other" for the family Other; value `other`) where the rows hold the family's other
- * models.
+ * the family's other models by `otherModelsText` (value `other`) where the rows hold them.
  */
 export function modelChoices(rows, familyName) {
   const choices = [{ value: "", text: `All ${familyName} models` }];
@@ -158,7 +153,7 @@ export function modelChoices(rows, familyName) {
     choices.push({ value: chuteId, text: model });
   }
   if (rows.some((row) => row.chute_id === null)) {
-    choices.push({ value: OTHER_MODEL, text: otherModelsName(familyName) });
+    choices.push({ value: OTHER_MODEL, text: otherModelsText(rows, familyName) });
   }
   return choices;
 }
@@ -178,14 +173,16 @@ export function metricChoices() {
 }
 
 /**
- * The name of a family's models past its eight named ones for the family named `familyName`, "Other DeepSeek", as its
- * answer writes it; "Rest of Other" for the family Other.
+ * The text of the other models, past the eight named ones, of the family named `familyName`, whose rows of
+ * `explore/daily_by_model` are `rows`: the `model` the answer writes on its rows whose `chute_id` is null, "Other
+ * DeepSeek", and "Rest of Other" for the family Other; undefined for a family whose rows hold no other models.
  */
-export function otherModelsName(familyName) {
+export function otherModelsText(rows, familyName) {
   if (familyName === OTHER_NAME) {
-    return REST_OF_OTHER_TEXT;
+    // placeholder: the family Other's other models, which its answer names "Other Other", for the authors.
+    return "Rest of Other";
   }
-  return `${OTHER_NAME} ${familyName}`;
+  return rows.find((row) => row.chute_id === null)?.model;
 }
 
 // For sorting families: "Other" after every other family, the rest by requests, most first.
