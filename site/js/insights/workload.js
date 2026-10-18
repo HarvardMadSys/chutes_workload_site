@@ -8,6 +8,7 @@
 import { formatCompactCount, formatCount, formatCountTick } from "../shared/format.js";
 import { ENDPOINT_LABELS } from "../shared/series.js";
 import { TRACE_DAY_AXIS } from "../plot/trace_axes.js";
+import { ENDPOINT_PALETTE } from "./card_series.js";
 import { frozenCard } from "./figure_card.js";
 
 // The API functions' labels where the answer writes a function's name otherwise than the site's endpoint groups.
@@ -90,7 +91,7 @@ export const WORKLOAD_TOPIC = Object.freeze({
           caption: "Streaming calls also become less dominant, with non-streaming functions accounting for a larger share later in the trace.",
           definition: "Requests per day by API function: chat, chat stream, completion, completion stream, and Other for every other function.",
           kind: "lines",
-          palette: "endpoints",
+          palette: ENDPOINT_PALETTE,
           chart: {
             x: TRACE_DAY_AXIS,
             // The paper's limits: the busiest function's busiest day, 21.1M requests, sits under its top.
