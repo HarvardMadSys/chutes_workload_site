@@ -1,8 +1,8 @@
-// The Insights' cards drawn from their shipped answers, as the `landing-page` spec describes them: the value under the
-// pointer, a log axis, a raster, a hidden series of a CDF card, a CDF's straight lines, the hourly lines' gaps, the
-// routing card's rows of panels and its policy legend, a bands card's key, the hit-ratio grid's all-cached row, and
-// the colour and the day axis the cards share. Each reads a card as its topic lists it and its answer as the
-// page reads it.
+// The Insights' cards (the topics of `insights/`) drawn from their shipped answers by the chart kinds of `charts/`, as
+// the `landing-page` spec describes them: the value under the pointer, a log axis, a raster, a hidden series of a CDF
+// card, a CDF's straight lines, the hourly lines' gaps, the routing card's rows of panels and its policy legend, a
+// bands card's key, the hit-ratio grid's all-cached row, and the colour and the day axis the cards share. Each reads
+// a card as its topic lists it and its answer as the page reads it.
 
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";

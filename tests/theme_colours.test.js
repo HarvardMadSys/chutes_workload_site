@@ -1,3 +1,5 @@
+// The palette's colours (`theme/colours.js`): the series and family slots, and the colours names, a bar chart, a
+// family's models, the endpoint groups and the families take from them.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 

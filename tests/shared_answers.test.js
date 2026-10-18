@@ -1,3 +1,5 @@
+// The answers (`shared/answers.js`): an answer read from its file under data/all/, a missing file's error naming it, a
+// figure's answer, and the head's preload of the explorer's first answer.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";

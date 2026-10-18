@@ -1,3 +1,5 @@
+// The link marks (`shared/link_marks.js`): each mark's svg, found by its name, before the text of the links off the
+// site, and sized by the stylesheet.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";

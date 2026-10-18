@@ -1,3 +1,5 @@
+// A chart's series and the breakdowns (`shared/series.js`): the rows shown, a legend's series, each breakdown's colours
+// and column, and the labels.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 

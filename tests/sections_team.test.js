@@ -1,3 +1,4 @@
+// The Team section (`sections/team.js`): the paper's authors in its order, each with their affiliation.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 

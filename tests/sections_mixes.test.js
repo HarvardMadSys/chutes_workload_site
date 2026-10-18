@@ -1,3 +1,5 @@
+// The two mixes (`sections/mixes.js`): the family and endpoint donuts, their legends' colours and order, and each
+// donut's centre against its answer and the stats strip.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";

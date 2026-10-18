@@ -1,3 +1,5 @@
+// The header and footer (`shared/layout.js`): their links to the page's sections and elsewhere, the page they head, and
+// the query string.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";

@@ -1,3 +1,5 @@
+// The number and date formats (`shared/format.js`): counts, durations, shares and quantities as text and as axis ticks,
+// and the trace's days and its first day.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";

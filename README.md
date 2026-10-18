@@ -500,34 +500,37 @@ tests/               what make test runs
                      colour legend, axis ticks and axis titles) read as text and compared with tests/snapshots/,
                      and no other topic's figure answers requested
   snapshots/         one folder per page state, one text file per unit, rewritten by make snapshots
-  *.test.js          node --test: one file per JavaScript module with pure functions, named after the module it
-                     tests (traffic.test.js for traffic/traffic.js), and the checks of the whole page
-                     below
-  figure_words.test.js
+  *.test.js          node --test: one file per JavaScript module with pure functions, and the checks of the whole
+                     page below, each named after the folder of the module it tests and then the module, the folder
+                     written once (charts_lines.test.js for charts/lines.js, traffic.test.js for
+                     traffic/traffic.js), a module's second file adding what it tests and a check over every
+                     Insights card being insights_cards_<what>.test.js, but for palette_contrast, module_headers and
+                     the test of a test helper, named after the helper (fake_page.test.js for fake_page.js)
+  insights_cards_words.test.js
                      the word counts of every card's insight, caption and definition, of each topic's takeaway,
                      and of each group's heading and takeaway
-  insights_figure_cards.test.js
+  insights_figure_card.test.js
                      every card's kind, and its shipped answer holding that kind's columns
   insights_card_series.test.js
                      a card's series' order, the colours each palette gives them, the fixed and highlighted series,
                      and its legend
   insights_routing_panels.test.js
                      the routing policies' colours, one per policy for every model
-  insights_figure_charts.test.js
+  insights_cards_charts.test.js
                      cards drawn from their shipped answers as the spec describes them: a tooltip, a log axis, a
                      raster's rows and rules, a series hidden in a CDF card, a CDF's straight lines, the hourly lines'
                      gaps, the routing card's rows and policy legend, a bands card's key, the hit grid's all-cached
                      row, the shared colour and the day axis
-  insights_month_axis.test.js
-                     the trace's month axis: its names, derived from the first day, the star of the partial last
-                     month explained in every definition on it, and its inset from the plot's edges
-  insights_caching_balancing.test.js
+  insights_cards_caching_balancing.test.js
                      the caching and balancing cards' axes, the eviction cards' tooltips listing every algorithm,
                      the occupancy's tooltip in hours and the user zooms' even split
-  traffic_period_buttons.test.js
+  plot_trace_axes.test.js
+                     the trace's month axis: its names, derived from the first day, the star of the partial last
+                     month explained in every definition on it, and its inset from the plot's edges
+  traffic_controls_period_buttons.test.js
                      the Traffic Explorer's period buttons: their labels, a press choosing its quarter's days, the
                      button pressed for a range, and the range a handle is released on written to the URL
-  explore_legend_shared.test.js
+  shared_legend_state.test.js
                      a legend that other charts follow: its first hidden set, each click's set told, and the note
                      of every series hidden in another chart
   fake_page.js       the stand-ins for an element, a figure's body, the topic sections and the browser's

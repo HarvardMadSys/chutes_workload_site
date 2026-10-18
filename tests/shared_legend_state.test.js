@@ -1,3 +1,5 @@
+// A legend's state (`shared/legend.js`): a chart that starts from a hidden set and tells each click's new set, and
+// another chart that follows a legend.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 

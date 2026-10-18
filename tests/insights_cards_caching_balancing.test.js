@@ -1,8 +1,8 @@
-// The Prefix caching and Load balancing topics' cards read as the paper's figures: the per-user IAT band card's linear
-// axis to 400 s, the TTL card's ticks at 1 ms and at the thresholds the paper quotes, its axis starting under 1 ms, the
-// eviction pair on one 0-to-1 axis with every algorithm in its tooltip, the cache profiles' request axes, the
-// occupancy's hours on its ticks and in its tooltip, and the user zooms' even split. Each reads a card as its topic
-// lists it and, where it needs one, its answer as the page reads it.
+// The Prefix caching and Load balancing topics' cards (`insights/caching.js`, `insights/balancing.js`) read as the
+// paper's figures: the per-user IAT band card's linear axis to 400 s, the TTL card's ticks at 1 ms and at the
+// thresholds the paper quotes, its axis starting under 1 ms, the eviction pair on one 0-to-1 axis with every algorithm
+// in its tooltip, the cache profiles' request axes, the occupancy's hours on its ticks and in its tooltip, and the user
+// zooms' even split. Each reads a card as its topic lists it and, where it needs one, its answer as the page reads it.
 
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";

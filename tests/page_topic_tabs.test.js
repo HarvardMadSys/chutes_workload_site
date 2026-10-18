@@ -1,3 +1,5 @@
+// The topic tabs (`page/topic_tabs.js`): the topic a hash or a history entry shows, the tabs' roles and keys, and Back
+// and Forward.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 

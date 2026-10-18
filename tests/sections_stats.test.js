@@ -1,3 +1,5 @@
+// The stats strip (`sections/stats.js`): its tiles from the trace totals, and the line of the trace's first and last
+// day.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 

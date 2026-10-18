@@ -1,3 +1,5 @@
+// The Cite section (`sections/cite.js`): the BibTeX entry, its copy button with and without a clipboard, and the
+// citation's sentence.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";

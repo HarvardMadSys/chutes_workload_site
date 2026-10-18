@@ -1,3 +1,5 @@
+// The legend (`shared/legend.js`): its toggles, its buttons and swatches, a chart drawn again on each click, the note
+// when every series is hidden, and its keys.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 

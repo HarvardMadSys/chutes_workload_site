@@ -1,6 +1,6 @@
-// The trace's month axis, which the monthly share, band and cohort cards share: its months named and the partial last
-// starred, the star explained in the definition of every card on it, and its ends inset so that its first name clears
-// the y axis's lowest label. Each reads a card as its topic lists it.
+// The trace's month axis (`plot/trace_axes.js`), which the monthly share, band and cohort cards share: its months
+// named and the partial last starred, the star explained in the definition of every card on it, and its ends inset so
+// that its first name clears the y axis's lowest label. Each reads a card as its topic lists it.
 
 import assert from "node:assert/strict";
 import { test } from "node:test";

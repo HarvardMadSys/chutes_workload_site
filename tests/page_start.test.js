@@ -1,3 +1,5 @@
+// The page's start (`page/start.js`): a topic placed, the opening topic's figures read once the explorer has drawn, and
+// Back and Forward over the tabs and the explorer's choice.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 

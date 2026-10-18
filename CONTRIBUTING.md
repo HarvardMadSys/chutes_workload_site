@@ -51,9 +51,9 @@ binding, and `make test` checks the countable ones.
     query joins it rather than doing date arithmetic. The site's
     JavaScript holds two copies for its axes and tooltips: the trace's
     first day, `TRACE_FIRST_DAY` of `shared/format.js`, which
-    `tests/format.test.js` checks against the shipped `trace_totals`, and
+    `tests/shared_format.test.js` checks against the shipped `trace_totals`, and
     the months' names, `TRACE_MONTH_NAMES` of `plot/trace_axes.js`,
-    which `tests/insights_month_axis.test.js` derives from that first
+    which `tests/plot_trace_axes.test.js` derives from that first
     day by `months.py`'s rule; a change to the calendar is made in both,
     and those tests fail until it is;
   - `family_models`, the rows of `setup/family_models.sql`: the daily
@@ -145,7 +145,7 @@ checks that each path it names exists.
   page's largest. `index.html`'s head preloads the explorer's daily
   answer by family (`<link rel="preload" as="fetch" crossorigin>`), so
   the browser starts it with the stylesheet, before the modules have
-  loaded; `tests/answers.test.js` checks that the preload names the file
+  loaded; `tests/shared_answers.test.js` checks that the preload names the file
   `readAnswer` reads for `FAMILY_QUERY` of `traffic/traffic.js`. The
   hero's and the Overview's answers are read as the page starts; the
   explorer reads its histogram answer once its bars are drawn; and
@@ -154,7 +154,7 @@ checks that each path it names exists.
   are read last. A tab pressed before then draws its topic at once, and
   the opening topic is never drawn twice. A family's answers are read
   when the family is first chosen; nothing is read for a topic not shown
-  or a family not chosen. `tests/explore_start.test.js` runs the page's
+  or a family not chosen. `tests/page_start.test.js` runs the page's
   start with the explorer on a fake page and checks this order.
 - **The Traffic Explorer's URL keys.** The explorer's choice is the URL's
   `family` (a family's slug, `daily_by_family`'s `family_slug`), `model`
@@ -291,7 +291,7 @@ and commit `site/data` with the change; read it in the page with
 `readAnswer("explore/<name>")`; then run `make snapshots`.
 
 **A pure JavaScript module with its test** (`site/js/shared/format.js`,
-`tests/format.test.js`): a header saying what the module holds, exported
+`tests/shared_format.test.js`): a header saying what the module holds, exported
 functions each with a JSDoc stating its definition, module-level constants
 with a comment, helpers below the exports, and a `node --test` file with one
 `test()` per behaviour.
@@ -314,7 +314,7 @@ rule. An entry with no `mark` is written without one, as the Cite
 sentence's link to the paper is. `linkMark` throws on a name that is no
 mark's rather than writing "undefined". A new mark is one path added to
 `LINK_MARKS`, its source named in the module's header;
-`tests/link_marks.test.js` checks the marked links and that no link on
+`tests/shared_link_marks.test.js` checks the marked links and that no link on
 the site carries a mark.
 
 **A topic and its groups.** A topic of the Insights holds its cards in
@@ -333,15 +333,15 @@ at most two sentences and forty words; its `cards` are in the paper's
 order. A topic module freezes the topic, each group and each `cards` list, and
 `topicCards(topic)` of `page/topics.js` lists a topic's
 cards group by group, the one way the tests list them.
-`tests/figure_words.test.js` counts these limits and a card's below;
+`tests/insights_cards_words.test.js` counts these limits and a card's below;
 `TOPIC_FIELDS` and `GROUP_FIELDS` in
-`tests/insights_figure_sections.test.js` list the fields.
+`tests/page_topics.test.js` list the fields.
 
 **A figure card.** Every figure of the Insights is drawn by the site from
 its answer, the artifact's plot-ready table, by one frozen card object of
 the fields below, and of no other:
 `CARD_FIELDS` and `OPTIONAL_CARD_FIELDS` in
-`tests/insights_figure_sections.test.js` list them.
+`tests/page_topics.test.js` list them.
 
 - `figure`: the figure's name, its file name in the artifact's
   `config/figures.json` without `.pdf`; the card draws
@@ -411,7 +411,7 @@ The table is the artifact's: the figure's reproduce script writes it and
 draws the paper's PDF from it (the rasters and the density and P90 grids
 from the points it bins), so a number the site needs and the table
 lacks is added there, never computed in the browser.
-`tests/insights_figure_cards.test.js` (`KIND_COLUMNS`) checks every shipped
+`tests/insights_figure_card.test.js` (`KIND_COLUMNS`) checks every shipped
 answer against its card's kind.
 
 **Adding a figure.** A figure is the artifact's: it ends at its plot-ready
@@ -429,11 +429,11 @@ table and the card's words.
    group says starts a group of its own, with a heading and a takeaway (a
    `// placeholder:` comment above them where they are not the paper's
    words). Raise its group's count in `GROUP_CARD_COUNTS` of
-   `tests/insights_figure_sections.test.js`, or add the new group's count
+   `tests/page_topics.test.js`, or add the new group's count
    there in its place, which also checks that the
    cards draw every answer of the index once (the shared legend is named by
-   two cards); `tests/insights_figure_cards.test.js` checks that its answer
-   has its kind's columns; `tests/figure_words.test.js` counts the words of
+   two cards); `tests/insights_figure_card.test.js` checks that its answer
+   has its kind's columns; `tests/insights_cards_words.test.js` counts the words of
    its insight, caption and definition; and, with `ARTIFACT`,
    `tests/test_figures_registry.py` checks that the cards draw every figure
    the artifact lists, and no other.

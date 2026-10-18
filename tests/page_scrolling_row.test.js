@@ -1,3 +1,5 @@
+// The scrolling row (`page/scrolling_row.js`): its mark while content lies beyond its right edge, and an item brought
+// into view.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 

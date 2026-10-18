@@ -1,3 +1,5 @@
+// A figure card (`insights/figure_card.js`): every card's kind and its answer's columns, its panels, series, palette
+// and legend answer, its words placed in order, its chart's parameters, and an answer's error.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";

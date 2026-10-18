@@ -1,3 +1,5 @@
+// The topic list (`page/topics.js`): the six topics in their tabs' order, their groups and cards, every field of a
+// card, the figure answers they draw, and their being frozen.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";

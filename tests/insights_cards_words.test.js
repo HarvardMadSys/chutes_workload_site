@@ -1,3 +1,5 @@
+// The words of every Insights topic, group and card (the topics of `insights/`, as `page/topics.js` lists them): each
+// takeaway, heading, insight, caption and definition within its sentences and words.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
