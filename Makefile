@@ -41,7 +41,7 @@ serve:
 # checkout; without it the tests that read it skip, and pytest's summary says why (README's "Running it").
 test:
 	ARTIFACT=$(ARTIFACT) $(PYTHON) -m pytest
-	node --test "tests/*.test.js"
+	node --test --test-reporter=spec "tests/*.test.js"
 	$(PYTHON) tests/snapshot.py
 
 # Rewrite tests/snapshots/ from the pages as they are now, when a change is meant to alter what a page shows.

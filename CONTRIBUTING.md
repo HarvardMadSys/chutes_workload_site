@@ -811,6 +811,11 @@ make snapshots  # when the change is meant to alter what the page shows
 make serve      # then open http://localhost:8000
 ```
 
+The node step prints one line per test, its name after a tick or a
+cross, and lists every failing test again at the end as `test at
+<file>:<line>` with its error, so a failure is read from the node step's
+last lines.
+
 A change to the trace query, or to the artifact's family table or daily
 rollup's kept models, also runs `make tables TRACE=<the released
 trace's Parquet file> ARTIFACT=<the artifact's checkout>` first, then
