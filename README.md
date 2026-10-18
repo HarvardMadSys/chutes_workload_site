@@ -395,9 +395,9 @@ site/                exactly the files that are deployed
   js/page/           the page's module and its start, the Insights' topics, their tabs and the tabs' scrolling row
     main.js          the page's module: it names the page's sections, starts the charting library's load and starts
                      the page
-    start.js         asks for the answers the sections share, places the Insights' groups and cards and draws their
-                     tabs, draws the header and footer, runs the sections, then draws the shown topic, and follows
-                     Back and Forward
+    start.js         asks for the answers the sections share, places the Insights' groups and cards and mounts their
+                     tabs, mounts the header and renders the footer, runs the sections, then draws the shown topic,
+                     and follows Back and Forward
     topic_tabs.js    the Insights' tabs, one topic shown at a time, the shown one in the URL's hash
     topics.js        the Insights' six topics in the order of their tabs, and a topic's cards group by group
     scrolling_row.js
@@ -423,7 +423,7 @@ site/                exactly the files that are deployed
     scatter.js       a dot per point, shaded on a scale diverging from zero
     boxes.js         a box per series from its five statistics
     bars.js          a bar per x of a panel
-  js/plot/           what every chart kind gives Plot
+  js/plot/           what the chart kinds and the cards give Plot: the frame, the axes, the trace's axes
     frame.js         a chart's frame and ink, its reference rules, and its colour scales
     axes.js          how many ticks an axis asks for, a log axis's powers of ten, a card's axis as Plot's scale and
                      marks, and a value as its axis writes it
@@ -505,11 +505,11 @@ tests/               what make test runs
                      and no other topic's figure answers requested
   snapshots/         one folder per page state, one text file per unit, rewritten by make snapshots
   *.test.js          node --test: one file per JavaScript module with pure functions, and the checks of the whole
-                     page below, each named after the folder of the module it tests and then the module, the folder
-                     written once (charts_lines.test.js for charts/lines.js, traffic.test.js for
-                     traffic/traffic.js), a module's second file adding what it tests and a check over every
-                     Insights card being insights_cards_<what>.test.js, but for palette_contrast, module_headers and
-                     the test of a test helper, named after the helper (fake_page.test.js for fake_page.js)
+                     page below. Each is named after the folder of the module it tests and then the module, the
+                     folder written once (charts_lines.test.js for charts/lines.js, traffic.test.js for
+                     traffic/traffic.js); a module's second file adds what it tests, and a check over every Insights
+                     card is insights_cards_<what>.test.js. Three are named otherwise: palette_contrast,
+                     module_headers, and the test of a test helper, named after it (fake_page.test.js)
   insights_cards_words.test.js
                      the word counts of every card's insight, caption and definition, of each topic's takeaway,
                      and of each group's heading and takeaway

@@ -100,10 +100,10 @@ CONTRIBUTING gives.
 - [ ] 4.3 `figure_card.js` draws a card (design D8): the trace's axes
       to `plot/trace_axes.js`, `COUNT_COLOUR` to `card_series.js`;
       `context.orders` becomes `context.mixes`, `startPage` builds the
-      context before it mounts the Insights, and
-      `drawFigureChart(body, card, mixes)` takes the endpoint mix's
-      rows from it; `ENDPOINT_PALETTE`, `ENDPOINT_ORDER` and
-      `endpointOrder` go. The start test's list of reads has
+      shared answers before it mounts the Insights and adds the history
+      part after, and `drawFigureChart(body, card, mixes)` takes the
+      endpoint mix's rows from them; `ENDPOINT_ORDER` and `endpointOrder`
+      go, and `ENDPOINT_PALETTE` moves to `card_series.js`. The start test's list of reads has
       `explore/endpoint_mix` once.
       *Verify:* opening the page requests `explore/endpoint_mix` once
       (the browser's network list); the Daily API calls card's colours
@@ -117,7 +117,7 @@ CONTRIBUTING gives.
       `drawDistributionCurves`, `drawing` in `drawDayBars`; and the
       twice-exported names `stackedBarTipText` and
       `drawnScatterPoints`; the raster's `columnCount` and `rowCount`.
-      `test_repository.py` gains
+      `tests/test_naming.py` gains
       `test_no_two_modules_export_one_name`, with a planted case.
       *Verify:* the new test fails on a planted second `drawBars` and
       passes on the tree; snapshots unchanged.
@@ -126,7 +126,7 @@ CONTRIBUTING gives.
 
 - [ ] 6.1 The node test files take the names of design D9's table by
       `git mv`, those task 3.2 split or renamed already aside; README's Layout block lists them under the rule;
-      `test_repository.py` gains
+      `tests/test_naming.py` gains
       `test_node_test_files_start_with_a_folder`, with a planted case.
       *Verify:* `git diff -M --stat tests` shows renames alone, except
       for the new test; `make test` runs as many node tests as before.

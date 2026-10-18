@@ -1,10 +1,10 @@
 /**
- * The page's start: it asks for the answers the sections share, places the Insights' groups and cards and draws their
- * topic tabs, draws the header and the footer, then runs the page's sections, once, from their answer files. The
- * topics (`page/topics.js`) are shown one at a time behind the tabs of the `#topic-tabs` row (`page/topic_tabs.js`); a
- * topic's figures are drawn from their answers the first time it is shown, so a topic never shown requests none. The
- * topic the page opens on is drawn once the sections have drawn or shown their errors; a topic a tab shows before
- * then is drawn at once.
+ * The page's start: it asks for the answers the sections share, places the Insights' groups and cards and mounts their
+ * topic tabs, mounts the header and renders the footer, then runs the page's sections, once, from their answer files.
+ * The topics (`page/topics.js`) are shown one at a time behind the tabs of the `#topic-tabs` row
+ * (`page/topic_tabs.js`); a topic's figures are drawn from their answers the first time it is shown, so a topic never
+ * shown requests none. The topic the page opens on is drawn once the sections have drawn or shown their errors; a topic
+ * a tab shows before then is drawn at once.
  *
  * The page's module names its sections, each `{ id, run }`: the id of its place in `index.html` and the function that
  * runs it, which shows its loading state at once and then draws its answer. A section runs as `run(container,
@@ -27,9 +27,9 @@ import { TOPICS } from "./topics.js";
 import { mountTopicTabs } from "./topic_tabs.js";
 
 /**
- * Start the page: draw its topic tabs, header and footer and its `sections`, and call `showMonthCount` with the
- * number of months the trace spans, null until the trace totals give it; once the sections have drawn, draw the shown
- * topic's figures. Settles once the sections have drawn or failed.
+ * Start the page: mount its topic tabs and header, render its footer, run its `sections`, and call `showMonthCount`
+ * with the number of months the trace spans, null until the trace totals give it; once the sections have drawn, draw
+ * the shown topic's figures. Settles once the sections have drawn or failed.
  */
 export async function startPage({ sections, showMonthCount }) {
   const answers = sharedAnswers();
@@ -49,7 +49,7 @@ export async function startPage({ sections, showMonthCount }) {
 
 /**
  * Follow the browser's history, as the page's one listener of `popstate`: on Back or Forward, show the topic of the
- * entry returned to (`showEntryTopic(state)`, as `mountTopicTabs` returns it), draw the header again from the entry's
+ * entry returned to (`showEntryTopic(state)`, as `mountTopicTabs` returns it), render the header again from the entry's
  * query, then call each `redraw` given to `onReturn`. Returns `{ replaceQuery, onReturn }`, the sections' part of the
  * history (see the module's comment).
  */
@@ -183,7 +183,7 @@ function scrollToAnchor() {
 
 /**
  * Write `params` to the address bar, as `queryString` writes them, keeping its anchor, without reloading the page;
- * then redraw the header, whose brand carries them.
+ * then render the header again, whose brand carries them.
  */
 function replaceQuery(params) {
   const { pathname, hash } = window.location;

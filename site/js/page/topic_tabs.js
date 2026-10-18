@@ -111,7 +111,7 @@ export function showTopic(topicSections, tabs, anchor) {
 }
 
 /**
- * Draw the tabs into `row` for `topics`, show the topic the URL's hash names (the first by
+ * Render the tabs into `row` for `topics`, show the topic the URL's hash names (the first by
  * default), keep it in the history entry the page opened on, and wire the tabs: a click or a key shows its topic and
  * writes its anchor as a new history entry. Return `showEntryTopic(state)`, which shows the topic of the history entry
  * that Back or Forward returned to, `state` being the entry's state. `onShow()` is called each time a tab, a key, Back

@@ -1,3 +1,4 @@
+// The rows a chart or a sum is taken from (`shared/rows.js`): totals, a panel's rows and a log axis's rows.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 

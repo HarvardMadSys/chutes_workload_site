@@ -1,6 +1,6 @@
-"""The answers over the fixture artifact: one file per Explore query holding its live rows, a family query's one per
-family, the sums that tie a family's answers to the by-family ones, and the hashes that tell a query edited since its
-answer was written."""
+"""The answers over the fixture artifact: one file per query of `queries/explore/` holding its live rows, a family
+query's one per family, the sums that tie a family's answers to the by-family ones, and the hashes that tell a query
+edited since its answer was written."""
 
 import datetime
 import json

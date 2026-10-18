@@ -1,4 +1,4 @@
-"""The answers of the site's queries: every Explore query run over the site's database, each written as
+"""The answers of the site's queries: every query of `queries/explore/` run over the site's database, each written as
 `all/explore/<query>.json`, and the SHA-256 of the text of each query an answer depends on written to
 `all/queries.json` as `{"<folder>/<query>": "<hex>"}`, so a query edited since can be found (`stale_queries`). An
 answer depends on its own query and on the setup query `setup/family_models`, whose rows the answers that name a

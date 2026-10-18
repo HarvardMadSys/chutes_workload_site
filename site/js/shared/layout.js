@@ -85,8 +85,8 @@ const MEASURED_HEADERS = new WeakSet();
 const HEADER_HEIGHT_PROPERTY = "--header-measured-height";
 
 /**
- * Draw the site header into `container` as `renderHeader` does, and keep the page's `--header-measured-height` at the
- * header's height whenever it changes. A redraw into the same container keeps the measuring.
+ * Render the site header into `container` as `renderHeader` does, and keep the page's `--header-measured-height` at
+ * the header's height whenever it changes. A second render into the same container keeps the measuring.
  */
 export function mountHeader(container, carried) {
   if (!MEASURED_HEADERS.has(container)) {

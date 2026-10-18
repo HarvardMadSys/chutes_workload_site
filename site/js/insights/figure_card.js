@@ -72,12 +72,12 @@ export function newCardElement(card) {
 }
 
 /**
- * Fill `container` with `card`'s words, as every figure card is laid out (`renderFigure` of `shared/figure.js`), its
+ * Fill `place` with `card`'s words, as every figure card is laid out (`renderFigure` of `shared/figure.js`), its
  * title an `h4` under its group's `h3`, and return its body, the place of its chart, showing the loading state. Its
  * Definition control opens on the definition alone.
  */
-export function renderFigureCard(container, card) {
-  const body = renderFigure(container, {
+export function renderFigureCard(place, card) {
+  const body = renderFigure(place, {
     title: card.title,
     insight: card.insight,
     caption: card.caption,

@@ -9,7 +9,7 @@ The trace table's builder (`tables.py`) writes two files into the tables folder:
 `weekly_histograms.parquet`, and its sidecar, `weekly_histograms.json`.
 """
 
-ANSWERS_FOLDER = "all"  # the answers of every Explore query, over the whole trace
+ANSWERS_FOLDER = "all"  # the query answers and the figure answers, over the whole trace
 QUERY_HASHES_FILE = "queries.json"  # in the answers folder: the hash of the text of each query the answers come from
 FIGURE_ANSWERS_FOLDER = "figures"  # in the answers folder: one answer per figure, the rows of its plot-ready table
 FIGURE_INDEX_FILE = "figures.json"  # in the answers folder: each figure's name and its answer's row count

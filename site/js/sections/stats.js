@@ -19,7 +19,7 @@ export async function runStats(container, context) {
 }
 
 /**
- * The strip's tiles `[{ value, label }]` for the one row of the trace totals: its months, requests, input and output
+ * The strip's numbers `[{ value, label }]` for the one row of the trace totals: its months, requests, input and output
  * tokens, user ids, models and instances. The months and the models are written in full, the rest compactly.
  */
 export function statsRows(totalsRow) {
@@ -34,7 +34,7 @@ export function statsRows(totalsRow) {
   ];
 }
 
-/** The line under the tiles, the trace's first and last day: "April 11, 2025 – April 12, 2026". */
+/** The line under the numbers, the trace's first and last day: "April 11, 2025 – April 12, 2026". */
 export function datesLine(totalsRow) {
   return dateSpanText(totalsRow.first_day, totalsRow.last_day);
 }

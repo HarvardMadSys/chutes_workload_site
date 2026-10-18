@@ -70,7 +70,8 @@ Exported names:
 | `POLICY_SEPARATOR`, `POLICY_COLOURS`, `seriesPolicy`, `policyColours` of `shared/series.js`; `policyLegend` of `insights/card_series.js` | `insights/routing_panels.js` |
 | `COUNT_COLOUR` of `insights/figure_card.js` | `insights/card_series.js` |
 | `TRACE_DAY_AXIS`, `TRACE_MONTH_TICKS`, `TRACE_MONTH_NAMES`, `PARTIAL_TRACE_MONTH`, `TRACE_MONTH_AXIS`, `traceMonthName` of `insights/figure_card.js` | `plot/trace_axes.js` |
-| `ENDPOINT_PALETTE`, `ENDPOINT_ORDER`, `endpointOrder` of `insights/figure_card.js` | removed (D8) |
+| `ENDPOINT_PALETTE` of `insights/figure_card.js` | `insights/card_series.js`, beside `POLICY_PALETTE` (D8) |
+| `ENDPOINT_ORDER`, `endpointOrder` of `insights/figure_card.js` | removed (D8) |
 
 Keys, parameters and locals:
 
@@ -122,7 +123,7 @@ holds the page's sections that have no folder of their own (hero,
 stats, mixes, cite, team), and "landing" was the page's third name.
 `donuts.js` becomes `mixes.js`, as it runs `#mixes` with `runMixes`
 and draws the two mixes, and a grep for "donut" then finds the kind
-alone.
+and the prose about the two donuts the mixes draw.
 
 `test_repository.py` checks that `index.html` loads `js/page/main.js`
 and that `page/start.js` imports the answers module, where it checked
@@ -211,7 +212,8 @@ Not taken: `Grouping`, which collides with the Insights' groups.
   legend's options object; the name it takes there is the same.
 - Twice-exported names get the kind or the section in their name:
   `drawTrafficBars`, `stackedBarTipText`, `drawnScatterPoints`. A
-  repository test, `test_no_two_modules_export_one_name`, collects the
+  naming test (`tests/test_naming.py`),
+  `test_no_two_modules_export_one_name`, collects the
   names after `export function`, `export async function` and
   `export const` in `site/js/` and fails naming both modules of a name
   exported twice.
@@ -297,11 +299,15 @@ from `series.test.js`, the policies' to a new
   `insights/card_series.js` with the other card colours.
 - The endpoint mix. The page reads `explore/endpoint_mix` once, as
   `context.mixes.endpoints`; `figure_card.js` read it a second time for
-  the Daily API calls card. `startPage` builds the context before it
-  mounts the Insights and passes `context.mixes` on;
+  the Daily API calls card. `startPage` first builds the shared
+  answers, `{ totals, mixes }`, then mounts the Insights with `mixes`,
+  then adds the history part (`replaceQuery`, `onReturn`) to make the
+  sections' context, since the history needs the mounted tabs;
   `drawFigureChart(body, card, mixes)` awaits `mixes.endpoints` for a
-  card of the endpoints' palette. `ENDPOINT_PALETTE`, `ENDPOINT_ORDER`
-  and `endpointOrder` go. The rows reach the card by the route they
+  card of the endpoints' palette. `ENDPOINT_ORDER` and `endpointOrder`
+  go; `ENDPOINT_PALETTE`, the palette's name, moves to
+  `insights/card_series.js` beside `POLICY_PALETTE`, and
+  `figure_card.js` and `workload.js` import it from there. The rows reach the card by the route they
   reach the Overview and the explorer by.
 
 Not taken: the bands kind's key as a property of `CHART_KINDS`. That is
@@ -319,8 +325,8 @@ after the module's name. A check over every Insights card is
 `insights_cards_<what>.test.js`. The checks of the stylesheet and of
 the headers, `palette_contrast` and `module_headers`, keep their names.
 A test helper that is not a test (`fake_page.js`, `palette.js`) is
-named for what it holds. `test_repository.py` gains
-`test_node_test_files_start_with_a_folder`: the word before the first
+named for what it holds. The naming test, `tests/test_naming.py`,
+holds `test_node_test_files_start_with_a_folder`: the word before the first
 `_` (or the whole name) is a folder of `site/js/`, except for the two
 named checks and for the test of a test helper, which is named after
 the helper it tests (`fake_page.test.js` for `fake_page.js`).
@@ -407,7 +413,12 @@ Each word below has one meaning in the code, the tests and these documents.
 - **placeholder**: `// placeholder:` marks words that are not the paper's own, for the authors.
 ```
 
-That is 40 lines. A word not in it is used in its everyday sense.
+That is 40 lines. As built, the section is wrapped to CONTRIBUTING's
+width, and the whole-branch review widened **section**, **Traffic
+Explorer**, **tile**, **card**, **kind**, **palette** and **place** to
+the senses the code uses, gave **container**, **place** and **body** a
+line each and added **the paper's words**; CONTRIBUTING's Words section
+is the text. A word not in it is used in its everyday sense.
 
 Not taken: a glossary in its own file. It would be a third document
 to find; CONTRIBUTING is where a newcomer starts.

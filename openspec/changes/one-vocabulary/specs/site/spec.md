@@ -49,7 +49,7 @@ site/             exactly the files that are deployed
   js/page/        the page's module and its start, the topic tabs and their scrolling row, the list of the Insights' topics
   js/sections/    the hero, the stats strip, the Overview's two mixes, the cite and team sections
   js/shared/      the answers, the libraries, formatting, a figure's elements and states, the rows' helpers, series and breakdowns, the legend of buttons, the layout, the link marks
-  js/plot/        what every chart kind gives the charting library: the frame and ink, the axes, the trace's day and month axes
+  js/plot/        what the chart kinds and the cards give the charting library: the frame and ink, the axes, the trace's day and month axes
   js/charts/      the nine chart kinds: donut, stacked_bars, lines, bands, cells, raster, scatter, boxes, bars
   js/theme/       the site's colours as the style tokens give them
   js/traffic/     the Traffic Explorer: its section, its filter, its controls, its bars, its day range, its tiles, and its distributions and their three charts

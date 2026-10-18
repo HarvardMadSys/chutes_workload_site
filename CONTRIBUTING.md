@@ -8,42 +8,75 @@ binding, and `make test` checks the countable ones.
 
 Each word below has one meaning in the code, the tests and these documents.
 
-- **the page**: `site/index.html`, the site's one page, started by `js/page/main.js`.
-- **section**: a part of the page under its own heading: hero, Overview, Traffic Explorer,
-  Insights, Cite, Team. A section that reads answers is *run*: `run(container, context)`.
-- **Overview**: the section of the two mixes, `#overview`. Nothing else is called so.
-- **mix**: one of the Overview's donuts: the requests' shares by family or by endpoint group.
-  `context.mixes` holds the two answers' rows.
-- **Traffic Explorer**, or **the explorer**: the section of bars, tiles and distributions, `js/traffic/`.
-- **choice**: what the explorer shows, kept in six URL keys: family, model, endpoint, metric, from, to.
-- **tile**: one of the explorer's four numbers.
-- **topic**: one of the Insights' six tabs, listed in `js/page/topics.js`. The first is the
-  workload (`insights/workload.js`); its anchor stays `#insights-overview` for shared links.
+- **the page**: `site/index.html`, the site's one page, started by
+  `js/page/main.js`.
+- **section**: a part of the page under its own heading: hero, Overview,
+  Traffic Explorer, Insights, Cite, Team. A section that reads answers is
+  *run*, as `run(container, context)`: the stats strip, the Overview's mixes
+  and the Traffic Explorer. The hero, Cite, Team and the Insights are
+  rendered or mounted instead.
+- **Overview**: the section of the two mixes, `#overview`. Nothing else is
+  called so.
+- **mix**: one of the Overview's donuts: the requests' shares by family or by
+  endpoint group. `context.mixes` holds the two answers' rows.
+- **Traffic Explorer**, or **the explorer**: the section of bars, tiles and
+  distributions, `js/traffic/`. Its anchor is `#traffic`; the element it runs
+  in is `#traffic-explorer`.
+- **choice**: what the explorer shows, kept in six URL keys: family, model,
+  endpoint, metric, from, to.
+- **tile**: one of the explorer's four numbers. The stats strip's are its
+  *numbers*.
+- **topic**: one of the Insights' six tabs, listed in `js/page/topics.js`.
+  The first is the workload (`insights/workload.js`); its anchor stays
+  `#insights-overview` for shared links.
 - **group**: a topic's heading, takeaway and grid of cards.
-- **figure**: a titled chart with its caption and Definition, as `renderFigure` lays it out.
-  **card**: one of the paper's figures (`fig_…`) in a topic, with its words.
-- **panel**: one of several charts in one card, drawn from the rows whose `panel` column names it.
-- **answer**: a JSON file under `site/data/all/` that the page reads by name. A *query answer*
-  comes from a `.sql` file; a *figure answer* is the artifact's plot-ready table and runs no query.
-  In a data path, `explore/` means the query answers, not the explorer.
-- **trace day**, **trace week**, **trace month**: one day, seven days, a month-long stretch,
-  counted from the trace's first day, 2025-04-11; not calendar weeks or months.
-- **chart**: what one draw function draws into one body. **kind**: one of the nine ways to
-  draw one, a module of `js/charts/`.
-- **Plot**: Observable Plot, the charting library. `js/plot/` holds what every kind gives it:
-  the frame, the axes, the trace's axes.
-- **series**: the names a chart draws, each a line, a slice or a stack of segments.
-- **breakdown**: how rows split into series: `BY_FAMILY`, `BY_MODEL` or `BY_ENDPOINT`.
-- **legend**: the buttons above a chart that hide and show its series; one button is an *entry*.
-- **slot**: one of the theme's series colours. **palette**: which slots a card's series take.
-- **container**, **place**, **body**: the elements the code fills: a section's `container`
-  from `index.html`, a figure's `place` that `renderFigure` lays out, a chart's `body` that
-  a kind draws into. `showLoading`, `showNote` and `showError` take any of the three.
-- Verbs: **run** a section; **render** markup once from data; **mount** render and listen;
-  **place** lay out empty elements to fill later; **draw** a chart; **show** a state.
-- **state** and **unit**: the snapshot test opens the page in six states, one per topic, and
-  reads each unit (a chart, a legend, a block of text) as text.
-- **placeholder**: `// placeholder:` marks words that are not the paper's own, for the authors.
+- **figure**: a titled chart with its caption and Definition, as
+  `renderFigure` lays it out.
+- **card**: the bordered box a figure or a mix sits in (`.card`). An
+  *Insights card* is one of the paper's figures (`fig_…`) in a topic, with
+  its words.
+- **panel**: one of several charts in one card, drawn from the rows whose
+  `panel` column names it.
+- **answer**: a JSON file under `site/data/all/` that the page reads by name.
+  A *query answer* comes from a `.sql` file; a *figure answer* is the
+  artifact's plot-ready table and runs no query. In a data path, `explore/`
+  means the query answers, not the explorer.
+- **trace day**, **trace week**, **trace month**: one day, seven days, a
+  month-long stretch, counted from the trace's first day, 2025-04-11; not
+  calendar weeks or months.
+- **chart**: what one draw function draws into one body.
+- **kind**: one of the nine ways to draw a chart, a module of `js/charts/`.
+  An Insights card names its kind by a key of `CHART_KINDS`, which adds
+  `cdf`, lines drawn as a CDF, and leaves out `donut`, which only the
+  Overview draws.
+- **Plot**: Observable Plot, the charting library. `js/plot/` holds what the
+  chart kinds and the cards give it: the frame, the axes, the trace's axes.
+- **series**: the names a chart draws, each a line, a slice or a stack of
+  segments.
+- **breakdown**: how rows split into series: `BY_FAMILY`, `BY_MODEL` or
+  `BY_ENDPOINT`.
+- **legend**: the buttons above a chart that hide and show its series; one
+  button is an *entry*.
+- **slot**: one of the theme's series colours.
+- **palette**: which slots a card's series take (`PALETTES`). The theme's
+  palette is its whole set of colours (`tests/palette.js`).
+- **container**: a section's element, from `index.html`.
+- **place**: an empty element laid out to be filled later
+  (`placeDistributionCharts`, `placePanels`); a figure's place is what
+  `renderFigure` fills, and a chart's place is the body a kind draws into.
+- **body**: the element a chart is drawn into. `showLoading`, `showNote` and
+  `showError` take a container, a place or a body.
+- Verbs: **run** a section; **render** markup once from data; **mount**
+  render and listen; **place** lay out empty elements to fill later; **draw**
+  a chart; **show** a state.
+- **state** and **unit**: the snapshot test opens the page in six states, one
+  per topic, and reads each unit (a chart, a legend, a block of text) as
+  text.
+- **placeholder**: `// placeholder:` marks words that are not the paper's
+  own, for the authors.
+- **the paper's words**: placeholder copy keeps the paper's own words (its
+  sections, panels, the overview paragraph); they are the authors', not the
+  code's.
 
 ## The rules
 
@@ -148,15 +181,15 @@ checks that each path it names exists.
   (`#overview`), the Traffic Explorer (`#traffic`), the Insights
   (`#insights`), Cite (`#cite`) and Team.
 - The page's module, `js/page/main.js`, lists its sections in
-  `SECTIONS`, each `{ id, run }`, starts the charting library's load
-  (see "JavaScript style") and calls `startPage` of `page/start.js`
-  with the sections. `startPage` asks for the answers the sections share,
-  places the Insights' groups and cards and their tabs, draws the header
-  and the footer, and runs each section as `run(container, context)`;
+  `SECTIONS`, each `{ id, run }`, starts the charting library's load (see
+  "JavaScript style") and calls `startPage` of `page/start.js` with the
+  sections. `startPage` asks for the answers the sections share, places
+  the Insights' groups and cards and mounts their tabs, mounts the header,
+  renders the footer, and runs each section as `run(container, context)`;
   `context` is described in `page/start.js`. Its `mixes` are the rows of
   `explore/family_mix` and `explore/endpoint_mix`, asked for once: the
-  donuts' rows, and the order every chart, the Insights' cards among
-  them, colours the endpoint groups by.
+  donuts' rows, and the order every chart, the Insights' cards among them,
+  colours the endpoint groups by.
 - The header links the page's sections by anchor alone (`LINKED_SECTIONS`
   of `shared/layout.js`); its brand links the page with the URL's keys. On
   a phone it is two rows, the brand and the four links, which wrap, and the
@@ -332,10 +365,13 @@ and commit `site/data` with the change; read it in the page with
 `readAnswer("explore/<name>")`; then run `make snapshots`.
 
 **A pure JavaScript module with its test** (`site/js/shared/format.js`,
-`tests/shared_format.test.js`): a header saying what the module holds, exported
-functions each with a JSDoc stating its definition, module-level constants
-with a comment, helpers below the exports, and a `node --test` file with one
-`test()` per behaviour.
+`tests/shared_format.test.js`): a header saying what the module holds,
+exported functions each with a JSDoc stating its definition, module-level
+constants with a comment, helpers below the exports, and a `node --test` file
+with one `test()` per behaviour. The test file is named after the module, its
+folder's word first (`shared_format.test.js` for `shared/format.js`), and the
+naming test, `tests/test_naming.py`, fails on a node test file whose name
+starts with no folder of `site/js/`.
 
 **A Python module with its test** (`site_data/months.py`,
 `tests/test_months.py`): a module docstring stating the definition, a

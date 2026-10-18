@@ -2,10 +2,10 @@
 
 The artifact is a checkout of the paper's artifact repository, whose caches, figure list and plot-ready tables the step
 reads; the tables folder, by default this repository's `tables/`, holds the trace table `make tables` built. It writes
-the answer of every Explore query under the data folder (`answers.py`), then the answer of every listed figure there
-(`figure_answers.py`), and prints each file written with its size, then the totals. Every cache, the trace table and
-every plot-ready table are read in memory first: a missing artifact folder or file stops the run with its message and
-exit status 1, before anything is written.
+the answer of every query of `queries/explore/` under the data folder (`answers.py`), then the answer of every listed
+figure there (`figure_answers.py`), and prints each file written with its size, then the totals. Every cache, the
+trace table and every plot-ready table are read in memory first: a missing artifact folder or file stops the run with
+its message and exit status 1, before anything is written.
 """
 
 import argparse

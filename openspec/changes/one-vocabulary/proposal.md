@@ -50,8 +50,8 @@ decided here once.
   `orders` each get a name for what they hold; the twice-exported
   names become `drawTrafficBars`, `stackedBarTipText` and
   `drawnScatterPoints`; the raster counts its grid in `columnCount`
-  and `rowCount`. A repository test fails when two modules export one
-  name.
+  and `rowCount`. The naming test (`tests/test_naming.py`) fails when
+  two modules export one name.
 - **The legend moves to `shared/legend.js`**, and its rule that a
   legend of fewer than two series hides nothing has one home.
 - **`shared/charts.js` is split into its parts.** The frame, ink,
@@ -67,7 +67,7 @@ decided here once.
   the cards from the page rather than by a second read.
 - **Test files under one rule.** A node test file's name starts with
   the folder of the module it tests; a module's own test is named after
-  it. A repository test checks the rule.
+  it. The naming test checks the rule.
 
 ## What it moves
 

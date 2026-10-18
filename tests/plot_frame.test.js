@@ -1,3 +1,4 @@
+// The Plot options every chart kind starts from (`plot/frame.js`): frame, margins, reference rules, colour scales.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 

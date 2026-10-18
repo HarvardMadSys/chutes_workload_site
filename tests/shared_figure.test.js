@@ -1,3 +1,4 @@
+// A figure's elements (`shared/figure.js`): its chart's name for a screen reader.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 

@@ -1,4 +1,4 @@
-// The stats strip (`sections/stats.js`): its tiles from the trace totals, and the line of the trace's first and last
+// The stats strip (`sections/stats.js`): its numbers from the trace totals, and the line of the trace's first and last
 // day.
 import assert from "node:assert/strict";
 import { test } from "node:test";
@@ -18,7 +18,7 @@ const TOTALS_ROW = Object.freeze({
   instances: 875_921,
 });
 
-test("the strip's tiles are the totals' months, requests, tokens, user ids, models and instances, each formatted", () => {
+test("the strip's numbers are the totals' months, requests, tokens, user ids, models and instances, each formatted", () => {
   assert.deepEqual(statsRows(TOTALS_ROW), [
     { value: "13", label: "Months" },
     { value: "6.12B", label: "Requests" },
@@ -30,6 +30,6 @@ test("the strip's tiles are the totals' months, requests, tokens, user ids, mode
   ]);
 });
 
-test("the line under the tiles names the trace's first and last day", () => {
+test("the line under the numbers names the trace's first and last day", () => {
   assert.equal(datesLine(TOTALS_ROW), "April 11, 2025 – April 12, 2026");
 });

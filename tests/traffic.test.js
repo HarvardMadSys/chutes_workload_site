@@ -139,7 +139,7 @@ function tileValues(tiles) {
 // Opened on the completions of the trace's first two days, which hold none, the bars are a note node can draw.
 const NO_COMPLETION_QUERY = "?endpoint=completion&to=2025-07-01";
 
-test("the handles sit under the bars on the URL's range and draw the tiles as they move, writing it once released",
+test("the handles sit under the bars on the URL's range and write the tiles as they move, writing it once released",
   async (context) => {
     const page = runExplorer(context, NO_COMPLETION_QUERY, { [FAMILY_FILE]: THREE_DAY_ROWS });
     await page.running;

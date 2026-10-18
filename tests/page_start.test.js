@@ -204,7 +204,7 @@ const ENDPOINT_ROWS = [{ endpoint_group: "chat", requests: 10 }];
  * any other answering 404, and the page opened on the endpoint group completion. Returns `{ reads, tabs, started }`:
  * the files read, in order, the topic tabs and the page's promise.
  */
-function startedExplorePage(context, answers) {
+function startedPageWithExplorer(context, answers) {
   const sections = topicSections();
   for (const section of sections) {
     // The Insights section, which the page scrolls into view when it opens on a topic's anchor.
@@ -261,7 +261,8 @@ test("the opening topic's figures are read once the explorer has drawn: the dail
   async (context) => {
     const daily = deferred();
     const histograms = deferred();
-    const page = startedExplorePage(context, { [DAILY_FILE]: daily.promise, [HISTOGRAMS_FILE]: histograms.promise });
+    const answers = { [DAILY_FILE]: daily.promise, [HISTOGRAMS_FILE]: histograms.promise };
+    const page = startedPageWithExplorer(context, answers);
     await settled();
     assert.deepEqual(page.reads, [TOTALS_FILE, FAMILIES_FILE, ENDPOINTS_FILE, DAILY_FILE]);
     daily.resolve(DAILY_ROWS);
@@ -279,7 +280,7 @@ test("the opening topic's figures are read once the explorer has drawn: the dail
 test("a tab pressed before the explorer has drawn reads its topic's figures at once, and the opening topic's never",
   async (context) => {
     const daily = deferred();
-    const page = startedExplorePage(context, { [DAILY_FILE]: daily.promise, [HISTOGRAMS_FILE]: [] });
+    const page = startedPageWithExplorer(context, { [DAILY_FILE]: daily.promise, [HISTOGRAMS_FILE]: [] });
     await settled();
     page.tabs[1].dispatch("click");
     await settled();

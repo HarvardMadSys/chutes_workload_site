@@ -1,3 +1,4 @@
+// A card's axes as Plot takes them (`plot/axes.js`): ticks, scales, axis marks and a value as its axis writes it.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 

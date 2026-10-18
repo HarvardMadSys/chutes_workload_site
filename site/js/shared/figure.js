@@ -40,13 +40,13 @@ export function showErrorNote(container, error) {
 }
 
 /**
- * Fill `container` with a figure card and return its body, the empty place to draw into. A card with an `insight`, one
+ * Fill `place` with a figure card and return its body, the empty place to draw into. A card with an `insight`, one
  * sentence of what the chart means, shows its title, the insight, an empty place for its legend, the body and its
  * caption (evidence supporting the insight); a card without one shows its title, its caption, the legend's place and
  * the body. Both end in a Definition control that opens on the full definition and, where `rows` is given, the line of
  * rows it rests on. The title is a heading of the tag `heading`, an `h3` under a section's `h2` by default.
  */
-export function renderFigure(container, { title, insight = null, caption, definition, rows = "", heading = "h3" }) {
+export function renderFigure(place, { title, insight = null, caption, definition, rows = "", heading = "h3" }) {
   const figure = document.createElement("div");
   figure.className = "figure";
   const titleLine = textElement(heading, "figure-title", title);
@@ -59,7 +59,7 @@ export function renderFigure(container, { title, insight = null, caption, defini
     figure.append(titleLine, textElement("p", "figure-insight", insight), legend, body, captionLine);
   }
   figure.append(figureDefinition(definition, rows));
-  container.replaceChildren(figure);
+  place.replaceChildren(figure);
   return body;
 }
 
